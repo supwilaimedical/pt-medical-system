@@ -1,0 +1,2922 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <title>PT-System | Patient Transport</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;600;700&display=swap" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="../shared/styles.css">
+  <style>
+    /* Transport-specific styles */
+    .timeline-bar { position:relative; display:flex; align-items:center; background:#fff; border-radius:12px; padding:12px 16px; box-shadow:0 2px 8px rgba(0,0,0,0.04); margin-bottom:16px; overflow-x:auto; }
+    .timeline-point { text-align:center; flex:1; min-width:80px; position:relative; z-index:1; }
+    .timeline-point .tl-dot { width:20px; height:20px; border-radius:50%; border:3px solid #dee2e6; background:#fff; margin:0 auto 4px; transition:all 0.3s; cursor:pointer; }
+    .timeline-point .tl-dot.filled { background:#198754; border-color:#198754; }
+    .timeline-point .tl-dot.active-dot { border-color:#0d6efd; box-shadow:0 0 0 4px rgba(13,110,253,0.2); }
+    .timeline-point .tl-label { font-size:0.7rem; color:#6c757d; white-space:nowrap; }
+    .timeline-point .tl-time { font-size:0.68rem; color:#198754; font-weight:600; }
+    .timeline-line { position:absolute; top:22px; left:10%; right:10%; height:3px; background:#dee2e6; z-index:0; }
+
+    .triage-resuscitation { background-color:#dc3545!important; color:#fff!important; }
+    .triage-emergency { background-color:#fd7e14!important; color:#fff!important; }
+    .triage-urgent { background-color:#ffc107!important; color:#000!important; }
+    .triage-less-urgent { background-color:#198754!important; color:#fff!important; }
+
+    .triage-indicator-resuscitation { background-color:#dc3545; }
+    .triage-indicator-emergency { background-color:#fd7e14; }
+    .triage-indicator-urgent { background-color:#ffc107; }
+    .triage-indicator-less-urgent { background-color:#198754; }
+
+    .arrest-section { background:#fff5f5; border:2px solid #dc3545; border-radius:12px; padding:16px; }
+    .arrest-section.active-arrest { border-color:#dc3545; }
+    .arrest-section:not(.active-arrest) { opacity:0.5; pointer-events:none; }
+
+    .equip-check { min-width:140px; }
+    .iv-table th { font-size:0.78rem; white-space:nowrap; }
+    .iv-table td { vertical-align:middle; }
+    .iv-table input, .iv-table select { font-size:0.85rem; }
+
+    .vital-log-entry .form-control, .vital-log-entry .form-select { font-size:0.85rem; }
+    .arrest-log-entry { background:#fff5f5; border:1px solid #f8d7da; border-radius:12px; padding:12px; margin-bottom:10px; }
+
+    .nurse-note-area { min-height:100px; }
+
+    /* Status bar colors */
+    .status-active { color:#198754; }
+    .status-completed { color:#0d6efd; }
+    .status-cancelled { color:#dc3545; }
+
+    /* Banner triage stripe */
+    .banner-triage-stripe { width:6px; border-radius:3px; min-height:40px; }
+
+    /* Admin tabs */
+    .admin-tab-content { min-height:300px; }
+
+    /* Init vitals popup */
+    .init-vitals-display { background:#f8f9fa; border-radius:10px; padding:10px 14px; font-size:0.85rem; cursor:pointer; transition:all 0.2s; border:1px solid #e9ecef; }
+    .init-vitals-display:hover { background:#e9ecef; }
+  </style>
+</head>
+<body>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+  <script src="../shared/config.js"></script>
+  <script src="../shared/auth.js"></script>
+  <script src="../shared/cloudinary.js"></script>
+
+  <!-- ==================== LOGIN SCREEN ==================== -->
+  <div id="login-view">
+    <div class="card p-4 shadow" style="width:100%;max-width:380px;border-radius:16px;border:none;">
+      <div class="text-center mb-4">
+        <div class="bg-primary-subtle text-primary rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width:80px;height:80px;">
+          <i class="bi bi-ambulance fs-1"></i>
+        </div>
+        <h4 class="fw-bold text-dark">ระบบนำส่งผู้ป่วย</h4>
+        <p class="text-muted small">Patient Transport System</p>
+      </div>
+      <form id="login-form" onsubmit="handleLogin(event)">
+        <div class="mb-3">
+          <label class="form-label small fw-bold text-secondary">Username / Email</label>
+          <div class="input-group">
+            <span class="input-group-text bg-light border-end-0"><i class="bi bi-person text-muted"></i></span>
+            <input type="text" id="login-user" class="form-control bg-light border-start-0 ps-0" placeholder="admin" required>
+          </div>
+        </div>
+        <div class="mb-4">
+          <label class="form-label small fw-bold text-secondary">Password</label>
+          <div class="input-group">
+            <span class="input-group-text bg-light border-end-0"><i class="bi bi-key text-muted"></i></span>
+            <input type="password" id="login-pass" class="form-control bg-light border-start-0 ps-0" placeholder="รหัสผ่าน" required>
+          </div>
+        </div>
+        <button type="submit" class="btn btn-primary w-100 py-2 fw-bold rounded-3 shadow-sm" id="btn-login">เข้าสู่ระบบ (Login)</button>
+      </form>
+      <div id="login-error" class="alert alert-danger mt-3 d-none small text-center rounded-3"></div>
+    </div>
+  </div>
+
+  <!-- ==================== MAIN APP ==================== -->
+  <div id="app-main-wrapper" style="display:none;">
+
+    <!-- Navbar -->
+    <nav class="navbar navbar-dark bg-modern-primary px-3 py-2">
+      <div class="d-flex align-items-center">
+        <img id="navbar-logo" src="" alt="Logo" style="display:none;height:36px;margin-right:10px;border-radius:6px;">
+        <i class="bi bi-ambulance text-white fs-4 me-2" id="navbar-icon"></i>
+        <span class="navbar-brand mb-0 fw-bold">ระบบนำส่งผู้ป่วย</span>
+      </div>
+      <div class="d-flex align-items-center gap-2">
+        <span class="text-white-50 small d-none d-md-inline" id="nav-username"></span>
+        <button class="btn btn-sm btn-outline-light rounded-pill px-3 d-none" id="btn-admin-settings" onclick="showAdminView()"><i class="bi bi-gear me-1"></i>ตั้งค่า</button>
+        <button class="btn btn-sm btn-outline-light rounded-pill px-3" onclick="handleLogout()"><i class="bi bi-box-arrow-right me-1"></i>ออก</button>
+      </div>
+    </nav>
+
+    <div class="container py-3" style="max-width:900px;">
+
+      <!-- ==================== DASHBOARD VIEW ==================== -->
+      <div id="dashboard-view" class="view-section active">
+        <div class="d-flex justify-content-between align-items-end mb-3">
+          <div>
+            <h4 class="dashboard-header mb-1"><i class="bi bi-clipboard2-pulse text-primary me-2"></i>รายการนำส่งผู้ป่วย</h4>
+            <p class="text-muted small mb-0">Patient Transport Records</p>
+          </div>
+        </div>
+
+        <!-- Search Panel -->
+        <div class="search-panel mb-3">
+          <div class="row g-2 align-items-end">
+            <div class="col">
+              <div class="input-group input-group-sm">
+                <span class="input-group-text"><i class="bi bi-search"></i></span>
+                <input type="text" id="search-name" class="form-control" placeholder="ค้นหาชื่อ / Case ID" onkeyup="if(event.key==='Enter') loadDashboardData(1)">
+              </div>
+            </div>
+            <div class="col-auto">
+              <input type="date" id="search-date" class="form-control form-control-sm" onchange="loadDashboardData(1)">
+            </div>
+            <div class="col-auto">
+              <button class="btn btn-sm btn-primary" onclick="loadDashboardData(1)"><i class="bi bi-search"></i></button>
+            </div>
+            <div class="col-auto">
+              <button class="btn btn-sm btn-outline-secondary" onclick="document.getElementById('search-name').value='';document.getElementById('search-date').value='';loadDashboardData(1)"><i class="bi bi-x-lg"></i></button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Loading Spinner -->
+        <div id="loading-spinner" class="text-center py-5" style="display:none;">
+          <div class="spinner-border text-primary" role="status"></div>
+          <p class="text-muted mt-2 small">กำลังโหลดข้อมูล...</p>
+        </div>
+
+        <!-- Patient List -->
+        <div id="patient-list-container"></div>
+
+        <!-- Pagination -->
+        <div id="pagination-container" class="d-flex justify-content-center mt-3"></div>
+
+        <!-- FAB -->
+        <div class="fab-btn" onclick="openNewCase()" title="สร้าง Case ใหม่">
+          <i class="bi bi-plus-lg"></i>
+        </div>
+      </div>
+
+      <!-- ==================== FORM VIEW ==================== -->
+      <div id="form-view" class="view-section">
+
+        <!-- Back + Status Bar -->
+        <div class="d-flex justify-content-between align-items-center mb-2">
+          <button class="btn btn-sm btn-outline-secondary rounded-pill" onclick="confirmBackToDashboard()"><i class="bi bi-arrow-left me-1"></i>กลับ</button>
+          <div class="d-flex align-items-center gap-2">
+            <span id="form-status-badge" class="badge bg-success">Active</span>
+            <span id="form-case-id-display" class="text-muted small"></span>
+          </div>
+        </div>
+
+        <!-- Stepper -->
+        <div class="step-indicator" id="step-indicator">
+          <div class="step-item active" onclick="goToStep(1)">
+            <span class="step-number">1</span><span class="step-label">ข้อมูลผู้ป่วย</span>
+          </div>
+          <div class="step-item" onclick="goToStep(2)">
+            <span class="step-number">2</span><span class="step-label">Assessment</span>
+          </div>
+          <div class="step-item" onclick="goToStep(3)">
+            <span class="step-number">3</span><span class="step-label">ระหว่างนำส่ง</span>
+          </div>
+        </div>
+
+        <!-- Timeline Bar -->
+        <div class="timeline-bar" id="timeline-bar">
+          <div class="timeline-line"></div>
+          <!-- EMS 4 points / Refer 2 points — rendered by JS -->
+        </div>
+
+        <!-- Patient Banner -->
+        <div class="patient-banner d-flex align-items-center gap-3" id="patient-banner" style="display:none!important;">
+          <div class="banner-triage-stripe" id="banner-triage-stripe"></div>
+          <div class="flex-grow-1">
+            <div class="fw-bold" id="banner-name">-</div>
+            <div class="small text-muted"><span id="banner-age">-</span> ปี | <span id="banner-gender">-</span> | <span id="banner-triage">-</span></div>
+          </div>
+          <button class="btn btn-sm btn-outline-primary rounded-pill" onclick="openEditModal()"><i class="bi bi-pencil-square"></i></button>
+        </div>
+
+        <!-- MAIN FORM -->
+        <form id="main-form" autocomplete="off">
+          <input type="hidden" id="f-caseId">
+          <input type="hidden" id="f-status" value="Active">
+
+          <!-- ========== STEP 1: Patient Info ========== -->
+          <div id="step-1" class="step-content">
+
+            <!-- Operation Info -->
+            <div class="card island-card mb-3">
+              <div class="card-body p-3">
+                <h6 class="card-title fw-bold mb-3"><i class="bi bi-truck-front text-primary me-2"></i>ข้อมูลปฏิบัติการ</h6>
+                <div class="row g-2">
+                  <div class="col-6">
+                    <label class="form-label small fw-bold">ระดับปฏิบัติการ</label>
+                    <div class="btn-group w-100" role="group">
+                      <input type="radio" class="btn-check" name="op_level" id="op-als" value="ALS" checked>
+                      <label class="btn btn-outline-secondary btn-sm rounded-pill me-1" for="op-als">ALS</label>
+                      <input type="radio" class="btn-check" name="op_level" id="op-bls" value="BLS">
+                      <label class="btn btn-outline-secondary btn-sm rounded-pill" for="op-bls">BLS</label>
+                    </div>
+                  </div>
+                  <div class="col-6">
+                    <label class="form-label small fw-bold">หมายเลขรถ</label>
+                    <input type="text" id="f-op-unit-no" class="form-control form-control-sm bg-light" placeholder="เช่น 1, 2">
+                  </div>
+                  <div class="col-12">
+                    <label class="form-label small fw-bold">เจ้าหน้าที่ร่วมปฏิบัติการ</label>
+                    <input type="text" id="f-op-staff" class="form-control form-control-sm bg-light" placeholder="ชื่อเจ้าหน้าที่ (คั่นด้วย ,)">
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Classification -->
+            <div class="card island-card mb-3">
+              <div class="card-body p-3">
+                <h6 class="card-title fw-bold mb-3"><i class="bi bi-tags text-warning me-2"></i>Classification</h6>
+                <div class="row g-2">
+                  <div class="col-12">
+                    <label class="form-label small fw-bold">Triage Level</label>
+                    <div class="btn-group w-100" role="group">
+                      <input type="radio" class="btn-check" name="triage_level" id="triage-resus" value="Resuscitation">
+                      <label class="btn btn-outline-danger btn-sm" for="triage-resus">Resuscitation</label>
+                      <input type="radio" class="btn-check" name="triage_level" id="triage-emer" value="Emergency">
+                      <label class="btn btn-outline-warning btn-sm" for="triage-emer">Emergency</label>
+                      <input type="radio" class="btn-check" name="triage_level" id="triage-urgent" value="Urgent">
+                      <label class="btn btn-outline-info btn-sm" for="triage-urgent">Urgent</label>
+                      <input type="radio" class="btn-check" name="triage_level" id="triage-less" value="Less Urgent" checked>
+                      <label class="btn btn-outline-success btn-sm" for="triage-less">Less Urgent</label>
+                    </div>
+                  </div>
+                  <div class="col-12">
+                    <label class="form-label small fw-bold">ประเภทการนำส่ง</label>
+                    <div class="btn-group w-100" role="group">
+                      <input type="radio" class="btn-check" name="transport_type" id="tt-ems" value="EMS" onchange="updateTransportTypeUI()" checked>
+                      <label class="btn btn-outline-secondary btn-sm rounded-pill me-1" for="tt-ems">EMS</label>
+                      <input type="radio" class="btn-check" name="transport_type" id="tt-refer" value="Refer" onchange="updateTransportTypeUI()">
+                      <label class="btn btn-outline-secondary btn-sm rounded-pill" for="tt-refer">Refer</label>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Scene Info (EMS only) -->
+            <div class="card island-card mb-3" id="scene-info-card">
+              <div class="card-body p-3">
+                <h6 class="card-title fw-bold mb-3"><i class="bi bi-geo-alt text-danger me-2"></i>ข้อมูลจุดเกิดเหตุ (EMS)</h6>
+                <div class="row g-2">
+                  <div class="col-12">
+                    <label class="form-label small fw-bold">ประเภทเหตุ</label>
+                    <select id="f-scene-type" class="form-select form-select-sm bg-light" onchange="updateSceneTypeLabel()">
+                      <option value="">-- เลือก --</option>
+                      <option value="อุบัติเหตุจราจร">อุบัติเหตุจราจร</option>
+                      <option value="อุบัติเหตุทั่วไป">อุบัติเหตุทั่วไป</option>
+                      <option value="เจ็บป่วยฉุกเฉิน">เจ็บป่วยฉุกเฉิน</option>
+                      <option value="อื่นๆ">อื่นๆ</option>
+                    </select>
+                  </div>
+                  <div class="col-12" id="scene-type-other-wrap" style="display:none;">
+                    <input type="text" id="f-scene-type-other" class="form-control form-control-sm bg-light" placeholder="ระบุประเภทเหตุ">
+                  </div>
+                  <div class="col-12">
+                    <label class="form-label small fw-bold">สถานที่เกิดเหตุ</label>
+                    <input type="text" id="f-scene-location" class="form-control form-control-sm bg-light" placeholder="รายละเอียดสถานที่">
+                  </div>
+                  <div class="col-12">
+                    <label class="form-label small fw-bold">รายละเอียดเพิ่มเติม</label>
+                    <textarea id="f-scene-detail" class="form-control form-control-sm bg-light" rows="2" placeholder="รายละเอียดเพิ่มเติม"></textarea>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Patient Info -->
+            <div class="card island-card mb-3">
+              <div class="card-body p-3">
+                <h6 class="card-title fw-bold mb-3"><i class="bi bi-person-vcard text-success me-2"></i>ข้อมูลผู้ป่วย</h6>
+                <div class="row g-2">
+                  <div class="col-8">
+                    <label class="form-label small fw-bold">ชื่อ-สกุล</label>
+                    <input type="text" id="f-pt-name" class="form-control form-control-sm bg-light" placeholder="ชื่อ-นามสกุล">
+                  </div>
+                  <div class="col-4">
+                    <label class="form-label small fw-bold">อายุ</label>
+                    <input type="number" id="f-pt-age" class="form-control form-control-sm bg-light" placeholder="ปี" min="0" max="150">
+                  </div>
+                  <div class="col-6">
+                    <label class="form-label small fw-bold">เพศ</label>
+                    <div class="btn-group w-100" role="group">
+                      <input type="radio" class="btn-check" name="pt_gender" id="gender-m" value="ชาย">
+                      <label class="btn btn-outline-secondary btn-sm rounded-pill me-1" for="gender-m">ชาย</label>
+                      <input type="radio" class="btn-check" name="pt_gender" id="gender-f" value="หญิง">
+                      <label class="btn btn-outline-secondary btn-sm rounded-pill" for="gender-f">หญิง</label>
+                    </div>
+                  </div>
+                  <div class="col-6">
+                    <label class="form-label small fw-bold">
+                      <span id="id-type-label">เลขบัตรประชาชน</span>
+                      <button type="button" class="btn btn-link btn-sm p-0 ms-1" onclick="toggleIdType()"><i class="bi bi-arrow-repeat"></i></button>
+                    </label>
+                    <input type="text" id="f-pt-id-card" class="form-control form-control-sm bg-light" placeholder="เลข 13 หลัก" maxlength="17" oninput="formatIdCard(this)">
+                    <input type="hidden" id="f-id-type" value="idcard">
+                  </div>
+                  <div class="col-6">
+                    <label class="form-label small fw-bold">ต้นทาง</label>
+                    <input type="text" id="f-origin" class="form-control form-control-sm bg-light" placeholder="โรงพยาบาล / จุดรับ">
+                  </div>
+                  <div class="col-6">
+                    <label class="form-label small fw-bold">ปลายทาง</label>
+                    <input type="text" id="f-destination" class="form-control form-control-sm bg-light" placeholder="โรงพยาบาลปลายทาง">
+                  </div>
+                  <div class="col-12">
+                    <label class="form-label small fw-bold">อาการสำคัญ (CC)</label>
+                    <input type="text" id="f-cc" class="form-control form-control-sm bg-light" placeholder="Chief complaint">
+                  </div>
+                  <div class="col-12">
+                    <label class="form-label small fw-bold">การวินิจฉัย (Dx)</label>
+                    <input type="text" id="f-dx" class="form-control form-control-sm bg-light" placeholder="Diagnosis">
+                  </div>
+                  <div class="col-12">
+                    <label class="form-label small fw-bold">โรคประจำตัว (Underlying)</label>
+                    <input type="text" id="f-underlying" class="form-control form-control-sm bg-light" placeholder="DM, HT, ... (คั่นด้วย ,)">
+                  </div>
+                  <div class="col-12">
+                    <label class="form-label small fw-bold">ยาที่ใช้ประจำ (Medications)</label>
+                    <input type="text" id="f-medications" class="form-control form-control-sm bg-light" placeholder="ยาประจำตัว">
+                  </div>
+                  <div class="col-6">
+                    <label class="form-label small fw-bold">แพ้ยา/อาหาร (Allergies)</label>
+                    <input type="text" id="f-allergies" class="form-control form-control-sm bg-light" placeholder="แพ้ยา">
+                  </div>
+                  <div class="col-6">
+                    <label class="form-label small fw-bold">NR Status</label>
+                    <select id="f-nr-status" class="form-select form-select-sm bg-light">
+                      <option value="Full Code">Full Code</option>
+                      <option value="DNR">DNR</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Step 1 Nav -->
+            <div class="d-flex justify-content-end mb-3">
+              <button type="button" class="btn btn-primary rounded-pill px-4" onclick="goToStep(2)">ถัดไป <i class="bi bi-arrow-right ms-1"></i></button>
+            </div>
+          </div>
+
+          <!-- ========== STEP 2: Assessment ========== -->
+          <div id="step-2" class="step-content" style="display:none;">
+
+            <!-- Initial Vitals -->
+            <div class="card island-card mb-3">
+              <div class="card-body p-3">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                  <h6 class="card-title fw-bold mb-0"><i class="bi bi-heart-pulse text-danger me-2"></i>Initial Vital Signs</h6>
+                  <button type="button" class="btn btn-sm btn-outline-primary rounded-pill" onclick="openInitVitalsPopup()"><i class="bi bi-pencil-square me-1"></i>บันทึก</button>
+                </div>
+                <div id="init-vitals-display" class="init-vitals-display" onclick="openInitVitalsPopup()">
+                  <span class="text-muted">ยังไม่ได้บันทึก Vital Signs — แตะเพื่อบันทึก</span>
+                </div>
+                <!-- Hidden fields for init vitals -->
+                <input type="hidden" id="f-init-bp">
+                <input type="hidden" id="f-init-pr">
+                <input type="hidden" id="f-init-rr">
+                <input type="hidden" id="f-init-temp">
+                <input type="hidden" id="f-init-spo2">
+                <input type="hidden" id="f-init-dtx">
+                <input type="hidden" id="f-init-o2sat">
+                <input type="hidden" id="f-init-etco2">
+                <input type="hidden" id="f-init-pain">
+                <input type="hidden" id="f-init-time">
+              </div>
+            </div>
+
+            <!-- Airway -->
+            <div class="card island-card mb-3">
+              <div class="card-body p-3">
+                <h6 class="card-title fw-bold mb-3"><i class="bi bi-wind text-info me-2"></i>A — Airway</h6>
+                <div class="row g-2">
+                  <div class="col-12">
+                    <label class="form-label small fw-bold">Airway Status</label>
+                    <select id="f-airway-status" class="form-select form-select-sm bg-light" onchange="updateAirwayLogic()">
+                      <option value="Patent">Patent (เปิดโล่ง)</option>
+                      <option value="Obstruction">Obstruction (อุดตัน)</option>
+                    </select>
+                  </div>
+                  <div class="col-12">
+                    <label class="form-label small fw-bold">Airway Management</label>
+                    <select id="f-airway-mgmt" class="form-select form-select-sm bg-light" onchange="updateAirwayLogic()">
+                      <option value="">ไม่มี</option>
+                      <option value="OPA">OPA</option>
+                      <option value="NPA">NPA</option>
+                      <option value="ET Tube">ET Tube</option>
+                      <option value="Tracheostomy">Tracheostomy</option>
+                      <option value="LMA">LMA</option>
+                    </select>
+                  </div>
+                  <div class="col-6" id="et-size-wrap" style="display:none;">
+                    <label class="form-label small fw-bold">ET Tube Size</label>
+                    <input type="text" id="f-et-size" class="form-control form-control-sm bg-light" placeholder="เช่น 7.5">
+                  </div>
+                  <div class="col-6" id="et-depth-wrap" style="display:none;">
+                    <label class="form-label small fw-bold">ET Depth (cm)</label>
+                    <input type="text" id="f-et-depth" class="form-control form-control-sm bg-light" placeholder="เช่น 22">
+                  </div>
+                  <div class="col-6" id="trach-size-wrap" style="display:none;">
+                    <label class="form-label small fw-bold">Tracheostomy Size</label>
+                    <input type="text" id="f-trach-size" class="form-control form-control-sm bg-light" placeholder="เช่น 8">
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Breathing -->
+            <div class="card island-card mb-3">
+              <div class="card-body p-3">
+                <h6 class="card-title fw-bold mb-3"><i class="bi bi-lungs text-success me-2"></i>B — Breathing</h6>
+                <div class="row g-2">
+                  <div class="col-12">
+                    <label class="form-label small fw-bold">Ventilation</label>
+                    <select id="f-vent-mode" class="form-select form-select-sm bg-light" onchange="updateVentLogic()">
+                      <option value="">ไม่ใช้เครื่องช่วยหายใจ</option>
+                      <option value="CMV">CMV</option>
+                      <option value="SIMV">SIMV</option>
+                      <option value="PSV">PSV</option>
+                      <option value="CPAP">CPAP</option>
+                      <option value="T-Piece">T-Piece</option>
+                    </select>
+                  </div>
+                  <div id="vent-settings-wrap" style="display:none;">
+                    <div class="row g-2 mt-1">
+                      <div class="col-4">
+                        <label class="form-label small">TV (ml)</label>
+                        <input type="number" id="f-vent-tv" class="form-control form-control-sm bg-light">
+                      </div>
+                      <div class="col-4">
+                        <label class="form-label small">RR</label>
+                        <input type="number" id="f-vent-rr" class="form-control form-control-sm bg-light">
+                      </div>
+                      <div class="col-4">
+                        <label class="form-label small">FiO2 (%)</label>
+                        <input type="number" id="f-vent-fio2" class="form-control form-control-sm bg-light">
+                      </div>
+                      <div class="col-4">
+                        <label class="form-label small">PEEP</label>
+                        <input type="number" id="f-vent-peep" class="form-control form-control-sm bg-light">
+                      </div>
+                      <div class="col-4">
+                        <label class="form-label small">PS</label>
+                        <input type="number" id="f-vent-ps" class="form-control form-control-sm bg-light">
+                      </div>
+                      <div class="col-4">
+                        <label class="form-label small">I:E</label>
+                        <input type="text" id="f-vent-ie" class="form-control form-control-sm bg-light" placeholder="1:2">
+                      </div>
+                    </div>
+                  </div>
+                  <div class="col-12">
+                    <label class="form-label small fw-bold">O2 Device</label>
+                    <select id="f-o2-device" class="form-select form-select-sm bg-light" onchange="updateO2Detail()">
+                      <option value="">ไม่ให้ O2</option>
+                      <option value="Nasal Cannula">Nasal Cannula</option>
+                      <option value="Simple Mask">Simple Mask</option>
+                      <option value="Mask with Bag">Mask with Bag (NRB)</option>
+                      <option value="Venturi Mask">Venturi Mask</option>
+                      <option value="High Flow">High Flow Nasal Cannula</option>
+                      <option value="Collar Mask">Collar Mask</option>
+                    </select>
+                  </div>
+                  <div class="col-6" id="o2-rate-wrap" style="display:none;">
+                    <label class="form-label small fw-bold">O2 Rate (L/min)</label>
+                    <input type="number" id="f-o2-rate" class="form-control form-control-sm bg-light" min="0" max="60">
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Circulation -->
+            <div class="card island-card mb-3">
+              <div class="card-body p-3">
+                <h6 class="card-title fw-bold mb-3"><i class="bi bi-droplet text-danger me-2"></i>C — Circulation</h6>
+                <div class="row g-2">
+                  <div class="col-12">
+                    <label class="form-label small fw-bold">Circulatory Status</label>
+                    <select id="f-circ-status" class="form-select form-select-sm bg-light">
+                      <option value="Stable">Stable</option>
+                      <option value="Unstable">Unstable</option>
+                      <option value="Shock">Shock</option>
+                    </select>
+                  </div>
+                  <div class="col-12">
+                    <label class="form-label small fw-bold">EKG / Monitor</label>
+                    <select id="f-ekg" class="form-select form-select-sm bg-light">
+                      <option value="">-- เลือก --</option>
+                      <option value="NSR">NSR (Normal Sinus Rhythm)</option>
+                      <option value="Sinus Tachycardia">Sinus Tachycardia</option>
+                      <option value="Sinus Bradycardia">Sinus Bradycardia</option>
+                      <option value="AF">AF (Atrial Fibrillation)</option>
+                      <option value="SVT">SVT</option>
+                      <option value="VT">VT (Ventricular Tachycardia)</option>
+                      <option value="VF">VF (Ventricular Fibrillation)</option>
+                      <option value="Asystole">Asystole</option>
+                      <option value="PEA">PEA</option>
+                      <option value="STEMI">STEMI</option>
+                      <option value="Other">Other</option>
+                    </select>
+                  </div>
+                  <div class="col-12">
+                    <div class="form-check">
+                      <input type="checkbox" class="form-check-input" id="f-central-line" onchange="toggleCentralLine()">
+                      <label class="form-check-label small fw-bold">Central Line</label>
+                    </div>
+                  </div>
+                  <div id="central-line-detail" style="display:none;">
+                    <div class="row g-2">
+                      <div class="col-6">
+                        <label class="form-label small">ตำแหน่ง</label>
+                        <select id="f-central-site" class="form-select form-select-sm bg-light">
+                          <option value="Subclavian">Subclavian</option>
+                          <option value="Internal Jugular">Internal Jugular</option>
+                          <option value="Femoral">Femoral</option>
+                        </select>
+                      </div>
+                      <div class="col-6">
+                        <label class="form-label small">Side</label>
+                        <select id="f-central-side" class="form-select form-select-sm bg-light">
+                          <option value="Right">Right</option>
+                          <option value="Left">Left</option>
+                        </select>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Initial IV Lines -->
+                <div class="mt-3">
+                  <div class="d-flex justify-content-between align-items-center mb-2">
+                    <label class="form-label small fw-bold mb-0">IV Lines (เริ่มต้น)</label>
+                    <button type="button" class="btn btn-sm btn-outline-primary rounded-pill" onclick="addIvLine('init')"><i class="bi bi-plus-lg me-1"></i>เพิ่ม</button>
+                  </div>
+                  <div id="init-iv-container"></div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Arrest Card (Pre-hospital) -->
+            <div class="card island-card mb-3">
+              <div class="card-body p-3">
+                <h6 class="card-title fw-bold mb-2"><i class="bi bi-lightning text-danger me-2"></i>Cardiac Arrest (Pre-hospital)</h6>
+                <div class="form-check mb-2">
+                  <input type="checkbox" class="form-check-input" id="f-arrest-active" onchange="toggleArrest()">
+                  <label class="form-check-label small fw-bold text-danger">Arrest</label>
+                </div>
+                <div id="arrest-section" class="arrest-section" style="display:none;">
+                  <div class="row g-2">
+                    <div class="col-6">
+                      <label class="form-label small fw-bold">Witnessed</label>
+                      <select id="f-arrest-witnessed" class="form-select form-select-sm bg-light">
+                        <option value="Yes">Yes</option>
+                        <option value="No">No</option>
+                      </select>
+                    </div>
+                    <div class="col-6">
+                      <label class="form-label small fw-bold">Initial Rhythm</label>
+                      <select id="f-arrest-rhythm" class="form-select form-select-sm bg-light">
+                        <option value="VF">VF</option>
+                        <option value="pVT">pulseless VT</option>
+                        <option value="PEA">PEA</option>
+                        <option value="Asystole">Asystole</option>
+                      </select>
+                    </div>
+                    <div class="col-6">
+                      <label class="form-label small fw-bold">Arrest Time</label>
+                      <div class="input-group input-group-sm">
+                        <input type="time" id="f-arrest-time" class="form-control bg-light" step="1">
+                        <button type="button" class="btn btn-outline-danger btn-sm" onclick="stampArrestNow('f-arrest-time')"><i class="bi bi-clock"></i></button>
+                      </div>
+                    </div>
+                    <div class="col-6">
+                      <label class="form-label small fw-bold">CPR Start</label>
+                      <div class="input-group input-group-sm">
+                        <input type="time" id="f-arrest-cpr-start" class="form-control bg-light" step="1" onchange="calcArrestCprDuration()">
+                        <button type="button" class="btn btn-outline-danger btn-sm" onclick="stampArrestNow('f-arrest-cpr-start');calcArrestCprDuration()"><i class="bi bi-clock"></i></button>
+                      </div>
+                    </div>
+                    <div class="col-6">
+                      <label class="form-label small fw-bold">Bystander CPR</label>
+                      <select id="f-arrest-bystander" class="form-select form-select-sm bg-light">
+                        <option value="No">No</option>
+                        <option value="Yes">Yes</option>
+                      </select>
+                    </div>
+                    <div class="col-6">
+                      <label class="form-label small fw-bold">AED Used</label>
+                      <select id="f-arrest-aed" class="form-select form-select-sm bg-light">
+                        <option value="No">No</option>
+                        <option value="Yes - Shock">Yes - Shock delivered</option>
+                        <option value="Yes - No Shock">Yes - No shock</option>
+                      </select>
+                    </div>
+                    <div class="col-12">
+                      <div class="form-check">
+                        <input type="checkbox" class="form-check-input" id="f-arrest-rosc" onchange="toggleArrestOutcome()">
+                        <label class="form-check-label small fw-bold text-success">ROSC</label>
+                      </div>
+                    </div>
+                    <div class="col-6" id="rosc-time-wrap" style="display:none;">
+                      <label class="form-label small fw-bold">ROSC Time</label>
+                      <div class="input-group input-group-sm">
+                        <input type="time" id="f-arrest-rosc-time" class="form-control bg-light" step="1" onchange="calcArrestCprDuration()">
+                        <button type="button" class="btn btn-outline-success btn-sm" onclick="stampArrestNow('f-arrest-rosc-time');calcArrestCprDuration()"><i class="bi bi-clock"></i></button>
+                      </div>
+                    </div>
+                    <div class="col-6" id="cpr-duration-wrap" style="display:none;">
+                      <label class="form-label small fw-bold">CPR Duration</label>
+                      <input type="text" id="f-arrest-cpr-duration" class="form-control form-control-sm bg-light" readonly>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Disability -->
+            <div class="card island-card mb-3">
+              <div class="card-body p-3">
+                <h6 class="card-title fw-bold mb-3"><i class="bi bi-brain text-purple me-2"></i>D — Disability</h6>
+                <div class="row g-2">
+                  <div class="col-12">
+                    <label class="form-label small fw-bold">GCS (E + V + M)</label>
+                    <div class="row g-1 v-gcs-group">
+                      <div class="col-3">
+                        <select id="f-gcs-e" class="form-select form-select-sm bg-light" onchange="updateGcsTotal()">
+                          <option value="">E</option>
+                          <option value="4">E4</option><option value="3">E3</option><option value="2">E2</option><option value="1">E1</option>
+                        </select>
+                      </div>
+                      <div class="col-3">
+                        <select id="f-gcs-v" class="form-select form-select-sm bg-light" onchange="updateGcsTotal()">
+                          <option value="">V</option>
+                          <option value="5">V5</option><option value="4">V4</option><option value="3">V3</option><option value="2">V2</option><option value="1">V1</option>
+                          <option value="T">VT</option>
+                        </select>
+                      </div>
+                      <div class="col-3">
+                        <select id="f-gcs-m" class="form-select form-select-sm bg-light" onchange="updateGcsTotal()">
+                          <option value="">M</option>
+                          <option value="6">M6</option><option value="5">M5</option><option value="4">M4</option><option value="3">M3</option><option value="2">M2</option><option value="1">M1</option>
+                        </select>
+                      </div>
+                      <div class="col-3">
+                        <input type="text" id="f-gcs-total" class="form-control form-control-sm bg-light text-center fw-bold" readonly placeholder="GCS">
+                      </div>
+                    </div>
+                  </div>
+                  <div class="col-6">
+                    <label class="form-label small fw-bold">Pupil Left</label>
+                    <div class="input-group input-group-sm">
+                      <input type="text" id="f-pupil-left-size" class="form-control bg-light" placeholder="mm">
+                      <select id="f-pupil-left-react" class="form-select bg-light">
+                        <option value="React">React</option>
+                        <option value="Sluggish">Sluggish</option>
+                        <option value="Fixed">Fixed</option>
+                      </select>
+                    </div>
+                  </div>
+                  <div class="col-6">
+                    <label class="form-label small fw-bold">Pupil Right</label>
+                    <div class="input-group input-group-sm">
+                      <input type="text" id="f-pupil-right-size" class="form-control bg-light" placeholder="mm">
+                      <select id="f-pupil-right-react" class="form-select bg-light">
+                        <option value="React">React</option>
+                        <option value="Sluggish">Sluggish</option>
+                        <option value="Fixed">Fixed</option>
+                      </select>
+                    </div>
+                  </div>
+                  <div class="col-6">
+                    <label class="form-label small fw-bold">Pain Score (0-10)</label>
+                    <input type="number" id="f-pain-score" class="form-control form-control-sm bg-light" min="0" max="10">
+                  </div>
+                  <div class="col-6">
+                    <label class="form-label small fw-bold">Motor Power</label>
+                    <input type="text" id="f-motor-power" class="form-control form-control-sm bg-light" placeholder="เช่น Grade V all">
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Exposure -->
+            <div class="card island-card mb-3">
+              <div class="card-body p-3">
+                <h6 class="card-title fw-bold mb-3"><i class="bi bi-thermometer-half text-warning me-2"></i>E — Exposure</h6>
+                <div class="row g-2">
+                  <div class="col-12">
+                    <label class="form-label small fw-bold">Exposure / Injuries</label>
+                    <textarea id="f-exposure" class="form-control form-control-sm bg-light" rows="2" placeholder="บาดแผล/การบาดเจ็บที่พบ"></textarea>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Drainage / Tubes -->
+            <div class="card island-card mb-3">
+              <div class="card-body p-3">
+                <h6 class="card-title fw-bold mb-3"><i class="bi bi-moisture text-info me-2"></i>Drainage / Tubes</h6>
+                <div class="row g-2">
+                  <div class="col-6">
+                    <div class="form-check bg-light rounded-3 p-2 ps-4">
+                      <input type="checkbox" class="form-check-input" id="f-drain-foley">
+                      <label class="form-check-label small">Foley Catheter</label>
+                    </div>
+                  </div>
+                  <div class="col-6">
+                    <div class="form-check bg-light rounded-3 p-2 ps-4">
+                      <input type="checkbox" class="form-check-input" id="f-drain-ng">
+                      <label class="form-check-label small">NG Tube</label>
+                    </div>
+                  </div>
+                  <div class="col-6">
+                    <div class="form-check bg-light rounded-3 p-2 ps-4">
+                      <input type="checkbox" class="form-check-input" id="f-drain-chest-l">
+                      <label class="form-check-label small">ICD Left</label>
+                    </div>
+                  </div>
+                  <div class="col-6">
+                    <div class="form-check bg-light rounded-3 p-2 ps-4">
+                      <input type="checkbox" class="form-check-input" id="f-drain-chest-r">
+                      <label class="form-check-label small">ICD Right</label>
+                    </div>
+                  </div>
+                  <div class="col-6">
+                    <div class="form-check bg-light rounded-3 p-2 ps-4">
+                      <input type="checkbox" class="form-check-input" id="f-drain-jp">
+                      <label class="form-check-label small">JP Drain</label>
+                    </div>
+                  </div>
+                  <div class="col-6">
+                    <div class="form-check bg-light rounded-3 p-2 ps-4">
+                      <input type="checkbox" class="form-check-input" id="f-drain-penrose">
+                      <label class="form-check-label small">Penrose Drain</label>
+                    </div>
+                  </div>
+                  <div class="col-12">
+                    <input type="text" id="f-drain-other" class="form-control form-control-sm bg-light" placeholder="อื่นๆ ระบุ">
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Step 2 Nav -->
+            <div class="d-flex justify-content-between mb-3">
+              <button type="button" class="btn btn-outline-secondary rounded-pill px-4" onclick="goToStep(1)"><i class="bi bi-arrow-left me-1"></i>ย้อนกลับ</button>
+              <button type="button" class="btn btn-primary rounded-pill px-4" onclick="goToStep(3)">ถัดไป <i class="bi bi-arrow-right ms-1"></i></button>
+            </div>
+          </div>
+
+          <!-- ========== STEP 3: During Transport ========== -->
+          <div id="step-3" class="step-content" style="display:none;">
+
+            <!-- Equipment -->
+            <div class="card island-card mb-3">
+              <div class="card-body p-3">
+                <h6 class="card-title fw-bold mb-3"><i class="bi bi-box-seam text-primary me-2"></i>อุปกรณ์ที่ใช้</h6>
+                <div class="row g-2" id="equipment-checks">
+                  <div class="col-6"><div class="form-check bg-light rounded-3 p-2 ps-4 equip-check"><input type="checkbox" class="form-check-input" id="eq-monitor"><label class="form-check-label small" for="eq-monitor">Monitor</label></div></div>
+                  <div class="col-6"><div class="form-check bg-light rounded-3 p-2 ps-4 equip-check"><input type="checkbox" class="form-check-input" id="eq-defib"><label class="form-check-label small" for="eq-defib">Defibrillator</label></div></div>
+                  <div class="col-6"><div class="form-check bg-light rounded-3 p-2 ps-4 equip-check"><input type="checkbox" class="form-check-input" id="eq-syringe-pump"><label class="form-check-label small" for="eq-syringe-pump">Syringe Pump</label></div></div>
+                  <div class="col-6"><div class="form-check bg-light rounded-3 p-2 ps-4 equip-check"><input type="checkbox" class="form-check-input" id="eq-infusion-pump"><label class="form-check-label small" for="eq-infusion-pump">Infusion Pump</label></div></div>
+                  <div class="col-6"><div class="form-check bg-light rounded-3 p-2 ps-4 equip-check"><input type="checkbox" class="form-check-input" id="eq-ventilator"><label class="form-check-label small" for="eq-ventilator">Ventilator</label></div></div>
+                  <div class="col-6"><div class="form-check bg-light rounded-3 p-2 ps-4 equip-check"><input type="checkbox" class="form-check-input" id="eq-suction"><label class="form-check-label small" for="eq-suction">Suction</label></div></div>
+                  <div class="col-6"><div class="form-check bg-light rounded-3 p-2 ps-4 equip-check"><input type="checkbox" class="form-check-input" id="eq-spine-board"><label class="form-check-label small" for="eq-spine-board">Spine Board</label></div></div>
+                  <div class="col-6"><div class="form-check bg-light rounded-3 p-2 ps-4 equip-check"><input type="checkbox" class="form-check-input" id="eq-splint"><label class="form-check-label small" for="eq-splint">Splint</label></div></div>
+                  <div class="col-6"><div class="form-check bg-light rounded-3 p-2 ps-4 equip-check"><input type="checkbox" class="form-check-input" id="eq-c-collar"><label class="form-check-label small" for="eq-c-collar">C-Collar</label></div></div>
+                  <div class="col-6"><div class="form-check bg-light rounded-3 p-2 ps-4 equip-check"><input type="checkbox" class="form-check-input" id="eq-o2-tank"><label class="form-check-label small" for="eq-o2-tank">O2 Tank</label></div></div>
+                  <div class="col-12">
+                    <input type="text" id="f-equip-other" class="form-control form-control-sm bg-light" placeholder="อุปกรณ์อื่นๆ ระบุ">
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- IV / Meds During Transport -->
+            <div class="card island-card mb-3">
+              <div class="card-body p-3">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                  <h6 class="card-title fw-bold mb-0"><i class="bi bi-capsule text-success me-2"></i>IV / Meds ระหว่างนำส่ง</h6>
+                  <button type="button" class="btn btn-sm btn-outline-success rounded-pill" onclick="addIvLine('transport')"><i class="bi bi-plus-lg me-1"></i>เพิ่ม</button>
+                </div>
+                <!-- Show initial IVs as read-only summary -->
+                <div id="init-iv-summary" class="mb-2"></div>
+                <div id="transport-iv-container"></div>
+              </div>
+            </div>
+
+            <!-- Vital Signs Log -->
+            <div class="card island-card mb-3">
+              <div class="card-body p-3">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                  <h6 class="card-title fw-bold mb-0"><i class="bi bi-heart-pulse text-danger me-2"></i>Vital Signs Log</h6>
+                  <div class="d-flex gap-1">
+                    <button type="button" class="btn btn-sm btn-outline-danger rounded-pill" onclick="addArrestLog()"><i class="bi bi-lightning me-1"></i>Arrest</button>
+                    <button type="button" class="btn btn-sm btn-outline-primary rounded-pill" onclick="addVitalLog()"><i class="bi bi-plus-lg me-1"></i>เพิ่ม Vitals</button>
+                  </div>
+                </div>
+                <div id="vital-log-container"></div>
+              </div>
+            </div>
+
+            <!-- Nurse Note -->
+            <div class="card island-card mb-3">
+              <div class="card-body p-3">
+                <h6 class="card-title fw-bold mb-3"><i class="bi bi-journal-text text-secondary me-2"></i>Nurse Note</h6>
+                <textarea id="f-nurse-note" class="form-control bg-light nurse-note-area" placeholder="บันทึกเพิ่มเติม..."></textarea>
+              </div>
+            </div>
+
+            <!-- Step 3 Nav + Save/Close -->
+            <div class="d-flex justify-content-between mb-3 flex-wrap gap-2">
+              <button type="button" class="btn btn-outline-secondary rounded-pill px-4" onclick="goToStep(2)"><i class="bi bi-arrow-left me-1"></i>ย้อนกลับ</button>
+              <div class="d-flex gap-2 flex-wrap">
+                <button type="button" class="btn btn-success rounded-pill px-3" id="btn-save-draft" onclick="saveData(false, false)"><i class="bi bi-save me-1"></i>บันทึกร่าง</button>
+                <button type="button" class="btn btn-primary rounded-pill px-3" id="btn-close-case" onclick="confirmCloseCase()"><i class="bi bi-check-circle me-1"></i>ปิด Case</button>
+                <button type="button" class="btn btn-outline-primary rounded-pill px-3" onclick="handlePrint()"><i class="bi bi-printer me-1"></i>พิมพ์</button>
+              </div>
+            </div>
+          </div>
+
+        </form>
+      </div>
+
+      <!-- ==================== ADMIN VIEW ==================== -->
+      <div id="admin-view" class="view-section">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+          <h4 class="dashboard-header mb-0"><i class="bi bi-gear text-primary me-2"></i>ตั้งค่าระบบ</h4>
+          <button class="btn btn-sm btn-outline-secondary rounded-pill" onclick="showDashboard()"><i class="bi bi-arrow-left me-1"></i>กลับ</button>
+        </div>
+        <ul class="nav nav-pills mb-3" id="admin-tabs">
+          <li class="nav-item"><a class="nav-link active" data-bs-toggle="pill" href="#admin-settings-tab">ตั้งค่า</a></li>
+          <li class="nav-item"><a class="nav-link" data-bs-toggle="pill" href="#admin-stats-tab">สถิติ</a></li>
+          <li class="nav-item"><a class="nav-link" data-bs-toggle="pill" href="#admin-log-tab">Activity Log</a></li>
+        </ul>
+        <div class="tab-content admin-tab-content">
+          <!-- Settings Tab -->
+          <div class="tab-pane fade show active" id="admin-settings-tab">
+            <div class="card island-card">
+              <div class="card-body p-3">
+                <h6 class="fw-bold mb-3">การตั้งค่าทั่วไป</h6>
+                <div class="mb-3">
+                  <label class="form-label small fw-bold">ชื่อหน่วยงาน (Print Header)</label>
+                  <input type="text" id="admin-print-header" class="form-control form-control-sm bg-light" placeholder="Supwilai Medical">
+                </div>
+                <div class="mb-3">
+                  <label class="form-label small fw-bold">Logo URL</label>
+                  <input type="text" id="admin-logo-url" class="form-control form-control-sm bg-light" placeholder="https://...">
+                </div>
+                <div class="mb-3">
+                  <label class="form-label small fw-bold">หรืออัพโหลด Logo</label>
+                  <input type="file" id="admin-logo-file" class="form-control form-control-sm" accept="image/*" onchange="uploadAdminLogo()">
+                </div>
+                <button class="btn btn-primary btn-sm rounded-pill px-4" onclick="saveAdminSettings()"><i class="bi bi-save me-1"></i>บันทึกตั้งค่า</button>
+              </div>
+            </div>
+          </div>
+          <!-- Stats Tab -->
+          <div class="tab-pane fade" id="admin-stats-tab">
+            <div class="card island-card">
+              <div class="card-body p-3">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                  <h6 class="fw-bold mb-0">สถิติการนำส่ง</h6>
+                  <div class="d-flex gap-2">
+                    <input type="month" id="stats-month" class="form-control form-control-sm" style="width:auto;">
+                    <button class="btn btn-sm btn-primary rounded-pill" onclick="loadStats()"><i class="bi bi-bar-chart"></i></button>
+                  </div>
+                </div>
+                <div id="stats-content">
+                  <p class="text-muted small text-center">เลือกเดือนแล้วกดค้นหา</p>
+                </div>
+              </div>
+            </div>
+          </div>
+          <!-- Activity Log Tab -->
+          <div class="tab-pane fade" id="admin-log-tab">
+            <div class="card island-card">
+              <div class="card-body p-3">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                  <h6 class="fw-bold mb-0">Activity Log</h6>
+                  <button class="btn btn-sm btn-outline-primary rounded-pill" onclick="loadActivityLog(1)"><i class="bi bi-arrow-clockwise"></i></button>
+                </div>
+                <div id="activity-log-container">
+                  <p class="text-muted small text-center">กดรีเฟรชเพื่อโหลด</p>
+                </div>
+                <div id="activity-log-pagination" class="d-flex justify-content-center mt-2"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- container -->
+  </div><!-- app-main-wrapper -->
+
+  <!-- ==================== EDIT PATIENT MODAL ==================== -->
+  <div class="modal fade" id="editPatientModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header bg-primary text-white py-2">
+          <h6 class="modal-title fw-bold"><i class="bi bi-pencil-square me-2"></i>แก้ไขข้อมูลผู้ป่วย</h6>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <div class="row g-2">
+            <div class="col-8">
+              <label class="form-label small fw-bold">ชื่อ-สกุล</label>
+              <input type="text" id="edit-pt-name" class="form-control form-control-sm bg-light">
+            </div>
+            <div class="col-4">
+              <label class="form-label small fw-bold">อายุ</label>
+              <input type="number" id="edit-pt-age" class="form-control form-control-sm bg-light" min="0" max="150">
+            </div>
+            <div class="col-6">
+              <label class="form-label small fw-bold">เพศ</label>
+              <select id="edit-pt-gender" class="form-select form-select-sm bg-light">
+                <option value="">--</option><option value="ชาย">ชาย</option><option value="หญิง">หญิง</option>
+              </select>
+            </div>
+            <div class="col-6">
+              <label class="form-label small fw-bold">Triage</label>
+              <select id="edit-triage" class="form-select form-select-sm bg-light">
+                <option value="Resuscitation">Resuscitation</option>
+                <option value="Emergency">Emergency</option>
+                <option value="Urgent">Urgent</option>
+                <option value="Less Urgent">Less Urgent</option>
+              </select>
+            </div>
+            <div class="col-6">
+              <label class="form-label small fw-bold">ต้นทาง</label>
+              <input type="text" id="edit-origin" class="form-control form-control-sm bg-light">
+            </div>
+            <div class="col-6">
+              <label class="form-label small fw-bold">ปลายทาง</label>
+              <input type="text" id="edit-destination" class="form-control form-control-sm bg-light">
+            </div>
+            <div class="col-12">
+              <label class="form-label small fw-bold">CC</label>
+              <input type="text" id="edit-cc" class="form-control form-control-sm bg-light">
+            </div>
+            <div class="col-12">
+              <label class="form-label small fw-bold">Dx</label>
+              <input type="text" id="edit-dx" class="form-control form-control-sm bg-light">
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer py-2">
+          <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill" data-bs-dismiss="modal">ยกเลิก</button>
+          <button type="button" class="btn btn-sm btn-primary rounded-pill px-4" onclick="saveEditModal()"><i class="bi bi-check-lg me-1"></i>บันทึก</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== INIT VITALS MODAL ==================== -->
+  <div class="modal fade" id="initVitalsModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header bg-danger text-white py-2">
+          <h6 class="modal-title fw-bold"><i class="bi bi-heart-pulse me-2"></i>Initial Vital Signs</h6>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <div class="row g-2">
+            <div class="col-6">
+              <label class="form-label small fw-bold">BP (mmHg)</label>
+              <input type="text" id="iv-bp" class="form-control form-control-sm bg-light" placeholder="120/80">
+            </div>
+            <div class="col-6">
+              <label class="form-label small fw-bold">PR (bpm)</label>
+              <input type="number" id="iv-pr" class="form-control form-control-sm bg-light" placeholder="80">
+            </div>
+            <div class="col-6">
+              <label class="form-label small fw-bold">RR (/min)</label>
+              <input type="number" id="iv-rr" class="form-control form-control-sm bg-light" placeholder="18">
+            </div>
+            <div class="col-6">
+              <label class="form-label small fw-bold">Temp (C)</label>
+              <input type="text" id="iv-temp" class="form-control form-control-sm bg-light" placeholder="36.5">
+            </div>
+            <div class="col-6">
+              <label class="form-label small fw-bold">SpO2 (%)</label>
+              <input type="number" id="iv-spo2" class="form-control form-control-sm bg-light" placeholder="98">
+            </div>
+            <div class="col-6">
+              <label class="form-label small fw-bold">DTX (mg/dL)</label>
+              <input type="number" id="iv-dtx" class="form-control form-control-sm bg-light" placeholder="120">
+            </div>
+            <div class="col-6">
+              <label class="form-label small fw-bold">EtCO2</label>
+              <input type="number" id="iv-etco2" class="form-control form-control-sm bg-light" placeholder="35">
+            </div>
+            <div class="col-6">
+              <label class="form-label small fw-bold">Pain (0-10)</label>
+              <input type="number" id="iv-pain" class="form-control form-control-sm bg-light" min="0" max="10" placeholder="0">
+            </div>
+            <div class="col-6">
+              <label class="form-label small fw-bold">เวลาวัด</label>
+              <div class="input-group input-group-sm">
+                <input type="time" id="iv-time" class="form-control bg-light" step="1">
+                <button type="button" class="btn btn-outline-danger btn-sm" onclick="document.getElementById('iv-time').value=getNowTime()"><i class="bi bi-clock"></i></button>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer py-2">
+          <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill" data-bs-dismiss="modal">ยกเลิก</button>
+          <button type="button" class="btn btn-sm btn-danger rounded-pill px-4" onclick="saveInitVitals()"><i class="bi bi-check-lg me-1"></i>บันทึก</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== SHARE DIALOG MODAL ==================== -->
+  <div class="modal fade" id="shareModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered modal-sm">
+      <div class="modal-content">
+        <div class="modal-header bg-info text-white py-2">
+          <h6 class="modal-title fw-bold"><i class="bi bi-share me-2"></i>แชร์ลิงก์</h6>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body text-center">
+          <div id="share-status" class="mb-3"></div>
+          <div id="share-link-area" style="display:none;">
+            <div class="input-group input-group-sm mb-2">
+              <input type="text" id="share-url" class="form-control bg-light" readonly>
+              <button class="btn btn-outline-primary" onclick="copyPublicUrl()"><i class="bi bi-clipboard"></i></button>
+            </div>
+            <small class="text-muted" id="share-expiry-text"></small>
+          </div>
+          <div class="d-flex justify-content-center gap-2 mt-3">
+            <button class="btn btn-sm btn-success rounded-pill" id="share-btn-enable" onclick="togglePublicLink(true)"><i class="bi bi-link-45deg me-1"></i>เปิดลิงก์</button>
+            <button class="btn btn-sm btn-outline-danger rounded-pill" id="share-btn-disable" onclick="togglePublicLink(false)" style="display:none;"><i class="bi bi-x-lg me-1"></i>ปิดลิงก์</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== PRINT LAYOUT ==================== -->
+  <div id="print-layout-container"></div>
+
+  <!-- ==================== JAVASCRIPT ==================== -->
+  <script>
+  // ===== GLOBAL VARIABLES =====
+  var PAGE_SYSTEM = 'transport';
+  var dbReady = false;
+  var allCases = [];
+  var filteredCases = [];
+  var currentPage = 1;
+  var totalPagesBackend = 1;
+  var itemsPerPage = 20;
+  var isSaving = false;
+  var isPopulating = false;
+  var formDirty = false;
+  var loadedCaseStatus = 'Active';
+  var currentVitals = [];
+  var currentIVs = [];
+  var editModal = null;
+  var initVitalsModal = null;
+  var shareModalInstance = null;
+  var APP_LOGO_URL = '';
+  var PRINT_HEADER = 'Supwilai Medical';
+  var currentShareCaseId = '';
+  var vitalLogCounter = 0;
+  var arrestLogCounter = 0;
+  var ivLineCounter = 0;
+
+  // ===== VALIDATION =====
+  var ValidationRules = {
+    bp: { validate: function(v) { return /^\d{2,3}\/\d{2,3}$/.test(v); }, msg: 'BP format: 120/80' },
+    pr: { validate: function(v) { var n=parseInt(v); return n>=20&&n<=300; }, msg: 'PR: 20-300' },
+    rr: { validate: function(v) { var n=parseInt(v); return n>=4&&n<=60; }, msg: 'RR: 4-60' },
+    temp: { validate: function(v) { var n=parseFloat(v); return n>=30&&n<=43; }, msg: 'Temp: 30-43' },
+    spo2: { validate: function(v) { var n=parseInt(v); return n>=0&&n<=100; }, msg: 'SpO2: 0-100%' },
+    dtx: { validate: function(v) { var n=parseInt(v); return n>=10&&n<=600; }, msg: 'DTX: 10-600' }
+  };
+
+  function validateInitVitals(v) {
+    var errors = [];
+    if (v.bp && !ValidationRules.bp.validate(v.bp)) errors.push(ValidationRules.bp.msg);
+    if (v.pr && !ValidationRules.pr.validate(v.pr)) errors.push(ValidationRules.pr.msg);
+    if (v.rr && !ValidationRules.rr.validate(v.rr)) errors.push(ValidationRules.rr.msg);
+    if (v.temp && !ValidationRules.temp.validate(v.temp)) errors.push(ValidationRules.temp.msg);
+    if (v.spo2 && !ValidationRules.spo2.validate(v.spo2)) errors.push(ValidationRules.spo2.msg);
+    if (v.dtx && !ValidationRules.dtx.validate(v.dtx)) errors.push(ValidationRules.dtx.msg);
+    return errors;
+  }
+
+  function attachVitalValidation(entry) { /* no-op */ }
+
+  function getFieldValue(container, selector) {
+    var el = container.querySelector(selector);
+    return el ? el.value : '';
+  }
+
+  // ===== HELPERS =====
+  function generateCaseId() {
+    var now = new Date();
+    var y = now.getFullYear();
+    var mo = String(now.getMonth()+1).padStart(2,'0');
+    var da = String(now.getDate()).padStart(2,'0');
+    var h = String(now.getHours()).padStart(2,'0');
+    var mi = String(now.getMinutes()).padStart(2,'0');
+    var s = String(now.getSeconds()).padStart(2,'0');
+    var r = String(Math.floor(Math.random()*1000)).padStart(3,'0');
+    return 'CASE-' + y + mo + da + '-' + h + mi + s + r;
+  }
+
+  function getNowTime() {
+    var d = new Date();
+    return String(d.getHours()).padStart(2,'0') + ':' + String(d.getMinutes()).padStart(2,'0');
+  }
+
+  function getNowTimeSec() {
+    var d = new Date();
+    return String(d.getHours()).padStart(2,'0') + ':' + String(d.getMinutes()).padStart(2,'0') + ':' + String(d.getSeconds()).padStart(2,'0');
+  }
+
+  function maskTime(val) {
+    if (!val) return '--:--';
+    return val.substring(0, 5);
+  }
+
+  function formatThaiDate(d) {
+    if (!d) return '-';
+    if (typeof d === 'string') d = new Date(d);
+    var day = String(d.getDate()).padStart(2,'0');
+    var months = ['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
+    var mo = months[d.getMonth()];
+    var yr = d.getFullYear() + 543;
+    var h = String(d.getHours()).padStart(2,'0');
+    var m = String(d.getMinutes()).padStart(2,'0');
+    return day + ' ' + mo + ' ' + yr + ' ' + h + ':' + m;
+  }
+
+  function getTriageColor(t) {
+    if (!t) return '#6c757d';
+    var m = { 'Resuscitation':'#dc3545', 'Emergency':'#fd7e14', 'Urgent':'#ffc107', 'Less Urgent':'#198754' };
+    return m[t] || '#6c757d';
+  }
+
+  function getTriageClass(t) {
+    if (!t) return '';
+    var m = { 'Resuscitation':'triage-indicator-resuscitation', 'Emergency':'triage-indicator-emergency', 'Urgent':'triage-indicator-urgent', 'Less Urgent':'triage-indicator-less-urgent' };
+    return m[t] || '';
+  }
+
+  function getTriageBadgeClass(t) {
+    if (!t) return 'bg-secondary';
+    var m = { 'Resuscitation':'triage-resuscitation', 'Emergency':'triage-emergency', 'Urgent':'triage-urgent', 'Less Urgent':'triage-less-urgent' };
+    return m[t] || 'bg-secondary';
+  }
+
+  function getStatusBadge(status) {
+    if (status === 'Active') return '<span class="badge bg-success">Active</span>';
+    if (status === 'Completed') return '<span class="badge bg-primary">Completed</span>';
+    if (status === 'Cancelled') return '<span class="badge bg-danger">Cancelled</span>';
+    return '<span class="badge bg-secondary">' + escapeHtml(status) + '</span>';
+  }
+
+  function getRadioVal(name) {
+    var el = document.querySelector('input[name="' + name + '"]:checked');
+    return el ? el.value : '';
+  }
+
+  function setRadioVal(name, val) {
+    var el = document.querySelector('input[name="' + name + '"][value="' + val + '"]');
+    if (el) el.checked = true;
+  }
+
+  // ===== ACTIVITY LOGGING =====
+  async function logActivity(action, target, details) {
+    try {
+      await _supabase.from('activity_log').insert({
+        timestamp: new Date().toISOString(),
+        username: getUserName(),
+        role: getUserRole(),
+        action: action,
+        target: target,
+        details: details || ''
+      });
+    } catch(e) { /* silent */ }
+  }
+
+  // ===== ONLOGINSUCCESS =====
+  function onLoginSuccess() {
+    dbReady = true;
+    document.getElementById('nav-username').textContent = getUserName();
+    loadDashboardData(1);
+    loadSettings();
+    if (getUserRole() === 'Admin') {
+      var adminBtn = document.getElementById('btn-admin-settings');
+      if (adminBtn) adminBtn.classList.remove('d-none');
+    }
+  }
+
+  // ===== SETTINGS =====
+  async function loadSettings() {
+    try {
+      var resp = await _supabase.from('settings').select('*');
+      var data = resp.data;
+      if (data) {
+        data.forEach(function(s) {
+          if (s.key === 'PRINT_HEADER') PRINT_HEADER = s.value || 'Supwilai Medical';
+          if (s.key === 'APP_LOGO_URL') APP_LOGO_URL = s.value || '';
+        });
+        if (APP_LOGO_URL) {
+          var navLogo = document.getElementById('navbar-logo');
+          if (navLogo) { navLogo.src = APP_LOGO_URL; navLogo.style.display = 'block'; }
+          document.getElementById('navbar-icon').style.display = 'none';
+        }
+      }
+    } catch(e) { /* silent */ }
+  }
+
+  // ===== VIEW SWITCHING =====
+  function showView(viewId) {
+    document.querySelectorAll('.view-section').forEach(function(v) { v.classList.remove('active'); });
+    var el = document.getElementById(viewId);
+    if (el) el.classList.add('active');
+  }
+
+  function showDashboard() {
+    showView('dashboard-view');
+    loadDashboardData(currentPage);
+  }
+
+  function showForm() {
+    showView('form-view');
+  }
+
+  function showAdminView() {
+    showView('admin-view');
+    // Pre-fill settings
+    document.getElementById('admin-print-header').value = PRINT_HEADER;
+    document.getElementById('admin-logo-url').value = APP_LOGO_URL;
+  }
+
+  // ===== DASHBOARD =====
+  async function loadDashboardData(page) {
+    if (!dbReady) return;
+    if (!page) page = 1;
+    currentPage = page;
+    document.getElementById('loading-spinner').style.display = 'block';
+    document.getElementById('patient-list-container').innerHTML = '';
+
+    var searchName = document.getElementById('search-name').value.trim() || null;
+    var searchDate = document.getElementById('search-date').value || null;
+
+    try {
+      var query = _supabase.from('cases').select('*', { count: 'exact' });
+      if (searchName) query = query.or('case_id.ilike.%' + searchName + '%,patient_info->>name.ilike.%' + searchName + '%');
+      if (searchDate) query = query.gte('created_at', searchDate + 'T00:00:00').lte('created_at', searchDate + 'T23:59:59');
+      query = query.order('created_at', { ascending: false });
+      var from = (page - 1) * itemsPerPage;
+      var to = from + itemsPerPage - 1;
+      query = query.range(from, to);
+
+      var result = await query;
+      var data = result.data;
+      var error = result.error;
+      var count = result.count;
+
+      document.getElementById('loading-spinner').style.display = 'none';
+
+      if (error) {
+        document.getElementById('patient-list-container').innerHTML = '<div class="alert alert-danger small">โหลดข้อมูลไม่สำเร็จ: ' + escapeHtml(error.message) + '</div>';
+        return;
+      }
+
+      allCases = (data || []).map(function(rec) {
+        rec.id = rec.case_id;
+        rec.triageLevel = rec.triage_level;
+        rec.opInfo = rec.op_info || {};
+        rec.patientInfo = rec.patient_info || {};
+        rec.rawData = rec.raw_data || {};
+        rec.isPublic = rec.is_public;
+        rec.publicExpiry = rec.public_expiry;
+        rec.publicToken = rec.public_token;
+        if (rec.created_at) {
+          var d = new Date(rec.created_at);
+          rec.timestamp = { toDate: function() { return d; }, seconds: Math.floor(d.getTime() / 1000) };
+        }
+        rec.updatedAt = rec.updated_at || rec.created_at;
+        return rec;
+      });
+
+      filteredCases = allCases;
+      var totalPages = Math.ceil((count || 0) / itemsPerPage);
+      totalPagesBackend = totalPages;
+      renderPage();
+      renderBackendPagination(count || 0, totalPages, page);
+    } catch(e) {
+      document.getElementById('loading-spinner').style.display = 'none';
+      document.getElementById('patient-list-container').innerHTML = '<div class="alert alert-danger small">Error: ' + escapeHtml(e.message) + '</div>';
+    }
+  }
+
+  function renderPage() {
+    var container = document.getElementById('patient-list-container');
+    if (filteredCases.length === 0) {
+      container.innerHTML = '<div class="text-center py-5"><i class="bi bi-inbox text-muted" style="font-size:3rem;"></i><p class="text-muted mt-2">ไม่พบข้อมูล</p></div>';
+      return;
+    }
+    var html = '';
+    filteredCases.forEach(function(c) {
+      html += renderCard(c);
+    });
+    container.innerHTML = html;
+  }
+
+  function renderCard(c) {
+    var name = (c.patientInfo && c.patientInfo.name) ? escapeHtml(c.patientInfo.name) : 'ไม่ระบุชื่อ';
+    var age = (c.patientInfo && c.patientInfo.age) ? c.patientInfo.age + ' ปี' : '';
+    var gender = (c.patientInfo && c.patientInfo.gender) ? c.patientInfo.gender : '';
+    var origin = (c.patientInfo && c.patientInfo.origin) ? escapeHtml(c.patientInfo.origin) : '';
+    var dest = (c.patientInfo && c.patientInfo.destination) ? escapeHtml(c.patientInfo.destination) : '';
+    var route = '';
+    if (origin || dest) route = (origin || '?') + ' → ' + (dest || '?');
+    var level = (c.opInfo && c.opInfo.level) ? c.opInfo.level : '';
+    var triageClass = getTriageClass(c.triageLevel);
+    var triageBadge = c.triageLevel ? '<span class="badge ' + getTriageBadgeClass(c.triageLevel) + ' badge-status" style="font-size:0.68rem;">' + escapeHtml(c.triageLevel) + '</span>' : '';
+    var statusBadge = getStatusBadge(c.status);
+    var dateStr = c.timestamp ? formatThaiDate(c.timestamp.toDate()) : '';
+    var isAdmin = getUserRole() === 'Admin';
+
+    var actionBtns = '<div class="d-flex gap-1 mt-2">';
+    if (c.status === 'Completed') {
+      actionBtns += '<button class="btn btn-sm btn-outline-primary rounded-pill" onclick="event.stopPropagation();confirmReopenCase(\'' + c.id + '\')"><i class="bi bi-arrow-counterclockwise"></i></button>';
+    }
+    actionBtns += '<button class="btn btn-sm btn-outline-info rounded-pill" onclick="event.stopPropagation();openShareDialog(\'' + c.id + '\')"><i class="bi bi-share"></i></button>';
+    actionBtns += '<button class="btn btn-sm btn-outline-secondary rounded-pill" onclick="event.stopPropagation();printFromDashboard(\'' + c.id + '\')"><i class="bi bi-printer"></i></button>';
+    if (isAdmin) {
+      actionBtns += '<button class="btn btn-sm btn-outline-danger rounded-pill" onclick="event.stopPropagation();confirmDelete(\'' + c.id + '\')"><i class="bi bi-trash"></i></button>';
+    }
+    actionBtns += '</div>';
+
+    return '<div class="patient-card p-3" onclick="openCase(\'' + c.id + '\')">' +
+      '<div class="card-triage-indicator ' + triageClass + '"></div>' +
+      '<div class="d-flex justify-content-between align-items-start">' +
+        '<div class="flex-grow-1 ps-2">' +
+          '<div class="d-flex align-items-center gap-2 mb-1">' +
+            '<span class="fw-bold">' + name + '</span>' +
+            '<span class="text-muted small">' + escapeHtml(age) + ' ' + escapeHtml(gender) + '</span>' +
+          '</div>' +
+          '<div class="small text-muted text-truncate">' + (route ? '<i class="bi bi-arrow-right-circle me-1"></i>' + route : '') + '</div>' +
+          '<div class="d-flex flex-wrap gap-1 mt-1">' + triageBadge + ' ' + statusBadge +
+            (level ? ' <span class="badge bg-light text-dark border" style="font-size:0.68rem;">' + escapeHtml(level) + '</span>' : '') +
+          '</div>' +
+        '</div>' +
+        '<div class="text-end">' +
+          '<div class="small text-muted">' + dateStr + '</div>' +
+          '<div class="text-muted small">' + escapeHtml(c.id) + '</div>' +
+        '</div>' +
+      '</div>' +
+      actionBtns +
+    '</div>';
+  }
+
+  function renderBackendPagination(totalItems, totalPages, currentPage) {
+    var container = document.getElementById('pagination-container');
+    if (totalPages <= 1) { container.innerHTML = ''; return; }
+    var html = '<nav><ul class="pagination pagination-sm mb-0">';
+    if (currentPage > 1) html += '<li class="page-item"><a class="page-link" href="javascript:void(0)" onclick="loadDashboardData(' + (currentPage-1) + ')"><i class="bi bi-chevron-left"></i></a></li>';
+    var startP = Math.max(1, currentPage - 2);
+    var endP = Math.min(totalPages, currentPage + 2);
+    for (var i = startP; i <= endP; i++) {
+      html += '<li class="page-item' + (i === currentPage ? ' active' : '') + '"><a class="page-link" href="javascript:void(0)" onclick="loadDashboardData(' + i + ')">' + i + '</a></li>';
+    }
+    if (currentPage < totalPages) html += '<li class="page-item"><a class="page-link" href="javascript:void(0)" onclick="loadDashboardData(' + (currentPage+1) + ')"><i class="bi bi-chevron-right"></i></a></li>';
+    html += '</ul></nav>';
+    container.innerHTML = html;
+  }
+
+  // ===== DASHBOARD ACTIONS =====
+  async function confirmDelete(caseId) {
+    var result = await Swal.fire({ title:'ลบ Case?', text:'Case: ' + caseId, icon:'warning', showCancelButton:true, confirmButtonColor:'#dc3545', confirmButtonText:'ลบ', cancelButtonText:'ยกเลิก' });
+    if (!result.isConfirmed) return;
+    var resp = await _supabase.from('cases').delete().eq('case_id', caseId);
+    if (resp.error) { Swal.fire('Error', resp.error.message, 'error'); return; }
+    await logActivity('DELETE', caseId, 'ลบ Case');
+    Swal.fire({ icon:'success', title:'ลบสำเร็จ', timer:1200, showConfirmButton:false });
+    loadDashboardData(currentPage);
+  }
+
+  async function confirmReopenCase(caseId) {
+    var result = await Swal.fire({ title:'เปิด Case ใหม่?', text:'Case: ' + caseId, icon:'question', showCancelButton:true, confirmButtonText:'เปิดใหม่', cancelButtonText:'ยกเลิก' });
+    if (!result.isConfirmed) return;
+    var resp = await _supabase.from('cases').update({ status: 'Active' }).eq('case_id', caseId);
+    if (resp.error) { Swal.fire('Error', resp.error.message, 'error'); return; }
+    await logActivity('REOPEN', caseId, 'เปิด Case ใหม่');
+    Swal.fire({ icon:'success', title:'เปิด Case ใหม่สำเร็จ', timer:1200, showConfirmButton:false });
+    loadDashboardData(currentPage);
+  }
+
+  function openShareDialog(caseId) {
+    currentShareCaseId = caseId;
+    var c = allCases.find(function(x) { return x.id === caseId; });
+    var statusEl = document.getElementById('share-status');
+    var linkArea = document.getElementById('share-link-area');
+    var btnEnable = document.getElementById('share-btn-enable');
+    var btnDisable = document.getElementById('share-btn-disable');
+
+    if (c && c.isPublic && c.publicToken) {
+      var url = window.location.origin + '/pt-medical-system/transport/public.html?token=' + c.publicToken;
+      document.getElementById('share-url').value = url;
+      statusEl.innerHTML = '<span class="text-success"><i class="bi bi-check-circle me-1"></i>ลิงก์เปิดใช้งานอยู่</span>';
+      linkArea.style.display = 'block';
+      btnEnable.style.display = 'none';
+      btnDisable.style.display = 'inline-block';
+      if (c.publicExpiry) {
+        document.getElementById('share-expiry-text').textContent = 'หมดอายุ: ' + formatThaiDate(c.publicExpiry);
+      }
+    } else {
+      statusEl.innerHTML = '<span class="text-muted"><i class="bi bi-link-45deg me-1"></i>ลิงก์ยังไม่เปิดใช้งาน</span>';
+      linkArea.style.display = 'none';
+      btnEnable.style.display = 'inline-block';
+      btnDisable.style.display = 'none';
+    }
+
+    shareModalInstance.show();
+  }
+
+  async function togglePublicLink(enable) {
+    if (!currentShareCaseId) return;
+    try {
+      if (enable) {
+        var token = generateCaseId().replace('CASE-','PUB-');
+        var expiry = new Date();
+        expiry.setDate(expiry.getDate() + 7);
+        await _supabase.from('cases').update({ is_public: true, public_token: token, public_expiry: expiry.toISOString() }).eq('case_id', currentShareCaseId);
+        await logActivity('SHARE', currentShareCaseId, 'เปิดลิงก์แชร์');
+      } else {
+        await _supabase.from('cases').update({ is_public: false, public_token: null, public_expiry: null }).eq('case_id', currentShareCaseId);
+        await logActivity('UNSHARE', currentShareCaseId, 'ปิดลิงก์แชร์');
+      }
+      shareModalInstance.hide();
+      Swal.fire({ icon:'success', title: enable ? 'เปิดลิงก์สำเร็จ' : 'ปิดลิงก์สำเร็จ', timer:1200, showConfirmButton:false });
+      loadDashboardData(currentPage);
+    } catch(e) {
+      Swal.fire('Error', e.message, 'error');
+    }
+  }
+
+  function copyPublicUrl() {
+    var el = document.getElementById('share-url');
+    el.select();
+    navigator.clipboard.writeText(el.value).then(function() {
+      Swal.fire({ icon:'success', title:'คัดลอกแล้ว', timer:1000, showConfirmButton:false });
+    });
+  }
+
+  async function printFromDashboard(caseId) {
+    var resp = await _supabase.from('cases').select('*').eq('case_id', caseId).single();
+    if (resp.error || !resp.data) { Swal.fire('Error','โหลดข้อมูลไม่สำเร็จ','error'); return; }
+    var caseData = mapCaseData(resp.data);
+    handlePrintWithData(caseData);
+  }
+
+  // ===== FORM: NEW CASE =====
+  function openNewCase() {
+    resetFormState();
+    var caseId = generateCaseId();
+    document.getElementById('f-caseId').value = caseId;
+    document.getElementById('f-status').value = 'Active';
+    loadedCaseStatus = 'Active';
+    updateStatusDisplay();
+    showForm();
+    goToStep(1);
+    updateTransportTypeUI();
+    renderTimeline('EMS');
+    setReadOnlyMode(false);
+    document.getElementById('patient-banner').style.display = 'none';
+  }
+
+  // ===== FORM: OPEN EXISTING CASE =====
+  async function openCase(caseId) {
+    try {
+      Swal.fire({ title:'กำลังโหลด...', allowOutsideClick:false, didOpen:function(){Swal.showLoading();} });
+      var resp = await _supabase.from('cases').select('*').eq('case_id', caseId).single();
+      if (resp.error || !resp.data) { Swal.fire('Error','ไม่พบข้อมูล','error'); return; }
+      var data = resp.data;
+      resetFormState();
+      isPopulating = true;
+
+      document.getElementById('f-caseId').value = data.case_id;
+      document.getElementById('f-status').value = data.status || 'Active';
+      loadedCaseStatus = data.status || 'Active';
+
+      // Populate from raw_data.rawSnapshot
+      var raw = (data.raw_data && data.raw_data.rawSnapshot) ? data.raw_data.rawSnapshot : {};
+
+      // Op info
+      setRadioVal('op_level', raw.op_level || (data.op_info && data.op_info.level) || 'ALS');
+      document.getElementById('f-op-unit-no').value = raw.op_unit_no || (data.op_info && data.op_info.unitNo) || '';
+      document.getElementById('f-op-staff').value = raw.op_staff || '';
+
+      // Classification
+      var triage = data.triage_level || raw.triage_level || 'Less Urgent';
+      setRadioVal('triage_level', triage);
+      var tt = raw.transport_type || 'EMS';
+      setRadioVal('transport_type', tt);
+      updateTransportTypeUI();
+
+      // Scene
+      document.getElementById('f-scene-type').value = raw.scene_type || '';
+      document.getElementById('f-scene-type-other').value = raw.scene_type_other || '';
+      document.getElementById('f-scene-location').value = raw.scene_location || '';
+      document.getElementById('f-scene-detail').value = raw.scene_detail || '';
+      updateSceneTypeLabel();
+
+      // Patient
+      var pi = data.patient_info || {};
+      document.getElementById('f-pt-name').value = pi.name || raw.pt_name || '';
+      document.getElementById('f-pt-age').value = pi.age || raw.pt_age || '';
+      if (pi.gender || raw.pt_gender) setRadioVal('pt_gender', pi.gender || raw.pt_gender);
+      document.getElementById('f-pt-id-card').value = raw.pt_id_card || '';
+      document.getElementById('f-id-type').value = raw.id_type || 'idcard';
+      toggleIdType(true);
+      document.getElementById('f-origin').value = pi.origin || raw.origin || '';
+      document.getElementById('f-destination').value = pi.destination || raw.destination || '';
+      document.getElementById('f-cc').value = raw.cc || '';
+      document.getElementById('f-dx').value = raw.dx || '';
+      document.getElementById('f-underlying').value = raw.underlying || '';
+      document.getElementById('f-medications').value = raw.medications || '';
+      document.getElementById('f-allergies').value = raw.allergies || '';
+      document.getElementById('f-nr-status').value = raw.nr_status || 'Full Code';
+
+      // Init Vitals
+      document.getElementById('f-init-bp').value = raw.init_bp || '';
+      document.getElementById('f-init-pr').value = raw.init_pr || '';
+      document.getElementById('f-init-rr').value = raw.init_rr || '';
+      document.getElementById('f-init-temp').value = raw.init_temp || '';
+      document.getElementById('f-init-spo2').value = raw.init_spo2 || '';
+      document.getElementById('f-init-dtx').value = raw.init_dtx || '';
+      document.getElementById('f-init-etco2').value = raw.init_etco2 || '';
+      document.getElementById('f-init-pain').value = raw.init_pain || '';
+      document.getElementById('f-init-time').value = raw.init_time || '';
+      document.getElementById('f-init-o2sat').value = raw.init_o2sat || '';
+      refreshInitVitalsDisplay();
+
+      // Airway
+      document.getElementById('f-airway-status').value = raw.airway_status || 'Patent';
+      document.getElementById('f-airway-mgmt').value = raw.airway_mgmt || '';
+      document.getElementById('f-et-size').value = raw.et_size || '';
+      document.getElementById('f-et-depth').value = raw.et_depth || '';
+      document.getElementById('f-trach-size').value = raw.trach_size || '';
+      updateAirwayLogic();
+
+      // Breathing
+      document.getElementById('f-vent-mode').value = raw.vent_mode || '';
+      document.getElementById('f-vent-tv').value = raw.vent_tv || '';
+      document.getElementById('f-vent-rr').value = raw.vent_rr || '';
+      document.getElementById('f-vent-fio2').value = raw.vent_fio2 || '';
+      document.getElementById('f-vent-peep').value = raw.vent_peep || '';
+      document.getElementById('f-vent-ps').value = raw.vent_ps || '';
+      document.getElementById('f-vent-ie').value = raw.vent_ie || '';
+      document.getElementById('f-o2-device').value = raw.o2_device || '';
+      document.getElementById('f-o2-rate').value = raw.o2_rate || '';
+      updateVentLogic();
+      updateO2Detail();
+
+      // Circulation
+      document.getElementById('f-circ-status').value = raw.circ_status || 'Stable';
+      document.getElementById('f-ekg').value = raw.ekg || '';
+      document.getElementById('f-central-line').checked = raw.central_line === true;
+      toggleCentralLine();
+      document.getElementById('f-central-site').value = raw.central_site || 'Subclavian';
+      document.getElementById('f-central-side').value = raw.central_side || 'Right';
+
+      // Initial IVs
+      var ivArr = (data.raw_data && data.raw_data.ivJson) ? data.raw_data.ivJson : (raw.initIvLines || []);
+      document.getElementById('init-iv-container').innerHTML = '';
+      if (ivArr && ivArr.length > 0) {
+        ivArr.forEach(function(iv) { addIvLine('init', iv); });
+      }
+
+      // Arrest
+      document.getElementById('f-arrest-active').checked = raw.arrest_active === true;
+      toggleArrest();
+      if (raw.arrest_active) {
+        document.getElementById('f-arrest-witnessed').value = raw.arrest_witnessed || 'No';
+        document.getElementById('f-arrest-rhythm').value = raw.arrest_rhythm || 'VF';
+        document.getElementById('f-arrest-time').value = raw.arrest_time || '';
+        document.getElementById('f-arrest-cpr-start').value = raw.arrest_cpr_start || '';
+        document.getElementById('f-arrest-bystander').value = raw.arrest_bystander || 'No';
+        document.getElementById('f-arrest-aed').value = raw.arrest_aed || 'No';
+        document.getElementById('f-arrest-rosc').checked = raw.arrest_rosc === true;
+        toggleArrestOutcome();
+        document.getElementById('f-arrest-rosc-time').value = raw.arrest_rosc_time || '';
+        calcArrestCprDuration();
+      }
+
+      // Disability
+      document.getElementById('f-gcs-e').value = raw.gcs_e || '';
+      document.getElementById('f-gcs-v').value = raw.gcs_v || '';
+      document.getElementById('f-gcs-m').value = raw.gcs_m || '';
+      updateGcsTotal();
+      document.getElementById('f-pupil-left-size').value = raw.pupil_left_size || '';
+      document.getElementById('f-pupil-left-react').value = raw.pupil_left_react || 'React';
+      document.getElementById('f-pupil-right-size').value = raw.pupil_right_size || '';
+      document.getElementById('f-pupil-right-react').value = raw.pupil_right_react || 'React';
+      document.getElementById('f-pain-score').value = raw.pain_score || '';
+      document.getElementById('f-motor-power').value = raw.motor_power || '';
+
+      // Exposure
+      document.getElementById('f-exposure').value = raw.exposure || '';
+
+      // Drainage
+      document.getElementById('f-drain-foley').checked = raw.drain_foley === true;
+      document.getElementById('f-drain-ng').checked = raw.drain_ng === true;
+      document.getElementById('f-drain-chest-l').checked = raw.drain_chest_l === true;
+      document.getElementById('f-drain-chest-r').checked = raw.drain_chest_r === true;
+      document.getElementById('f-drain-jp').checked = raw.drain_jp === true;
+      document.getElementById('f-drain-penrose').checked = raw.drain_penrose === true;
+      document.getElementById('f-drain-other').value = raw.drain_other || '';
+
+      // Equipment
+      var eqs = raw.equipment || [];
+      document.getElementById('eq-monitor').checked = eqs.indexOf('Monitor') >= 0;
+      document.getElementById('eq-defib').checked = eqs.indexOf('Defibrillator') >= 0;
+      document.getElementById('eq-syringe-pump').checked = eqs.indexOf('Syringe Pump') >= 0;
+      document.getElementById('eq-infusion-pump').checked = eqs.indexOf('Infusion Pump') >= 0;
+      document.getElementById('eq-ventilator').checked = eqs.indexOf('Ventilator') >= 0;
+      document.getElementById('eq-suction').checked = eqs.indexOf('Suction') >= 0;
+      document.getElementById('eq-spine-board').checked = eqs.indexOf('Spine Board') >= 0;
+      document.getElementById('eq-splint').checked = eqs.indexOf('Splint') >= 0;
+      document.getElementById('eq-c-collar').checked = eqs.indexOf('C-Collar') >= 0;
+      document.getElementById('eq-o2-tank').checked = eqs.indexOf('O2 Tank') >= 0;
+      document.getElementById('f-equip-other').value = raw.equip_other || '';
+
+      // Transport IVs
+      var tIvs = raw.transportIvLines || [];
+      document.getElementById('transport-iv-container').innerHTML = '';
+      if (tIvs && tIvs.length > 0) {
+        tIvs.forEach(function(iv) { addIvLine('transport', iv); });
+      }
+
+      // Vitals from raw_data.vitalsJson
+      var vitalsArr = (data.raw_data && data.raw_data.vitalsJson) ? data.raw_data.vitalsJson : [];
+      document.getElementById('vital-log-container').innerHTML = '';
+      currentVitals = [];
+      if (vitalsArr && vitalsArr.length > 0) {
+        vitalsArr.forEach(function(v) {
+          if (v.type === 'arrest') {
+            addArrestLog(v);
+          } else {
+            addVitalLog(v);
+          }
+        });
+      }
+
+      // Nurse note
+      document.getElementById('f-nurse-note').value = raw.nurse_note || '';
+
+      // Timeline
+      renderTimeline(tt, raw.timeline || {});
+
+      // Update UI
+      updateStatusDisplay();
+      updateBanner();
+      renderInitialIvInStep3();
+
+      if (loadedCaseStatus === 'Completed') {
+        setReadOnlyMode(true);
+      } else {
+        setReadOnlyMode(false);
+      }
+
+      isPopulating = false;
+      formDirty = false;
+      showForm();
+      goToStep(1);
+      Swal.close();
+    } catch(e) {
+      Swal.fire('Error', e.message, 'error');
+    }
+  }
+
+  function mapCaseData(rec) {
+    rec.id = rec.case_id;
+    rec.triageLevel = rec.triage_level;
+    rec.opInfo = rec.op_info || {};
+    rec.patientInfo = rec.patient_info || {};
+    rec.rawData = rec.raw_data || {};
+    return rec;
+  }
+
+  // ===== FORM STATE =====
+  function resetFormState() {
+    document.getElementById('main-form').reset();
+    document.getElementById('f-caseId').value = '';
+    document.getElementById('f-status').value = 'Active';
+    document.getElementById('init-iv-container').innerHTML = '';
+    document.getElementById('transport-iv-container').innerHTML = '';
+    document.getElementById('vital-log-container').innerHTML = '';
+    document.getElementById('init-iv-summary').innerHTML = '';
+    currentVitals = [];
+    currentIVs = [];
+    vitalLogCounter = 0;
+    arrestLogCounter = 0;
+    ivLineCounter = 0;
+    formDirty = false;
+    isSaving = false;
+    isPopulating = false;
+    loadedCaseStatus = 'Active';
+    document.getElementById('patient-banner').style.display = 'none';
+    document.getElementById('init-vitals-display').innerHTML = '<span class="text-muted">ยังไม่ได้บันทึก Vital Signs — แตะเพื่อบันทึก</span>';
+  }
+
+  function goToStep(n) {
+    for (var i = 1; i <= 3; i++) {
+      document.getElementById('step-' + i).style.display = (i === n) ? 'block' : 'none';
+    }
+    // Stepper UI
+    var items = document.querySelectorAll('#step-indicator .step-item');
+    items.forEach(function(item, idx) {
+      item.classList.remove('active', 'completed');
+      if (idx + 1 < n) item.classList.add('completed');
+      if (idx + 1 === n) item.classList.add('active');
+    });
+    // Auto-save draft when moving between steps (if active)
+    if (loadedCaseStatus === 'Active' && !isPopulating && document.getElementById('f-caseId').value) {
+      saveData(false, true);
+    }
+    // Update step 3 IV summary
+    if (n === 3) {
+      renderInitialIvInStep3();
+    }
+    window.scrollTo(0, 0);
+  }
+
+  function confirmBackToDashboard() {
+    if (formDirty && loadedCaseStatus === 'Active') {
+      Swal.fire({
+        title: 'ยังไม่ได้บันทึก',
+        text: 'ต้องการบันทึกก่อนกลับหรือไม่?',
+        icon: 'warning',
+        showCancelButton: true,
+        showDenyButton: true,
+        confirmButtonText: 'บันทึกและกลับ',
+        denyButtonText: 'ไม่บันทึก',
+        cancelButtonText: 'ยกเลิก'
+      }).then(async function(result) {
+        if (result.isConfirmed) {
+          await saveData(false, false);
+          showDashboard();
+        } else if (result.isDenied) {
+          showDashboard();
+        }
+      });
+    } else {
+      showDashboard();
+    }
+  }
+
+  // ===== SAVE DATA =====
+  async function saveData(isCompleted, silent, callback) {
+    if (isSaving) return;
+    isSaving = true;
+    var btn = document.getElementById('btn-save-draft');
+    if (btn && !silent) { btn.disabled = true; btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>กำลังบันทึก...'; }
+
+    try {
+      var caseId = document.getElementById('f-caseId').value || generateCaseId();
+      document.getElementById('f-caseId').value = caseId;
+      var status = isCompleted ? 'Completed' : document.getElementById('f-status').value;
+
+      var rawObj = getFormData();
+      var vitalsObj = getVitalsArray();
+      var ivObj = getIVArray('init');
+
+      var docData = {
+        case_id: caseId,
+        status: status,
+        triage_level: getRadioVal('triage_level'),
+        op_info: { level: getRadioVal('op_level'), unitNo: document.getElementById('f-op-unit-no').value },
+        patient_info: {
+          name: document.getElementById('f-pt-name').value,
+          age: document.getElementById('f-pt-age').value,
+          gender: getRadioVal('pt_gender'),
+          origin: document.getElementById('f-origin').value,
+          destination: document.getElementById('f-destination').value
+        },
+        raw_data: { rawSnapshot: rawObj, vitalsJson: vitalsObj, ivJson: ivObj }
+      };
+
+      var resp = await _supabase.from('cases').upsert(docData);
+      if (resp.error) throw resp.error;
+
+      formDirty = false;
+      if (isCompleted) {
+        document.getElementById('f-status').value = 'Completed';
+        loadedCaseStatus = 'Completed';
+        updateStatusDisplay();
+        setReadOnlyMode(true);
+      }
+
+      if (!silent) {
+        await logActivity(isCompleted ? 'CLOSE' : 'SAVE', caseId, isCompleted ? 'ปิด Case' : 'บันทึกร่าง');
+        Swal.fire({ icon:'success', title: isCompleted ? 'ปิด Case สำเร็จ' : 'บันทึกสำเร็จ', timer:1200, showConfirmButton:false });
+      }
+
+      if (callback) callback();
+    } catch(e) {
+      if (!silent) Swal.fire('Error', e.message, 'error');
+    } finally {
+      isSaving = false;
+      if (btn) { btn.disabled = false; btn.innerHTML = '<i class="bi bi-save me-1"></i>บันทึกร่าง'; }
+    }
+  }
+
+  function getFormData() {
+    var raw = {};
+    // Op
+    raw.op_level = getRadioVal('op_level');
+    raw.op_unit_no = document.getElementById('f-op-unit-no').value;
+    raw.op_staff = document.getElementById('f-op-staff').value;
+    // Classification
+    raw.triage_level = getRadioVal('triage_level');
+    raw.transport_type = getRadioVal('transport_type');
+    // Scene
+    raw.scene_type = document.getElementById('f-scene-type').value;
+    raw.scene_type_other = document.getElementById('f-scene-type-other').value;
+    raw.scene_location = document.getElementById('f-scene-location').value;
+    raw.scene_detail = document.getElementById('f-scene-detail').value;
+    // Patient
+    raw.pt_name = document.getElementById('f-pt-name').value;
+    raw.pt_age = document.getElementById('f-pt-age').value;
+    raw.pt_gender = getRadioVal('pt_gender');
+    raw.pt_id_card = document.getElementById('f-pt-id-card').value;
+    raw.id_type = document.getElementById('f-id-type').value;
+    raw.origin = document.getElementById('f-origin').value;
+    raw.destination = document.getElementById('f-destination').value;
+    raw.cc = document.getElementById('f-cc').value;
+    raw.dx = document.getElementById('f-dx').value;
+    raw.underlying = document.getElementById('f-underlying').value;
+    raw.medications = document.getElementById('f-medications').value;
+    raw.allergies = document.getElementById('f-allergies').value;
+    raw.nr_status = document.getElementById('f-nr-status').value;
+    // Init Vitals
+    raw.init_bp = document.getElementById('f-init-bp').value;
+    raw.init_pr = document.getElementById('f-init-pr').value;
+    raw.init_rr = document.getElementById('f-init-rr').value;
+    raw.init_temp = document.getElementById('f-init-temp').value;
+    raw.init_spo2 = document.getElementById('f-init-spo2').value;
+    raw.init_dtx = document.getElementById('f-init-dtx').value;
+    raw.init_etco2 = document.getElementById('f-init-etco2').value;
+    raw.init_pain = document.getElementById('f-init-pain').value;
+    raw.init_time = document.getElementById('f-init-time').value;
+    raw.init_o2sat = document.getElementById('f-init-o2sat').value;
+    // Airway
+    raw.airway_status = document.getElementById('f-airway-status').value;
+    raw.airway_mgmt = document.getElementById('f-airway-mgmt').value;
+    raw.et_size = document.getElementById('f-et-size').value;
+    raw.et_depth = document.getElementById('f-et-depth').value;
+    raw.trach_size = document.getElementById('f-trach-size').value;
+    // Breathing
+    raw.vent_mode = document.getElementById('f-vent-mode').value;
+    raw.vent_tv = document.getElementById('f-vent-tv').value;
+    raw.vent_rr = document.getElementById('f-vent-rr').value;
+    raw.vent_fio2 = document.getElementById('f-vent-fio2').value;
+    raw.vent_peep = document.getElementById('f-vent-peep').value;
+    raw.vent_ps = document.getElementById('f-vent-ps').value;
+    raw.vent_ie = document.getElementById('f-vent-ie').value;
+    raw.o2_device = document.getElementById('f-o2-device').value;
+    raw.o2_rate = document.getElementById('f-o2-rate').value;
+    // Circulation
+    raw.circ_status = document.getElementById('f-circ-status').value;
+    raw.ekg = document.getElementById('f-ekg').value;
+    raw.central_line = document.getElementById('f-central-line').checked;
+    raw.central_site = document.getElementById('f-central-site').value;
+    raw.central_side = document.getElementById('f-central-side').value;
+    // Init IVs
+    raw.initIvLines = getIVArray('init');
+    // Arrest
+    raw.arrest_active = document.getElementById('f-arrest-active').checked;
+    raw.arrest_witnessed = document.getElementById('f-arrest-witnessed').value;
+    raw.arrest_rhythm = document.getElementById('f-arrest-rhythm').value;
+    raw.arrest_time = document.getElementById('f-arrest-time').value;
+    raw.arrest_cpr_start = document.getElementById('f-arrest-cpr-start').value;
+    raw.arrest_bystander = document.getElementById('f-arrest-bystander').value;
+    raw.arrest_aed = document.getElementById('f-arrest-aed').value;
+    raw.arrest_rosc = document.getElementById('f-arrest-rosc').checked;
+    raw.arrest_rosc_time = document.getElementById('f-arrest-rosc-time').value;
+    // Disability
+    raw.gcs_e = document.getElementById('f-gcs-e').value;
+    raw.gcs_v = document.getElementById('f-gcs-v').value;
+    raw.gcs_m = document.getElementById('f-gcs-m').value;
+    raw.pupil_left_size = document.getElementById('f-pupil-left-size').value;
+    raw.pupil_left_react = document.getElementById('f-pupil-left-react').value;
+    raw.pupil_right_size = document.getElementById('f-pupil-right-size').value;
+    raw.pupil_right_react = document.getElementById('f-pupil-right-react').value;
+    raw.pain_score = document.getElementById('f-pain-score').value;
+    raw.motor_power = document.getElementById('f-motor-power').value;
+    // Exposure
+    raw.exposure = document.getElementById('f-exposure').value;
+    // Drainage
+    raw.drain_foley = document.getElementById('f-drain-foley').checked;
+    raw.drain_ng = document.getElementById('f-drain-ng').checked;
+    raw.drain_chest_l = document.getElementById('f-drain-chest-l').checked;
+    raw.drain_chest_r = document.getElementById('f-drain-chest-r').checked;
+    raw.drain_jp = document.getElementById('f-drain-jp').checked;
+    raw.drain_penrose = document.getElementById('f-drain-penrose').checked;
+    raw.drain_other = document.getElementById('f-drain-other').value;
+    // Equipment
+    raw.equipment = getEquipmentList();
+    raw.equip_other = document.getElementById('f-equip-other').value;
+    // Transport IVs
+    raw.transportIvLines = getIVArray('transport');
+    // Nurse note
+    raw.nurse_note = document.getElementById('f-nurse-note').value;
+    // Timeline
+    raw.timeline = getTimelineData();
+
+    return raw;
+  }
+
+  function getEquipmentList() {
+    var eqs = [];
+    var checks = [
+      ['eq-monitor','Monitor'],['eq-defib','Defibrillator'],['eq-syringe-pump','Syringe Pump'],
+      ['eq-infusion-pump','Infusion Pump'],['eq-ventilator','Ventilator'],['eq-suction','Suction'],
+      ['eq-spine-board','Spine Board'],['eq-splint','Splint'],['eq-c-collar','C-Collar'],['eq-o2-tank','O2 Tank']
+    ];
+    checks.forEach(function(c) {
+      if (document.getElementById(c[0]).checked) eqs.push(c[1]);
+    });
+    return eqs;
+  }
+
+  function getVitalsArray() {
+    var entries = [];
+    var container = document.getElementById('vital-log-container');
+    var logEntries = container.querySelectorAll('.vital-log-entry');
+    logEntries.forEach(function(entry) {
+      var obj = {};
+      obj.type = entry.dataset.type || 'vital';
+      obj.time = getFieldValue(entry, '.vl-time');
+      if (obj.type === 'arrest') {
+        obj.arrest_rhythm = getFieldValue(entry, '.vl-arrest-rhythm');
+        obj.arrest_time = getFieldValue(entry, '.vl-arrest-time');
+        obj.cpr_start = getFieldValue(entry, '.vl-cpr-start');
+        obj.rosc = entry.querySelector('.vl-rosc') ? entry.querySelector('.vl-rosc').checked : false;
+        obj.rosc_time = getFieldValue(entry, '.vl-rosc-time');
+        obj.outcome = getFieldValue(entry, '.vl-arrest-outcome');
+        obj.deathTime = getFieldValue(entry, '.vl-death-time');
+        obj.note = getFieldValue(entry, '.vl-arrest-note');
+      } else {
+        obj.bp = getFieldValue(entry, '.vl-bp');
+        obj.pr = getFieldValue(entry, '.vl-pr');
+        obj.rr = getFieldValue(entry, '.vl-rr');
+        obj.temp = getFieldValue(entry, '.vl-temp');
+        obj.spo2 = getFieldValue(entry, '.vl-spo2');
+        obj.dtx = getFieldValue(entry, '.vl-dtx');
+        obj.etco2 = getFieldValue(entry, '.vl-etco2');
+        obj.gcs = getFieldValue(entry, '.vl-gcs');
+        obj.note = getFieldValue(entry, '.vl-note');
+      }
+      entries.push(obj);
+    });
+    return entries;
+  }
+
+  function getIVArray(type) {
+    var containerId = (type === 'init') ? 'init-iv-container' : 'transport-iv-container';
+    var rows = document.querySelectorAll('#' + containerId + ' .iv-row');
+    var arr = [];
+    rows.forEach(function(row) {
+      arr.push({
+        solution: getFieldValue(row, '.iv-solution'),
+        volume: getFieldValue(row, '.iv-volume'),
+        rate: getFieldValue(row, '.iv-rate'),
+        site: getFieldValue(row, '.iv-site'),
+        drug: getFieldValue(row, '.iv-drug'),
+        drip: getFieldValue(row, '.iv-drip'),
+        time: getFieldValue(row, '.iv-time'),
+        sedate: row.querySelector('.iv-sedate') ? row.querySelector('.iv-sedate').checked : false,
+        locked: row.classList.contains('row-locked')
+      });
+    });
+    return arr;
+  }
+
+  // ===== FORM UI LOGIC =====
+  function updateTransportTypeUI() {
+    var tt = getRadioVal('transport_type');
+    document.getElementById('scene-info-card').style.display = (tt === 'EMS') ? 'block' : 'none';
+    renderTimeline(tt);
+  }
+
+  function updateSceneTypeLabel() {
+    var v = document.getElementById('f-scene-type').value;
+    document.getElementById('scene-type-other-wrap').style.display = (v === 'อื่นๆ') ? 'block' : 'none';
+  }
+
+  function updateAirwayLogic() {
+    var mgmt = document.getElementById('f-airway-mgmt').value;
+    document.getElementById('et-size-wrap').style.display = (mgmt === 'ET Tube') ? 'block' : 'none';
+    document.getElementById('et-depth-wrap').style.display = (mgmt === 'ET Tube') ? 'block' : 'none';
+    document.getElementById('trach-size-wrap').style.display = (mgmt === 'Tracheostomy') ? 'block' : 'none';
+  }
+
+  function updateVentLogic() {
+    var v = document.getElementById('f-vent-mode').value;
+    document.getElementById('vent-settings-wrap').style.display = v ? 'block' : 'none';
+  }
+
+  function updateO2Detail() {
+    var v = document.getElementById('f-o2-device').value;
+    document.getElementById('o2-rate-wrap').style.display = v ? 'block' : 'none';
+  }
+
+  function toggleCentralLine() {
+    var checked = document.getElementById('f-central-line').checked;
+    document.getElementById('central-line-detail').style.display = checked ? 'block' : 'none';
+  }
+
+  function toggleArrest() {
+    var checked = document.getElementById('f-arrest-active').checked;
+    var sec = document.getElementById('arrest-section');
+    sec.style.display = checked ? 'block' : 'none';
+    if (checked) sec.classList.add('active-arrest');
+    else sec.classList.remove('active-arrest');
+  }
+
+  function toggleArrestOutcome() {
+    var rosc = document.getElementById('f-arrest-rosc').checked;
+    document.getElementById('rosc-time-wrap').style.display = rosc ? 'block' : 'none';
+    document.getElementById('cpr-duration-wrap').style.display = rosc ? 'block' : 'none';
+  }
+
+  function stampArrestNow(fieldId) {
+    document.getElementById(fieldId).value = getNowTimeSec();
+  }
+
+  function calcArrestCprDuration() {
+    var start = document.getElementById('f-arrest-cpr-start').value;
+    var end = document.getElementById('f-arrest-rosc-time').value;
+    if (!start || !end) { document.getElementById('f-arrest-cpr-duration').value = ''; return; }
+    var sp = start.split(':'); var ep = end.split(':');
+    var s = parseInt(sp[0])*3600 + parseInt(sp[1])*60 + (parseInt(sp[2])||0);
+    var e = parseInt(ep[0])*3600 + parseInt(ep[1])*60 + (parseInt(ep[2])||0);
+    var diff = e - s;
+    if (diff < 0) diff += 86400;
+    var mins = Math.floor(diff / 60);
+    var secs = diff % 60;
+    document.getElementById('f-arrest-cpr-duration').value = mins + ' นาที ' + secs + ' วินาที';
+  }
+
+  function updateGcsTotal() {
+    var e = document.getElementById('f-gcs-e').value;
+    var v = document.getElementById('f-gcs-v').value;
+    var m = document.getElementById('f-gcs-m').value;
+    if (e && v && m) {
+      var eVal = (e === 'T') ? 0 : parseInt(e);
+      var vVal = (v === 'T') ? 0 : parseInt(v);
+      var mVal = parseInt(m);
+      var total = eVal + vVal + mVal;
+      var suffix = (v === 'T') ? 'T' : '';
+      document.getElementById('f-gcs-total').value = total + suffix;
+    } else {
+      document.getElementById('f-gcs-total').value = '';
+    }
+  }
+
+  function toggleIdType(init) {
+    var typeEl = document.getElementById('f-id-type');
+    var labelEl = document.getElementById('id-type-label');
+    var inputEl = document.getElementById('f-pt-id-card');
+    if (!init) {
+      typeEl.value = (typeEl.value === 'idcard') ? 'passport' : 'idcard';
+    }
+    if (typeEl.value === 'passport') {
+      labelEl.textContent = 'Passport';
+      inputEl.placeholder = 'Passport number';
+      inputEl.maxLength = 20;
+    } else {
+      labelEl.textContent = 'เลขบัตรประชาชน';
+      inputEl.placeholder = 'เลข 13 หลัก';
+      inputEl.maxLength = 17;
+    }
+  }
+
+  function formatIdCard(el) {
+    if (document.getElementById('f-id-type').value !== 'idcard') return;
+    var v = el.value.replace(/\D/g, '');
+    if (v.length > 13) v = v.substring(0, 13);
+    var formatted = '';
+    for (var i = 0; i < v.length; i++) {
+      if (i === 1 || i === 5 || i === 10 || i === 12) formatted += '-';
+      formatted += v[i];
+    }
+    el.value = formatted;
+  }
+
+  function getUnderlyingList() {
+    var v = document.getElementById('f-underlying').value;
+    return v ? v.split(',').map(function(s) { return s.trim(); }).filter(Boolean) : [];
+  }
+
+  // ===== STATUS & BANNER =====
+  function updateStatusDisplay() {
+    var status = document.getElementById('f-status').value;
+    var badge = document.getElementById('form-status-badge');
+    badge.className = 'badge';
+    if (status === 'Active') { badge.classList.add('bg-success'); badge.textContent = 'Active'; }
+    else if (status === 'Completed') { badge.classList.add('bg-primary'); badge.textContent = 'Completed'; }
+    else { badge.classList.add('bg-secondary'); badge.textContent = status; }
+    document.getElementById('form-case-id-display').textContent = document.getElementById('f-caseId').value;
+  }
+
+  function updateBanner() {
+    var name = document.getElementById('f-pt-name').value;
+    var age = document.getElementById('f-pt-age').value;
+    var gender = getRadioVal('pt_gender');
+    var triage = getRadioVal('triage_level');
+
+    if (!name) {
+      document.getElementById('patient-banner').style.display = 'none';
+      return;
+    }
+    document.getElementById('patient-banner').style.display = 'flex';
+    document.getElementById('banner-name').textContent = name;
+    document.getElementById('banner-age').textContent = age || '-';
+    document.getElementById('banner-gender').textContent = gender || '-';
+    document.getElementById('banner-triage').textContent = triage || '-';
+    document.getElementById('banner-triage-stripe').style.backgroundColor = getTriageColor(triage);
+  }
+
+  function setReadOnlyMode(readOnly) {
+    var form = document.getElementById('main-form');
+    var inputs = form.querySelectorAll('input, select, textarea');
+    inputs.forEach(function(el) {
+      if (readOnly) {
+        el.disabled = true;
+      } else {
+        el.disabled = false;
+      }
+    });
+    // Save/close buttons
+    var saveDraft = document.getElementById('btn-save-draft');
+    var closeCase = document.getElementById('btn-close-case');
+    if (readOnly) {
+      if (saveDraft) saveDraft.style.display = 'none';
+      if (closeCase) closeCase.style.display = 'none';
+    } else {
+      if (saveDraft) saveDraft.style.display = 'inline-block';
+      if (closeCase) closeCase.style.display = 'inline-block';
+    }
+  }
+
+  function confirmCloseCase() {
+    Swal.fire({
+      title: 'ปิด Case?',
+      text: 'ยืนยันว่าต้องการปิด Case นี้',
+      icon: 'question',
+      showCancelButton: true,
+      confirmButtonText: 'ปิด Case',
+      cancelButtonText: 'ยกเลิก',
+      confirmButtonColor: '#0d6efd'
+    }).then(function(result) {
+      if (result.isConfirmed) {
+        saveData(true, false);
+      }
+    });
+  }
+
+  function confirmReopenFromForm() {
+    var caseId = document.getElementById('f-caseId').value;
+    Swal.fire({
+      title: 'เปิด Case ใหม่?',
+      icon: 'question',
+      showCancelButton: true,
+      confirmButtonText: 'เปิดใหม่',
+      cancelButtonText: 'ยกเลิก'
+    }).then(async function(result) {
+      if (result.isConfirmed) {
+        await _supabase.from('cases').update({ status: 'Active' }).eq('case_id', caseId);
+        document.getElementById('f-status').value = 'Active';
+        loadedCaseStatus = 'Active';
+        updateStatusDisplay();
+        setReadOnlyMode(false);
+        await logActivity('REOPEN', caseId, 'เปิด Case ใหม่จากฟอร์ม');
+        Swal.fire({ icon:'success', title:'เปิด Case ใหม่สำเร็จ', timer:1200, showConfirmButton:false });
+      }
+    });
+  }
+
+  // ===== INIT VITALS POPUP =====
+  function openInitVitalsPopup() {
+    if (loadedCaseStatus === 'Completed') return;
+    // Pre-fill from hidden fields
+    document.getElementById('iv-bp').value = document.getElementById('f-init-bp').value;
+    document.getElementById('iv-pr').value = document.getElementById('f-init-pr').value;
+    document.getElementById('iv-rr').value = document.getElementById('f-init-rr').value;
+    document.getElementById('iv-temp').value = document.getElementById('f-init-temp').value;
+    document.getElementById('iv-spo2').value = document.getElementById('f-init-spo2').value;
+    document.getElementById('iv-dtx').value = document.getElementById('f-init-dtx').value;
+    document.getElementById('iv-etco2').value = document.getElementById('f-init-etco2').value;
+    document.getElementById('iv-pain').value = document.getElementById('f-init-pain').value;
+    document.getElementById('iv-time').value = document.getElementById('f-init-time').value || getNowTime();
+    initVitalsModal.show();
+  }
+
+  function saveInitVitals() {
+    var v = {
+      bp: document.getElementById('iv-bp').value,
+      pr: document.getElementById('iv-pr').value,
+      rr: document.getElementById('iv-rr').value,
+      temp: document.getElementById('iv-temp').value,
+      spo2: document.getElementById('iv-spo2').value,
+      dtx: document.getElementById('iv-dtx').value
+    };
+    var errors = validateInitVitals(v);
+    if (errors.length > 0) {
+      Swal.fire({ icon:'warning', title:'ค่าไม่ถูกต้อง', html:errors.join('<br>') });
+      return;
+    }
+    document.getElementById('f-init-bp').value = document.getElementById('iv-bp').value;
+    document.getElementById('f-init-pr').value = document.getElementById('iv-pr').value;
+    document.getElementById('f-init-rr').value = document.getElementById('iv-rr').value;
+    document.getElementById('f-init-temp').value = document.getElementById('iv-temp').value;
+    document.getElementById('f-init-spo2').value = document.getElementById('iv-spo2').value;
+    document.getElementById('f-init-dtx').value = document.getElementById('iv-dtx').value;
+    document.getElementById('f-init-etco2').value = document.getElementById('iv-etco2').value;
+    document.getElementById('f-init-pain').value = document.getElementById('iv-pain').value;
+    document.getElementById('f-init-time').value = document.getElementById('iv-time').value;
+    refreshInitVitalsDisplay();
+    initVitalsModal.hide();
+    formDirty = true;
+  }
+
+  function refreshInitVitalsDisplay() {
+    var bp = document.getElementById('f-init-bp').value;
+    var pr = document.getElementById('f-init-pr').value;
+    var rr = document.getElementById('f-init-rr').value;
+    var temp = document.getElementById('f-init-temp').value;
+    var spo2 = document.getElementById('f-init-spo2').value;
+    var dtx = document.getElementById('f-init-dtx').value;
+    var time = document.getElementById('f-init-time').value;
+    var etco2 = document.getElementById('f-init-etco2').value;
+    var pain = document.getElementById('f-init-pain').value;
+
+    if (!bp && !pr && !rr) {
+      document.getElementById('init-vitals-display').innerHTML = '<span class="text-muted">ยังไม่ได้บันทึก Vital Signs — แตะเพื่อบันทึก</span>';
+      return;
+    }
+    var parts = [];
+    if (bp) parts.push('<strong>BP</strong> ' + escapeHtml(bp));
+    if (pr) parts.push('<strong>PR</strong> ' + escapeHtml(pr));
+    if (rr) parts.push('<strong>RR</strong> ' + escapeHtml(rr));
+    if (temp) parts.push('<strong>T</strong> ' + escapeHtml(temp) + '°C');
+    if (spo2) parts.push('<strong>SpO2</strong> ' + escapeHtml(spo2) + '%');
+    if (dtx) parts.push('<strong>DTX</strong> ' + escapeHtml(dtx));
+    if (etco2) parts.push('<strong>EtCO2</strong> ' + escapeHtml(etco2));
+    if (pain) parts.push('<strong>Pain</strong> ' + escapeHtml(pain));
+    if (time) parts.push('<span class="text-muted">@' + maskTime(time) + '</span>');
+    document.getElementById('init-vitals-display').innerHTML = parts.join(' | ');
+  }
+
+  // ===== IV LINES =====
+  function addIvLine(type, data) {
+    ivLineCounter++;
+    var containerId = (type === 'init') ? 'init-iv-container' : 'transport-iv-container';
+    var container = document.getElementById(containerId);
+    var id = 'iv-' + type + '-' + ivLineCounter;
+    var locked = (data && data.locked) ? true : false;
+
+    var html = '<div class="iv-row border rounded-3 p-2 mb-2 ' + (locked ? 'row-locked' : '') + '" id="' + id + '">' +
+      '<div class="row g-1">' +
+        '<div class="col-6 col-md-3"><input type="text" class="form-control form-control-sm bg-light iv-solution" placeholder="Solution" value="' + escapeHtml((data && data.solution) || '') + '" ' + (locked?'disabled':'') + '></div>' +
+        '<div class="col-3 col-md-2"><input type="text" class="form-control form-control-sm bg-light iv-volume" placeholder="ml" value="' + escapeHtml((data && data.volume) || '') + '" ' + (locked?'disabled':'') + '></div>' +
+        '<div class="col-3 col-md-2"><input type="text" class="form-control form-control-sm bg-light iv-rate" placeholder="rate" value="' + escapeHtml((data && data.rate) || '') + '" ' + (locked?'disabled':'') + '></div>' +
+        '<div class="col-4 col-md-2"><input type="text" class="form-control form-control-sm bg-light iv-site" placeholder="site" value="' + escapeHtml((data && data.site) || '') + '" ' + (locked?'disabled':'') + '></div>' +
+        '<div class="col-4 col-md-3"><input type="text" class="form-control form-control-sm bg-light iv-drug" placeholder="drug/med" value="' + escapeHtml((data && data.drug) || '') + '" ' + (locked?'disabled':'') + '></div>' +
+        '<div class="col-3 col-md-2"><input type="text" class="form-control form-control-sm bg-light iv-drip" placeholder="drip" value="' + escapeHtml((data && data.drip) || '') + '" ' + (locked?'disabled':'') + '></div>' +
+        '<div class="col-3 col-md-2">' +
+          '<div class="input-group input-group-sm">' +
+            '<input type="time" class="form-control bg-light iv-time" value="' + escapeHtml((data && data.time) || '') + '" ' + (locked?'disabled':'') + '>' +
+          '</div>' +
+        '</div>' +
+        '<div class="col-2 col-md-1"><div class="form-check mt-1"><input type="checkbox" class="form-check-input iv-sedate" ' + ((data && data.sedate)?'checked':'') + ' ' + (locked?'disabled':'') + '><label class="form-check-label small">Sed</label></div></div>' +
+        '<div class="col-auto d-flex gap-1 align-items-center">' +
+          (locked ? '' : '<button type="button" class="btn btn-sm btn-outline-success" onclick="lockAndSaveIv(\'' + id + '\')"><i class="bi bi-lock"></i></button>') +
+          '<button type="button" class="btn btn-sm btn-outline-danger" onclick="deleteIvRow(\'' + id + '\')"><i class="bi bi-trash"></i></button>' +
+        '</div>' +
+      '</div>' +
+    '</div>';
+    container.insertAdjacentHTML('beforeend', html);
+  }
+
+  function deleteIvRow(id) {
+    var el = document.getElementById(id);
+    if (el) el.remove();
+    formDirty = true;
+  }
+
+  function lockAndSaveIv(id) {
+    var row = document.getElementById(id);
+    if (!row) return;
+    row.classList.add('row-locked');
+    row.querySelectorAll('input, select').forEach(function(el) { el.disabled = true; });
+    // Remove lock button
+    var lockBtn = row.querySelector('.btn-outline-success');
+    if (lockBtn) lockBtn.remove();
+    formDirty = true;
+  }
+
+  function renderInitialIvInStep3() {
+    var ivs = getIVArray('init');
+    var container = document.getElementById('init-iv-summary');
+    if (!ivs || ivs.length === 0) { container.innerHTML = ''; return; }
+    var html = '<div class="small text-muted mb-1 fw-bold">IV Lines (เริ่มต้น):</div>';
+    ivs.forEach(function(iv) {
+      var parts = [];
+      if (iv.solution) parts.push(iv.solution);
+      if (iv.volume) parts.push(iv.volume + ' ml');
+      if (iv.rate) parts.push('rate ' + iv.rate);
+      if (iv.drug) parts.push(iv.drug);
+      if (iv.site) parts.push('@' + iv.site);
+      html += '<div class="small bg-light rounded-2 p-1 px-2 mb-1">' + escapeHtml(parts.join(' | ')) + '</div>';
+    });
+    container.innerHTML = html;
+  }
+
+  // ===== VITAL LOG =====
+  function addVitalLog(data) {
+    vitalLogCounter++;
+    var container = document.getElementById('vital-log-container');
+    var id = 'vl-' + vitalLogCounter;
+    var time = (data && data.time) || getNowTime();
+
+    var html = '<div class="vital-log-entry p-3 mb-2" id="' + id + '" data-type="vital">' +
+      '<div class="d-flex justify-content-between align-items-center mb-2">' +
+        '<span class="badge bg-primary rounded-pill">Vital #' + vitalLogCounter + '</span>' +
+        '<div class="d-flex gap-1 align-items-center">' +
+          '<input type="time" class="form-control form-control-sm bg-light vl-time" style="width:100px;" value="' + escapeHtml(time) + '">' +
+          '<button type="button" class="btn btn-sm btn-outline-danger" onclick="removeVitalLog(\'' + id + '\')"><i class="bi bi-trash"></i></button>' +
+        '</div>' +
+      '</div>' +
+      '<div class="row g-1">' +
+        '<div class="col-4 col-md-2"><label class="small text-muted">BP</label><input type="text" class="form-control form-control-sm bg-light vl-bp" placeholder="120/80" value="' + escapeHtml((data && data.bp) || '') + '"></div>' +
+        '<div class="col-4 col-md-2"><label class="small text-muted">PR</label><input type="number" class="form-control form-control-sm bg-light vl-pr" value="' + escapeHtml((data && data.pr) || '') + '"></div>' +
+        '<div class="col-4 col-md-2"><label class="small text-muted">RR</label><input type="number" class="form-control form-control-sm bg-light vl-rr" value="' + escapeHtml((data && data.rr) || '') + '"></div>' +
+        '<div class="col-4 col-md-2"><label class="small text-muted">Temp</label><input type="text" class="form-control form-control-sm bg-light vl-temp" value="' + escapeHtml((data && data.temp) || '') + '"></div>' +
+        '<div class="col-4 col-md-2"><label class="small text-muted">SpO2</label><input type="number" class="form-control form-control-sm bg-light vl-spo2" value="' + escapeHtml((data && data.spo2) || '') + '"></div>' +
+        '<div class="col-4 col-md-2"><label class="small text-muted">DTX</label><input type="number" class="form-control form-control-sm bg-light vl-dtx" value="' + escapeHtml((data && data.dtx) || '') + '"></div>' +
+        '<div class="col-4 col-md-2"><label class="small text-muted">EtCO2</label><input type="number" class="form-control form-control-sm bg-light vl-etco2" value="' + escapeHtml((data && data.etco2) || '') + '"></div>' +
+        '<div class="col-4 col-md-2"><label class="small text-muted">GCS</label><input type="text" class="form-control form-control-sm bg-light vl-gcs" value="' + escapeHtml((data && data.gcs) || '') + '"></div>' +
+        '<div class="col-12"><label class="small text-muted">Note</label><input type="text" class="form-control form-control-sm bg-light vl-note" value="' + escapeHtml((data && data.note) || '') + '"></div>' +
+      '</div>' +
+    '</div>';
+    container.insertAdjacentHTML('beforeend', html);
+    formDirty = true;
+  }
+
+  function removeVitalLog(id) {
+    var el = document.getElementById(id);
+    if (el) el.remove();
+    formDirty = true;
+  }
+
+  // ===== ARREST LOG =====
+  function addArrestLog(data) {
+    arrestLogCounter++;
+    var container = document.getElementById('vital-log-container');
+    var id = 'al-' + arrestLogCounter;
+    var time = (data && data.time) || getNowTime();
+
+    var html = '<div class="vital-log-entry arrest-log-entry p-3 mb-2" id="' + id + '" data-type="arrest">' +
+      '<div class="d-flex justify-content-between align-items-center mb-2">' +
+        '<span class="badge bg-danger blink-badge">Arrest #' + arrestLogCounter + '</span>' +
+        '<div class="d-flex gap-1 align-items-center">' +
+          '<input type="time" class="form-control form-control-sm bg-light vl-time" style="width:100px;" value="' + escapeHtml(time) + '" step="1">' +
+          '<button type="button" class="btn btn-sm btn-outline-danger" onclick="removeVitalLog(\'' + id + '\')"><i class="bi bi-trash"></i></button>' +
+        '</div>' +
+      '</div>' +
+      '<div class="row g-1">' +
+        '<div class="col-6"><label class="small text-muted">Rhythm</label>' +
+          '<select class="form-select form-select-sm bg-light vl-arrest-rhythm">' +
+            '<option value="VF"' + ((data && data.arrest_rhythm === 'VF') ? ' selected' : '') + '>VF</option>' +
+            '<option value="pVT"' + ((data && data.arrest_rhythm === 'pVT') ? ' selected' : '') + '>pVT</option>' +
+            '<option value="PEA"' + ((data && data.arrest_rhythm === 'PEA') ? ' selected' : '') + '>PEA</option>' +
+            '<option value="Asystole"' + ((data && data.arrest_rhythm === 'Asystole') ? ' selected' : '') + '>Asystole</option>' +
+          '</select>' +
+        '</div>' +
+        '<div class="col-6"><label class="small text-muted">Arrest Time</label>' +
+          '<div class="input-group input-group-sm">' +
+            '<input type="time" class="form-control bg-light vl-arrest-time" step="1" value="' + escapeHtml((data && data.arrest_time) || '') + '">' +
+            '<button type="button" class="btn btn-outline-danger btn-sm" onclick="this.previousElementSibling.value=getNowTimeSec()"><i class="bi bi-clock"></i></button>' +
+          '</div>' +
+        '</div>' +
+        '<div class="col-6"><label class="small text-muted">CPR Start</label>' +
+          '<div class="input-group input-group-sm">' +
+            '<input type="time" class="form-control bg-light vl-cpr-start" step="1" value="' + escapeHtml((data && data.cpr_start) || '') + '">' +
+            '<button type="button" class="btn btn-outline-danger btn-sm" onclick="this.previousElementSibling.value=getNowTimeSec()"><i class="bi bi-clock"></i></button>' +
+          '</div>' +
+        '</div>' +
+        '<div class="col-6">' +
+          '<div class="form-check mt-3">' +
+            '<input type="checkbox" class="form-check-input vl-rosc" ' + ((data && data.rosc) ? 'checked' : '') + ' onchange="toggleArrestLogOutcome(this)">' +
+            '<label class="form-check-label small fw-bold text-success">ROSC</label>' +
+          '</div>' +
+        '</div>' +
+        '<div class="col-6 vl-rosc-wrap" style="' + ((data && data.rosc) ? '' : 'display:none;') + '"><label class="small text-muted">ROSC Time</label>' +
+          '<div class="input-group input-group-sm">' +
+            '<input type="time" class="form-control bg-light vl-rosc-time" step="1" value="' + escapeHtml((data && data.rosc_time) || '') + '">' +
+            '<button type="button" class="btn btn-outline-success btn-sm" onclick="this.previousElementSibling.value=getNowTimeSec()"><i class="bi bi-clock"></i></button>' +
+          '</div>' +
+        '</div>' +
+        '<div class="col-6"><label class="small text-muted">Outcome</label>' +
+          '<select class="form-select form-select-sm bg-light vl-arrest-outcome">' +
+            '<option value="">--</option>' +
+            '<option value="ROSC"' + ((data && data.outcome === 'ROSC') ? ' selected' : '') + '>ROSC</option>' +
+            '<option value="Dead"' + ((data && data.outcome === 'Dead') ? ' selected' : '') + '>Dead</option>' +
+          '</select>' +
+        '</div>' +
+        '<div class="col-6 vl-death-wrap" style="' + ((data && data.outcome === 'Dead') ? '' : 'display:none;') + '"><label class="small text-muted">Death Time</label>' +
+          '<input type="time" class="form-control form-control-sm bg-light vl-death-time" step="1" value="' + escapeHtml((data && data.deathTime) || '') + '">' +
+        '</div>' +
+        '<div class="col-12"><label class="small text-muted">Note</label><input type="text" class="form-control form-control-sm bg-light vl-arrest-note" value="' + escapeHtml((data && data.note) || '') + '"></div>' +
+      '</div>' +
+    '</div>';
+    container.insertAdjacentHTML('beforeend', html);
+    formDirty = true;
+  }
+
+  function toggleArrestLogOutcome(checkbox) {
+    var entry = checkbox.closest('.vital-log-entry');
+    var roscWrap = entry.querySelector('.vl-rosc-wrap');
+    roscWrap.style.display = checkbox.checked ? '' : 'none';
+  }
+
+  function stampArrestLogNow(fieldClass, btn) {
+    var entry = btn.closest('.vital-log-entry');
+    var field = entry.querySelector('.' + fieldClass);
+    if (field) field.value = getNowTimeSec();
+  }
+
+  function calcArrestLogDuration(entry) {
+    // Can be expanded later
+  }
+
+  // ===== TIMELINE =====
+  function renderTimeline(type, data) {
+    var bar = document.getElementById('timeline-bar');
+    var points;
+    if (type === 'EMS') {
+      points = [
+        { key:'dispatch', label:'รับแจ้ง' },
+        { key:'scene', label:'ถึงที่เกิดเหตุ' },
+        { key:'depart', label:'ออกจากที่เกิดเหตุ' },
+        { key:'hospital', label:'ถึง รพ.' }
+      ];
+    } else {
+      points = [
+        { key:'depart', label:'ออกจาก รพ.ต้นทาง' },
+        { key:'hospital', label:'ถึง รพ.ปลายทาง' }
+      ];
+    }
+    data = data || {};
+    var html = '<div class="timeline-line"></div>';
+    points.forEach(function(p) {
+      var t = data[p.key] || '';
+      var filled = t ? 'filled' : '';
+      html += '<div class="timeline-point">' +
+        '<div class="tl-dot ' + filled + '" onclick="stampTimeline(\'' + p.key + '\', this)" title="แตะเพื่อบันทึกเวลา"></div>' +
+        '<div class="tl-label">' + p.label + '</div>' +
+        '<div class="tl-time" id="tl-time-' + p.key + '">' + (t ? maskTime(t) : '--:--') + '</div>' +
+        '<input type="hidden" id="tl-val-' + p.key + '" value="' + escapeHtml(t) + '">' +
+      '</div>';
+    });
+    bar.innerHTML = html;
+  }
+
+  function stampTimeline(key, dot) {
+    if (loadedCaseStatus === 'Completed') return;
+    var now = getNowTimeSec();
+    document.getElementById('tl-val-' + key).value = now;
+    document.getElementById('tl-time-' + key).textContent = maskTime(now);
+    dot.classList.add('filled');
+    formDirty = true;
+  }
+
+  function getTimelineData() {
+    var data = {};
+    var keys = ['dispatch','scene','depart','hospital'];
+    keys.forEach(function(k) {
+      var el = document.getElementById('tl-val-' + k);
+      if (el) data[k] = el.value;
+    });
+    return data;
+  }
+
+  // ===== EDIT MODAL =====
+  function openEditModal() {
+    document.getElementById('edit-pt-name').value = document.getElementById('f-pt-name').value;
+    document.getElementById('edit-pt-age').value = document.getElementById('f-pt-age').value;
+    document.getElementById('edit-pt-gender').value = getRadioVal('pt_gender');
+    document.getElementById('edit-triage').value = getRadioVal('triage_level');
+    document.getElementById('edit-origin').value = document.getElementById('f-origin').value;
+    document.getElementById('edit-destination').value = document.getElementById('f-destination').value;
+    document.getElementById('edit-cc').value = document.getElementById('f-cc').value;
+    document.getElementById('edit-dx').value = document.getElementById('f-dx').value;
+    editModal.show();
+  }
+
+  function saveEditModal() {
+    document.getElementById('f-pt-name').value = document.getElementById('edit-pt-name').value;
+    document.getElementById('f-pt-age').value = document.getElementById('edit-pt-age').value;
+    var g = document.getElementById('edit-pt-gender').value;
+    if (g) setRadioVal('pt_gender', g);
+    setRadioVal('triage_level', document.getElementById('edit-triage').value);
+    document.getElementById('f-origin').value = document.getElementById('edit-origin').value;
+    document.getElementById('f-destination').value = document.getElementById('edit-destination').value;
+    document.getElementById('f-cc').value = document.getElementById('edit-cc').value;
+    document.getElementById('f-dx').value = document.getElementById('edit-dx').value;
+    updateBanner();
+    editModal.hide();
+    formDirty = true;
+  }
+
+  // ===== PHYSICAL SUMMARY =====
+  function generatePhysicalSummary() {
+    var parts = [];
+    // Airway
+    var aw = document.getElementById('f-airway-status').value;
+    var amgmt = document.getElementById('f-airway-mgmt').value;
+    parts.push('A: ' + aw + (amgmt ? ' (' + amgmt + ')' : ''));
+    // Breathing
+    var vent = document.getElementById('f-vent-mode').value;
+    var o2 = document.getElementById('f-o2-device').value;
+    var o2r = document.getElementById('f-o2-rate').value;
+    var bStr = 'B: ';
+    if (vent) bStr += 'Vent ' + vent;
+    if (o2) bStr += (vent ? ', ' : '') + o2 + (o2r ? ' ' + o2r + ' L/min' : '');
+    if (!vent && !o2) bStr += 'Room Air';
+    parts.push(bStr);
+    // Circulation
+    var circ = document.getElementById('f-circ-status').value;
+    var ekg = document.getElementById('f-ekg').value;
+    parts.push('C: ' + circ + (ekg ? ' EKG:' + ekg : ''));
+    // Disability
+    var gcs = document.getElementById('f-gcs-total').value;
+    parts.push('D: GCS ' + (gcs || '-'));
+    // Exposure
+    var exp = document.getElementById('f-exposure').value;
+    if (exp) parts.push('E: ' + exp);
+    return parts.join('\n');
+  }
+
+  // ===== PRINT =====
+  function handlePrint() {
+    var rawData = getFormData();
+    var vitalsData = getVitalsArray();
+    var ivData = getIVArray('init');
+    var caseData = {
+      id: document.getElementById('f-caseId').value,
+      status: document.getElementById('f-status').value,
+      triageLevel: getRadioVal('triage_level'),
+      rawData: { rawSnapshot: rawData, vitalsJson: vitalsData, ivJson: ivData },
+      patientInfo: {
+        name: document.getElementById('f-pt-name').value,
+        age: document.getElementById('f-pt-age').value,
+        gender: getRadioVal('pt_gender'),
+        origin: document.getElementById('f-origin').value,
+        destination: document.getElementById('f-destination').value
+      }
+    };
+    handlePrintWithData(caseData);
+  }
+
+  function handlePrintWithData(caseData) {
+    var raw = (caseData.rawData && caseData.rawData.rawSnapshot) ? caseData.rawData.rawSnapshot : {};
+    var vitals = (caseData.rawData && caseData.rawData.vitalsJson) ? caseData.rawData.vitalsJson : [];
+    var ivs = (caseData.rawData && caseData.rawData.ivJson) ? caseData.rawData.ivJson : [];
+    var pi = caseData.patientInfo || {};
+
+    var w = window.open('', '_blank', 'width=800,height=900');
+    if (!w) { Swal.fire('Error','ไม่สามารถเปิดหน้าพิมพ์ได้ กรุณาอนุญาต popup','error'); return; }
+
+    var css = buildPrintCSS();
+    var html = '<!DOCTYPE html><html lang="th"><head><meta charset="UTF-8"><title>Print - ' + escapeHtml(caseData.id) + '</title>' +
+      '<link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;600;700&display=swap" rel="stylesheet">' +
+      '<style>' + css + '</style></head><body>';
+
+    // Header
+    html += '<div class="print-header">';
+    if (APP_LOGO_URL) html += '<img src="' + APP_LOGO_URL + '" style="height:50px;margin-bottom:8px;"><br>';
+    html += '<h2>' + escapeHtml(PRINT_HEADER) + '</h2>';
+    html += '<h4>บันทึกการนำส่งผู้ป่วย (Patient Transport Record)</h4>';
+    html += '<p>Case ID: ' + escapeHtml(caseData.id) + ' | Status: ' + escapeHtml(caseData.status) + ' | Triage: ' + escapeHtml(caseData.triageLevel || '-') + '</p>';
+    html += '</div>';
+
+    // Patient Info
+    html += '<div class="print-section-title">ข้อมูลผู้ป่วย</div>';
+    html += '<table class="print-table no-border"><tr>';
+    html += '<td><strong>ชื่อ:</strong> ' + escapeHtml(pi.name || '-') + '</td>';
+    html += '<td><strong>อายุ:</strong> ' + escapeHtml(pi.age || '-') + ' ปี</td>';
+    html += '<td><strong>เพศ:</strong> ' + escapeHtml(pi.gender || '-') + '</td>';
+    html += '</tr><tr>';
+    html += '<td><strong>ต้นทาง:</strong> ' + escapeHtml(pi.origin || '-') + '</td>';
+    html += '<td colspan="2"><strong>ปลายทาง:</strong> ' + escapeHtml(pi.destination || '-') + '</td>';
+    html += '</tr><tr>';
+    html += '<td><strong>CC:</strong> ' + escapeHtml(raw.cc || '-') + '</td>';
+    html += '<td colspan="2"><strong>Dx:</strong> ' + escapeHtml(raw.dx || '-') + '</td>';
+    html += '</tr><tr>';
+    html += '<td><strong>U/D:</strong> ' + escapeHtml(raw.underlying || '-') + '</td>';
+    html += '<td><strong>Allergy:</strong> ' + escapeHtml(raw.allergies || '-') + '</td>';
+    html += '<td><strong>NR:</strong> ' + escapeHtml(raw.nr_status || '-') + '</td>';
+    html += '</tr></table>';
+
+    // Op Info
+    html += '<div class="print-section-title">ข้อมูลปฏิบัติการ</div>';
+    html += '<table class="print-table no-border"><tr>';
+    html += '<td><strong>ระดับ:</strong> ' + escapeHtml(raw.op_level || '-') + '</td>';
+    html += '<td><strong>รถหมายเลข:</strong> ' + escapeHtml(raw.op_unit_no || '-') + '</td>';
+    html += '<td><strong>เจ้าหน้าที่:</strong> ' + escapeHtml(raw.op_staff || '-') + '</td>';
+    html += '</tr></table>';
+
+    // Initial Vitals
+    html += '<div class="print-section-title">Initial Vital Signs</div>';
+    html += '<table class="print-table"><tr><th>BP</th><th>PR</th><th>RR</th><th>Temp</th><th>SpO2</th><th>DTX</th><th>Time</th></tr><tr>';
+    html += '<td>' + escapeHtml(raw.init_bp || '-') + '</td>';
+    html += '<td>' + escapeHtml(raw.init_pr || '-') + '</td>';
+    html += '<td>' + escapeHtml(raw.init_rr || '-') + '</td>';
+    html += '<td>' + escapeHtml(raw.init_temp || '-') + '</td>';
+    html += '<td>' + escapeHtml(raw.init_spo2 || '-') + '</td>';
+    html += '<td>' + escapeHtml(raw.init_dtx || '-') + '</td>';
+    html += '<td>' + escapeHtml(raw.init_time || '-') + '</td>';
+    html += '</tr></table>';
+
+    // Assessment
+    html += '<div class="print-section-title">Assessment (ABCDE)</div>';
+    html += '<table class="print-table no-border">';
+    html += '<tr><td><strong>A:</strong> ' + escapeHtml(raw.airway_status || '-') + (raw.airway_mgmt ? ' / ' + escapeHtml(raw.airway_mgmt) : '') + '</td></tr>';
+    var bLine = 'B: ';
+    if (raw.vent_mode) bLine += 'Vent ' + raw.vent_mode + ' ';
+    if (raw.o2_device) bLine += raw.o2_device + (raw.o2_rate ? ' ' + raw.o2_rate + ' L/min' : '');
+    if (!raw.vent_mode && !raw.o2_device) bLine += 'Room Air';
+    html += '<tr><td><strong>' + escapeHtml(bLine) + '</strong></td></tr>';
+    html += '<tr><td><strong>C:</strong> ' + escapeHtml(raw.circ_status || '-') + (raw.ekg ? ' EKG:' + escapeHtml(raw.ekg) : '') + '</td></tr>';
+    html += '<tr><td><strong>D:</strong> GCS E' + escapeHtml(raw.gcs_e || '-') + 'V' + escapeHtml(raw.gcs_v || '-') + 'M' + escapeHtml(raw.gcs_m || '-') + ' = ' + escapeHtml(document.getElementById('f-gcs-total') ? document.getElementById('f-gcs-total').value : '-') + '</td></tr>';
+    if (raw.exposure) html += '<tr><td><strong>E:</strong> ' + escapeHtml(raw.exposure) + '</td></tr>';
+    html += '</table>';
+
+    // Arrest section
+    if (raw.arrest_active) {
+      html += buildArrestSection(raw);
+    }
+
+    // IV Lines
+    if (ivs && ivs.length > 0) {
+      html += '<div class="print-section-title">IV Lines</div>';
+      html += '<table class="print-table"><tr><th>Solution</th><th>Volume</th><th>Rate</th><th>Site</th><th>Drug</th><th>Time</th></tr>';
+      ivs.forEach(function(iv) {
+        html += '<tr><td>' + escapeHtml(iv.solution || '-') + '</td><td>' + escapeHtml(iv.volume || '-') + '</td><td>' + escapeHtml(iv.rate || '-') + '</td><td>' + escapeHtml(iv.site || '-') + '</td><td>' + escapeHtml(iv.drug || '-') + '</td><td>' + escapeHtml(iv.time || '-') + '</td></tr>';
+      });
+      html += '</table>';
+    }
+
+    // Equipment
+    if (raw.equipment && raw.equipment.length > 0) {
+      html += '<div class="print-section-title">อุปกรณ์</div>';
+      html += '<p>' + raw.equipment.map(function(e) { return escapeHtml(e); }).join(', ') + '</p>';
+    }
+
+    // Vital Log
+    if (vitals && vitals.length > 0) {
+      html += '<div class="print-section-title">Vital Signs Log</div>';
+      html += '<table class="print-table"><tr><th>Time</th><th>Type</th><th>BP</th><th>PR</th><th>RR</th><th>SpO2</th><th>Note</th></tr>';
+      vitals.forEach(function(v) {
+        if (v.type === 'arrest') {
+          html += '<tr style="background:#fff5f5;"><td>' + escapeHtml(v.time || '-') + '</td><td><strong style="color:red;">ARREST</strong></td><td colspan="5">' + escapeHtml(v.arrest_rhythm || '') + ' ' + escapeHtml(v.note || '') + '</td></tr>';
+        } else {
+          html += '<tr><td>' + escapeHtml(v.time || '-') + '</td><td>Vital</td><td>' + escapeHtml(v.bp || '-') + '</td><td>' + escapeHtml(v.pr || '-') + '</td><td>' + escapeHtml(v.rr || '-') + '</td><td>' + escapeHtml(v.spo2 || '-') + '</td><td>' + escapeHtml(v.note || '-') + '</td></tr>';
+        }
+      });
+      html += '</table>';
+    }
+
+    // Nurse note
+    if (raw.nurse_note) {
+      html += '<div class="print-section-title">Nurse Note</div>';
+      html += '<p>' + escapeHtml(raw.nurse_note) + '</p>';
+    }
+
+    // Signature
+    html += '<div style="margin-top:30px;"><table class="print-table no-border" style="width:100%;"><tr>' +
+      '<td style="text-align:center;padding-top:40px;">........................................<br>พยาบาลผู้นำส่ง</td>' +
+      '<td style="text-align:center;padding-top:40px;">........................................<br>พยาบาลผู้รับ</td>' +
+      '</tr></table></div>';
+
+    html += '</body></html>';
+    w.document.write(html);
+    w.document.close();
+    setTimeout(function() { w.print(); }, 500);
+  }
+
+  function buildArrestSection(raw) {
+    var html = '<div class="print-section-title" style="color:red;">Cardiac Arrest</div>';
+    html += '<table class="print-table no-border">';
+    html += '<tr><td><strong>Witnessed:</strong> ' + escapeHtml(raw.arrest_witnessed || '-') + '</td>';
+    html += '<td><strong>Initial Rhythm:</strong> ' + escapeHtml(raw.arrest_rhythm || '-') + '</td></tr>';
+    html += '<tr><td><strong>Arrest Time:</strong> ' + escapeHtml(raw.arrest_time || '-') + '</td>';
+    html += '<td><strong>CPR Start:</strong> ' + escapeHtml(raw.arrest_cpr_start || '-') + '</td></tr>';
+    html += '<tr><td><strong>Bystander CPR:</strong> ' + escapeHtml(raw.arrest_bystander || '-') + '</td>';
+    html += '<td><strong>AED:</strong> ' + escapeHtml(raw.arrest_aed || '-') + '</td></tr>';
+    if (raw.arrest_rosc) {
+      html += '<tr><td><strong>ROSC Time:</strong> ' + escapeHtml(raw.arrest_rosc_time || '-') + '</td><td></td></tr>';
+    }
+    html += '</table>';
+    return html;
+  }
+
+  function buildPrintCSS() {
+    return 'body { font-family: "Sarabun", sans-serif; font-size: 11pt; color: #000; margin: 15mm; }' +
+      '.print-header { text-align: center; margin-bottom: 15px; border-bottom: 2px solid #000; padding-bottom: 10px; }' +
+      '.print-header h2 { margin: 0; font-size: 16pt; }' +
+      '.print-header h4 { margin: 4px 0; font-size: 12pt; }' +
+      '.print-header p { margin: 4px 0; font-size: 10pt; color: #555; }' +
+      '.print-section-title { font-weight: bold; margin-top: 12px; margin-bottom: 6px; text-decoration: underline; font-size: 11pt; }' +
+      '.print-table { width: 100%; border-collapse: collapse; margin-bottom: 8px; font-size: 10pt; }' +
+      '.print-table th, .print-table td { border: 1px solid #000; padding: 4px 6px; vertical-align: top; }' +
+      '.print-table th { background-color: #eee; font-weight: bold; text-align: center; }' +
+      '.no-border td { border: none !important; padding: 3px 6px !important; }' +
+      '@media print { @page { size: A4; margin: 10mm; } }';
+  }
+
+  // ===== ADMIN =====
+  async function saveAdminSettings() {
+    try {
+      var printHeader = document.getElementById('admin-print-header').value;
+      var logoUrl = document.getElementById('admin-logo-url').value;
+
+      await _supabase.from('settings').upsert({ key: 'PRINT_HEADER', value: printHeader });
+      await _supabase.from('settings').upsert({ key: 'APP_LOGO_URL', value: logoUrl });
+      PRINT_HEADER = printHeader;
+      APP_LOGO_URL = logoUrl;
+
+      if (APP_LOGO_URL) {
+        var navLogo = document.getElementById('navbar-logo');
+        if (navLogo) { navLogo.src = APP_LOGO_URL; navLogo.style.display = 'block'; }
+        document.getElementById('navbar-icon').style.display = 'none';
+      } else {
+        document.getElementById('navbar-logo').style.display = 'none';
+        document.getElementById('navbar-icon').style.display = 'block';
+      }
+
+      await logActivity('SETTINGS', 'admin', 'อัปเดตการตั้งค่า');
+      Swal.fire({ icon:'success', title:'บันทึกตั้งค่าสำเร็จ', timer:1200, showConfirmButton:false });
+    } catch(e) {
+      Swal.fire('Error', e.message, 'error');
+    }
+  }
+
+  async function uploadAdminLogo() {
+    var fileInput = document.getElementById('admin-logo-file');
+    if (!fileInput.files[0]) return;
+    try {
+      Swal.fire({ title:'กำลังอัพโหลด...', allowOutsideClick:false, didOpen:function(){Swal.showLoading();} });
+      var url = await uploadToCloudinary(fileInput.files[0], 'logos');
+      document.getElementById('admin-logo-url').value = url;
+      Swal.close();
+      Swal.fire({ icon:'success', title:'อัพโหลดสำเร็จ', text:'กดบันทึกตั้งค่าเพื่อใช้งาน', timer:2000, showConfirmButton:false });
+    } catch(e) {
+      Swal.fire('Error', e.message, 'error');
+    }
+  }
+
+  async function loadStats() {
+    var month = document.getElementById('stats-month').value;
+    if (!month) { Swal.fire('','กรุณาเลือกเดือน','info'); return; }
+
+    var startDate = month + '-01T00:00:00';
+    var endDate = month + '-31T23:59:59';
+
+    try {
+      var resp = await _supabase.from('cases').select('status, triage_level, created_at', { count: 'exact' })
+        .gte('created_at', startDate).lte('created_at', endDate);
+      var data = resp.data || [];
+      var total = data.length;
+      var active = data.filter(function(d) { return d.status === 'Active'; }).length;
+      var completed = data.filter(function(d) { return d.status === 'Completed'; }).length;
+      var resus = data.filter(function(d) { return d.triage_level === 'Resuscitation'; }).length;
+      var emer = data.filter(function(d) { return d.triage_level === 'Emergency'; }).length;
+      var urgent = data.filter(function(d) { return d.triage_level === 'Urgent'; }).length;
+      var less = data.filter(function(d) { return d.triage_level === 'Less Urgent'; }).length;
+
+      var html = '<div class="row g-3">' +
+        '<div class="col-6 col-md-3"><div class="card shadow-sm border-0"><div class="card-body text-center"><div class="fs-3 fw-bold text-primary">' + total + '</div><div class="small text-muted">ทั้งหมด</div></div></div></div>' +
+        '<div class="col-6 col-md-3"><div class="card shadow-sm border-0"><div class="card-body text-center"><div class="fs-3 fw-bold text-success">' + active + '</div><div class="small text-muted">Active</div></div></div></div>' +
+        '<div class="col-6 col-md-3"><div class="card shadow-sm border-0"><div class="card-body text-center"><div class="fs-3 fw-bold text-info">' + completed + '</div><div class="small text-muted">Completed</div></div></div></div>' +
+        '<div class="col-6 col-md-3"><div class="card shadow-sm border-0"><div class="card-body text-center"><div class="fs-3 fw-bold text-danger">' + resus + '</div><div class="small text-muted">Resuscitation</div></div></div></div>' +
+        '<div class="col-6 col-md-3"><div class="card shadow-sm border-0"><div class="card-body text-center"><div class="fs-3 fw-bold text-warning">' + emer + '</div><div class="small text-muted">Emergency</div></div></div></div>' +
+        '<div class="col-6 col-md-3"><div class="card shadow-sm border-0"><div class="card-body text-center"><div class="fs-3 fw-bold" style="color:#17a2b8;">' + urgent + '</div><div class="small text-muted">Urgent</div></div></div></div>' +
+        '<div class="col-6 col-md-3"><div class="card shadow-sm border-0"><div class="card-body text-center"><div class="fs-3 fw-bold text-success">' + less + '</div><div class="small text-muted">Less Urgent</div></div></div></div>' +
+      '</div>';
+      document.getElementById('stats-content').innerHTML = html;
+    } catch(e) {
+      document.getElementById('stats-content').innerHTML = '<div class="alert alert-danger small">' + escapeHtml(e.message) + '</div>';
+    }
+  }
+
+  var activityLogPage = 1;
+  var activityLogPerPage = 20;
+
+  async function loadActivityLog(page) {
+    if (!page) page = 1;
+    activityLogPage = page;
+    var container = document.getElementById('activity-log-container');
+    container.innerHTML = '<div class="text-center py-3"><div class="spinner-border spinner-border-sm text-primary"></div></div>';
+
+    try {
+      var from = (page - 1) * activityLogPerPage;
+      var to = from + activityLogPerPage - 1;
+      var resp = await _supabase.from('activity_log').select('*', { count: 'exact' }).order('timestamp', { ascending: false }).range(from, to);
+      var data = resp.data || [];
+      var count = resp.count || 0;
+      var totalPages = Math.ceil(count / activityLogPerPage);
+
+      if (data.length === 0) {
+        container.innerHTML = '<p class="text-muted small text-center">ไม่มีข้อมูล</p>';
+        return;
+      }
+
+      var html = '<div class="table-responsive"><table class="table table-sm table-hover small"><thead><tr><th>เวลา</th><th>ผู้ใช้</th><th>Action</th><th>Target</th><th>Details</th></tr></thead><tbody>';
+      data.forEach(function(log) {
+        html += '<tr><td class="text-nowrap">' + formatThaiDate(log.timestamp) + '</td><td>' + escapeHtml(log.username || '-') + '</td><td><span class="badge bg-light text-dark">' + escapeHtml(log.action || '-') + '</span></td><td>' + escapeHtml(log.target || '-') + '</td><td>' + escapeHtml(log.details || '-') + '</td></tr>';
+      });
+      html += '</tbody></table></div>';
+      container.innerHTML = html;
+
+      // Pagination
+      var pagHtml = '';
+      if (totalPages > 1) {
+        pagHtml = '<nav><ul class="pagination pagination-sm mb-0">';
+        if (page > 1) pagHtml += '<li class="page-item"><a class="page-link" href="javascript:void(0)" onclick="loadActivityLog(' + (page-1) + ')"><i class="bi bi-chevron-left"></i></a></li>';
+        for (var i = 1; i <= Math.min(totalPages, 5); i++) {
+          pagHtml += '<li class="page-item' + (i === page ? ' active' : '') + '"><a class="page-link" href="javascript:void(0)" onclick="loadActivityLog(' + i + ')">' + i + '</a></li>';
+        }
+        if (page < totalPages) pagHtml += '<li class="page-item"><a class="page-link" href="javascript:void(0)" onclick="loadActivityLog(' + (page+1) + ')"><i class="bi bi-chevron-right"></i></a></li>';
+        pagHtml += '</ul></nav>';
+      }
+      document.getElementById('activity-log-pagination').innerHTML = pagHtml;
+    } catch(e) {
+      container.innerHTML = '<div class="alert alert-danger small">' + escapeHtml(e.message) + '</div>';
+    }
+  }
+
+  // ===== ON PAGE LOAD =====
+  window.addEventListener('load', async function() {
+    editModal = new bootstrap.Modal(document.getElementById('editPatientModal'));
+    initVitalsModal = new bootstrap.Modal(document.getElementById('initVitalsModal'));
+    shareModalInstance = new bootstrap.Modal(document.getElementById('shareModal'));
+
+    await checkAuth(function() {
+      dbReady = true;
+      document.getElementById('nav-username').textContent = getUserName();
+      loadDashboardData(1);
+      loadSettings();
+      if (getUserRole() === 'Admin') {
+        var adminBtn = document.getElementById('btn-admin-settings');
+        if (adminBtn) adminBtn.classList.remove('d-none');
+      }
+    });
+
+    // Form dirty tracking
+    var mainForm = document.getElementById('main-form');
+    if (mainForm) {
+      mainForm.addEventListener('input', function() { if (!isPopulating) formDirty = true; });
+      mainForm.addEventListener('change', function() { if (!isPopulating) formDirty = true; });
+    }
+
+    // Update banner on name change
+    document.getElementById('f-pt-name').addEventListener('input', function() { updateBanner(); });
+    document.getElementById('f-pt-age').addEventListener('input', function() { updateBanner(); });
+  });
+  </script>
+
+</body>
+</html>

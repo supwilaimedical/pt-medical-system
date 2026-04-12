@@ -1,0 +1,2071 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <title>PT-System | First Aid</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;600;700&display=swap" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="../shared/styles.css">
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+  <style>
+    /* FA Module specific styles */
+    .fa-event-card {
+      cursor: pointer;
+      border: none;
+      border-radius: 16px;
+      background: #fff;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.04), 0 2px 8px rgba(0,0,0,0.02);
+      transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+      overflow: hidden;
+    }
+    .fa-event-card:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 8px 24px rgba(0,0,0,0.08);
+    }
+    .fa-event-card .card-img-top {
+      height: 140px;
+      object-fit: cover;
+      background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
+    }
+    .fa-event-card .card-img-placeholder {
+      height: 140px;
+      background: linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 2.5rem; color: #66bb6a;
+    }
+    .fa-event-type-badge {
+      position: absolute; top: 10px; right: 10px;
+      font-size: 0.7rem; font-weight: 700;
+    }
+    .fa-event-status-dot {
+      width: 8px; height: 8px; border-radius: 50%; display: inline-block;
+    }
+    .fa-tab-btn {
+      background: transparent; color: #6c757d; border: 1px solid transparent;
+      transition: all 0.2s; font-size: 0.85rem;
+    }
+    .fa-tab-btn:hover { background: #f0fdf4; color: #198754; }
+    .fa-tab-btn.active {
+      background: #198754 !important; color: #fff !important;
+      border-color: #198754 !important; box-shadow: 0 2px 6px rgba(25,135,84,0.25);
+    }
+    .fa-triage-badge {
+      display: inline-flex; align-items: center; justify-content: center;
+      width: 28px; height: 28px; border-radius: 50%;
+      font-weight: 700; font-size: 0.8rem; border: 2px solid;
+    }
+    .fa-triage-A { background: #d1e7dd; color: #198754; border-color: #198754; }
+    .fa-triage-V { background: #fff3cd; color: #cc9a06; border-color: #ffc107; }
+    .fa-triage-P { background: #f8d7da; color: #dc3545; border-color: #dc3545; }
+    .fa-triage-U { background: #212529; color: #fff; border-color: #212529; }
+    .fa-dispense-card {
+      border-radius: 14px; border: none;
+      box-shadow: 0 1px 6px rgba(0,0,0,0.04);
+      transition: all 0.2s;
+    }
+    .fa-dispense-card:hover { box-shadow: 0 4px 16px rgba(0,0,0,0.06); }
+    .fa-filter-tab {
+      cursor: pointer; padding: 6px 16px; border-radius: 20px;
+      font-size: 0.85rem; font-weight: 600; transition: all 0.2s;
+      border: 1px solid #dee2e6; background: #fff; color: #6c757d;
+    }
+    .fa-filter-tab.active {
+      background: #198754; color: #fff; border-color: #198754;
+    }
+    .fa-filter-tab:hover:not(.active) { background: #f8f9fa; }
+    .fa-stat-card {
+      border-radius: 14px; border: none;
+      box-shadow: 0 1px 6px rgba(0,0,0,0.04);
+      padding: 16px; text-align: center;
+    }
+    .fa-vitals-section { background: #f8f9fa; border-radius: 12px; padding: 12px; }
+    .etiology-toggle .btn-check:checked + .btn { font-weight: 700; }
+    .treatment-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; }
+    @media (min-width: 768px) { .treatment-grid { grid-template-columns: 1fr 1fr 1fr; } }
+    .fa-reg-row { cursor: pointer; transition: background 0.15s; }
+    .fa-reg-row:hover { background: #f0fdf4 !important; }
+    .fa-poster-preview {
+      max-height: 180px; width: 100%; object-fit: cover; border-radius: 12px;
+    }
+    @media print {
+      #app-main-wrapper, .modal-backdrop, .modal, .fab-btn { display: none !important; }
+    }
+  </style>
+</head>
+<body>
+
+  <script src="../shared/config.js"></script>
+  <script src="../shared/auth.js"></script>
+  <script src="../shared/cloudinary.js"></script>
+
+  <!-- ==================== LOGIN SCREEN ==================== -->
+  <div id="login-view">
+    <div class="card p-4 shadow" style="width:100%;max-width:380px;border-radius:16px;border:none;">
+      <div class="text-center mb-4">
+        <div class="bg-success-subtle text-success rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width:80px;height:80px;">
+          <i class="bi bi-heart-pulse-fill fs-1"></i>
+        </div>
+        <h4 class="fw-bold text-dark">ระบบปฐมพยาบาล</h4>
+        <p class="text-muted small">First Aid Event Management</p>
+      </div>
+      <form id="login-form" onsubmit="handleLogin(event)">
+        <div class="mb-3">
+          <label class="form-label small fw-bold text-secondary">Username / Email</label>
+          <div class="input-group">
+            <span class="input-group-text bg-light border-end-0"><i class="bi bi-person text-muted"></i></span>
+            <input type="text" id="login-user" class="form-control bg-light border-start-0 ps-0" placeholder="admin" required>
+          </div>
+        </div>
+        <div class="mb-4">
+          <label class="form-label small fw-bold text-secondary">Password</label>
+          <div class="input-group">
+            <span class="input-group-text bg-light border-end-0"><i class="bi bi-key text-muted"></i></span>
+            <input type="password" id="login-pass" class="form-control bg-light border-start-0 ps-0" placeholder="รหัสผ่าน" required>
+          </div>
+        </div>
+        <button type="submit" class="btn btn-success w-100 py-2 fw-bold rounded-3 shadow-sm" id="btn-login">เข้าสู่ระบบ (Login)</button>
+      </form>
+      <div id="login-error" class="alert alert-danger mt-3 d-none small text-center rounded-3"></div>
+    </div>
+  </div>
+
+  <!-- ==================== MAIN APP ==================== -->
+  <div id="app-main-wrapper" style="display:none;">
+
+    <!-- Navbar -->
+    <nav class="navbar navbar-dark bg-modern-primary px-3 py-2">
+      <div class="d-flex align-items-center">
+        <i class="bi bi-heart-pulse-fill text-white fs-4 me-2"></i>
+        <span class="navbar-brand mb-0 fw-bold">ระบบปฐมพยาบาล</span>
+      </div>
+      <div class="d-flex align-items-center gap-2">
+        <span class="text-white-50 small d-none d-md-inline" id="nav-username"></span>
+        <a href="../" class="btn btn-sm btn-outline-light rounded-pill px-3"><i class="bi bi-house me-1"></i><span class="d-none d-sm-inline">หน้าหลัก</span></a>
+        <button class="btn btn-sm btn-outline-light rounded-pill px-3" onclick="handleLogout()"><i class="bi bi-box-arrow-right me-1"></i>ออก</button>
+      </div>
+    </nav>
+
+    <div class="container py-3" style="max-width:1100px;">
+
+      <!-- ==================== EVENT LIST VIEW ==================== -->
+      <div id="fa-events-view" class="view-section active">
+        <div class="d-flex justify-content-between align-items-end mb-3">
+          <div>
+            <h3 class="dashboard-header mb-1"><i class="bi bi-calendar-event text-success me-2"></i>รายการอีเวนต์</h3>
+            <p class="text-muted small mb-0">จัดการอีเวนต์ปฐมพยาบาล</p>
+          </div>
+          <span class="badge bg-success-subtle text-success border px-3 py-2 rounded-pill">
+            <i class="bi bi-calendar-check me-1"></i><span id="fa-event-count">0</span> อีเวนต์
+          </span>
+        </div>
+
+        <!-- Filter tabs -->
+        <div class="d-flex gap-2 mb-3">
+          <span class="fa-filter-tab active" data-filter="Active" onclick="fa_filterEvents('Active', this)">
+            <i class="bi bi-lightning-fill me-1"></i>กำลังดำเนินการ
+          </span>
+          <span class="fa-filter-tab" data-filter="Closed" onclick="fa_filterEvents('Closed', this)">
+            <i class="bi bi-check-circle me-1"></i>ปิดแล้ว
+          </span>
+          <span class="fa-filter-tab" data-filter="All" onclick="fa_filterEvents('All', this)">
+            <i class="bi bi-grid me-1"></i>ทั้งหมด
+          </span>
+        </div>
+
+        <!-- Event Grid -->
+        <div id="fa-events-grid" class="row g-3"></div>
+
+        <!-- FAB -->
+        <div class="fab-btn" onclick="fa_openEventModal()">
+          <i class="bi bi-plus-lg"></i>
+        </div>
+      </div>
+
+      <!-- ==================== EVENT DETAIL VIEW ==================== -->
+      <div id="fa-event-detail-view" class="view-section">
+        <!-- Event Header -->
+        <div class="mb-3">
+          <button class="btn btn-sm btn-outline-secondary rounded-pill px-3 mb-2" onclick="fa_backToEvents()">
+            <i class="bi bi-arrow-left me-1"></i>กลับรายการอีเวนต์
+          </button>
+          <div id="fa-event-header" class="card island-card p-3">
+            <!-- Populated dynamically -->
+          </div>
+        </div>
+
+        <!-- Sub Navigation -->
+        <div class="d-flex flex-wrap gap-2 bg-white p-2 rounded-pill shadow-sm border mb-3">
+          <button class="btn btn-sm rounded-pill fw-medium px-3 fa-tab-btn active" onclick="fa_switchTab('registry')">
+            <i class="bi bi-people me-1"></i><span class="d-none d-sm-inline">ทะเบียนผู้ป่วย</span><span class="d-sm-none">ทะเบียน</span>
+          </button>
+          <button class="btn btn-sm rounded-pill fw-medium px-3 fa-tab-btn" onclick="fa_switchTab('quick')">
+            <i class="bi bi-box-seam me-1"></i><span class="d-none d-sm-inline">จ่ายเวชภัณฑ์</span><span class="d-sm-none">จ่าย</span>
+          </button>
+          <button class="btn btn-sm rounded-pill fw-medium px-3 fa-tab-btn" onclick="fa_switchTab('stats')">
+            <i class="bi bi-graph-up me-1"></i><span class="d-none d-sm-inline">สถิติ</span><span class="d-sm-none">สถิติ</span>
+          </button>
+          <button class="btn btn-sm rounded-pill fw-medium px-3 fa-tab-btn" onclick="fa_switchTab('report')">
+            <i class="bi bi-printer me-1"></i><span class="d-none d-sm-inline">รายงาน</span><span class="d-sm-none">รายงาน</span>
+          </button>
+        </div>
+
+        <!-- ========== REGISTRY TAB ========== -->
+        <div id="fa-registry-tab" class="fa-detail-tab">
+          <div class="d-flex justify-content-between align-items-center mb-3">
+            <h5 class="fw-bold mb-0"><i class="bi bi-people-fill text-success me-2"></i>ทะเบียนผู้ป่วย</h5>
+            <button class="btn btn-success btn-sm rounded-pill px-3 fw-bold shadow-sm" onclick="fa_openRegistryModal()">
+              <i class="bi bi-plus-lg me-1"></i>เพิ่มผู้ป่วย
+            </button>
+          </div>
+          <div class="card island-card overflow-hidden">
+            <div class="table-responsive">
+              <table class="table table-hover mb-0 align-middle" style="font-size:0.85rem;">
+                <thead class="table-light">
+                  <tr>
+                    <th style="width:36px;">#</th>
+                    <th style="width:42px;">Triage</th>
+                    <th>ชื่อ</th>
+                    <th class="fa-table-hide-mobile">CC</th>
+                    <th class="fa-table-hide-mobile">การรักษา</th>
+                    <th>เวลาเข้า</th>
+                    <th class="fa-table-hide-mobile">เวลาออก</th>
+                    <th style="width:60px;">จัดการ</th>
+                  </tr>
+                </thead>
+                <tbody id="fa-registry-tbody"></tbody>
+              </table>
+            </div>
+            <div id="fa-registry-empty" class="text-center text-muted py-5 d-none">
+              <i class="bi bi-people fs-1 d-block mb-2 opacity-25"></i>
+              <span>ยังไม่มีข้อมูลผู้ป่วย</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- ========== QUICK DISPENSE TAB ========== -->
+        <div id="fa-quick-tab" class="fa-detail-tab d-none">
+          <h5 class="fw-bold mb-3"><i class="bi bi-box-seam-fill text-success me-2"></i>จ่ายเวชภัณฑ์ (Quick Dispense)</h5>
+          <div class="row g-3" id="fa-dispense-grid">
+            <!-- Populated dynamically -->
+          </div>
+        </div>
+
+        <!-- ========== STATS TAB ========== -->
+        <div id="fa-stats-tab" class="fa-detail-tab d-none">
+          <h5 class="fw-bold mb-3"><i class="bi bi-graph-up-arrow text-success me-2"></i>สถิติอีเวนต์</h5>
+
+          <!-- Summary Cards -->
+          <div class="row g-3 mb-4" id="fa-stats-summary"></div>
+
+          <!-- Charts -->
+          <div class="row g-3 mb-4">
+            <div class="col-12">
+              <div class="card island-card p-3">
+                <h6 class="fw-bold mb-3"><i class="bi bi-clock me-1 text-primary"></i>จำนวนผู้ป่วยตามชั่วโมง</h6>
+                <canvas id="fa-chart-hourly" height="200"></canvas>
+              </div>
+            </div>
+          </div>
+          <div class="row g-3">
+            <div class="col-md-6">
+              <div class="card island-card p-3">
+                <h6 class="fw-bold mb-3"><i class="bi bi-list-check me-1 text-warning"></i>Top Chief Complaints</h6>
+                <div id="fa-stats-top-cc"></div>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="card island-card p-3">
+                <h6 class="fw-bold mb-3"><i class="bi bi-tags me-1 text-danger"></i>Top Problems</h6>
+                <div id="fa-stats-top-problem"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ========== REPORT TAB ========== -->
+        <div id="fa-report-tab" class="fa-detail-tab d-none">
+          <div class="d-flex justify-content-between align-items-center mb-3">
+            <h5 class="fw-bold mb-0"><i class="bi bi-printer-fill text-success me-2"></i>รายงานอีเวนต์</h5>
+            <button class="btn btn-primary btn-sm rounded-pill px-3" onclick="fa_printReport()">
+              <i class="bi bi-printer me-1"></i>พิมพ์รายงาน
+            </button>
+          </div>
+          <div id="fa-report-content" class="card island-card p-4">
+            <!-- Populated dynamically -->
+          </div>
+        </div>
+
+      </div><!-- end event detail view -->
+    </div><!-- end container -->
+  </div><!-- end app-main-wrapper -->
+
+  <!-- ==================== EVENT CREATE/EDIT MODAL ==================== -->
+  <div class="modal fade" id="fa-event-modal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+      <div class="modal-content">
+        <div class="modal-header bg-success text-white">
+          <h5 class="modal-title fw-bold"><i class="bi bi-calendar-plus me-2"></i><span id="fa-event-modal-title">สร้างอีเวนต์ใหม่</span></h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <input type="hidden" id="fa-evt-id">
+          <div class="row g-3">
+            <div class="col-12">
+              <label class="form-label small fw-bold">ชื่ออีเวนต์ <span class="text-danger">*</span></label>
+              <input type="text" id="fa-evt-name" class="form-control" placeholder="เช่น งานวิ่ง Marathon 2026">
+            </div>
+            <div class="col-6 col-md-3">
+              <label class="form-label small fw-bold">วันเริ่ม <span class="text-danger">*</span></label>
+              <input type="date" id="fa-evt-date" class="form-control">
+            </div>
+            <div class="col-6 col-md-3">
+              <label class="form-label small fw-bold">เวลาเริ่ม</label>
+              <input type="time" id="fa-evt-start-time" class="form-control">
+            </div>
+            <div class="col-6 col-md-3">
+              <label class="form-label small fw-bold">วันสิ้นสุด</label>
+              <input type="date" id="fa-evt-end-date" class="form-control">
+            </div>
+            <div class="col-6 col-md-3">
+              <label class="form-label small fw-bold">เวลาสิ้นสุด</label>
+              <input type="time" id="fa-evt-end-time" class="form-control">
+            </div>
+            <div class="col-12 col-md-6">
+              <label class="form-label small fw-bold">สถานที่</label>
+              <input type="text" id="fa-evt-location" class="form-control" placeholder="สถานที่จัดงาน">
+            </div>
+            <div class="col-12 col-md-6">
+              <label class="form-label small fw-bold">ประเภทอีเวนต์</label>
+              <select id="fa-evt-type" class="form-select" onchange="fa_onEventTypeChange()">
+                <option value="general">ทั่วไป (General)</option>
+                <option value="sports">กีฬา (Sports)</option>
+                <option value="concert">คอนเสิร์ต (Concert)</option>
+              </select>
+            </div>
+            <div class="col-12">
+              <label class="form-label small fw-bold">โปสเตอร์อีเวนต์</label>
+              <input type="file" id="fa-evt-image" class="form-control form-control-sm" accept="image/*">
+              <div id="fa-evt-image-preview" class="mt-2"></div>
+            </div>
+            <div class="col-12"><hr class="my-1"></div>
+            <div class="col-12">
+              <h6 class="fw-bold text-secondary"><i class="bi bi-gear me-1"></i>ตั้งค่าอีเวนต์</h6>
+            </div>
+            <div class="col-12 col-md-6">
+              <label class="form-label small fw-bold">ID Label (ป้ายหมายเลข)</label>
+              <input type="text" id="fa-evt-cfg-idlabel" class="form-control" placeholder="เช่น BIB, Ticket No.">
+            </div>
+            <div class="col-12 col-md-6">
+              <label class="form-label small fw-bold">Problem Set</label>
+              <select id="fa-evt-cfg-problemset" class="form-select">
+                <option value="">ตามประเภทอีเวนต์</option>
+                <option value="sports">Sports</option>
+                <option value="concert">Concert</option>
+                <option value="general">General</option>
+              </select>
+            </div>
+            <div class="col-12 col-md-6">
+              <label class="form-label small fw-bold">Categories (บรรทัดละ 1)</label>
+              <textarea id="fa-evt-cfg-categories" class="form-control" rows="3" placeholder="เช่น&#10;VIP&#10;Staff&#10;ผู้เข้าร่วม"></textarea>
+            </div>
+            <div class="col-12 col-md-6">
+              <label class="form-label small fw-bold">Locations (บรรทัดละ 1)</label>
+              <textarea id="fa-evt-cfg-locations" class="form-control" rows="3" placeholder="เช่น&#10;จุดปฐมพยาบาล 1&#10;จุดปฐมพยาบาล 2&#10;เต็นท์หลัก"></textarea>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary rounded-pill px-4" data-bs-dismiss="modal">ยกเลิก</button>
+          <button type="button" class="btn btn-success rounded-pill px-4 fw-bold" onclick="fa_saveEvent()">
+            <i class="bi bi-check-lg me-1"></i>บันทึก
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== REGISTRY FORM MODAL ==================== -->
+  <div class="modal fade" id="fa-registry-modal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered modal-xl modal-fullscreen-md-down">
+      <div class="modal-content">
+        <div class="modal-header bg-success text-white">
+          <h5 class="modal-title fw-bold"><i class="bi bi-person-plus me-2"></i><span id="fa-reg-modal-title">เพิ่มข้อมูลผู้ป่วย</span></h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body" style="max-height:80vh;overflow-y:auto;">
+          <input type="hidden" id="fa-reg-id">
+
+          <!-- Patient Info Section -->
+          <div class="card island-card p-3 mb-3">
+            <h6 class="card-title fw-bold text-success mb-3"><i class="bi bi-person-badge me-1"></i>ข้อมูลผู้ป่วย</h6>
+            <div class="row g-2">
+              <!-- Triage -->
+              <div class="col-12">
+                <label class="form-label small fw-bold">Triage (AVPU) <span class="text-danger">*</span></label>
+                <div class="btn-group w-100" role="group">
+                  <input type="radio" class="btn-check" name="fa-reg-triage" id="fa-reg-triage-A" value="A">
+                  <label class="btn btn-outline-success rounded-start-pill" for="fa-reg-triage-A">
+                    <i class="bi bi-emoji-smile me-1"></i>Alert (A)
+                  </label>
+                  <input type="radio" class="btn-check" name="fa-reg-triage" id="fa-reg-triage-V" value="V">
+                  <label class="btn btn-outline-warning" for="fa-reg-triage-V">
+                    <i class="bi bi-volume-up me-1"></i>Voice (V)
+                  </label>
+                  <input type="radio" class="btn-check" name="fa-reg-triage" id="fa-reg-triage-P" value="P">
+                  <label class="btn btn-outline-danger" for="fa-reg-triage-P">
+                    <i class="bi bi-exclamation-triangle me-1"></i>Pain (P)
+                  </label>
+                  <input type="radio" class="btn-check" name="fa-reg-triage" id="fa-reg-triage-U" value="U">
+                  <label class="btn btn-outline-dark rounded-end-pill" for="fa-reg-triage-U">
+                    <i class="bi bi-x-circle me-1"></i>Unresp (U)
+                  </label>
+                </div>
+              </div>
+              <!-- Gender & Age -->
+              <div class="col-6 col-md-3">
+                <label class="form-label small fw-bold">เพศ</label>
+                <select id="fa-reg-gender" class="form-select">
+                  <option value="">-- เลือก --</option>
+                  <option value="ชาย">ชาย</option>
+                  <option value="หญิง">หญิง</option>
+                  <option value="อื่นๆ">อื่นๆ</option>
+                </select>
+              </div>
+              <div class="col-6 col-md-3">
+                <label class="form-label small fw-bold">อายุ (ปี)</label>
+                <input type="number" id="fa-reg-age" class="form-control" min="0" max="150" placeholder="อายุ">
+              </div>
+              <!-- Name & Phone -->
+              <div class="col-12 col-md-6">
+                <label class="form-label small fw-bold">ชื่อ-สกุล</label>
+                <input type="text" id="fa-reg-name" class="form-control" placeholder="ชื่อ-สกุล">
+              </div>
+              <div class="col-12 col-md-6">
+                <label class="form-label small fw-bold">เบอร์โทร</label>
+                <input type="tel" id="fa-reg-phone" class="form-control" placeholder="เบอร์โทรศัพท์">
+              </div>
+              <!-- Category & Location Tx -->
+              <div class="col-6">
+                <label class="form-label small fw-bold">Category</label>
+                <select id="fa-reg-category" class="form-select">
+                  <option value="">-- ไม่ระบุ --</option>
+                </select>
+              </div>
+              <div class="col-6">
+                <label class="form-label small fw-bold">สถานที่รักษา</label>
+                <select id="fa-reg-location-tx" class="form-select">
+                  <option value="">-- ไม่ระบุ --</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          <!-- Time Section -->
+          <div class="card island-card p-3 mb-3">
+            <h6 class="card-title fw-bold text-primary mb-3"><i class="bi bi-clock me-1"></i>เวลา</h6>
+            <div class="row g-2">
+              <div class="col-6">
+                <label class="form-label small fw-bold">เวลาเข้า (Time In)</label>
+                <input type="time" id="fa-reg-time-in" class="form-control" step="1">
+              </div>
+              <div class="col-6">
+                <label class="form-label small fw-bold">เวลาออก (Time Out)</label>
+                <input type="time" id="fa-reg-time-out" class="form-control" step="1">
+              </div>
+            </div>
+          </div>
+
+          <!-- Etiology & CC Section -->
+          <div class="card island-card p-3 mb-3">
+            <h6 class="card-title fw-bold text-danger mb-3"><i class="bi bi-bandaid me-1"></i>สาเหตุ / อาการ</h6>
+            <div class="row g-2">
+              <!-- Etiology Toggle -->
+              <div class="col-12 etiology-toggle">
+                <label class="form-label small fw-bold">Etiology</label>
+                <div class="btn-group w-100" role="group">
+                  <input type="radio" class="btn-check" name="fa-reg-etiology" id="fa-reg-etiology-med" value="Med" checked>
+                  <label class="btn btn-outline-primary rounded-start-pill" for="fa-reg-etiology-med">
+                    <i class="bi bi-capsule me-1"></i>Medical
+                  </label>
+                  <input type="radio" class="btn-check" name="fa-reg-etiology" id="fa-reg-etiology-trauma" value="Trauma">
+                  <label class="btn btn-outline-danger rounded-end-pill" for="fa-reg-etiology-trauma">
+                    <i class="bi bi-bandaid me-1"></i>Trauma
+                  </label>
+                </div>
+              </div>
+              <!-- CC -->
+              <div class="col-12 col-md-6">
+                <label class="form-label small fw-bold">Chief Complaint (CC)</label>
+                <select id="fa-reg-cc" class="form-select">
+                  <option value="">-- เลือก CC --</option>
+                </select>
+              </div>
+              <div class="col-12 col-md-6" id="fa-reg-cc-other-wrap" style="display:none;">
+                <label class="form-label small fw-bold">CC อื่นๆ (ระบุ)</label>
+                <input type="text" id="fa-reg-cc-other" class="form-control" placeholder="ระบุ CC อื่นๆ">
+              </div>
+              <!-- Problem -->
+              <div class="col-12 col-md-6">
+                <label class="form-label small fw-bold">Problem</label>
+                <select id="fa-reg-problem" class="form-select">
+                  <option value="">-- เลือก Problem --</option>
+                </select>
+              </div>
+              <div class="col-12 col-md-6" id="fa-reg-problem-other-wrap" style="display:none;">
+                <label class="form-label small fw-bold">Problem อื่นๆ (ระบุ)</label>
+                <input type="text" id="fa-reg-problem-other" class="form-control" placeholder="ระบุ Problem อื่นๆ">
+              </div>
+            </div>
+          </div>
+
+          <!-- Treatment Section -->
+          <div class="card island-card p-3 mb-3">
+            <h6 class="card-title fw-bold text-warning mb-3"><i class="bi bi-prescription2 me-1"></i>การรักษา (Treatment)</h6>
+            <div class="treatment-grid" id="fa-reg-treatment-grid">
+              <!-- Populated dynamically -->
+            </div>
+          </div>
+
+          <!-- Allergy Section -->
+          <div class="card island-card p-3 mb-3">
+            <h6 class="card-title fw-bold text-info mb-3"><i class="bi bi-shield-exclamation me-1"></i>ประวัติแพ้ยา</h6>
+            <div class="row g-2">
+              <div class="col-12">
+                <div class="btn-group w-100" role="group">
+                  <input type="radio" class="btn-check" name="fa-reg-allergy-type" id="fa-reg-allergy-none" value="none" checked>
+                  <label class="btn btn-outline-secondary rounded-start-pill" for="fa-reg-allergy-none">ไม่มี (NKDA)</label>
+                  <input type="radio" class="btn-check" name="fa-reg-allergy-type" id="fa-reg-allergy-yes" value="yes">
+                  <label class="btn btn-outline-danger rounded-end-pill" for="fa-reg-allergy-yes">มี (ระบุ)</label>
+                </div>
+              </div>
+              <div class="col-12" id="fa-reg-allergy-detail-wrap" style="display:none;">
+                <input type="text" id="fa-reg-allergy-detail" class="form-control" placeholder="ระบุชื่อยา/สารที่แพ้">
+              </div>
+            </div>
+          </div>
+
+          <!-- Vitals Section (Collapsible) -->
+          <div class="card island-card p-3 mb-3">
+            <h6 class="card-title fw-bold text-purple mb-2 d-flex align-items-center justify-content-between" style="cursor:pointer;" data-bs-toggle="collapse" data-bs-target="#fa-vitals-collapse">
+              <span><i class="bi bi-heart-pulse me-1"></i>Vital Signs</span>
+              <i class="bi bi-chevron-down small"></i>
+            </h6>
+            <div class="collapse" id="fa-vitals-collapse">
+              <div class="fa-vitals-section">
+                <div class="row g-2">
+                  <div class="col-6 col-md-3">
+                    <label class="form-label small fw-bold">BP (mmHg)</label>
+                    <input type="text" id="fa-reg-vital-bp" class="form-control form-control-sm" placeholder="120/80">
+                  </div>
+                  <div class="col-6 col-md-3">
+                    <label class="form-label small fw-bold">HR (bpm)</label>
+                    <input type="number" id="fa-reg-vital-hr" class="form-control form-control-sm" placeholder="80">
+                  </div>
+                  <div class="col-6 col-md-3">
+                    <label class="form-label small fw-bold">RR (/min)</label>
+                    <input type="number" id="fa-reg-vital-rr" class="form-control form-control-sm" placeholder="20">
+                  </div>
+                  <div class="col-6 col-md-3">
+                    <label class="form-label small fw-bold">SpO2 (%)</label>
+                    <input type="number" id="fa-reg-vital-spo2" class="form-control form-control-sm" placeholder="98">
+                  </div>
+                  <div class="col-6 col-md-3">
+                    <label class="form-label small fw-bold">Temp (&deg;C)</label>
+                    <input type="number" id="fa-reg-vital-temp" class="form-control form-control-sm" placeholder="36.5" step="0.1">
+                  </div>
+                  <div class="col-6 col-md-3">
+                    <label class="form-label small fw-bold">Glucose (mg/dL)</label>
+                    <input type="number" id="fa-reg-vital-glucose" class="form-control form-control-sm" placeholder="100">
+                  </div>
+                  <div class="col-6 col-md-3">
+                    <label class="form-label small fw-bold">Pain (0-10)</label>
+                    <input type="number" id="fa-reg-vital-pain" class="form-control form-control-sm" min="0" max="10" placeholder="0">
+                  </div>
+                  <div class="col-12"><hr class="my-2"></div>
+                  <div class="col-12">
+                    <label class="form-label small fw-bold">GCS (E + V + M)</label>
+                  </div>
+                  <div class="col-4">
+                    <label class="form-label small text-muted">Eye (E)</label>
+                    <select id="fa-reg-vital-gcs-e" class="form-select form-select-sm">
+                      <option value="">-</option>
+                      <option value="4">4 - Spontaneous</option>
+                      <option value="3">3 - To voice</option>
+                      <option value="2">2 - To pain</option>
+                      <option value="1">1 - None</option>
+                    </select>
+                  </div>
+                  <div class="col-4">
+                    <label class="form-label small text-muted">Verbal (V)</label>
+                    <select id="fa-reg-vital-gcs-v" class="form-select form-select-sm">
+                      <option value="">-</option>
+                      <option value="5">5 - Oriented</option>
+                      <option value="4">4 - Confused</option>
+                      <option value="3">3 - Inappropriate</option>
+                      <option value="2">2 - Incomprehensible</option>
+                      <option value="1">1 - None</option>
+                    </select>
+                  </div>
+                  <div class="col-4">
+                    <label class="form-label small text-muted">Motor (M)</label>
+                    <select id="fa-reg-vital-gcs-m" class="form-select form-select-sm">
+                      <option value="">-</option>
+                      <option value="6">6 - Obeys</option>
+                      <option value="5">5 - Localizes</option>
+                      <option value="4">4 - Withdraws</option>
+                      <option value="3">3 - Flexion</option>
+                      <option value="2">2 - Extension</option>
+                      <option value="1">1 - None</option>
+                    </select>
+                  </div>
+                  <div class="col-12 text-end">
+                    <span class="badge bg-secondary" id="fa-reg-gcs-total">GCS: --</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Result Section -->
+          <div class="card island-card p-3 mb-3">
+            <h6 class="card-title fw-bold text-secondary mb-3"><i class="bi bi-signpost-split me-1"></i>ผลลัพธ์ (Result)</h6>
+            <div class="row g-2">
+              <div class="col-12">
+                <select id="fa-reg-result" class="form-select" onchange="fa_onResultChange()">
+                  <option value="">-- ยังไม่จำหน่าย --</option>
+                  <option value="dc:dnf">D/C - DNF (Did Not Finish)</option>
+                  <option value="dc:rtp">D/C - RTP (Return To Play)</option>
+                  <option value="transfer:self">Transfer (ญาติ/ตนเอง) ไป รพ.</option>
+                  <option value="transfer:ems">Transfer (EMS) ไป รพ.</option>
+                </select>
+              </div>
+              <div class="col-12" id="fa-reg-hospital-wrap" style="display:none;">
+                <label class="form-label small fw-bold">ชื่อโรงพยาบาล</label>
+                <input type="text" id="fa-reg-hospital" class="form-control" placeholder="ชื่อ รพ. ที่ส่งต่อ">
+              </div>
+            </div>
+          </div>
+
+          <!-- Note, GPS, Image -->
+          <div class="card island-card p-3 mb-3">
+            <h6 class="card-title fw-bold text-muted mb-3"><i class="bi bi-chat-text me-1"></i>บันทึกเพิ่มเติม</h6>
+            <div class="row g-2">
+              <div class="col-12">
+                <label class="form-label small fw-bold">หมายเหตุ</label>
+                <textarea id="fa-reg-note" class="form-control" rows="2" placeholder="บันทึกเพิ่มเติม..."></textarea>
+              </div>
+              <div class="col-12 col-md-6">
+                <label class="form-label small fw-bold">พิกัด GPS</label>
+                <div class="input-group">
+                  <input type="text" id="fa-reg-gps" class="form-control" placeholder="lat, lng" readonly>
+                  <button class="btn btn-outline-secondary" type="button" onclick="fa_getGPS()">
+                    <i class="bi bi-geo-alt"></i>
+                  </button>
+                </div>
+              </div>
+              <div class="col-12 col-md-6">
+                <label class="form-label small fw-bold">ภาพถ่าย</label>
+                <input type="file" id="fa-reg-image" class="form-control form-control-sm" accept="image/*">
+              </div>
+              <div id="fa-reg-image-preview" class="col-12"></div>
+            </div>
+          </div>
+
+        </div><!-- end modal-body -->
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary rounded-pill px-4" data-bs-dismiss="modal">ยกเลิก</button>
+          <button type="button" class="btn btn-success rounded-pill px-4 fw-bold" id="fa-reg-save-btn" onclick="fa_saveRegistry()">
+            <i class="bi bi-check-lg me-1"></i>บันทึก
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== PATIENT VIEW MODAL ==================== -->
+  <div class="modal fade" id="fa-patient-view-modal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+      <div class="modal-content">
+        <div class="modal-header bg-info text-white">
+          <h5 class="modal-title fw-bold"><i class="bi bi-person-lines-fill me-2"></i>รายละเอียดผู้ป่วย</h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body" id="fa-patient-view-body" style="max-height:75vh;overflow-y:auto;">
+          <!-- Populated dynamically -->
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline-danger rounded-pill px-3" onclick="fa_deleteRegistryFromView()">
+            <i class="bi bi-trash me-1"></i>ลบ
+          </button>
+          <button type="button" class="btn btn-primary rounded-pill px-3" onclick="fa_editRegistryFromView()">
+            <i class="bi bi-pencil me-1"></i>แก้ไข
+          </button>
+          <button type="button" class="btn btn-secondary rounded-pill px-3" data-bs-dismiss="modal">ปิด</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== PRINT LAYOUT ==================== -->
+  <div id="print-layout-container"></div>
+
+  <!-- ==================== JAVASCRIPT ==================== -->
+  <script>
+  // =============================================
+  // GLOBAL STATE
+  // =============================================
+  var fa_currentEventId = null;
+  var fa_currentEventData = null;
+  var fa_currentRegistryData = [];
+  var fa_currentEventConfig = null;
+  var fa_currentEventType = 'general';
+  var fa_eventsData = [];
+  var fa_eventsFilter = 'Active';
+  var fa_hourlyChart = null;
+  var fa_viewingRegId = null;
+
+  // =============================================
+  // TRIAGE INFO
+  // =============================================
+  var fa_triageInfo = {
+    'A': { label: 'Alert (A)', badgeClass: 'bg-success-subtle text-success border-success', color: '#198754' },
+    'V': { label: 'Voice (V)', badgeClass: 'bg-warning-subtle text-warning border-warning', color: '#ffc107' },
+    'P': { label: 'Pain (P)', badgeClass: 'bg-danger-subtle text-danger border-danger', color: '#dc3545' },
+    'U': { label: 'Unresponsive (U)', badgeClass: 'bg-dark text-white', color: '#212529' }
+  };
+
+  // =============================================
+  // CC & PROBLEM SETS
+  // =============================================
+  var fa_ccMed = ['Muscle cramp','Musculoskeletal','Skin','Collapse','Chest pain','Dyspnea','Nausea','Headache','Dizziness','Abdominal pain','Heat-related','Hypothermia','Allergic','Eye','Insect bite','Dehydration','Other'];
+  var fa_ccTrauma = ['Fall','Collision','Abrasion','Laceration','Contusion','Sprain','Dislocation','Fracture','Head injury','Other'];
+
+  var fa_problemSets = {
+    sports: ['EAMC','EAC','EAH','Heat Stroke','Heat Exhaustion','Hypothermia','Trauma/MSK','Skin','Respiratory','Cardiac','Arrest','Allergy','Hydration','GI','Neuro','Other'],
+    concert: ['Intoxication','Syncope','Anxiety','Crowd Crush','Dehydration','Wound','Allergic','Respiratory','Cardiac','Seizure','Assault','Other'],
+    general: ['Syncope','Dehydration','Allergic','Respiratory','Cardiac','Seizure','Trauma/MSK','GI','Intoxication','Anxiety','Wound','Other']
+  };
+
+  // =============================================
+  // TREATMENT OPTIONS
+  // =============================================
+  var fa_treatments = [
+    { key: 'ammonia', label: 'แอมโมเนีย', icon: 'bi-droplet' },
+    { key: 'plaster', label: 'พลาสเตอร์ยา', icon: 'bi-bandaid' },
+    { key: 'spray', label: 'ยานวด/สเปรย์', icon: 'bi-spray-can' },
+    { key: 'wound_dress', label: 'ทำแผล', icon: 'bi-scissors' },
+    { key: 'cold_pack', label: 'Cold pack', icon: 'bi-snow' },
+    { key: 'hot_pack', label: 'Hot pack', icon: 'bi-thermometer-sun' },
+    { key: 'splint', label: 'Splint/ดาม', icon: 'bi-wrench' },
+    { key: 'pressure', label: 'ห้ามเลือด/Pressure', icon: 'bi-hand-index' },
+    { key: 'iv_fluid', label: 'IV Fluid', icon: 'bi-moisture' },
+    { key: 'oxygen', label: 'Oxygen/O2', icon: 'bi-wind' },
+    { key: 'wound_dressing', label: 'Wound dressing', icon: 'bi-patch-check' },
+    { key: 'cpr_aed', label: 'CPR/AED', icon: 'bi-lightning' },
+    { key: 'nebulization', label: 'Nebulization', icon: 'bi-cloud' },
+    { key: 'eye_wash', label: 'Eye wash', icon: 'bi-eye' }
+  ];
+
+  // =============================================
+  // DISPENSE ITEMS
+  // =============================================
+  var fa_dispenseItems = [
+    { key: 'q_ammonia', label: 'แอมโมเนีย', icon: 'bi-droplet-fill', color: 'primary' },
+    { key: 'q_plaster', label: 'พลาสเตอร์ยา', icon: 'bi-bandaid-fill', color: 'warning' },
+    { key: 'q_spray', label: 'ยานวด/สเปรย์', icon: 'bi-spray-can', color: 'info' },
+    { key: 'q_wound', label: 'ทำแผล', icon: 'bi-scissors', color: 'danger' },
+    { key: 'q_meds', label: 'จ่ายยา', icon: 'bi-capsule', color: 'success' }
+  ];
+
+  // Event type badges
+  var fa_eventTypeBadge = {
+    sports: { label: 'กีฬา', class: 'bg-primary' },
+    concert: { label: 'คอนเสิร์ต', class: 'bg-purple-subtle text-purple' },
+    general: { label: 'ทั่วไป', class: 'bg-secondary' }
+  };
+
+  // =============================================
+  // INIT
+  // =============================================
+  window.addEventListener('load', async function() {
+    document.getElementById('nav-username').textContent = getUserName();
+    await checkAuth(function() {
+      fa_loadEvents();
+    });
+  });
+
+  function onLoginSuccess() {
+    document.getElementById('nav-username').textContent = getUserName();
+    fa_loadEvents();
+  }
+
+  // =============================================
+  // EVENT LIST
+  // =============================================
+  async function fa_loadEvents() {
+    try {
+      var { data, error } = await _supabase
+        .from('fa_events')
+        .select('*, fa_registry(count)')
+        .order('event_date', { ascending: false });
+      if (error) throw error;
+      fa_eventsData = data || [];
+      fa_renderEvents();
+    } catch (e) {
+      console.error('Load events error:', e);
+      Swal.fire('ผิดพลาด', 'โหลดข้อมูลอีเวนต์ไม่สำเร็จ: ' + e.message, 'error');
+    }
+  }
+
+  function fa_renderEvents() {
+    var grid = document.getElementById('fa-events-grid');
+    var filtered = fa_eventsData;
+    if (fa_eventsFilter !== 'All') {
+      filtered = fa_eventsData.filter(function(e) { return e.status === fa_eventsFilter; });
+    }
+    document.getElementById('fa-event-count').textContent = filtered.length;
+
+    if (filtered.length === 0) {
+      grid.innerHTML = '<div class="col-12 text-center text-muted py-5"><i class="bi bi-calendar-x fs-1 d-block mb-2 opacity-25"></i>ไม่พบอีเวนต์</div>';
+      return;
+    }
+
+    var html = '';
+    filtered.forEach(function(evt) {
+      var patCount = (evt.fa_registry && evt.fa_registry[0]) ? evt.fa_registry[0].count : 0;
+      var typeBadge = fa_eventTypeBadge[evt.event_type] || fa_eventTypeBadge.general;
+      var statusDot = evt.status === 'Active' ? 'bg-success' : 'bg-secondary';
+      var imgHtml = evt.image_url
+        ? '<img src="' + escapeHtml(evt.image_url) + '" class="card-img-top" alt="poster">'
+        : '<div class="card-img-placeholder"><i class="bi bi-heart-pulse"></i></div>';
+
+      html += '<div class="col-6 col-md-4 col-lg-3">' +
+        '<div class="fa-event-card card h-100 position-relative" onclick="fa_openEvent(\'' + evt.event_id + '\')">' +
+        imgHtml +
+        '<span class="badge fa-event-type-badge ' + typeBadge.class + ' rounded-pill">' + typeBadge.label + '</span>' +
+        '<div class="card-body p-2 pt-2">' +
+        '<h6 class="fw-bold mb-1 text-truncate" style="font-size:0.9rem;">' + escapeHtml(evt.event_name) + '</h6>' +
+        '<div class="small text-muted mb-1">' +
+        '<i class="bi bi-calendar3 me-1"></i>' + (evt.event_date || '-') +
+        '</div>' +
+        '<div class="small text-muted text-truncate mb-1">' +
+        '<i class="bi bi-geo-alt me-1"></i>' + escapeHtml(evt.location || '-') +
+        '</div>' +
+        '<div class="d-flex justify-content-between align-items-center">' +
+        '<span class="badge bg-success-subtle text-success border rounded-pill px-2 py-1" style="font-size:0.72rem;">' +
+        '<i class="bi bi-people me-1"></i>' + patCount + ' คน</span>' +
+        '<span><span class="fa-event-status-dot ' + statusDot + '"></span></span>' +
+        '</div>' +
+        '</div></div></div>';
+    });
+    grid.innerHTML = html;
+  }
+
+  function fa_filterEvents(status, el) {
+    fa_eventsFilter = status;
+    document.querySelectorAll('.fa-filter-tab').forEach(function(t) { t.classList.remove('active'); });
+    if (el) el.classList.add('active');
+    fa_renderEvents();
+  }
+
+  // =============================================
+  // EVENT CREATE / EDIT MODAL
+  // =============================================
+  function fa_openEventModal(eventId) {
+    var isEdit = !!eventId;
+    document.getElementById('fa-event-modal-title').textContent = isEdit ? 'แก้ไขอีเวนต์' : 'สร้างอีเวนต์ใหม่';
+    // Reset form
+    document.getElementById('fa-evt-id').value = '';
+    document.getElementById('fa-evt-name').value = '';
+    document.getElementById('fa-evt-date').value = '';
+    document.getElementById('fa-evt-start-time').value = '';
+    document.getElementById('fa-evt-end-date').value = '';
+    document.getElementById('fa-evt-end-time').value = '';
+    document.getElementById('fa-evt-location').value = '';
+    document.getElementById('fa-evt-type').value = 'general';
+    document.getElementById('fa-evt-image').value = '';
+    document.getElementById('fa-evt-image-preview').innerHTML = '';
+    document.getElementById('fa-evt-cfg-idlabel').value = '';
+    document.getElementById('fa-evt-cfg-problemset').value = '';
+    document.getElementById('fa-evt-cfg-categories').value = '';
+    document.getElementById('fa-evt-cfg-locations').value = '';
+
+    if (isEdit) {
+      var evt = fa_eventsData.find(function(e) { return e.event_id === eventId; });
+      if (evt) {
+        document.getElementById('fa-evt-id').value = evt.event_id;
+        document.getElementById('fa-evt-name').value = evt.event_name || '';
+        document.getElementById('fa-evt-date').value = evt.event_date || '';
+        document.getElementById('fa-evt-start-time').value = evt.start_time || '';
+        document.getElementById('fa-evt-end-date').value = evt.end_date || '';
+        document.getElementById('fa-evt-end-time').value = evt.end_time || '';
+        document.getElementById('fa-evt-location').value = evt.location || '';
+        document.getElementById('fa-evt-type').value = evt.event_type || 'general';
+        if (evt.image_url) {
+          document.getElementById('fa-evt-image-preview').innerHTML = '<img src="' + escapeHtml(evt.image_url) + '" class="fa-poster-preview">';
+        }
+        var cfg = evt.event_config || {};
+        document.getElementById('fa-evt-cfg-idlabel').value = cfg.idLabel || '';
+        document.getElementById('fa-evt-cfg-problemset').value = cfg.problemSet || '';
+        document.getElementById('fa-evt-cfg-categories').value = (cfg.categories || []).join('\n');
+        document.getElementById('fa-evt-cfg-locations').value = (cfg.locations || []).join('\n');
+      }
+    }
+    new bootstrap.Modal(document.getElementById('fa-event-modal')).show();
+  }
+
+  function fa_onEventTypeChange() {
+    // Auto-set problem set if empty
+    var ps = document.getElementById('fa-evt-cfg-problemset');
+    if (!ps.value) {
+      // keep empty = auto from event type
+    }
+  }
+
+  async function fa_saveEvent() {
+    var name = document.getElementById('fa-evt-name').value.trim();
+    var date = document.getElementById('fa-evt-date').value;
+    if (!name) { Swal.fire('กรุณากรอกข้อมูล', 'กรุณาระบุชื่ออีเวนต์', 'warning'); return; }
+    if (!date) { Swal.fire('กรุณากรอกข้อมูล', 'กรุณาระบุวันเริ่มงาน', 'warning'); return; }
+
+    var eventId = document.getElementById('fa-evt-id').value;
+    var isEdit = !!eventId;
+
+    // Build config
+    var catText = document.getElementById('fa-evt-cfg-categories').value.trim();
+    var locText = document.getElementById('fa-evt-cfg-locations').value.trim();
+    var config = {
+      idLabel: document.getElementById('fa-evt-cfg-idlabel').value.trim(),
+      categories: catText ? catText.split('\n').map(function(s) { return s.trim(); }).filter(Boolean) : [],
+      locations: locText ? locText.split('\n').map(function(s) { return s.trim(); }).filter(Boolean) : [],
+      problemSet: document.getElementById('fa-evt-cfg-problemset').value
+    };
+
+    var payload = {
+      event_name: name,
+      event_date: date,
+      start_time: document.getElementById('fa-evt-start-time').value || null,
+      end_date: document.getElementById('fa-evt-end-date').value || null,
+      end_time: document.getElementById('fa-evt-end-time').value || null,
+      location: document.getElementById('fa-evt-location').value.trim() || null,
+      event_type: document.getElementById('fa-evt-type').value,
+      event_config: config
+    };
+
+    // Image upload
+    var imageFile = document.getElementById('fa-evt-image').files[0];
+    if (imageFile) {
+      try {
+        Swal.fire({ title: 'กำลังอัปโหลดรูป...', allowOutsideClick: false, didOpen: function() { Swal.showLoading(); } });
+        var url = await uploadToCloudinary(imageFile, 'firstaid');
+        payload.image_url = url;
+        Swal.close();
+      } catch (e) {
+        Swal.fire('อัปโหลดรูปไม่สำเร็จ', e.message, 'error');
+        return;
+      }
+    }
+
+    try {
+      Swal.fire({ title: 'กำลังบันทึก...', allowOutsideClick: false, didOpen: function() { Swal.showLoading(); } });
+      var error;
+      if (isEdit) {
+        var res = await _supabase.from('fa_events').update(payload).eq('event_id', eventId);
+        error = res.error;
+      } else {
+        payload.event_id = 'FA-' + Date.now();
+        payload.status = 'Active';
+        payload.created_by = getUserName();
+        var res = await _supabase.from('fa_events').insert(payload);
+        error = res.error;
+      }
+      if (error) throw error;
+      Swal.fire({ icon: 'success', title: 'บันทึกสำเร็จ', timer: 1200, showConfirmButton: false });
+      bootstrap.Modal.getInstance(document.getElementById('fa-event-modal')).hide();
+      await fa_loadEvents();
+    } catch (e) {
+      Swal.fire('ผิดพลาด', e.message, 'error');
+    }
+  }
+
+  // =============================================
+  // EVENT DETAIL
+  // =============================================
+  async function fa_openEvent(eventId) {
+    fa_currentEventId = eventId;
+    var evt = fa_eventsData.find(function(e) { return e.event_id === eventId; });
+    if (!evt) return;
+    fa_currentEventData = evt;
+    fa_currentEventConfig = evt.event_config || {};
+    fa_currentEventType = fa_currentEventConfig.problemSet || evt.event_type || 'general';
+
+    // Show detail view
+    document.getElementById('fa-events-view').classList.remove('active');
+    document.getElementById('fa-event-detail-view').classList.add('active');
+
+    // Render header
+    fa_renderEventHeader(evt);
+
+    // Switch to registry tab by default
+    fa_switchTab('registry');
+
+    // Load registry
+    await fa_loadRegistry();
+  }
+
+  function fa_renderEventHeader(evt) {
+    var typeBadge = fa_eventTypeBadge[evt.event_type] || fa_eventTypeBadge.general;
+    var statusBadge = evt.status === 'Active'
+      ? '<span class="badge bg-success rounded-pill"><i class="bi bi-lightning-fill me-1"></i>กำลังดำเนินการ</span>'
+      : '<span class="badge bg-secondary rounded-pill"><i class="bi bi-check-circle me-1"></i>ปิดแล้ว</span>';
+
+    var imgHtml = evt.image_url
+      ? '<img src="' + escapeHtml(evt.image_url) + '" class="fa-poster-preview mb-2 d-block">'
+      : '';
+
+    var patCount = (evt.fa_registry && evt.fa_registry[0]) ? evt.fa_registry[0].count : 0;
+
+    var html = '<div class="row g-3 align-items-center">' +
+      (imgHtml ? '<div class="col-12 col-md-4">' + imgHtml + '</div>' : '') +
+      '<div class="' + (imgHtml ? 'col-12 col-md-8' : 'col-12') + '">' +
+      '<div class="d-flex justify-content-between align-items-start mb-2">' +
+      '<div>' +
+      '<h4 class="fw-bold mb-1">' + escapeHtml(evt.event_name) + '</h4>' +
+      '<span class="badge ' + typeBadge.class + ' rounded-pill me-1">' + typeBadge.label + '</span>' +
+      statusBadge +
+      '</div>' +
+      '<div class="dropdown">' +
+      '<button class="btn btn-sm btn-outline-secondary rounded-pill" data-bs-toggle="dropdown"><i class="bi bi-three-dots-vertical"></i></button>' +
+      '<ul class="dropdown-menu dropdown-menu-end">' +
+      '<li><a class="dropdown-item" href="#" onclick="fa_openEventModal(\'' + evt.event_id + '\');return false;"><i class="bi bi-pencil me-2"></i>แก้ไขอีเวนต์</a></li>' +
+      '<li><a class="dropdown-item" href="#" onclick="fa_toggleEventStatus(\'' + evt.event_id + '\');return false;"><i class="bi bi-toggle-on me-2"></i>' + (evt.status === 'Active' ? 'ปิดอีเวนต์' : 'เปิดอีเวนต์') + '</a></li>' +
+      '<li><hr class="dropdown-divider"></li>' +
+      '<li><a class="dropdown-item text-danger" href="#" onclick="fa_deleteEvent(\'' + evt.event_id + '\');return false;"><i class="bi bi-trash me-2"></i>ลบอีเวนต์</a></li>' +
+      '</ul></div></div>' +
+      '<div class="small text-muted">' +
+      '<i class="bi bi-calendar3 me-1"></i>' + (evt.event_date || '-') +
+      (evt.start_time ? ' ' + evt.start_time : '') +
+      (evt.end_date ? ' ถึง ' + evt.end_date : '') +
+      (evt.end_time ? ' ' + evt.end_time : '') +
+      '</div>' +
+      '<div class="small text-muted"><i class="bi bi-geo-alt me-1"></i>' + escapeHtml(evt.location || '-') + '</div>' +
+      '<div class="small text-muted"><i class="bi bi-people me-1"></i>ผู้ป่วย: ' + patCount + ' คน</div>' +
+      '</div></div>';
+
+    document.getElementById('fa-event-header').innerHTML = html;
+  }
+
+  function fa_backToEvents() {
+    document.getElementById('fa-event-detail-view').classList.remove('active');
+    document.getElementById('fa-events-view').classList.add('active');
+    fa_currentEventId = null;
+    fa_loadEvents();
+  }
+
+  function fa_switchTab(tab) {
+    // Update nav buttons
+    document.querySelectorAll('.fa-tab-btn').forEach(function(b) { b.classList.remove('active'); });
+    event.currentTarget.classList.add('active');
+
+    // Hide all tabs, show selected
+    document.querySelectorAll('.fa-detail-tab').forEach(function(t) { t.classList.add('d-none'); });
+    document.getElementById('fa-' + tab + '-tab').classList.remove('d-none');
+
+    // Load tab data
+    if (tab === 'quick') fa_renderDispense();
+    if (tab === 'stats') fa_renderStats();
+    if (tab === 'report') fa_renderReport();
+  }
+
+  // =============================================
+  // EVENT ACTIONS (Status / Delete)
+  // =============================================
+  async function fa_toggleEventStatus(eventId) {
+    var evt = fa_eventsData.find(function(e) { return e.event_id === eventId; });
+    if (!evt) return;
+    var newStatus = evt.status === 'Active' ? 'Closed' : 'Active';
+    var confirm = await Swal.fire({
+      title: 'ยืนยัน?',
+      text: (newStatus === 'Closed' ? 'ปิดอีเวนต์นี้?' : 'เปิดอีเวนต์นี้ใหม่?'),
+      icon: 'question', showCancelButton: true, confirmButtonText: 'ยืนยัน', cancelButtonText: 'ยกเลิก'
+    });
+    if (!confirm.isConfirmed) return;
+    try {
+      var { error } = await _supabase.from('fa_events').update({ status: newStatus }).eq('event_id', eventId);
+      if (error) throw error;
+      Swal.fire({ icon: 'success', title: 'สำเร็จ', timer: 1000, showConfirmButton: false });
+      await fa_loadEvents();
+      if (fa_currentEventId === eventId) {
+        fa_currentEventData.status = newStatus;
+        var updated = fa_eventsData.find(function(e) { return e.event_id === eventId; });
+        if (updated) fa_renderEventHeader(updated);
+      }
+    } catch (e) {
+      Swal.fire('ผิดพลาด', e.message, 'error');
+    }
+  }
+
+  async function fa_deleteEvent(eventId) {
+    var confirm = await Swal.fire({
+      title: 'ลบอีเวนต์?', text: 'ข้อมูลทั้งหมดจะถูกลบถาวร',
+      icon: 'warning', showCancelButton: true, confirmButtonColor: '#dc3545',
+      confirmButtonText: 'ลบเลย', cancelButtonText: 'ยกเลิก'
+    });
+    if (!confirm.isConfirmed) return;
+    try {
+      // Delete registry records first
+      await _supabase.from('fa_registry').delete().eq('event_id', eventId);
+      var { error } = await _supabase.from('fa_events').delete().eq('event_id', eventId);
+      if (error) throw error;
+      Swal.fire({ icon: 'success', title: 'ลบสำเร็จ', timer: 1200, showConfirmButton: false });
+      fa_backToEvents();
+    } catch (e) {
+      Swal.fire('ผิดพลาด', e.message, 'error');
+    }
+  }
+
+  // =============================================
+  // REGISTRY (CRUD)
+  // =============================================
+  async function fa_loadRegistry() {
+    try {
+      var { data, error } = await _supabase
+        .from('fa_registry')
+        .select('*')
+        .eq('event_id', fa_currentEventId)
+        .order('time_in', { ascending: false });
+      if (error) throw error;
+      fa_currentRegistryData = data || [];
+      fa_renderRegistry();
+    } catch (e) {
+      console.error('Load registry error:', e);
+    }
+  }
+
+  function fa_renderRegistry() {
+    var tbody = document.getElementById('fa-registry-tbody');
+    var emptyEl = document.getElementById('fa-registry-empty');
+
+    if (fa_currentRegistryData.length === 0) {
+      tbody.innerHTML = '';
+      emptyEl.classList.remove('d-none');
+      return;
+    }
+    emptyEl.classList.add('d-none');
+
+    var html = '';
+    fa_currentRegistryData.forEach(function(r, idx) {
+      var triageClass = 'fa-triage-' + (r.triage || 'A');
+      var triageLetter = r.triage || '-';
+      html += '<tr class="fa-reg-row" onclick="fa_viewPatient(\'' + r.reg_id + '\')">' +
+        '<td class="small text-muted">' + (idx + 1) + '</td>' +
+        '<td><span class="fa-triage-badge ' + triageClass + '">' + triageLetter + '</span></td>' +
+        '<td class="fw-medium">' + escapeHtml(r.name || 'ไม่ระบุชื่อ') +
+        (r.gender ? ' <span class="text-muted small">(' + escapeHtml(r.gender) + (r.age ? '/' + r.age : '') + ')</span>' : '') +
+        '</td>' +
+        '<td class="fa-table-hide-mobile small">' + escapeHtml(r.cc || '-') + '</td>' +
+        '<td class="fa-table-hide-mobile small text-truncate" style="max-width:120px;">' + escapeHtml(r.treatment || '-') + '</td>' +
+        '<td class="small">' + escapeHtml(r.time_in || '-') + '</td>' +
+        '<td class="fa-table-hide-mobile small">' + escapeHtml(r.time_out || '-') + '</td>' +
+        '<td>' +
+        '<button class="btn btn-sm btn-outline-primary rounded-circle p-0" style="width:28px;height:28px;" onclick="event.stopPropagation();fa_openRegistryModal(\'' + r.reg_id + '\')" title="แก้ไข"><i class="bi bi-pencil" style="font-size:0.7rem;"></i></button>' +
+        '</td></tr>';
+    });
+    tbody.innerHTML = html;
+  }
+
+  // =============================================
+  // REGISTRY FORM MODAL
+  // =============================================
+  function fa_openRegistryModal(regId) {
+    var isEdit = !!regId;
+    document.getElementById('fa-reg-modal-title').textContent = isEdit ? 'แก้ไขข้อมูลผู้ป่วย' : 'เพิ่มข้อมูลผู้ป่วย';
+    fa_resetRegistryForm();
+
+    // Populate category & location dropdowns from event config
+    fa_populateConfigDropdowns();
+
+    // Populate CC dropdown (default: Med)
+    fa_updateCCDropdown('Med');
+
+    // Populate Problem dropdown
+    fa_updateProblemDropdown();
+
+    // Populate treatment checkboxes
+    fa_renderTreatmentGrid();
+
+    // Set up etiology toggle listener
+    document.querySelectorAll('input[name="fa-reg-etiology"]').forEach(function(el) {
+      el.onchange = function() { fa_updateCCDropdown(this.value); };
+    });
+
+    // CC change listener (show/hide other)
+    document.getElementById('fa-reg-cc').onchange = function() {
+      document.getElementById('fa-reg-cc-other-wrap').style.display = this.value === 'Other' ? '' : 'none';
+    };
+
+    // Problem change listener
+    document.getElementById('fa-reg-problem').onchange = function() {
+      document.getElementById('fa-reg-problem-other-wrap').style.display = this.value === 'Other' ? '' : 'none';
+    };
+
+    // Allergy toggle
+    document.querySelectorAll('input[name="fa-reg-allergy-type"]').forEach(function(el) {
+      el.onchange = function() {
+        document.getElementById('fa-reg-allergy-detail-wrap').style.display = this.value === 'yes' ? '' : 'none';
+      };
+    });
+
+    // GCS total calc
+    ['fa-reg-vital-gcs-e', 'fa-reg-vital-gcs-v', 'fa-reg-vital-gcs-m'].forEach(function(id) {
+      document.getElementById(id).onchange = fa_calcGCS;
+    });
+
+    // Result change
+    document.getElementById('fa-reg-result').onchange = function() { fa_onResultChange(); };
+
+    // Auto-fill time in
+    if (!isEdit) {
+      var now = new Date();
+      document.getElementById('fa-reg-time-in').value = now.toTimeString().slice(0, 5);
+    }
+
+    // If editing, populate from record
+    if (isEdit) {
+      var rec = fa_currentRegistryData.find(function(r) { return r.reg_id === regId; });
+      if (rec) fa_populateRegistryForm(rec);
+    }
+
+    new bootstrap.Modal(document.getElementById('fa-registry-modal')).show();
+  }
+
+  function fa_resetRegistryForm() {
+    document.getElementById('fa-reg-id').value = '';
+    // Triage
+    document.querySelectorAll('input[name="fa-reg-triage"]').forEach(function(r) { r.checked = false; });
+    document.getElementById('fa-reg-triage-A').checked = true;
+    // Fields
+    document.getElementById('fa-reg-gender').value = '';
+    document.getElementById('fa-reg-age').value = '';
+    document.getElementById('fa-reg-name').value = '';
+    document.getElementById('fa-reg-phone').value = '';
+    document.getElementById('fa-reg-category').value = '';
+    document.getElementById('fa-reg-location-tx').value = '';
+    document.getElementById('fa-reg-time-in').value = '';
+    document.getElementById('fa-reg-time-out').value = '';
+    // Etiology
+    document.getElementById('fa-reg-etiology-med').checked = true;
+    document.getElementById('fa-reg-etiology-trauma').checked = false;
+    // CC
+    document.getElementById('fa-reg-cc').value = '';
+    document.getElementById('fa-reg-cc-other').value = '';
+    document.getElementById('fa-reg-cc-other-wrap').style.display = 'none';
+    // Problem
+    document.getElementById('fa-reg-problem').value = '';
+    document.getElementById('fa-reg-problem-other').value = '';
+    document.getElementById('fa-reg-problem-other-wrap').style.display = 'none';
+    // Allergy
+    document.getElementById('fa-reg-allergy-none').checked = true;
+    document.getElementById('fa-reg-allergy-detail').value = '';
+    document.getElementById('fa-reg-allergy-detail-wrap').style.display = 'none';
+    // Vitals
+    ['bp','hr','rr','spo2','temp','glucose','pain'].forEach(function(v) {
+      document.getElementById('fa-reg-vital-' + v).value = '';
+    });
+    ['e','v','m'].forEach(function(g) {
+      document.getElementById('fa-reg-vital-gcs-' + g).value = '';
+    });
+    document.getElementById('fa-reg-gcs-total').textContent = 'GCS: --';
+    // Result
+    document.getElementById('fa-reg-result').value = '';
+    document.getElementById('fa-reg-hospital').value = '';
+    document.getElementById('fa-reg-hospital-wrap').style.display = 'none';
+    // Note, GPS, Image
+    document.getElementById('fa-reg-note').value = '';
+    document.getElementById('fa-reg-gps').value = '';
+    document.getElementById('fa-reg-image').value = '';
+    document.getElementById('fa-reg-image-preview').innerHTML = '';
+  }
+
+  function fa_populateRegistryForm(rec) {
+    document.getElementById('fa-reg-id').value = rec.reg_id;
+
+    // Triage
+    if (rec.triage) {
+      var triageEl = document.getElementById('fa-reg-triage-' + rec.triage);
+      if (triageEl) triageEl.checked = true;
+    }
+
+    document.getElementById('fa-reg-gender').value = rec.gender || '';
+    document.getElementById('fa-reg-age').value = rec.age || '';
+    document.getElementById('fa-reg-name').value = rec.name || '';
+    document.getElementById('fa-reg-phone').value = rec.phone || '';
+    document.getElementById('fa-reg-category').value = rec.category || '';
+    document.getElementById('fa-reg-location-tx').value = rec.location_tx || '';
+    document.getElementById('fa-reg-time-in').value = rec.time_in || '';
+    document.getElementById('fa-reg-time-out').value = rec.time_out || '';
+
+    // Etiology
+    if (rec.etiology === 'Trauma') {
+      document.getElementById('fa-reg-etiology-trauma').checked = true;
+      fa_updateCCDropdown('Trauma');
+    } else {
+      document.getElementById('fa-reg-etiology-med').checked = true;
+      fa_updateCCDropdown('Med');
+    }
+
+    // CC
+    if (rec.cc) {
+      document.getElementById('fa-reg-cc').value = rec.cc;
+      if (rec.cc === 'Other') {
+        document.getElementById('fa-reg-cc-other-wrap').style.display = '';
+        document.getElementById('fa-reg-cc-other').value = rec.cc_other || '';
+      }
+    }
+
+    // Problem
+    fa_updateProblemDropdown();
+    if (rec.problem) {
+      document.getElementById('fa-reg-problem').value = rec.problem;
+      if (rec.problem === 'Other') {
+        document.getElementById('fa-reg-problem-other-wrap').style.display = '';
+        document.getElementById('fa-reg-problem-other').value = rec.problem_other || '';
+      }
+    }
+
+    // Treatment - check the appropriate boxes
+    if (rec.treatment) {
+      var txList = rec.treatment.split(',').map(function(s) { return s.trim(); });
+      txList.forEach(function(tx) {
+        var cb = document.querySelector('#fa-reg-treatment-grid input[value="' + tx + '"]');
+        if (cb) cb.checked = true;
+      });
+    }
+
+    // Allergy
+    if (rec.allergy && rec.allergy !== 'ไม่มี' && rec.allergy !== 'NKDA' && rec.allergy !== '') {
+      document.getElementById('fa-reg-allergy-yes').checked = true;
+      document.getElementById('fa-reg-allergy-detail-wrap').style.display = '';
+      document.getElementById('fa-reg-allergy-detail').value = rec.allergy;
+    } else {
+      document.getElementById('fa-reg-allergy-none').checked = true;
+    }
+
+    // Vitals
+    var vitals = rec.vitals_json || {};
+    if (typeof vitals === 'string') { try { vitals = JSON.parse(vitals); } catch(e) { vitals = {}; } }
+    document.getElementById('fa-reg-vital-bp').value = vitals.bp || '';
+    document.getElementById('fa-reg-vital-hr').value = vitals.hr || '';
+    document.getElementById('fa-reg-vital-rr').value = vitals.rr || '';
+    document.getElementById('fa-reg-vital-spo2').value = vitals.spo2 || '';
+    document.getElementById('fa-reg-vital-temp').value = vitals.temp || '';
+    document.getElementById('fa-reg-vital-glucose').value = vitals.glucose || '';
+    document.getElementById('fa-reg-vital-pain').value = vitals.pain || '';
+    if (vitals.gcs) {
+      var gcsParts = String(vitals.gcs).split(',');
+      if (gcsParts.length === 3) {
+        document.getElementById('fa-reg-vital-gcs-e').value = gcsParts[0];
+        document.getElementById('fa-reg-vital-gcs-v').value = gcsParts[1];
+        document.getElementById('fa-reg-vital-gcs-m').value = gcsParts[2];
+        fa_calcGCS();
+      }
+    }
+
+    // Result
+    if (rec.result) {
+      var result = rec.result;
+      if (result.startsWith('transfer:self:')) {
+        document.getElementById('fa-reg-result').value = 'transfer:self';
+        document.getElementById('fa-reg-hospital-wrap').style.display = '';
+        document.getElementById('fa-reg-hospital').value = result.replace('transfer:self:', '');
+      } else if (result.startsWith('transfer:ems:')) {
+        document.getElementById('fa-reg-result').value = 'transfer:ems';
+        document.getElementById('fa-reg-hospital-wrap').style.display = '';
+        document.getElementById('fa-reg-hospital').value = result.replace('transfer:ems:', '');
+      } else {
+        document.getElementById('fa-reg-result').value = result;
+      }
+    }
+
+    // Note, GPS
+    document.getElementById('fa-reg-note').value = rec.note || '';
+    document.getElementById('fa-reg-gps').value = rec.gps || '';
+
+    // Image preview
+    if (rec.image_url) {
+      document.getElementById('fa-reg-image-preview').innerHTML = '<img src="' + escapeHtml(rec.image_url) + '" class="img-thumbnail mt-1" style="max-height:120px;">';
+    }
+  }
+
+  function fa_populateConfigDropdowns() {
+    var catSel = document.getElementById('fa-reg-category');
+    var locSel = document.getElementById('fa-reg-location-tx');
+    catSel.innerHTML = '<option value="">-- ไม่ระบุ --</option>';
+    locSel.innerHTML = '<option value="">-- ไม่ระบุ --</option>';
+
+    var cfg = fa_currentEventConfig || {};
+    if (cfg.categories && cfg.categories.length) {
+      cfg.categories.forEach(function(c) {
+        catSel.innerHTML += '<option value="' + escapeHtml(c) + '">' + escapeHtml(c) + '</option>';
+      });
+    }
+    if (cfg.locations && cfg.locations.length) {
+      cfg.locations.forEach(function(l) {
+        locSel.innerHTML += '<option value="' + escapeHtml(l) + '">' + escapeHtml(l) + '</option>';
+      });
+    }
+  }
+
+  function fa_updateCCDropdown(etiology) {
+    var sel = document.getElementById('fa-reg-cc');
+    var currentVal = sel.value;
+    var items = etiology === 'Trauma' ? fa_ccTrauma : fa_ccMed;
+    sel.innerHTML = '<option value="">-- เลือก CC --</option>';
+    items.forEach(function(cc) {
+      sel.innerHTML += '<option value="' + cc + '"' + (cc === currentVal ? ' selected' : '') + '>' + cc + '</option>';
+    });
+  }
+
+  function fa_updateProblemDropdown() {
+    var sel = document.getElementById('fa-reg-problem');
+    var currentVal = sel.value;
+    var problemType = fa_currentEventType || 'general';
+    var items = fa_problemSets[problemType] || fa_problemSets.general;
+    sel.innerHTML = '<option value="">-- เลือก Problem --</option>';
+    items.forEach(function(p) {
+      sel.innerHTML += '<option value="' + p + '"' + (p === currentVal ? ' selected' : '') + '>' + p + '</option>';
+    });
+  }
+
+  function fa_renderTreatmentGrid() {
+    var grid = document.getElementById('fa-reg-treatment-grid');
+    var html = '';
+    fa_treatments.forEach(function(t) {
+      html += '<div class="form-check bg-light rounded px-3 py-2">' +
+        '<input class="form-check-input" type="checkbox" id="fa-tx-' + t.key + '" value="' + t.label + '">' +
+        '<label class="form-check-label small" for="fa-tx-' + t.key + '">' +
+        '<i class="bi ' + t.icon + ' me-1"></i>' + t.label + '</label></div>';
+    });
+    grid.innerHTML = html;
+  }
+
+  function fa_calcGCS() {
+    var e = parseInt(document.getElementById('fa-reg-vital-gcs-e').value) || 0;
+    var v = parseInt(document.getElementById('fa-reg-vital-gcs-v').value) || 0;
+    var m = parseInt(document.getElementById('fa-reg-vital-gcs-m').value) || 0;
+    var total = e + v + m;
+    var el = document.getElementById('fa-reg-gcs-total');
+    if (total > 0) {
+      el.textContent = 'GCS: ' + total + ' (E' + e + 'V' + v + 'M' + m + ')';
+      el.className = 'badge ' + (total <= 8 ? 'bg-danger' : total <= 12 ? 'bg-warning text-dark' : 'bg-success');
+    } else {
+      el.textContent = 'GCS: --';
+      el.className = 'badge bg-secondary';
+    }
+  }
+
+  function fa_onResultChange() {
+    var val = document.getElementById('fa-reg-result').value;
+    var show = val.startsWith('transfer:');
+    document.getElementById('fa-reg-hospital-wrap').style.display = show ? '' : 'none';
+  }
+
+  function fa_getGPS() {
+    if (!navigator.geolocation) {
+      Swal.fire('ไม่รองรับ', 'เบราว์เซอร์ไม่รองรับ GPS', 'warning');
+      return;
+    }
+    navigator.geolocation.getCurrentPosition(
+      function(pos) {
+        document.getElementById('fa-reg-gps').value = pos.coords.latitude.toFixed(6) + ', ' + pos.coords.longitude.toFixed(6);
+      },
+      function(err) {
+        Swal.fire('GPS Error', err.message, 'error');
+      },
+      { enableHighAccuracy: true, timeout: 10000 }
+    );
+  }
+
+  // =============================================
+  // SAVE REGISTRY
+  // =============================================
+  async function fa_saveRegistry() {
+    // Collect form data
+    var regId = document.getElementById('fa-reg-id').value;
+    var isEdit = !!regId;
+
+    var triage = document.querySelector('input[name="fa-reg-triage"]:checked');
+    triage = triage ? triage.value : 'A';
+
+    // Collect treatments
+    var txChecked = [];
+    document.querySelectorAll('#fa-reg-treatment-grid input:checked').forEach(function(cb) {
+      txChecked.push(cb.value);
+    });
+
+    // Collect allergy
+    var allergyType = document.querySelector('input[name="fa-reg-allergy-type"]:checked');
+    var allergy = 'ไม่มี';
+    if (allergyType && allergyType.value === 'yes') {
+      allergy = document.getElementById('fa-reg-allergy-detail').value.trim() || 'มี (ไม่ระบุ)';
+    }
+
+    // Collect vitals
+    var gcsE = document.getElementById('fa-reg-vital-gcs-e').value;
+    var gcsV = document.getElementById('fa-reg-vital-gcs-v').value;
+    var gcsM = document.getElementById('fa-reg-vital-gcs-m').value;
+    var vitals = {
+      bp: document.getElementById('fa-reg-vital-bp').value.trim(),
+      hr: document.getElementById('fa-reg-vital-hr').value.trim(),
+      rr: document.getElementById('fa-reg-vital-rr').value.trim(),
+      spo2: document.getElementById('fa-reg-vital-spo2').value.trim(),
+      temp: document.getElementById('fa-reg-vital-temp').value.trim(),
+      glucose: document.getElementById('fa-reg-vital-glucose').value.trim(),
+      pain: document.getElementById('fa-reg-vital-pain').value.trim(),
+      gcs: (gcsE && gcsV && gcsM) ? gcsE + ',' + gcsV + ',' + gcsM : ''
+    };
+
+    // Collect result
+    var resultVal = document.getElementById('fa-reg-result').value;
+    if (resultVal.startsWith('transfer:')) {
+      var hospital = document.getElementById('fa-reg-hospital').value.trim();
+      if (hospital) resultVal += ':' + hospital;
+    }
+
+    var payload = {
+      event_id: fa_currentEventId,
+      triage: triage,
+      gender: document.getElementById('fa-reg-gender').value,
+      age: parseInt(document.getElementById('fa-reg-age').value) || null,
+      name: document.getElementById('fa-reg-name').value.trim(),
+      phone: document.getElementById('fa-reg-phone').value.trim(),
+      category: document.getElementById('fa-reg-category').value,
+      location_tx: document.getElementById('fa-reg-location-tx').value,
+      time_in: document.getElementById('fa-reg-time-in').value || null,
+      time_out: document.getElementById('fa-reg-time-out').value || null,
+      etiology: document.querySelector('input[name="fa-reg-etiology"]:checked').value,
+      cc: document.getElementById('fa-reg-cc').value,
+      cc_other: document.getElementById('fa-reg-cc-other').value.trim(),
+      problem: document.getElementById('fa-reg-problem').value,
+      problem_other: document.getElementById('fa-reg-problem-other').value.trim(),
+      treatment: txChecked.join(', '),
+      allergy: allergy,
+      vitals_json: vitals,
+      result: resultVal || null,
+      note: document.getElementById('fa-reg-note').value.trim(),
+      gps: document.getElementById('fa-reg-gps').value.trim(),
+      recorded_by: getUserName()
+    };
+
+    // Image upload
+    var imageFile = document.getElementById('fa-reg-image').files[0];
+    if (imageFile) {
+      try {
+        Swal.fire({ title: 'กำลังอัปโหลดรูป...', allowOutsideClick: false, didOpen: function() { Swal.showLoading(); } });
+        var reader = new FileReader();
+        var imgUrl = await new Promise(function(resolve, reject) {
+          reader.onload = async function() {
+            try {
+              var url = await uploadBase64ToCloudinary(reader.result, 'firstaid');
+              resolve(url);
+            } catch (e) { reject(e); }
+          };
+          reader.onerror = reject;
+          reader.readAsDataURL(imageFile);
+        });
+        payload.image_url = imgUrl;
+        Swal.close();
+      } catch (e) {
+        Swal.fire('อัปโหลดรูปไม่สำเร็จ', e.message, 'error');
+        return;
+      }
+    }
+
+    // Save
+    try {
+      Swal.fire({ title: 'กำลังบันทึก...', allowOutsideClick: false, didOpen: function() { Swal.showLoading(); } });
+      if (isEdit) {
+        payload.reg_id = regId;
+      } else {
+        payload.reg_id = 'R-' + Date.now() + '-' + Math.floor(Math.random() * 999);
+      }
+      var { error } = await _supabase.from('fa_registry').upsert(payload);
+      if (error) throw error;
+      Swal.fire({ icon: 'success', title: 'บันทึกสำเร็จ', timer: 1200, showConfirmButton: false });
+      bootstrap.Modal.getInstance(document.getElementById('fa-registry-modal')).hide();
+      await fa_loadRegistry();
+    } catch (e) {
+      Swal.fire('ผิดพลาด', e.message, 'error');
+    }
+  }
+
+  // =============================================
+  // VIEW PATIENT DETAIL
+  // =============================================
+  function fa_viewPatient(regId) {
+    var rec = fa_currentRegistryData.find(function(r) { return r.reg_id === regId; });
+    if (!rec) return;
+    fa_viewingRegId = regId;
+
+    var triageInfo = fa_triageInfo[rec.triage] || fa_triageInfo['A'];
+    var vitals = rec.vitals_json || {};
+    if (typeof vitals === 'string') { try { vitals = JSON.parse(vitals); } catch(e) { vitals = {}; } }
+
+    // Format result
+    var resultText = '-';
+    if (rec.result) {
+      if (rec.result === 'dc:dnf') resultText = 'D/C - DNF (Did Not Finish)';
+      else if (rec.result === 'dc:rtp') resultText = 'D/C - RTP (Return To Play)';
+      else if (rec.result.startsWith('transfer:self:')) resultText = 'Transfer (ตนเอง) > ' + rec.result.replace('transfer:self:', '');
+      else if (rec.result.startsWith('transfer:ems:')) resultText = 'Transfer (EMS) > ' + rec.result.replace('transfer:ems:', '');
+      else resultText = rec.result;
+    }
+
+    // GCS
+    var gcsText = '-';
+    if (vitals.gcs) {
+      var gp = vitals.gcs.split(',');
+      if (gp.length === 3) {
+        var total = (parseInt(gp[0]) || 0) + (parseInt(gp[1]) || 0) + (parseInt(gp[2]) || 0);
+        gcsText = total + ' (E' + gp[0] + 'V' + gp[1] + 'M' + gp[2] + ')';
+      }
+    }
+
+    var html = '<div class="patient-banner">' +
+      '<div class="d-flex align-items-center gap-3 mb-3">' +
+      '<span class="fa-triage-badge fa-triage-' + (rec.triage || 'A') + '" style="width:40px;height:40px;font-size:1.1rem;">' + (rec.triage || '-') + '</span>' +
+      '<div>' +
+      '<h5 class="fw-bold mb-0">' + escapeHtml(rec.name || 'ไม่ระบุชื่อ') + '</h5>' +
+      '<span class="text-muted small">' + escapeHtml(rec.gender || '') + (rec.age ? ' / อายุ ' + rec.age + ' ปี' : '') + '</span>' +
+      '</div></div>' +
+
+      '<div class="row g-2 small">' +
+      fa_viewRow('เบอร์โทร', rec.phone) +
+      fa_viewRow('Category', rec.category) +
+      fa_viewRow('สถานที่รักษา', rec.location_tx) +
+      fa_viewRow('เวลาเข้า', rec.time_in) +
+      fa_viewRow('เวลาออก', rec.time_out) +
+      '</div></div>' +
+
+      '<div class="card island-card p-3 mb-3">' +
+      '<h6 class="fw-bold text-danger mb-2"><i class="bi bi-bandaid me-1"></i>สาเหตุ / อาการ</h6>' +
+      '<div class="row g-2 small">' +
+      fa_viewRow('Etiology', rec.etiology) +
+      fa_viewRow('Chief Complaint', rec.cc + (rec.cc_other ? ' (' + rec.cc_other + ')' : '')) +
+      fa_viewRow('Problem', rec.problem + (rec.problem_other ? ' (' + rec.problem_other + ')' : '')) +
+      '</div></div>' +
+
+      '<div class="card island-card p-3 mb-3">' +
+      '<h6 class="fw-bold text-warning mb-2"><i class="bi bi-prescription2 me-1"></i>การรักษา</h6>' +
+      '<p class="mb-1 small">' + escapeHtml(rec.treatment || '-') + '</p>' +
+      '</div>' +
+
+      '<div class="card island-card p-3 mb-3">' +
+      '<h6 class="fw-bold text-info mb-2"><i class="bi bi-shield-exclamation me-1"></i>แพ้ยา</h6>' +
+      '<p class="mb-0 small">' + escapeHtml(rec.allergy || 'ไม่มี') + '</p>' +
+      '</div>' +
+
+      '<div class="card island-card p-3 mb-3">' +
+      '<h6 class="fw-bold text-purple mb-2"><i class="bi bi-heart-pulse me-1"></i>Vital Signs</h6>' +
+      '<div class="row g-2 small">' +
+      fa_viewRow('BP', vitals.bp) +
+      fa_viewRow('HR', vitals.hr) +
+      fa_viewRow('RR', vitals.rr) +
+      fa_viewRow('SpO2', vitals.spo2) +
+      fa_viewRow('Temp', vitals.temp) +
+      fa_viewRow('GCS', gcsText) +
+      fa_viewRow('Glucose', vitals.glucose) +
+      fa_viewRow('Pain', vitals.pain) +
+      '</div></div>' +
+
+      '<div class="card island-card p-3 mb-3">' +
+      '<h6 class="fw-bold text-secondary mb-2"><i class="bi bi-signpost-split me-1"></i>ผลลัพธ์</h6>' +
+      '<p class="mb-0 small fw-medium">' + escapeHtml(resultText) + '</p>' +
+      '</div>';
+
+    if (rec.note) {
+      html += '<div class="card island-card p-3 mb-3">' +
+        '<h6 class="fw-bold text-muted mb-2"><i class="bi bi-chat-text me-1"></i>หมายเหตุ</h6>' +
+        '<p class="mb-0 small">' + escapeHtml(rec.note) + '</p></div>';
+    }
+    if (rec.image_url) {
+      html += '<div class="card island-card p-3 mb-3">' +
+        '<h6 class="fw-bold text-muted mb-2"><i class="bi bi-camera me-1"></i>ภาพถ่าย</h6>' +
+        '<img src="' + escapeHtml(rec.image_url) + '" class="img-fluid rounded" style="max-height:300px;"></div>';
+    }
+    if (rec.gps) {
+      html += '<div class="small text-muted"><i class="bi bi-geo-alt me-1"></i>GPS: ' + escapeHtml(rec.gps) + '</div>';
+    }
+
+    html += '<div class="small text-muted mt-2"><i class="bi bi-person me-1"></i>บันทึกโดย: ' + escapeHtml(rec.recorded_by || '-') + '</div>';
+
+    document.getElementById('fa-patient-view-body').innerHTML = html;
+    new bootstrap.Modal(document.getElementById('fa-patient-view-modal')).show();
+  }
+
+  function fa_viewRow(label, value) {
+    if (!value && value !== 0) return '';
+    return '<div class="col-6"><span class="text-muted">' + label + ':</span> <strong>' + escapeHtml(String(value)) + '</strong></div>';
+  }
+
+  function fa_editRegistryFromView() {
+    bootstrap.Modal.getInstance(document.getElementById('fa-patient-view-modal')).hide();
+    setTimeout(function() { fa_openRegistryModal(fa_viewingRegId); }, 300);
+  }
+
+  async function fa_deleteRegistryFromView() {
+    var confirm = await Swal.fire({
+      title: 'ลบข้อมูลผู้ป่วย?', text: 'ข้อมูลจะถูกลบถาวร',
+      icon: 'warning', showCancelButton: true, confirmButtonColor: '#dc3545',
+      confirmButtonText: 'ลบเลย', cancelButtonText: 'ยกเลิก'
+    });
+    if (!confirm.isConfirmed) return;
+    try {
+      var { error } = await _supabase.from('fa_registry').delete().eq('reg_id', fa_viewingRegId);
+      if (error) throw error;
+      Swal.fire({ icon: 'success', title: 'ลบสำเร็จ', timer: 1000, showConfirmButton: false });
+      bootstrap.Modal.getInstance(document.getElementById('fa-patient-view-modal')).hide();
+      await fa_loadRegistry();
+    } catch (e) {
+      Swal.fire('ผิดพลาด', e.message, 'error');
+    }
+  }
+
+  // =============================================
+  // QUICK DISPENSE
+  // =============================================
+  function fa_renderDispense() {
+    var grid = document.getElementById('fa-dispense-grid');
+    var html = '';
+    fa_dispenseItems.forEach(function(item) {
+      var val = fa_currentEventData[item.key] || 0;
+      html += '<div class="col-6 col-md-4">' +
+        '<div class="card fa-dispense-card p-3 text-center">' +
+        '<div class="mb-2"><i class="bi ' + item.icon + ' fs-2 text-' + item.color + '"></i></div>' +
+        '<h6 class="fw-bold mb-3">' + item.label + '</h6>' +
+        '<div class="d-flex justify-content-center align-items-center gap-2">' +
+        '<button class="btn btn-outline-danger fa-qty-btn rounded-circle" onclick="fa_dispenseChange(\'' + item.key + '\', -1)">-</button>' +
+        '<input type="number" class="form-control text-center fa-qty-input fw-bold" id="fa-disp-' + item.key + '" value="' + val + '" readonly>' +
+        '<button class="btn btn-outline-success fa-qty-btn rounded-circle" onclick="fa_dispenseChange(\'' + item.key + '\', 1)">+</button>' +
+        '</div></div></div>';
+    });
+    grid.innerHTML = html;
+  }
+
+  async function fa_dispenseChange(key, delta) {
+    var input = document.getElementById('fa-disp-' + key);
+    var newVal = Math.max(0, parseInt(input.value || 0) + delta);
+    input.value = newVal;
+
+    // Update local data
+    fa_currentEventData[key] = newVal;
+
+    // Save to Supabase
+    try {
+      var updateObj = {};
+      updateObj[key] = newVal;
+      var { error } = await _supabase.from('fa_events').update(updateObj).eq('event_id', fa_currentEventId);
+      if (error) throw error;
+    } catch (e) {
+      console.error('Dispense save error:', e);
+      Swal.fire('บันทึกไม่สำเร็จ', e.message, 'error');
+    }
+  }
+
+  // =============================================
+  // STATS TAB
+  // =============================================
+  function fa_renderStats() {
+    var data = fa_currentRegistryData;
+    var total = data.length;
+
+    // Triage counts
+    var triageCounts = { A: 0, V: 0, P: 0, U: 0 };
+    var etiologyCounts = { Med: 0, Trauma: 0 };
+    var ccCounts = {};
+    var problemCounts = {};
+    var hourCounts = {};
+
+    data.forEach(function(r) {
+      if (r.triage && triageCounts.hasOwnProperty(r.triage)) triageCounts[r.triage]++;
+      if (r.etiology && etiologyCounts.hasOwnProperty(r.etiology)) etiologyCounts[r.etiology]++;
+      if (r.cc) ccCounts[r.cc] = (ccCounts[r.cc] || 0) + 1;
+      if (r.problem) problemCounts[r.problem] = (problemCounts[r.problem] || 0) + 1;
+      if (r.time_in) {
+        var h = r.time_in.substring(0, 2);
+        hourCounts[h] = (hourCounts[h] || 0) + 1;
+      }
+    });
+
+    // Summary cards
+    var summaryHtml = '<div class="col-6 col-md-3"><div class="fa-stat-card bg-primary-subtle">' +
+      '<div class="fs-2 fw-bold text-primary">' + total + '</div>' +
+      '<div class="small text-muted">ผู้ป่วยทั้งหมด</div></div></div>';
+
+    ['A','V','P','U'].forEach(function(t) {
+      var info = fa_triageInfo[t];
+      summaryHtml += '<div class="col-6 col-md-2"><div class="fa-stat-card" style="background:' + info.color + '11;">' +
+        '<div class="fs-3 fw-bold" style="color:' + info.color + ';">' + triageCounts[t] + '</div>' +
+        '<div class="small text-muted">' + info.label + '</div></div></div>';
+    });
+
+    summaryHtml += '<div class="col-6 col-md-2"><div class="fa-stat-card bg-info-subtle">' +
+      '<div class="fs-3 fw-bold text-info">' + etiologyCounts.Med + '</div>' +
+      '<div class="small text-muted">Medical</div></div></div>' +
+      '<div class="col-6 col-md-2"><div class="fa-stat-card bg-danger-subtle">' +
+      '<div class="fs-3 fw-bold text-danger">' + etiologyCounts.Trauma + '</div>' +
+      '<div class="small text-muted">Trauma</div></div></div>';
+
+    document.getElementById('fa-stats-summary').innerHTML = summaryHtml;
+
+    // Hourly chart
+    fa_renderHourlyChart(hourCounts);
+
+    // Top CC
+    var ccSorted = Object.entries(ccCounts).sort(function(a, b) { return b[1] - a[1]; }).slice(0, 10);
+    var ccHtml = ccSorted.length ? '' : '<span class="text-muted small">ไม่มีข้อมูล</span>';
+    ccSorted.forEach(function(item, idx) {
+      var pct = total > 0 ? Math.round(item[1] / total * 100) : 0;
+      ccHtml += '<div class="d-flex align-items-center mb-2">' +
+        '<span class="badge bg-secondary rounded-pill me-2" style="min-width:24px;">' + (idx + 1) + '</span>' +
+        '<div class="flex-grow-1">' +
+        '<div class="d-flex justify-content-between small"><span>' + escapeHtml(item[0]) + '</span><strong>' + item[1] + '</strong></div>' +
+        '<div class="progress" style="height:4px;"><div class="progress-bar bg-warning" style="width:' + pct + '%;"></div></div>' +
+        '</div></div>';
+    });
+    document.getElementById('fa-stats-top-cc').innerHTML = ccHtml;
+
+    // Top Problem
+    var probSorted = Object.entries(problemCounts).sort(function(a, b) { return b[1] - a[1]; }).slice(0, 10);
+    var probHtml = probSorted.length ? '' : '<span class="text-muted small">ไม่มีข้อมูล</span>';
+    probSorted.forEach(function(item, idx) {
+      var pct = total > 0 ? Math.round(item[1] / total * 100) : 0;
+      probHtml += '<div class="d-flex align-items-center mb-2">' +
+        '<span class="badge bg-secondary rounded-pill me-2" style="min-width:24px;">' + (idx + 1) + '</span>' +
+        '<div class="flex-grow-1">' +
+        '<div class="d-flex justify-content-between small"><span>' + escapeHtml(item[0]) + '</span><strong>' + item[1] + '</strong></div>' +
+        '<div class="progress" style="height:4px;"><div class="progress-bar bg-danger" style="width:' + pct + '%;"></div></div>' +
+        '</div></div>';
+    });
+    document.getElementById('fa-stats-top-problem').innerHTML = probHtml;
+  }
+
+  function fa_renderHourlyChart(hourCounts) {
+    // Build 24-hour labels
+    var labels = [];
+    var values = [];
+    for (var i = 0; i < 24; i++) {
+      var h = String(i).padStart(2, '0');
+      labels.push(h + ':00');
+      values.push(hourCounts[h] || 0);
+    }
+
+    // Destroy old chart
+    if (fa_hourlyChart) {
+      fa_hourlyChart.destroy();
+      fa_hourlyChart = null;
+    }
+
+    var ctx = document.getElementById('fa-chart-hourly').getContext('2d');
+    fa_hourlyChart = new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels: labels,
+        datasets: [{
+          label: 'จำนวนผู้ป่วย',
+          data: values,
+          backgroundColor: 'rgba(25, 135, 84, 0.6)',
+          borderColor: 'rgba(25, 135, 84, 1)',
+          borderWidth: 1,
+          borderRadius: 4
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { display: false }
+        },
+        scales: {
+          x: {
+            grid: { display: false },
+            ticks: { font: { size: 10 }, maxRotation: 45 }
+          },
+          y: {
+            beginAtZero: true,
+            ticks: { stepSize: 1, font: { size: 11 } }
+          }
+        }
+      }
+    });
+  }
+
+  // =============================================
+  // REPORT TAB
+  // =============================================
+  function fa_renderReport() {
+    var evt = fa_currentEventData;
+    var data = fa_currentRegistryData;
+    var total = data.length;
+
+    // Triage summary
+    var triageCounts = { A: 0, V: 0, P: 0, U: 0 };
+    var etiologyCounts = { Med: 0, Trauma: 0 };
+    data.forEach(function(r) {
+      if (r.triage && triageCounts.hasOwnProperty(r.triage)) triageCounts[r.triage]++;
+      if (r.etiology && etiologyCounts.hasOwnProperty(r.etiology)) etiologyCounts[r.etiology]++;
+    });
+
+    // Dispense summary
+    var dispenseHtml = '';
+    fa_dispenseItems.forEach(function(item) {
+      var val = evt[item.key] || 0;
+      if (val > 0) dispenseHtml += '<tr><td>' + item.label + '</td><td class="text-end fw-bold">' + val + '</td></tr>';
+    });
+
+    var html = '<div class="print-header text-center mb-4">' +
+      '<h4 class="fw-bold">' + escapeHtml(evt.event_name) + '</h4>' +
+      '<p class="text-muted mb-0">รายงานสรุปการปฐมพยาบาล</p>' +
+      '<p class="small text-muted">' + (evt.event_date || '') + ' | ' + escapeHtml(evt.location || '') + '</p>' +
+      '</div>' +
+
+      '<div class="row g-3 mb-4">' +
+      '<div class="col-md-6">' +
+      '<h6 class="fw-bold"><i class="bi bi-clipboard-data me-1"></i>สรุปภาพรวม</h6>' +
+      '<table class="table table-sm table-bordered">' +
+      '<tr><td>ผู้ป่วยทั้งหมด</td><td class="text-end fw-bold">' + total + '</td></tr>' +
+      '<tr><td>Alert (A)</td><td class="text-end">' + triageCounts.A + '</td></tr>' +
+      '<tr><td>Voice (V)</td><td class="text-end">' + triageCounts.V + '</td></tr>' +
+      '<tr><td>Pain (P)</td><td class="text-end">' + triageCounts.P + '</td></tr>' +
+      '<tr><td>Unresponsive (U)</td><td class="text-end">' + triageCounts.U + '</td></tr>' +
+      '<tr><td>Medical</td><td class="text-end">' + etiologyCounts.Med + '</td></tr>' +
+      '<tr><td>Trauma</td><td class="text-end">' + etiologyCounts.Trauma + '</td></tr>' +
+      '</table></div>' +
+      '<div class="col-md-6">' +
+      '<h6 class="fw-bold"><i class="bi bi-box-seam me-1"></i>เวชภัณฑ์ที่จ่าย</h6>' +
+      (dispenseHtml ? '<table class="table table-sm table-bordered">' + dispenseHtml + '</table>' : '<p class="text-muted small">ไม่มีข้อมูล</p>') +
+      '</div></div>' +
+
+      '<h6 class="fw-bold mb-2"><i class="bi bi-table me-1"></i>รายชื่อผู้ป่วย</h6>' +
+      '<div class="table-responsive">' +
+      '<table class="table table-sm table-bordered" style="font-size:0.8rem;">' +
+      '<thead class="table-light"><tr>' +
+      '<th>#</th><th>Triage</th><th>ชื่อ</th><th>เพศ/อายุ</th>' +
+      '<th>Etiology</th><th>CC</th><th>Problem</th><th>Treatment</th>' +
+      '<th>เวลาเข้า</th><th>เวลาออก</th><th>Result</th>' +
+      '</tr></thead><tbody>';
+
+    data.forEach(function(r, idx) {
+      html += '<tr>' +
+        '<td>' + (idx + 1) + '</td>' +
+        '<td>' + (r.triage || '-') + '</td>' +
+        '<td>' + escapeHtml(r.name || '-') + '</td>' +
+        '<td>' + escapeHtml(r.gender || '') + (r.age ? '/' + r.age : '') + '</td>' +
+        '<td>' + escapeHtml(r.etiology || '-') + '</td>' +
+        '<td>' + escapeHtml(r.cc || '-') + '</td>' +
+        '<td>' + escapeHtml(r.problem || '-') + '</td>' +
+        '<td>' + escapeHtml(r.treatment || '-') + '</td>' +
+        '<td>' + escapeHtml(r.time_in || '-') + '</td>' +
+        '<td>' + escapeHtml(r.time_out || '-') + '</td>' +
+        '<td>' + escapeHtml(r.result || '-') + '</td>' +
+        '</tr>';
+    });
+
+    html += '</tbody></table></div>';
+
+    document.getElementById('fa-report-content').innerHTML = html;
+  }
+
+  function fa_printReport() {
+    var evt = fa_currentEventData;
+    var data = fa_currentRegistryData;
+    var total = data.length;
+
+    var triageCounts = { A: 0, V: 0, P: 0, U: 0 };
+    var etiologyCounts = { Med: 0, Trauma: 0 };
+    data.forEach(function(r) {
+      if (r.triage && triageCounts.hasOwnProperty(r.triage)) triageCounts[r.triage]++;
+      if (r.etiology && etiologyCounts.hasOwnProperty(r.etiology)) etiologyCounts[r.etiology]++;
+    });
+
+    var dispenseRows = '';
+    fa_dispenseItems.forEach(function(item) {
+      var val = evt[item.key] || 0;
+      if (val > 0) dispenseRows += '<tr><td>' + item.label + '</td><td style="text-align:right;font-weight:bold;">' + val + '</td></tr>';
+    });
+
+    var patientRows = '';
+    data.forEach(function(r, idx) {
+      patientRows += '<tr>' +
+        '<td>' + (idx + 1) + '</td>' +
+        '<td>' + (r.triage || '-') + '</td>' +
+        '<td>' + escapeHtml(r.name || '-') + '</td>' +
+        '<td>' + escapeHtml(r.gender || '') + (r.age ? '/' + r.age : '') + '</td>' +
+        '<td>' + escapeHtml(r.etiology || '-') + '</td>' +
+        '<td>' + escapeHtml(r.cc || '-') + '</td>' +
+        '<td>' + escapeHtml(r.problem || '-') + '</td>' +
+        '<td>' + escapeHtml(r.treatment || '-') + '</td>' +
+        '<td>' + escapeHtml(r.time_in || '-') + '</td>' +
+        '<td>' + escapeHtml(r.time_out || '-') + '</td>' +
+        '<td>' + escapeHtml(r.result || '-') + '</td>' +
+        '</tr>';
+    });
+
+    var printHtml = '<!DOCTYPE html><html lang="th"><head><meta charset="UTF-8">' +
+      '<title>รายงาน - ' + escapeHtml(evt.event_name) + '</title>' +
+      '<style>' +
+      'body{font-family:"Sarabun",sans-serif;margin:20px;font-size:11pt;color:#000;}' +
+      '.print-header{text-align:center;border-bottom:2px solid #000;padding-bottom:10px;margin-bottom:15px;}' +
+      '.print-header h3{margin:0 0 4px 0;}' +
+      '.print-header p{margin:2px 0;color:#555;}' +
+      'table{width:100%;border-collapse:collapse;margin-bottom:12px;font-size:10pt;}' +
+      'th,td{border:1px solid #000;padding:4px 6px;vertical-align:top;}' +
+      'th{background:#eee;text-align:center;font-weight:bold;}' +
+      '.summary-table{width:auto;margin-bottom:15px;}' +
+      '.summary-table td{border:none;padding:2px 8px;}' +
+      '.section-title{font-weight:bold;margin:12px 0 6px;text-decoration:underline;font-size:11pt;}' +
+      '@media print{@page{size:A4 landscape;margin:10mm;}}' +
+      '</style></head><body>' +
+      '<div class="print-header">' +
+      '<h3>' + escapeHtml(evt.event_name) + '</h3>' +
+      '<p>รายงานสรุปการปฐมพยาบาล</p>' +
+      '<p>' + (evt.event_date || '') + ' | ' + escapeHtml(evt.location || '') + '</p>' +
+      '</div>' +
+      '<div class="section-title">สรุปภาพรวม</div>' +
+      '<table class="summary-table"><tbody>' +
+      '<tr><td>ผู้ป่วยทั้งหมด:</td><td><strong>' + total + '</strong></td>' +
+      '<td>Alert (A):</td><td>' + triageCounts.A + '</td>' +
+      '<td>Voice (V):</td><td>' + triageCounts.V + '</td>' +
+      '<td>Pain (P):</td><td>' + triageCounts.P + '</td>' +
+      '<td>Unresp (U):</td><td>' + triageCounts.U + '</td></tr>' +
+      '<tr><td>Medical:</td><td>' + etiologyCounts.Med + '</td>' +
+      '<td>Trauma:</td><td>' + etiologyCounts.Trauma + '</td><td colspan="6"></td></tr>' +
+      '</tbody></table>';
+
+    if (dispenseRows) {
+      printHtml += '<div class="section-title">เวชภัณฑ์ที่จ่าย</div>' +
+        '<table style="width:300px;">' + dispenseRows + '</table>';
+    }
+
+    printHtml += '<div class="section-title">รายชื่อผู้ป่วย (' + total + ' ราย)</div>' +
+      '<table><thead><tr>' +
+      '<th>#</th><th>Triage</th><th>ชื่อ</th><th>เพศ/อายุ</th>' +
+      '<th>Etiology</th><th>CC</th><th>Problem</th><th>Treatment</th>' +
+      '<th>เวลาเข้า</th><th>เวลาออก</th><th>Result</th>' +
+      '</tr></thead><tbody>' + patientRows + '</tbody></table>' +
+      '<script>window.onload=function(){window.print();}<\/script>' +
+      '</body></html>';
+
+    var win = window.open('', '_blank');
+    win.document.write(printHtml);
+    win.document.close();
+  }
+
+  </script>
+</body>
+</html>

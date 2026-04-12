@@ -1,20 +1,168 @@
 <!DOCTYPE html>
 <html lang="th">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PT Medical System</title>
-    <style>
-        body { font-family: 'Sarabun', sans-serif; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; background: #f0f2f5; }
-        .card { background: #fff; padding: 40px; border-radius: 12px; box-shadow: 0 2px 12px rgba(0,0,0,0.1); text-align: center; }
-        h1 { color: #198754; margin-bottom: 8px; }
-        p { color: #6c757d; }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PT Medical System</title>
+  <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;600;700&display=swap" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+  <style>
+    * { margin:0; padding:0; box-sizing:border-box; }
+    body {
+      font-family: 'Sarabun', sans-serif;
+      background: linear-gradient(135deg, #0f2027 0%, #203a43 50%, #2c5364 100%);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+    }
+    .landing-wrapper {
+      text-align: center;
+      max-width: 600px;
+      width: 100%;
+    }
+    .landing-logo {
+      width: 72px; height: 72px;
+      background: rgba(255,255,255,0.15);
+      border-radius: 20px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 36px;
+      color: #fff;
+      margin-bottom: 16px;
+      backdrop-filter: blur(8px);
+    }
+    .landing-title {
+      color: #fff;
+      font-size: 1.8rem;
+      font-weight: 700;
+      margin-bottom: 4px;
+    }
+    .landing-subtitle {
+      color: rgba(255,255,255,0.6);
+      font-size: 0.95rem;
+      margin-bottom: 36px;
+    }
+    .module-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 16px;
+    }
+    .module-card {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      background: rgba(255,255,255,0.08);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(255,255,255,0.12);
+      border-radius: 16px;
+      padding: 20px 24px;
+      text-decoration: none;
+      color: #fff;
+      transition: all 0.3s cubic-bezier(0.4,0,0.2,1);
+      cursor: pointer;
+    }
+    .module-card:hover {
+      background: rgba(255,255,255,0.15);
+      transform: translateY(-3px);
+      box-shadow: 0 12px 32px rgba(0,0,0,0.2);
+      color: #fff;
+      text-decoration: none;
+    }
+    .module-card:active {
+      transform: translateY(0);
+    }
+    .module-icon {
+      width: 52px; height: 52px;
+      border-radius: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 24px;
+      flex-shrink: 0;
+    }
+    .module-icon.transport { background: linear-gradient(135deg, #dc3545, #e74c5e); }
+    .module-icon.firstaid { background: linear-gradient(135deg, #fd7e14, #f59e42); }
+    .module-icon.location { background: linear-gradient(135deg, #198754, #28a770); }
+    .module-info { text-align: left; }
+    .module-name {
+      font-size: 1.1rem;
+      font-weight: 600;
+      margin-bottom: 2px;
+    }
+    .module-desc {
+      font-size: 0.82rem;
+      color: rgba(255,255,255,0.55);
+      line-height: 1.3;
+    }
+    .module-arrow {
+      margin-left: auto;
+      font-size: 18px;
+      color: rgba(255,255,255,0.3);
+      transition: all 0.3s;
+    }
+    .module-card:hover .module-arrow {
+      color: rgba(255,255,255,0.7);
+      transform: translateX(4px);
+    }
+    .landing-footer {
+      margin-top: 40px;
+      color: rgba(255,255,255,0.3);
+      font-size: 0.78rem;
+    }
+    @media (min-width: 480px) {
+      .module-grid { grid-template-columns: 1fr; }
+    }
+  </style>
 </head>
 <body>
-    <div class="card">
-        <h1>PT Medical System</h1>
-        <p>GitHub Pages is working!</p>
+  <div class="landing-wrapper">
+    <div class="landing-logo">
+      <i class="bi bi-heart-pulse"></i>
     </div>
+    <h1 class="landing-title">PT Medical System</h1>
+    <p class="landing-subtitle">Petians Transport — Emergency Medical Services</p>
+
+    <div class="module-grid">
+      <a href="transport/" class="module-card">
+        <div class="module-icon transport">
+          <i class="bi bi-truck"></i>
+        </div>
+        <div class="module-info">
+          <div class="module-name">Patient Transport</div>
+          <div class="module-desc">บันทึกการส่งต่อผู้ป่วย ข้อมูลผู้ป่วย Vitals Signs</div>
+        </div>
+        <i class="bi bi-chevron-right module-arrow"></i>
+      </a>
+
+      <a href="firstaid/" class="module-card">
+        <div class="module-icon firstaid">
+          <i class="bi bi-bandaid"></i>
+        </div>
+        <div class="module-info">
+          <div class="module-name">First Aid & Registry</div>
+          <div class="module-desc">จุดปฐมพยาบาล บันทึกผู้ป่วย Event สนาม</div>
+        </div>
+        <i class="bi bi-chevron-right module-arrow"></i>
+      </a>
+
+      <a href="location/" class="module-card">
+        <div class="module-icon location">
+          <i class="bi bi-geo-alt"></i>
+        </div>
+        <div class="module-info">
+          <div class="module-name">PT Location</div>
+          <div class="module-desc">จัดการลูกค้า แผนที่ แชร์ตำแหน่ง</div>
+        </div>
+        <i class="bi bi-chevron-right module-arrow"></i>
+      </a>
+    </div>
+
+    <div class="landing-footer">
+      &copy; 2025 Petians Transport Medical System
+    </div>
+  </div>
 </body>
 </html>
