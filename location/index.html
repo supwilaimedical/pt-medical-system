@@ -23,18 +23,63 @@
   <script src="../shared/auth.js"></script>
   <script src="../shared/cloudinary.js"></script>
 
+  <!-- shared_splash.html — Splash/Loading Screen -->
+  <div id="splash-screen" style="position:fixed; inset:0; z-index:9999; display:flex; align-items:center; justify-content:center; flex-direction:column; background:linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%); transition: opacity 0.4s ease;">
+    <div style="text-align:center;">
+      <div class="mb-3">
+        <div style="width:64px; height:64px; border:4px solid #dee2e6; border-top-color:#0d6efd; border-radius:50%; animation: splash-spin 0.8s linear infinite; margin:0 auto;"></div>
+      </div>
+      <h5 style="font-family:'Sarabun',sans-serif; font-weight:600; color:#495057; margin-bottom:4px;">PT-System</h5>
+      <p style="font-family:'Sarabun',sans-serif; font-size:0.85rem; color:#6c757d; margin:0;" id="splash-status">กำลังเชื่อมต่อระบบ...</p>
+    </div>
+  </div>
+  <style>@keyframes splash-spin { to { transform: rotate(360deg); } }</style>
+
   <!-- ==================== MAIN APP ==================== -->
   <div id="app-main-wrapper">
-    <!-- Navbar -->
-    <nav class="navbar navbar-dark bg-modern-primary px-3 py-2">
-      <div class="d-flex align-items-center">
-        <i class="bi bi-geo-alt-fill text-white fs-4 me-2"></i>
-        <span class="navbar-brand mb-0 fw-bold">PT Location</span>
-      </div>
-      <div class="d-flex align-items-center gap-2">
-        <span class="text-white-50 small d-none d-md-inline" id="nav-username"></span>
-        <a href="../" class="btn btn-sm btn-outline-light rounded-pill px-3"><i class="bi bi-house me-1"></i><span class="d-none d-sm-inline">หน้าหลัก</span></a>
-        <button class="btn btn-sm btn-outline-light rounded-pill px-3" onclick="handleLogout()"><i class="bi bi-box-arrow-right me-1"></i>ออก</button>
+
+    <!-- shared_nav.html — Navbar shared across all system pages -->
+    <nav class="navbar navbar-dark bg-modern-primary no-print sticky-top">
+      <div class="container-fluid px-3 px-md-4 py-1">
+        <a class="navbar-brand mb-0 h1 d-flex align-items-center gap-2" href="../">
+          <img id="navbar-logo" src="" alt="" style="height: 36px; display: none;" class="bg-white rounded-circle p-1 shadow-sm">
+          <i class="bi bi-grid-fill fs-5" id="navbar-icon"></i>
+          <span class="d-none d-sm-inline fw-semibold" style="font-size: 1rem;">PT-System</span>
+        </a>
+        <div class="d-flex align-items-center gap-2 gap-md-3">
+          <div class="d-none d-lg-flex align-items-center text-light bg-white bg-opacity-10 px-3 py-1 rounded-pill">
+              <i class="bi bi-person-circle me-2"></i>
+              <span id="nav-user-display" class="small fw-medium"></span>
+          </div>
+          <button class="btn btn-warning btn-sm fw-semibold rounded-pill px-2 px-md-3 shadow-sm" id="btn-admin-settings" style="display:none;" onclick="window.location.href='../'">
+              <i class="bi bi-gear-fill"></i><span class="d-none d-md-inline ms-1">Admin</span>
+          </button>
+
+          <!-- System Toggle: 3 icons -->
+          <div class="btn-group system-toggle" role="group" id="nav-system-toggle">
+            <button type="button" class="btn btn-sm rounded-pill-start sys-tog" id="sys-tog-transport" onclick="window.location.href='../transport/'" title="Patient Transport" style="min-width:40px;">
+              <i class="bi bi-truck-front-fill"></i><span class="d-none d-lg-inline ms-1">Transport</span>
+            </button>
+            <button type="button" class="btn btn-sm sys-tog" id="sys-tog-firstaid" onclick="window.location.href='../firstaid/'" title="First Aid" style="min-width:40px;">
+              <i class="bi bi-bandaid-fill"></i><span class="d-none d-lg-inline ms-1">First Aid</span>
+            </button>
+            <button type="button" class="btn btn-sm rounded-pill-end sys-tog active" id="sys-tog-location" title="PT Location" style="min-width:40px;">
+              <i class="bi bi-geo-alt-fill"></i><span class="d-none d-lg-inline ms-1">Location</span>
+            </button>
+          </div>
+
+          <button class="btn btn-sm rounded-pill px-2 px-md-3 fw-semibold shadow-sm" id="btn-monitor" style="display:none; background:#17a2b8; color:#fff; border:none;" onclick="window.location.href='../#monitor'" title="Monitor Dashboard">
+              <i class="bi bi-display"></i><span class="d-none d-md-inline ms-1">Monitor</span>
+          </button>
+
+          <button class="btn btn-sm rounded-pill px-2 px-md-3 fw-semibold" id="btn-dashboard" onclick="loc_switchTab('dashboard')" style="background:rgba(255,255,255,0.15); color:#fff; border:none;">
+              <i class="bi bi-speedometer2"></i><span class="d-none d-md-inline ms-1">Dashboard</span>
+          </button>
+
+          <button class="btn btn-sm btn-outline-light rounded-pill px-2 px-md-3" onclick="handleLogout()" title="ออกจากระบบ">
+              <i class="bi bi-box-arrow-right"></i><span class="d-none d-md-inline ms-1">ออก</span>
+          </button>
+        </div>
       </div>
     </nav>
 
@@ -251,9 +296,44 @@
 
     // --- INIT ---
     function onLoginSuccess() {
-      document.getElementById('nav-username').textContent = getUserName();
+      // Hide splash screen
+      var splash = document.getElementById('splash-screen');
+      if (splash) { splash.style.opacity = '0'; setTimeout(function(){ splash.style.display = 'none'; }, 400); }
+
+      // Set user display
+      var userDisplay = document.getElementById('nav-user-display');
+      if (userDisplay) userDisplay.textContent = getUserName();
+
+      // Show admin/monitor buttons for Admin role
+      var role = getUserRole();
+      if (role === 'Admin' || role === 'admin') {
+        var adminBtn = document.getElementById('btn-admin-settings');
+        if (adminBtn) adminBtn.style.display = '';
+        var monitorBtn = document.getElementById('btn-monitor');
+        if (monitorBtn) monitorBtn.style.display = '';
+      }
+
+      // Load logo from settings
+      loadAppSettings();
+
       loc_fetchData();
     }
+
+    async function loadAppSettings() {
+      try {
+        var { data } = await _supabase.from('settings').select('value').eq('key', 'logo_url').single();
+        if (data && data.value) {
+          var logoUrl = typeof data.value === 'string' ? data.value : (data.value.url || '');
+          if (logoUrl) {
+            var logoEl = document.getElementById('navbar-logo');
+            if (logoEl) { logoEl.src = logoUrl; logoEl.style.display = ''; }
+            var iconEl = document.getElementById('navbar-icon');
+            if (iconEl) iconEl.style.display = 'none';
+          }
+        }
+      } catch(e) { /* ignore */ }
+    }
+
     window.addEventListener('load', function() {
       if (!requireAuth()) return;
       onLoginSuccess();

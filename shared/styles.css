@@ -40,6 +40,17 @@ body {
     box-shadow: 0 4px 20px rgba(13, 110, 253, 0.15);
 }
 
+/* --- System Toggle (shared_nav) --- */
+.system-toggle .sys-tog { border:1.5px solid rgba(255,255,255,0.35); color:rgba(255,255,255,0.55); background:transparent; font-size:0.78rem; padding:0.3rem 0.55rem; transition:all 0.2s ease; }
+.system-toggle .sys-tog:hover { color:#fff; background:rgba(255,255,255,0.15); }
+.system-toggle .sys-tog.active { color:#fff; font-weight:600; border-color:rgba(255,255,255,0.7); }
+#sys-tog-transport.active { background:#0d6efd; border-color:#0d6efd; }
+#sys-tog-firstaid.active { background:#dc3545; border-color:#dc3545; }
+#sys-tog-location.active { background:#198754; border-color:#198754; }
+.system-toggle .sys-tog:first-child { border-radius:50rem 0 0 50rem; }
+.system-toggle .sys-tog:last-child { border-radius:0 50rem 50rem 0; }
+.system-toggle .sys-tog:not(:first-child) { border-left:none; }
+
 /* --- LOGIN --- */
 #login-view {
     position: fixed; top: 0; left: 0; width: 100%; height: 100%;

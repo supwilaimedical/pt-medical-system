@@ -303,10 +303,14 @@
           <span class="text-muted small">อัปเดตล่าสุด: <strong id="monitor-last-refresh">--:--:--</strong></span>
         </div>
         <div class="d-flex align-items-center gap-2">
-          <svg width="32" height="32" class="countdown-ring" id="monitor-countdown-svg">
-            <circle class="bg" cx="16" cy="16" r="14"/>
-            <circle class="fg" id="monitor-countdown-circle" cx="16" cy="16" r="14" stroke-dasharray="87.96" stroke-dashoffset="0"/>
-          </svg>
+          <div style="position:relative;width:38px;height:38px;cursor:pointer;" onclick="loadMonitor()" title="คลิกเพื่อ Refresh ทันที">
+            <svg width="38" height="38" viewBox="0 0 38 38">
+              <circle cx="19" cy="19" r="16" fill="none" stroke="#e2e8f0" stroke-width="3"/>
+              <circle id="monitor-countdown-ring" cx="19" cy="19" r="16" fill="none" stroke="#3b82f6" stroke-width="3" stroke-linecap="round"
+                style="transform:rotate(-90deg);transform-origin:center;stroke-dasharray:100.53;stroke-dashoffset:0;transition:stroke-dashoffset 1s linear;"/>
+            </svg>
+            <div id="monitor-countdown-text" style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:0.6rem;font-weight:700;color:#3b82f6;">3:00</div>
+          </div>
           <button class="btn btn-sm btn-outline-primary rounded-pill px-3" onclick="loadMonitor()" id="btn-monitor-refresh">
             <i class="bi bi-arrow-clockwise me-1" id="monitor-refresh-icon"></i>Refresh
           </button>
@@ -552,19 +556,27 @@ function monitorStartCountdown() {
   if (monitorTimer) clearTimeout(monitorTimer);
 
   var remaining = MONITOR_INTERVAL;
-  var circle = document.getElementById('monitor-countdown-circle');
-  var circumference = 2 * Math.PI * 14; // r=14
+  var circle = document.getElementById('monitor-countdown-ring');
+  var textEl = document.getElementById('monitor-countdown-text');
+  var circumference = 2 * Math.PI * 16; // r=16
 
-  function updateRing() {
+  function updateDisplay() {
+    // Update ring
     var offset = circumference * (1 - remaining / MONITOR_INTERVAL);
     if (circle) circle.setAttribute('stroke-dashoffset', offset);
+    // Update text MM:SS
+    if (textEl) {
+      var m = Math.floor(remaining / 60);
+      var s = remaining % 60;
+      textEl.textContent = m + ':' + (s < 10 ? '0' : '') + s;
+    }
   }
 
-  updateRing();
+  updateDisplay();
 
   monitorCountdownInterval = setInterval(function() {
     remaining--;
-    updateRing();
+    updateDisplay();
     if (remaining <= 0) {
       clearInterval(monitorCountdownInterval);
     }
@@ -758,35 +770,68 @@ function renderMonitorFA(events) {
   var html = '';
   events.forEach(function(ev) {
     var dateRange = (ev.event_date || '') + (ev.start_time ? ' ' + ev.start_time : '');
-    if (ev.end_date && ev.end_date !== ev.event_date) dateRange += ' — ' + ev.end_date;
+    if (ev.end_date && ev.end_date !== ev.event_date) dateRange += ' → ' + ev.end_date;
     if (ev.end_time) dateRange += ' ' + ev.end_time;
 
+    var safeName = escapeHtml(ev.event_name || '').replace(/'/g, "\\'");
+    var evId = escapeHtml(ev.event_id || '');
+
+    // Quick dispense data (individual columns)
+    var qd = {
+      ammonia: parseInt(ev.q_ammonia) || 0,
+      plaster: parseInt(ev.q_plaster) || 0,
+      spray: parseInt(ev.q_spray) || 0,
+      coldpack: parseInt(ev.q_meds) || 0,
+      wound: parseInt(ev.q_wound) || 0
+    };
+    var qdTotal = qd.ammonia + qd.plaster + qd.spray + qd.coldpack + qd.wound;
+
+    // Pending = registryCount - transfer (patients still in system)
+    var pending = Math.max(0, (ev.registryCount || 0) - (ev.registryTransfer || 0));
+
     html += '<div class="col-12 col-lg-6">' +
-      '<div class="fa-event-card p-3" onclick="openMonitorPreview(\'fa\',\'' + escapeHtml(ev.event_id) + '\')">' +
-        '<div class="d-flex justify-content-between align-items-start mb-2">' +
-          '<div>' +
-            '<h6 class="fw-bold mb-0">' + escapeHtml(ev.event_name || '') + '</h6>' +
-            '<small class="text-muted"><i class="bi bi-geo-alt me-1"></i>' + escapeHtml(ev.location || '') + '</small>' +
+      '<div class="monitor-case-card border-danger border-opacity-25" style="border-left:4px solid #dc3545;">' +
+        '<div class="p-3">' +
+          '<div class="d-flex justify-content-between align-items-start mb-2">' +
+            '<div>' +
+              '<span class="badge bg-danger rounded-pill me-1"><i class="bi bi-bandaid-fill me-1"></i>First Aid</span>' +
+              '<span class="badge bg-light text-dark border">' + evId + '</span>' +
+            '</div>' +
+            '<div class="d-flex gap-1">' +
+              '<button class="btn btn-sm btn-white rounded-circle shadow-sm border" style="width:30px;height:30px;padding:0;display:flex;align-items:center;justify-content:center;background:#fff;" onclick="monitorOpenFADashboard(\'' + evId + '\', \'' + safeName + '\')" title="Full Dashboard"><i class="bi bi-bar-chart-line-fill text-primary" style="font-size:0.8rem;"></i></button>' +
+              '<button class="btn btn-sm btn-white rounded-circle shadow-sm border" style="width:30px;height:30px;padding:0;display:flex;align-items:center;justify-content:center;background:#fff;" onclick="openMonitorPreview(\'fa\',\'' + evId + '\')" title="View"><i class="bi bi-eye-fill text-danger" style="font-size:0.8rem;"></i></button>' +
+              '<a href="firstaid/#event/' + evId + '" class="btn btn-sm btn-white rounded-circle shadow-sm border" style="width:30px;height:30px;padding:0;display:flex;align-items:center;justify-content:center;background:#fff;" title="Open"><i class="bi bi-box-arrow-up-right text-success" style="font-size:0.8rem;"></i></a>' +
+            '</div>' +
           '</div>' +
-          '<span class="badge bg-success bg-opacity-10 text-success">Active</span>' +
-        '</div>' +
-        '<div class="small text-muted mb-2"><i class="bi bi-calendar-event me-1"></i>' + escapeHtml(dateRange) + '</div>' +
-        '<div class="d-flex flex-wrap gap-1 mb-2">' +
-          '<span class="fa-stat-pill bg-primary bg-opacity-10 text-primary"><i class="bi bi-people-fill me-1"></i>' + (ev.registryCount || 0) + ' Total</span>' +
-          '<span class="fa-stat-pill bg-info bg-opacity-10 text-info">Med ' + (ev.registryMed || 0) + '</span>' +
-          '<span class="fa-stat-pill bg-danger bg-opacity-10 text-danger">Trauma ' + (ev.registryTrauma || 0) + '</span>' +
-          '<span class="fa-stat-pill bg-warning bg-opacity-10 text-warning">Transfer ' + (ev.registryTransfer || 0) + '</span>' +
-        '</div>' +
-        '<div class="d-flex flex-wrap gap-2 small">' +
-          '<span class="text-muted" title="แอมโมเนีย"><i class="bi bi-droplet-half text-primary me-1"></i>' + (ev.q_ammonia || 0) + '</span>' +
-          '<span class="text-muted" title="พลาสเตอร์"><i class="bi bi-bandaid text-warning me-1"></i>' + (ev.q_plaster || 0) + '</span>' +
-          '<span class="text-muted" title="สเปรย์"><i class="bi bi-snow text-info me-1"></i>' + (ev.q_spray || 0) + '</span>' +
-          '<span class="text-muted" title="ทำแผล"><i class="bi bi-heart-pulse text-danger me-1"></i>' + (ev.q_wound || 0) + '</span>' +
+          '<h6 class="fw-bold mb-1">' + escapeHtml(ev.event_name || '') + '</h6>' +
+          '<div class="small text-muted mb-2"><i class="bi bi-geo-alt me-1"></i>' + escapeHtml(ev.location || '') + '</div>' +
+          '<div class="small text-muted mb-2"><i class="bi bi-calendar-event me-1"></i>' + escapeHtml(dateRange) + '</div>' +
+          '<div class="d-flex flex-wrap gap-2 mb-2">' +
+            '<div class="text-center px-3 py-2 rounded-3 border" style="min-width:70px;"><div class="fw-bold text-primary fs-5">' + (ev.registryCount || 0) + '</div><div class="text-muted" style="font-size:0.7rem;">Registry</div></div>' +
+            '<div class="text-center px-3 py-2 rounded-3 border" style="min-width:70px;background:#e8f5e9;"><div class="fw-bold text-success fs-5">' + (ev.registryMed || 0) + '</div><div class="text-muted" style="font-size:0.7rem;">Med</div></div>' +
+            '<div class="text-center px-3 py-2 rounded-3 border" style="min-width:70px;background:#fce4ec;"><div class="fw-bold text-danger fs-5">' + (ev.registryTrauma || 0) + '</div><div class="text-muted" style="font-size:0.7rem;">Trauma</div></div>' +
+            '<div class="text-center px-3 py-2 rounded-3 border" style="min-width:70px;background:#fff3e0;"><div class="fw-bold text-warning fs-5">' + (ev.registryTransfer || 0) + '</div><div class="text-muted" style="font-size:0.7rem;">Transfer</div></div>' +
+          '</div>' +
+          (qdTotal > 0 ?
+            '<div class="small text-muted mb-2 p-2 bg-light rounded-3 border">' +
+              '<strong>เวชภัณฑ์แจกจ่ายด่วน (' + qdTotal + '):</strong><div class="d-flex flex-wrap gap-1 mt-1">' +
+              (qd.ammonia ? '<span class="badge bg-white text-dark border">แอมโมเนีย ' + qd.ammonia + '</span>' : '') +
+              (qd.plaster ? '<span class="badge bg-white text-dark border">พลาสเตอร์ ' + qd.plaster + '</span>' : '') +
+              (qd.spray ? '<span class="badge bg-white text-dark border">สเปรย์ ' + qd.spray + '</span>' : '') +
+              (qd.coldpack ? '<span class="badge bg-white text-dark border">ประคบเย็น ' + qd.coldpack + '</span>' : '') +
+              (qd.wound ? '<span class="badge bg-white text-dark border">ทำแผล ' + qd.wound + '</span>' : '') +
+            '</div></div>' : '') +
+          '<div class="small text-muted"><i class="bi bi-person me-1"></i>' + escapeHtml(ev.created_by || '') + '</div>' +
         '</div>' +
       '</div></div>';
   });
 
   container.innerHTML = html;
+}
+
+// Open FA Full Dashboard in new tab/modal
+function monitorOpenFADashboard(eventId, eventName) {
+  window.open('firstaid/#event/' + encodeURIComponent(eventId), '_blank');
 }
 
 // =============================================
