@@ -254,8 +254,10 @@
       document.getElementById('nav-username').textContent = getUserName();
       loc_fetchData();
     }
-    if (!requireAuth()) return; // redirect if not logged in
-    onLoginSuccess();
+    window.addEventListener('load', function() {
+      if (!requireAuth()) return;
+      onLoginSuccess();
+    });
 
     // --- DATA FETCHING (Supabase) ---
     async function loc_fetchData() {
