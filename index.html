@@ -665,9 +665,11 @@ function renderMonitorTransport(cases) {
   cases.forEach(function(c) {
     var pt = c.patient_info || {};
     var raw = c.raw_data || {};
-    var snap = (raw.rawSnapshot) || {};
+    var snap = {};
+    try { snap = typeof raw.rawSnapshot === 'string' ? JSON.parse(raw.rawSnapshot) : (raw.rawSnapshot || {}); } catch(e) {}
     var op = c.op_info || {};
-    var vitalsArr = raw.vitalsJson || [];
+    var vitalsArr = [];
+    try { vitalsArr = typeof raw.vitalsJson === 'string' ? JSON.parse(raw.vitalsJson) : (raw.vitalsJson || []); } catch(e) {}
 
     // Get latest non-arrest vitals
     var vitals = null;
@@ -676,7 +678,7 @@ function renderMonitorTransport(cases) {
     }
 
     // Fallback to initial vitals from snapshot
-    var bp = vitals ? (vitals.bp_sys ? vitals.bp_sys + '/' + (vitals.bp_dia || '') : '-') : (snap.init_bp || '-');
+    var bp = vitals ? (vitals.bp || '-') : (snap.init_bp || '-');
     var pr = vitals ? (vitals.pr || '-') : (snap.init_pr || '-');
     var spo2 = vitals ? (vitals.spo2 || '-') : (snap.init_spo2 || '-');
     var rr = vitals ? (vitals.rr || '-') : (snap.init_rr || '-');
