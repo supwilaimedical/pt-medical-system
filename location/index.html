@@ -563,6 +563,25 @@
     }
 
     // --- SAVE (Supabase + Cloudinary) ---
+    // Reverse geocode: get district/province from lat/lng via Nominatim (free, no API key)
+    async function loc_reverseGeocode(lat, lng) {
+      var result = { district: '', province: '' };
+      try {
+        var res = await fetch('https://nominatim.openstreetmap.org/reverse?lat=' + lat + '&lon=' + lng + '&format=json&accept-language=th&zoom=10');
+        var data = await res.json();
+        if (data && data.address) {
+          var a = data.address;
+          // district: county or city_district or suburb
+          result.district = (a.county || a.city_district || a.suburb || a.town || a.city || '').replace('อำเภอ', '').replace('เขต', '').trim();
+          // province: state or province
+          result.province = (a.state || a.province || '').replace('จังหวัด', '').replace('จ.', '').trim();
+        }
+      } catch (e) { console.warn('Reverse geocode failed:', e); }
+      if (!result.district) result.district = 'ไม่ระบุอำเภอ';
+      if (!result.province) result.province = 'ไม่ระบุจังหวัด';
+      return result;
+    }
+
     async function loc_saveCustomer(e) {
       e.preventDefault();
       var g = id => (document.getElementById(id) || {}).value || '';
@@ -580,12 +599,19 @@
           photoUrl = await uploadBase64ToCloudinary(photoData, 'location');
         }
 
+        // Reverse geocode to get district/province from coordinates
+        var latVal = parseFloat(g('loc-form-lat'));
+        var lngVal = parseFloat(g('loc-form-lng'));
+        var geo = await loc_reverseGeocode(latVal, lngVal);
+
         var record = {
           name: g('loc-form-name'),
           customer_type: g('loc-form-customer-type') || 'ลูกค้าทั่วไป',
           phone: g('loc-form-phone') || null,
-          lat: parseFloat(g('loc-form-lat')),
-          lng: parseFloat(g('loc-form-lng')),
+          lat: latVal,
+          lng: lngVal,
+          district: geo.district,
+          province: geo.province,
           details: g('loc-form-details') || null,
           photo_url: photoUrl
         };
