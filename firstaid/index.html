@@ -60,6 +60,14 @@
     .reg-tx-btn:hover { border-color: #0d6efd; color: #0d6efd; background: #e7f1ff; }
     .reg-tx-btn.active { border-color: #0d6efd; color: #fff; background: #0d6efd; font-weight: 600; }
     #reg-treatment-grid > div.w-100:first-child { margin-top: 0 !important; }
+    /* Triage toggle */
+    .reg-triage-btn { width:36px; height:36px; font-weight:700; font-size:1rem; border:2px solid #dee2e6; color:#6c757d; background:#fff; transition:all 0.15s; }
+    .reg-triage-btn:hover { border-color: var(--tc); color: var(--tc); }
+    .reg-triage-btn.active { border-color: var(--tc); background: var(--tc); color:#fff; box-shadow: 0 2px 6px rgba(0,0,0,0.15); }
+    /* Gender toggle */
+    .reg-gender-btn { width:36px; height:36px; font-size:1.1rem; border:2px solid #dee2e6; color:#6c757d; background:#fff; transition:all 0.15s; }
+    .reg-gender-btn:hover { border-color: var(--gc); color: var(--gc); }
+    .reg-gender-btn.active { border-color: var(--gc); background: var(--gc); color:#fff; box-shadow: 0 2px 6px rgba(0,0,0,0.15); }
   </style>
 </head>
 <body>
@@ -412,18 +420,23 @@
 
             <!-- Section 1: Demographics -->
             <div class="row g-2 mb-3 border-bottom pb-3">
-                <div class="col-4 col-md-3">
+                <div class="col-auto">
                   <label class="form-label fw-bold small">Triage <span class="text-danger">*</span></label>
-                  <select id="reg-triage" class="form-select form-select-sm" required onchange="reg_updateTriageColor(this)">
-                    <option value="A">A - Alert</option><option value="V">V - Verbal</option>
-                    <option value="P">P - Pain</option><option value="U">U - Unresponsive</option>
-                  </select>
+                  <input type="hidden" id="reg-triage" value="A">
+                  <div class="btn-group" role="group" id="reg-triage-toggle">
+                    <button type="button" class="btn btn-sm reg-triage-btn active" data-value="A" onclick="reg_setTriage('A')" title="Alert" style="--tc:#198754;">A</button>
+                    <button type="button" class="btn btn-sm reg-triage-btn" data-value="V" onclick="reg_setTriage('V')" title="Verbal" style="--tc:#f59e0b;">V</button>
+                    <button type="button" class="btn btn-sm reg-triage-btn" data-value="P" onclick="reg_setTriage('P')" title="Pain" style="--tc:#e85d04;">P</button>
+                    <button type="button" class="btn btn-sm reg-triage-btn" data-value="U" onclick="reg_setTriage('U')" title="Unresponsive" style="--tc:#dc3545;">U</button>
+                  </div>
                 </div>
-                <div class="col-4 col-md-2">
+                <div class="col-auto">
                   <label class="form-label fw-bold small">เพศ <span class="text-danger">*</span></label>
-                  <select id="reg-gender" class="form-select form-select-sm" required>
-                    <option value="">-</option><option value="ชาย">ชาย</option><option value="หญิง">หญิง</option><option value="ไม่ระบุ">ไม่ระบุ</option>
-                  </select>
+                  <input type="hidden" id="reg-gender" value="">
+                  <div class="btn-group" role="group" id="reg-gender-toggle">
+                    <button type="button" class="btn btn-sm reg-gender-btn" data-value="ชาย" onclick="reg_setGender('ชาย')" title="ชาย" style="--gc:#0d6efd;">♂</button>
+                    <button type="button" class="btn btn-sm reg-gender-btn" data-value="หญิง" onclick="reg_setGender('หญิง')" title="หญิง" style="--gc:#d63384;">♀</button>
+                  </div>
                 </div>
                 <div class="col-4 col-md-2">
                   <label class="form-label fw-bold small">อายุ</label>
@@ -1701,13 +1714,22 @@
     let fa_registryModal = null;
     let fa_viewRegistryModalObj = null;
 
-    // --- Triage color helper (reuse from patient) ---
-    function reg_updateTriageColor(el) {
-        el.className = 'form-select fw-bold';
-        if (el.value === 'A') el.classList.add('text-success', 'border-success');
-        else if (el.value === 'V') el.classList.add('text-warning', 'border-warning');
-        else if (el.value === 'P') el.classList.add('text-danger', 'border-danger');
-        else if (el.value === 'U') el.classList.add('bg-danger', 'text-white', 'border-danger');
+    // --- Triage toggle ---
+    function reg_setTriage(val) {
+        document.getElementById('reg-triage').value = val;
+        document.querySelectorAll('.reg-triage-btn').forEach(function(b) {
+            b.classList.toggle('active', b.getAttribute('data-value') === val);
+        });
+    }
+    // Legacy compat (called from some places)
+    function reg_updateTriageColor() {}
+
+    // --- Gender toggle ---
+    function reg_setGender(val) {
+        document.getElementById('reg-gender').value = val;
+        document.querySelectorAll('.reg-gender-btn').forEach(function(b) {
+            b.classList.toggle('active', b.getAttribute('data-value') === val);
+        });
     }
 
     // --- Etiology Toggle ---
@@ -1872,8 +1894,8 @@
         document.getElementById('reg-vitals-toggle-icon').className = 'bi bi-chevron-down';
         document.getElementById('reg-cc-other-div').classList.add('d-none');
         document.getElementById('reg-problem-other-div').classList.add('d-none');
-        document.getElementById('reg-triage').value = 'A';
-        reg_updateTriageColor(document.getElementById('reg-triage'));
+        reg_setTriage('A');
+        reg_setGender('');
 
         // Set default time in
         var now = new Date();
@@ -1893,9 +1915,8 @@
             // Find record in fa_currentRegistryRecords
             var rec = (fa_currentRegistryRecords || []).find(function(x) { return x.id === regId; });
             if (rec) {
-                document.getElementById('reg-triage').value = rec.triage || 'A';
-                reg_updateTriageColor(document.getElementById('reg-triage'));
-                document.getElementById('reg-gender').value = rec.gender || '';
+                reg_setTriage(rec.triage || 'A');
+                reg_setGender(rec.gender || '');
                 document.getElementById('reg-age').value = rec.age || '';
                 document.getElementById('reg-name').value = rec.name || '';
                 document.getElementById('reg-phone').value = rec.phone ? rec.phone.replace(/^'/, '') : '';
