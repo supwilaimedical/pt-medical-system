@@ -456,7 +456,7 @@
             <div class="mb-3">
               <label class="form-label fw-bold small">Etiology <span class="text-danger">*</span></label>
               <div class="btn-group w-100" role="group">
-                <button type="button" class="btn btn-primary btn-sm" id="reg-etiology-med" onclick="reg_toggleEtiology('Med')"><i class="bi bi-heart-pulse me-1"></i>Medical</button>
+                <button type="button" class="btn btn-primary btn-sm" id="reg-etiology-med" onclick="reg_toggleEtiology('Med')"><i class="bi bi-heart-pulse me-1"></i>Medicine</button>
                 <button type="button" class="btn btn-outline-danger btn-sm" id="reg-etiology-trauma" onclick="reg_toggleEtiology('Trauma')"><i class="bi bi-bandaid me-1"></i>Trauma</button>
               </div>
             </div>
@@ -552,7 +552,7 @@
               </div>
               <div id="reg-result-dc-sub">
                 <select id="reg-dc-sub" class="form-select form-select-sm">
-                  <option value="finished">จบแล้ว/กลับบ้าน</option>
+                  <option value="finished">D/C จำหน่าย</option>
                   <option value="rtp">Return to Play (กลับเข้าแข่ง)</option>
                   <option value="dnf">DNF (Did Not Finish)</option>
                 </select>
@@ -1216,7 +1216,7 @@
         if (!resultStr) return '-';
         var parts = resultStr.split(':');
         if (parts[0] === 'dc') {
-            var subLabels = { dnf: 'DNF', rtp: 'Return to Play', finished: 'กลับบ้าน' };
+            var subLabels = { dnf: 'DNF', rtp: 'Return to Play', finished: 'D/C จำหน่าย' };
             return '<span class="badge bg-success-subtle text-success border-success-subtle">D/C</span> <span class="small">' + (subLabels[parts[1]] || parts[1] || '') + '</span>';
         } else if (parts[0] === 'transfer') {
             var methodLabels = { self: 'ไปเอง', team: 'ทีมส่ง' };
@@ -1582,7 +1582,7 @@
     // js_fa_registry.html - Medical Registry Form & CRUD
     // =============================================
 
-    // --- CC & Problem Dropdown Data (Hardcoded — IMMDA + Mass Gathering Medicine) ---
+    // --- CC & Problem Dropdown Data (Hardcoded — IMMDA + Mass Gathering Medical) ---
     var REG_CC_MED = [
         'Muscle cramp/ตะคริว',
         'Musculoskeletal (lower limb)/ปวดขาส่วนล่าง',
@@ -1616,6 +1616,7 @@
         'Dislocation/ข้อเคลื่อน',
         'Suspected fracture/สงสัยกระดูกหัก',
         'Head injury/บาดเจ็บศีรษะ',
+        'Burn and Scalds/แผลไฟไหม้น้ำร้อนลวก',
         'Other (ระบุ)'
     ];
 
@@ -1672,7 +1673,8 @@
         'แอมโมเนีย', 'พลาสเตอร์ยา', 'ยานวด/สเปรย์', 'ทำแผล',
         'Cold pack', 'Hot pack', 'Splint/ดาม', 'ห้ามเลือด/Pressure',
         'IV Fluid', 'Oxygen/O2', 'Wound dressing', 'CPR/AED',
-        'Nebulization', 'Eye wash'
+        'Nebulization', 'Eye wash',
+        'Stretching/ยืดกล้ามเนื้อ', 'Keep warm', 'Cool down'
     ];
 
     // Current event config (set when opening event details)
@@ -2101,7 +2103,7 @@
         if (rec.result) {
             var rp = rec.result.split(':');
             if (rp[0] === 'dc') {
-                var subLabels = { dnf: 'DNF', rtp: 'Return to Play', finished: 'จบแล้ว/กลับบ้าน' };
+                var subLabels = { dnf: 'DNF', rtp: 'Return to Play', finished: 'D/C จำหน่าย' };
                 resultDisplay = '<span class="badge bg-success">D/C</span> ' + (subLabels[rp[1]] || rp[1]);
             } else if (rp[0] === 'transfer') {
                 var methodLabels = { self: 'ไปเอง', team: 'ทีมไปส่ง' };
@@ -2497,7 +2499,7 @@
         if (!resultStr) return '-';
         var parts = resultStr.split(':');
         if (parts[0] === 'dc') {
-            var labels = { dnf: 'DNF', rtp: 'Return to Play', finished: 'กลับบ้าน' };
+            var labels = { dnf: 'DNF', rtp: 'Return to Play', finished: 'D/C จำหน่าย' };
             return 'D/C \u2014 ' + (labels[parts[1]] || parts[1] || '');
         } else if (parts[0] === 'transfer') {
             var methods = { self: 'ไปเอง', team: 'ทีมส่ง' };
@@ -2671,7 +2673,7 @@
 
         h += '<div class="stat-grid">';
         h += '<div class="stat-card"><div class="num" style="color:#dc3545;">' + total + '</div><div class="lbl2">Total Cases</div></div>';
-        h += '<div class="stat-card"><div class="num" style="color:#1a73e8;">' + medCount + '</div><div class="lbl2">Medical (' + medPct + '%)</div></div>';
+        h += '<div class="stat-card"><div class="num" style="color:#1a73e8;">' + medCount + '</div><div class="lbl2">Medicine (' + medPct + '%)</div></div>';
         h += '<div class="stat-card"><div class="num" style="color:#d93025;">' + traumaCount + '</div><div class="lbl2">Trauma (' + traumaPct + '%)</div></div>';
         h += '<div class="stat-card"><div class="num" style="color:#198754;">' + dcCount + '</div><div class="lbl2">D/C (' + dcPct + '%)</div></div>';
         h += '<div class="stat-card"><div class="num" style="color:#fd7e14;">' + transferCount + '</div><div class="lbl2">Transfer (' + transferPct + '%)</div></div>';
