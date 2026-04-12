@@ -742,6 +742,20 @@
         fa_renderEvents();
     }
 
+    // Convert Google Drive URLs to direct image URLs
+    function fa_convertDriveUrl(url) {
+        if (!url) return '';
+        // Already a direct URL (Cloudinary, etc.)
+        if (url.indexOf('drive.google.com') === -1) return url;
+        // Format: https://drive.google.com/file/d/FILE_ID/view...
+        var match = url.match(/\/d\/([a-zA-Z0-9_-]+)/);
+        if (match) return 'https://lh3.googleusercontent.com/d/' + match[1];
+        // Format: https://drive.google.com/open?id=FILE_ID
+        var match2 = url.match(/[?&]id=([a-zA-Z0-9_-]+)/);
+        if (match2) return 'https://lh3.googleusercontent.com/d/' + match2[1];
+        return url;
+    }
+
     function fa_formatEventDateTime(startD, startT, endD, endT) {
         if (!startD) return 'ไม่ระบุวันที่';
         var dateOpts = { year: 'numeric', month: 'short', day: 'numeric' };
@@ -793,8 +807,9 @@
                 ? '<span class="badge bg-success rounded-pill px-2 py-1"><i class="bi bi-play-circle-fill me-1"></i>Active</span>'
                 : '<span class="badge bg-secondary rounded-pill px-2 py-1"><i class="bi bi-check-circle-fill me-1"></i>Complete</span>';
 
-            var imgHtml = imgUrl
-                ? '<img src="' + imgUrl + '" class="card-img-top" style="height:140px; object-fit:cover;" alt="Cover" onerror="this.style.display=\'none\'">'
+            var displayImgUrl = fa_convertDriveUrl(imgUrl);
+            var imgHtml = displayImgUrl
+                ? '<img src="' + displayImgUrl + '" class="card-img-top" style="height:140px; object-fit:cover;" alt="Cover" onerror="this.outerHTML=\'<div class=&quot;bg-light d-flex align-items-center justify-content-center&quot; style=&quot;height:140px;&quot;><i class=&quot;bi bi-image text-muted fs-1 opacity-25&quot;></i></div>\'">'
                 : '<div class="bg-light d-flex align-items-center justify-content-center" style="height:140px;"><i class="bi bi-image text-muted fs-1 opacity-25"></i></div>';
 
             var adminBtns = '';
@@ -1545,7 +1560,8 @@
 
         var imgHtml = '<span class="text-muted fst-italic">ไม่มีรูปภาพ</span>';
         if (p.image) {
-            imgHtml = '<a href="' + p.image + '" target="_blank"><img src="' + p.image + '" class="img-fluid rounded shadow-sm" style="max-height:250px;" alt="รูปภาพ" onerror="this.style.display=\'none\'"></a>';
+            var pImgUrl = fa_convertDriveUrl(p.image);
+            imgHtml = '<a href="' + pImgUrl + '" target="_blank"><img src="' + pImgUrl + '" class="img-fluid rounded shadow-sm" style="max-height:250px;" alt="รูปภาพ" onerror="this.parentElement.style.display=\'none\'"></a>';
         }
 
         var gpsHtml = p.gps ? '<a target="_blank" class="text-primary" href="https://maps.google.com/?q=' + encodeURIComponent(p.gps) + '"><i class="bi bi-pin-map-fill"></i> ' + escapeHtml(p.gps) + '</a>' : '<span class="text-muted fst-italic">ไม่ระบุ</span>';
@@ -2173,7 +2189,8 @@
 
         var imgHtml = '';
         if (rec.image) {
-            imgHtml = '<a href="' + rec.image + '" target="_blank"><img src="' + rec.image + '" class="img-fluid rounded shadow-sm" style="max-height:200px;" onerror="this.style.display=\'none\'"></a>';
+            var recImgUrl = fa_convertDriveUrl(rec.image);
+            imgHtml = '<a href="' + recImgUrl + '" target="_blank"><img src="' + recImgUrl + '" class="img-fluid rounded shadow-sm" style="max-height:200px;" onerror="this.parentElement.style.display=\'none\'"></a>';
         }
 
         var html =
