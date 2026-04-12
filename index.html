@@ -890,12 +890,7 @@
         var isAdmin = (role === 'Admin' || role === 'admin');
         if (isAdmin) {
             document.getElementById('landing-admin-btn').style.display = '';
-        }
-        // Always show monitor button
-        document.getElementById('landing-monitor-btn').style.display = '';
-
-        // Show monitor button in navbar if admin
-        if (isAdmin) {
+            document.getElementById('landing-monitor-btn').style.display = '';
             var btnMonitor = document.getElementById('btn-monitor');
             if (btnMonitor) btnMonitor.style.display = '';
         }
