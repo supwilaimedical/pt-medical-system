@@ -59,6 +59,7 @@
     }
     .reg-tx-btn:hover { border-color: #0d6efd; color: #0d6efd; background: #e7f1ff; }
     .reg-tx-btn.active { border-color: #0d6efd; color: #fff; background: #0d6efd; font-weight: 600; }
+    #reg-treatment-grid > div.w-100:first-child { margin-top: 0 !important; }
   </style>
 </head>
 <body>
@@ -1656,33 +1657,41 @@
     };
 
     var REG_TREATMENTS = [
-        // A — Airway
-        'แอมโมเนีย',
-        // B — Breathing
-        'Oxygen/O2', 'Nebulization',
-        // C — Circulation
-        'CPR/AED', 'IV Fluid', 'ห้ามเลือด/Pressure',
-        // D — Disability
-        'Splint/ดาม', 'Stretching/ยืดกล้ามเนื้อ', 'ยานวด/สเปรย์',
-        // E — Exposure / Environment
-        'ทำแผล/Wound dressing', 'พลาสเตอร์ยา', 'Eye wash',
-        'Cold pack', 'Hot pack', 'Cool down', 'Keep warm'
+        { group: 'ใช้บ่อย (Quick)', color: '#198754', items: ['แอมโมเนีย', 'พลาสเตอร์ยา', 'ยานวด/สเปรย์', 'Cold pack'] },
+        { group: 'Trauma/แผล', color: '#dc3545', items: ['ทำแผล/Wound dressing', 'ห้ามเลือด/Pressure', 'Splint/ดาม', 'Eye wash', 'Stretching/ยืดกล้ามเนื้อ'] },
+        { group: 'Medical', color: '#0d6efd', items: ['Oxygen/O2', 'Nebulization', 'IV Fluid', 'CPR/AED'] },
+        { group: 'Environment', color: '#f59e0b', items: ['Hot pack', 'Cool down', 'Keep warm'] }
     ];
 
-    // Build treatment ghost buttons from array
+    // Build treatment ghost buttons from grouped array
     function reg_buildTreatmentGrid() {
         var grid = document.getElementById('reg-treatment-grid');
         if (!grid) return;
         grid.innerHTML = '';
-        REG_TREATMENTS.forEach(function(t) {
-            var btn = document.createElement('button');
-            btn.type = 'button';
-            btn.className = 'btn btn-sm reg-tx-btn';
-            btn.setAttribute('data-value', t);
-            btn.textContent = t;
-            btn.onclick = function() { this.classList.toggle('active'); };
-            grid.appendChild(btn);
+        REG_TREATMENTS.forEach(function(g) {
+            // Group label
+            var label = document.createElement('div');
+            label.className = 'w-100 mt-1 mb-1';
+            label.innerHTML = '<span class="badge rounded-pill" style="background:' + g.color + '; font-size:0.65rem; font-weight:600; letter-spacing:0.5px;">' + g.group + '</span>';
+            grid.appendChild(label);
+            // Buttons
+            g.items.forEach(function(t) {
+                var btn = document.createElement('button');
+                btn.type = 'button';
+                btn.className = 'btn btn-sm reg-tx-btn';
+                btn.setAttribute('data-value', t);
+                btn.textContent = t;
+                btn.onclick = function() { this.classList.toggle('active'); };
+                grid.appendChild(btn);
+            });
         });
+    }
+
+    // Helper: get flat list of all treatment values
+    function reg_getAllTreatmentValues() {
+        var all = [];
+        REG_TREATMENTS.forEach(function(g) { all = all.concat(g.items); });
+        return all;
     }
 
     // Current event config (set when opening event details)
