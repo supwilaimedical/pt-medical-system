@@ -205,13 +205,19 @@
                 <label class="form-label fw-bold small">พิกัดสถานที่ <span class="text-danger">*</span></label>
                 <div class="d-flex flex-column flex-md-row gap-2 mb-2">
                   <button type="button" class="btn btn-primary btn-sm flex-shrink-0" onclick="loc_getGPS()"><i class="bi bi-crosshair me-1"></i> ดึงพิกัดปัจจุบัน</button>
-                  <input type="text" id="loc-form-maplink" class="form-control form-control-sm" placeholder="วางลิงก์ Google Maps..." oninput="loc_extractCoordsFromLink(this.value)">
+                  <input type="text" id="loc-form-maplink" class="form-control form-control-sm" placeholder="วางลิงก์ Google Maps หรือพิกัด เช่น 13.756,100.501" oninput="loc_extractCoordsFromLink(this.value)" onpaste="setTimeout(()=>loc_extractCoordsFromLink(this.value),100)">
                 </div>
                 <div class="row g-2">
                   <div class="col-6"><span class="small text-muted">Latitude</span><input type="text" id="loc-form-lat" class="form-control form-control-sm bg-white font-monospace" required readonly></div>
                   <div class="col-6"><span class="small text-muted">Longitude</span><input type="text" id="loc-form-lng" class="form-control form-control-sm bg-white font-monospace" required readonly></div>
                 </div>
                 <p id="loc-form-gps-status" class="small fw-medium text-primary mt-1 mb-0"></p>
+                <div id="loc-form-geo-info" class="d-none mt-2 d-flex align-items-center gap-2">
+                  <span class="badge bg-light text-dark border px-2 py-1" id="loc-form-geo-label"><i class="bi bi-geo-alt me-1"></i><span id="loc-form-geo-text">—</span></span>
+                  <button type="button" class="btn btn-outline-primary btn-sm rounded-pill px-2 py-0" onclick="loc_reGeocode()" title="อัปเดตพื้นที่จากพิกัด" style="font-size:0.7rem;">
+                    <i class="bi bi-arrow-repeat me-1"></i>อัปเดตพื้นที่
+                  </button>
+                </div>
               </div>
               <div class="mb-3"><label class="form-label fw-bold small">รายละเอียด / จุดสังเกต</label><textarea id="loc-form-details" class="form-control" rows="3"></textarea></div>
               <div class="d-flex gap-2">
@@ -506,6 +512,52 @@
       document.getElementById('loc-form-title').innerHTML = '<i class="bi bi-pencil me-2"></i>แก้ไขพิกัดสถานที่';
       document.getElementById('loc-form-submit-btn').innerHTML = '<i class="bi bi-save me-1"></i> อัปเดตข้อมูล';
       loc_switchTab('form');
+
+      // Show current district/province and auto-geocode if missing
+      if (c.lat && c.lng) {
+        var hasMissing = !c.district || !c.province || c.district === 'ไม่ระบุอำเภอ' || c.province === 'ไม่ระบุจังหวัด' || c.district === 'ไม่ระบุ' || c.province === 'ไม่ระบุ';
+        loc_showGeoInfo(c.district, c.province);
+        if (hasMissing) {
+          // Auto reverse geocode for records missing district/province
+          loc_reGeocode();
+        }
+      }
+    }
+
+    // Show district/province info in the form
+    function loc_showGeoInfo(district, province) {
+      var wrap = document.getElementById('loc-form-geo-info');
+      var txt = document.getElementById('loc-form-geo-text');
+      if (!wrap || !txt) return;
+      var d = district || 'ไม่ระบุ';
+      var p = province || 'ไม่ระบุ';
+      txt.textContent = 'อ.' + d + ' จ.' + p;
+      wrap.classList.remove('d-none');
+      wrap.classList.add('d-flex');
+    }
+
+    // Re-geocode: update district/province from current lat/lng in form
+    async function loc_reGeocode() {
+      var lat = parseFloat(document.getElementById('loc-form-lat').value);
+      var lng = parseFloat(document.getElementById('loc-form-lng').value);
+      if (isNaN(lat) || isNaN(lng)) return;
+
+      var txt = document.getElementById('loc-form-geo-text');
+      var wrap = document.getElementById('loc-form-geo-info');
+      if (txt) txt.innerHTML = '<span class="spinner-border spinner-border-sm me-1" style="width:12px;height:12px;"></span>กำลังหาพื้นที่...';
+      if (wrap) { wrap.classList.remove('d-none'); wrap.classList.add('d-flex'); }
+
+      var geo = await loc_reverseGeocode(lat, lng);
+      if (txt) txt.textContent = 'อ.' + geo.district + ' จ.' + geo.province;
+
+      // Store in hidden fields so save function can use them
+      var geoCache = document.getElementById('loc-form-geo-cache');
+      if (!geoCache) {
+        geoCache = document.createElement('input');
+        geoCache.type = 'hidden'; geoCache.id = 'loc-form-geo-cache';
+        document.getElementById('loc-customer-form').appendChild(geoCache);
+      }
+      geoCache.value = JSON.stringify(geo);
     }
 
     function loc_resetForm() {
@@ -514,6 +566,8 @@
       var p = document.getElementById('loc-form-photo-preview'); if (p) { p.src = ''; p.classList.add('d-none'); }
       var ph = document.getElementById('loc-form-photo-placeholder'); if (ph) ph.classList.remove('d-none');
       var st = document.getElementById('loc-form-gps-status'); if (st) st.textContent = '';
+      var gi = document.getElementById('loc-form-geo-info'); if (gi) { gi.classList.add('d-none'); gi.classList.remove('d-flex'); }
+      var gc = document.getElementById('loc-form-geo-cache'); if (gc) gc.value = '';
     }
 
     // --- PHOTO ---
@@ -545,7 +599,7 @@
       st.textContent = 'กำลังร้องขอพิกัด GPS...'; st.className = 'small fw-medium text-primary mt-1 mb-0';
       if (!navigator.geolocation) { st.textContent = 'อุปกรณ์ไม่รองรับ GPS'; st.className = 'small fw-medium text-danger mt-1 mb-0'; return; }
       navigator.geolocation.getCurrentPosition(
-        pos => { document.getElementById('loc-form-lat').value = pos.coords.latitude.toFixed(6); document.getElementById('loc-form-lng').value = pos.coords.longitude.toFixed(6); st.textContent = '[สำเร็จ] อัปเดตพิกัดเรียบร้อย'; st.className = 'small fw-medium text-success mt-1 mb-0'; },
+        pos => { document.getElementById('loc-form-lat').value = pos.coords.latitude.toFixed(6); document.getElementById('loc-form-lng').value = pos.coords.longitude.toFixed(6); st.textContent = '[สำเร็จ] อัปเดตพิกัดเรียบร้อย'; st.className = 'small fw-medium text-success mt-1 mb-0'; loc_reGeocode(); },
         err => { st.textContent = '[ผิดพลาด] ' + err.message; st.className = 'small fw-medium text-danger mt-1 mb-0'; },
         { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 }
       );
@@ -554,12 +608,110 @@
     function loc_extractCoordsFromLink(url) {
       if (!url || url.length < 10) return;
       var st = document.getElementById('loc-form-gps-status');
-      var patterns = [/@([-0-9.]+),([-0-9.]+)/, /q=([-0-9.]+),([-0-9.]+)/, /ll=([-0-9.]+),([-0-9.]+)/];
+
+      // Check if it's a short URL that needs expanding first
+      if (/^https?:\/\/(maps\.app\.goo\.gl|goo\.gl\/maps|bit\.ly|shorturl)/i.test(url)) {
+        loc_expandShortUrl(url);
+        return;
+      }
+
+      // Try to extract coordinates from various Google Maps URL patterns
+      var coords = loc_parseGoogleMapsUrl(url);
+      if (coords) {
+        document.getElementById('loc-form-lat').value = coords.lat;
+        document.getElementById('loc-form-lng').value = coords.lng;
+        st.textContent = '[สำเร็จ] ดึงพิกัดจากลิงก์เรียบร้อย';
+        st.className = 'small fw-medium text-success mt-1 mb-0';
+        loc_reGeocode();
+      } else {
+        st.textContent = '[คำเตือน] ไม่พบพิกัดในลิงก์ — ลองใช้ลิงก์แบบเต็ม (ไม่ใช่ลิงก์ย่อ)';
+        st.className = 'small fw-medium text-danger mt-1 mb-0';
+      }
+    }
+
+    // Parse various Google Maps URL formats to extract lat/lng
+    function loc_parseGoogleMapsUrl(url) {
+      var patterns = [
+        // !3d(lat)!4d(lng) — pin/place data in Maps URL
+        /!3d([-]?[0-9]+\.[0-9]+)!4d([-]?[0-9]+\.[0-9]+)/,
+        // @lat,lng — viewport/center coordinate
+        /@([-]?[0-9]+\.[0-9]+),([-]?[0-9]+\.[0-9]+)/,
+        // q=lat,lng — search query coordinate
+        /[?&]q=([-]?[0-9]+\.[0-9]+),([-]?[0-9]+\.[0-9]+)/,
+        // ll=lat,lng — legacy Maps parameter
+        /[?&]ll=([-]?[0-9]+\.[0-9]+),([-]?[0-9]+\.[0-9]+)/,
+        // center=lat,lng
+        /[?&]center=([-]?[0-9]+\.[0-9]+),([-]?[0-9]+\.[0-9]+)/,
+        // sll=lat,lng — source lat/lng
+        /[?&]sll=([-]?[0-9]+\.[0-9]+),([-]?[0-9]+\.[0-9]+)/,
+        // daddr=lat,lng or saddr=lat,lng — directions
+        /[?&][ds]addr=([-]?[0-9]+\.[0-9]+),([-]?[0-9]+\.[0-9]+)/,
+        // /dir/lat,lng/ — directions URL
+        /\/dir\/([-]?[0-9]+\.[0-9]+),([-]?[0-9]+\.[0-9]+)/,
+        // Standalone lat,lng (must look like valid coordinates: lat -90~90, lng -180~180)
+        /([-]?[0-9]{1,2}\.[0-9]{4,8})[,%20+]+([-]?[0-9]{1,3}\.[0-9]{4,8})/
+      ];
       for (var p of patterns) {
         var m = url.match(p);
-        if (m) { document.getElementById('loc-form-lat').value = m[1]; document.getElementById('loc-form-lng').value = m[2]; st.textContent = '[สำเร็จ] ดึงพิกัดจากลิงก์เรียบร้อย'; st.className = 'small fw-medium text-success mt-1 mb-0'; return; }
+        if (m) {
+          var lat = parseFloat(m[1]), lng = parseFloat(m[2]);
+          // Validate coordinate range
+          if (lat >= -90 && lat <= 90 && lng >= -180 && lng <= 180) {
+            return { lat: lat.toFixed(6), lng: lng.toFixed(6) };
+          }
+        }
       }
-      st.textContent = '[คำเตือน] ไม่พบพิกัดในลิงก์'; st.className = 'small fw-medium text-danger mt-1 mb-0';
+      return null;
+    }
+
+    // Expand short URLs (maps.app.goo.gl, goo.gl/maps) via CORS proxy
+    async function loc_expandShortUrl(shortUrl) {
+      var st = document.getElementById('loc-form-gps-status');
+      st.textContent = '[กำลังขยายลิงก์ย่อ...]';
+      st.className = 'small fw-medium text-info mt-1 mb-0';
+
+      // Try multiple CORS proxy services
+      var proxyUrls = [
+        'https://api.allorigins.win/raw?url=' + encodeURIComponent(shortUrl),
+        'https://corsproxy.io/?' + encodeURIComponent(shortUrl)
+      ];
+
+      for (var proxyUrl of proxyUrls) {
+        try {
+          var res = await fetch(proxyUrl, { redirect: 'follow', signal: AbortSignal.timeout(8000) });
+          // The final URL or response body may contain the expanded URL with coordinates
+          var finalUrl = res.url || '';
+          var body = await res.text();
+
+          // Try to find coordinates in the final URL first
+          var coords = loc_parseGoogleMapsUrl(finalUrl);
+          if (coords) {
+            document.getElementById('loc-form-lat').value = coords.lat;
+            document.getElementById('loc-form-lng').value = coords.lng;
+            st.textContent = '[สำเร็จ] ดึงพิกัดจากลิงก์ย่อเรียบร้อย';
+            st.className = 'small fw-medium text-success mt-1 mb-0';
+            loc_reGeocode();
+            return;
+          }
+
+          // Try to find coordinates in the response body (expanded HTML may contain the full URL)
+          coords = loc_parseGoogleMapsUrl(body);
+          if (coords) {
+            document.getElementById('loc-form-lat').value = coords.lat;
+            document.getElementById('loc-form-lng').value = coords.lng;
+            st.textContent = '[สำเร็จ] ดึงพิกัดจากลิงก์ย่อเรียบร้อย';
+            st.className = 'small fw-medium text-success mt-1 mb-0';
+            loc_reGeocode();
+            return;
+          }
+        } catch (e) {
+          console.warn('Proxy failed:', proxyUrl, e);
+        }
+      }
+
+      // All proxies failed
+      st.innerHTML = '[ไม่สำเร็จ] ไม่สามารถขยายลิงก์ย่อได้ — <b>วิธีแก้:</b> เปิดลิงก์ใน Google Maps แล้วคัดลอก URL แบบเต็มมาวาง';
+      st.className = 'small fw-medium text-danger mt-1 mb-0';
     }
 
     // --- SAVE (Supabase + Cloudinary) ---
@@ -602,7 +754,9 @@
         // Reverse geocode to get district/province from coordinates
         var latVal = parseFloat(g('loc-form-lat'));
         var lngVal = parseFloat(g('loc-form-lng'));
-        var geo = await loc_reverseGeocode(latVal, lngVal);
+        // Use cached geocode result if available (from edit form auto-geocode)
+        var geoCache = g('loc-form-geo-cache');
+        var geo = geoCache ? JSON.parse(geoCache) : await loc_reverseGeocode(latVal, lngVal);
 
         var record = {
           name: g('loc-form-name'),
