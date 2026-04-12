@@ -51,6 +51,14 @@
     @media (max-width: 767px) {
       .fa-table-hide-mobile { display: none; }
     }
+    /* Treatment ghost buttons */
+    .reg-tx-btn {
+      border: 1.5px solid #dee2e6; color: #495057; background: #fff;
+      border-radius: 50rem; padding: 0.25rem 0.7rem; font-size: 0.8rem;
+      transition: all 0.15s ease; cursor: pointer;
+    }
+    .reg-tx-btn:hover { border-color: #0d6efd; color: #0d6efd; background: #e7f1ff; }
+    .reg-tx-btn.active { border-color: #0d6efd; color: #fff; background: #0d6efd; font-weight: 600; }
   </style>
 </head>
 <body>
@@ -481,39 +489,14 @@
               </div>
             </div>
 
-            <!-- Treatment Grid -->
+            <!-- Treatment Grid (generated from REG_TREATMENTS array) -->
             <div class="card p-3 mb-3 bg-light border-0">
               <label class="form-label fw-bold small mb-2">Treatment (เลือกได้หลายข้อ)</label>
-              <div class="row g-1" id="reg-treatment-grid">
-                <div class="col-6 col-md-3"><div class="form-check form-check-sm"><input class="form-check-input" type="checkbox" name="reg_treatment" value="แอมโมเนีย" id="reg-t1"><label class="form-check-label small" for="reg-t1">แอมโมเนีย</label></div></div>
-                <div class="col-6 col-md-3"><div class="form-check form-check-sm"><input class="form-check-input" type="checkbox" name="reg_treatment" value="พลาสเตอร์ยา" id="reg-t2"><label class="form-check-label small" for="reg-t2">พลาสเตอร์ยา</label></div></div>
-                <div class="col-6 col-md-3"><div class="form-check form-check-sm"><input class="form-check-input" type="checkbox" name="reg_treatment" value="ยานวด/สเปรย์" id="reg-t3"><label class="form-check-label small" for="reg-t3">ยานวด/สเปรย์</label></div></div>
-                <div class="col-6 col-md-3"><div class="form-check form-check-sm"><input class="form-check-input" type="checkbox" name="reg_treatment" value="Cold pack" id="reg-t4"><label class="form-check-label small" for="reg-t4">Cold pack</label></div></div>
-                <div class="col-6 col-md-3"><div class="form-check form-check-sm"><input class="form-check-input" type="checkbox" name="reg_treatment" value="Hot pack" id="reg-t5"><label class="form-check-label small" for="reg-t5">Hot pack</label></div></div>
-                <div class="col-6 col-md-3"><div class="form-check form-check-sm"><input class="form-check-input" type="checkbox" name="reg_treatment" value="Splint/ดาม" id="reg-t6"><label class="form-check-label small" for="reg-t6">Splint/ดาม</label></div></div>
-                <div class="col-6 col-md-3"><div class="form-check form-check-sm"><input class="form-check-input" type="checkbox" name="reg_treatment" value="Pressure dressing/Tourniquet" id="reg-t7"><label class="form-check-label small" for="reg-t7">Pressure dressing/TQ</label></div></div>
-                <div class="col-6 col-md-3"><div class="form-check form-check-sm"><input class="form-check-input" type="checkbox" name="reg_treatment" value="IV Fluid" id="reg-t8"><label class="form-check-label small" for="reg-t8">IV Fluid</label></div></div>
-                <div class="col-6 col-md-3"><div class="form-check form-check-sm"><input class="form-check-input" type="checkbox" name="reg_treatment" value="Oxygen/O2" id="reg-t9"><label class="form-check-label small" for="reg-t9">Oxygen/O2</label></div></div>
-                <div class="col-6 col-md-3"><div class="form-check form-check-sm"><input class="form-check-input" type="checkbox" name="reg_treatment" value="Wound dressing" id="reg-t10"><label class="form-check-label small" for="reg-t10">Wound dressing</label></div></div>
-                <div class="col-6 col-md-3"><div class="form-check form-check-sm"><input class="form-check-input" type="checkbox" name="reg_treatment" value="CPR/AED" id="reg-t11"><label class="form-check-label small" for="reg-t11">CPR/AED</label></div></div>
-                <div class="col-6 col-md-3"><div class="form-check form-check-sm"><input class="form-check-input" type="checkbox" name="reg_treatment" value="Nebulization" id="reg-t12"><label class="form-check-label small" for="reg-t12">Nebulization</label></div></div>
-                <div class="col-6 col-md-3"><div class="form-check form-check-sm"><input class="form-check-input" type="checkbox" name="reg_treatment" value="Eye wash" id="reg-t13"><label class="form-check-label small" for="reg-t13">Eye wash</label></div></div>
-                <div class="col-6 col-md-3"><div class="form-check form-check-sm"><input class="form-check-input" type="checkbox" name="reg_treatment" value="Stretching/ยืดกล้ามเนื้อ" id="reg-t14"><label class="form-check-label small" for="reg-t14">Stretching/ยืดกล้ามเนื้อ</label></div></div>
-                <div class="col-6 col-md-3"><div class="form-check form-check-sm"><input class="form-check-input" type="checkbox" name="reg_treatment" value="Keep warm" id="reg-t15"><label class="form-check-label small" for="reg-t15">Keep warm</label></div></div>
-                <div class="col-6 col-md-3"><div class="form-check form-check-sm"><input class="form-check-input" type="checkbox" name="reg_treatment" value="Cool down" id="reg-t16"><label class="form-check-label small" for="reg-t16">Cool down</label></div></div>
-              </div>
-              <div class="row g-2 mt-2">
-                <div class="col-6">
-                  <div class="form-check form-check-sm d-flex align-items-center gap-1">
-                    <input class="form-check-input" type="checkbox" name="reg_treatment" value="จ่ายยา" id="reg-cb-med" onchange="reg_toggleMedDetail()">
-                    <label class="form-check-label small" for="reg-cb-med">จ่ายยา</label>
-                  </div>
-                  <input type="text" id="reg-treatment-med-detail" class="form-control form-control-sm d-none mt-1" placeholder="ระบุชื่อยา...">
-                </div>
-                <div class="col-6">
-                  <label class="small text-muted">อื่นๆ</label>
-                  <input type="text" id="reg-treatment-other-text" class="form-control form-control-sm" placeholder="ระบุ...">
-                </div>
+              <div class="d-flex flex-wrap gap-1" id="reg-treatment-grid"></div>
+              <div class="d-flex flex-wrap gap-1 mt-2 pt-2 border-top">
+                <button type="button" class="btn btn-sm reg-tx-btn" data-value="จ่ายยา" onclick="this.classList.toggle('active'); reg_toggleMedDetail()">💊 จ่ายยา</button>
+                <input type="text" id="reg-treatment-med-detail" class="form-control form-control-sm d-none" style="max-width:200px;" placeholder="ระบุชื่อยา...">
+                <input type="text" id="reg-treatment-other-text" class="form-control form-control-sm" style="max-width:200px;" placeholder="อื่นๆ ระบุ...">
               </div>
             </div>
 
@@ -1680,6 +1663,22 @@
         'Stretching/ยืดกล้ามเนื้อ', 'Keep warm', 'Cool down'
     ];
 
+    // Build treatment ghost buttons from array
+    function reg_buildTreatmentGrid() {
+        var grid = document.getElementById('reg-treatment-grid');
+        if (!grid) return;
+        grid.innerHTML = '';
+        REG_TREATMENTS.forEach(function(t) {
+            var btn = document.createElement('button');
+            btn.type = 'button';
+            btn.className = 'btn btn-sm reg-tx-btn';
+            btn.setAttribute('data-value', t);
+            btn.textContent = t;
+            btn.onclick = function() { this.classList.toggle('active'); };
+            grid.appendChild(btn);
+        });
+    }
+
     // Current event config (set when opening event details)
     var fa_currentEventConfig = null;
     var fa_currentEventType = 'general';
@@ -1865,8 +1864,9 @@
         var now = new Date();
         document.getElementById('reg-time-in').value = now.getHours().toString().padStart(2, '0') + ':' + now.getMinutes().toString().padStart(2, '0');
 
-        // Reset treatment checkboxes
-        document.querySelectorAll('input[name="reg_treatment"]').forEach(function(cb) { cb.checked = false; });
+        // Reset treatment buttons
+        reg_buildTreatmentGrid();
+        document.querySelectorAll('.reg-tx-btn[data-value="จ่ายยา"]').forEach(function(b) { b.classList.remove('active'); });
         document.getElementById('reg-treatment-med-detail').value = '';
         document.getElementById('reg-treatment-med-detail').classList.add('d-none');
         document.getElementById('reg-treatment-other-text').value = '';
@@ -1907,20 +1907,17 @@
                 var treatments = rec.treatment ? rec.treatment.split(', ') : [];
                 treatments.forEach(function(t) {
                     if (t.indexOf('จ่ายยา') > -1) {
-                        var cb = document.getElementById('reg-cb-med');
-                        if (cb) cb.checked = true;
+                        var medBtn = document.querySelector('.reg-tx-btn[data-value="จ่ายยา"]');
+                        if (medBtn) medBtn.classList.add('active');
                         var match = t.match(/\((.*?)\)/);
                         if (match) {
                             document.getElementById('reg-treatment-med-detail').value = match[1];
                             document.getElementById('reg-treatment-med-detail').classList.remove('d-none');
                         }
-                    } else if (t === 'Other' || treatments.indexOf(t) === -1) {
-                        var cb = document.querySelector('input[name="reg_treatment"][value="' + t + '"]');
-                        if (cb) cb.checked = true;
-                        else if (t) document.getElementById('reg-treatment-other-text').value = (document.getElementById('reg-treatment-other-text').value ? document.getElementById('reg-treatment-other-text').value + ', ' : '') + t;
                     } else {
-                        var cb = document.querySelector('input[name="reg_treatment"][value="' + t + '"]');
-                        if (cb) cb.checked = true;
+                        var btn = document.querySelector('#reg-treatment-grid .reg-tx-btn[data-value="' + t + '"]');
+                        if (btn) btn.classList.add('active');
+                        else if (t) document.getElementById('reg-treatment-other-text').value = (document.getElementById('reg-treatment-other-text').value ? document.getElementById('reg-treatment-other-text').value + ', ' : '') + t;
                     }
                 });
                 // Allergy
@@ -1980,16 +1977,17 @@
 
         Swal.fire({ title: 'กำลังบันทึก...', didOpen: function() { Swal.showLoading(); } });
 
-        // Collect treatments
+        // Collect treatments from ghost buttons
         var treatments = [];
-        document.querySelectorAll('input[name="reg_treatment"]:checked').forEach(function(cb) {
-            if (cb.value === 'จ่ายยา') {
-                var detail = document.getElementById('reg-treatment-med-detail').value.trim();
-                treatments.push(detail ? 'จ่ายยา (' + detail + ')' : 'จ่ายยา');
-            } else {
-                treatments.push(cb.value);
-            }
+        document.querySelectorAll('#reg-treatment-grid .reg-tx-btn.active').forEach(function(btn) {
+            treatments.push(btn.getAttribute('data-value'));
         });
+        // Check จ่ายยา button
+        var medBtn = document.querySelector('.reg-tx-btn[data-value="จ่ายยา"]');
+        if (medBtn && medBtn.classList.contains('active')) {
+            var detail = document.getElementById('reg-treatment-med-detail').value.trim();
+            treatments.push(detail ? 'จ่ายยา (' + detail + ')' : 'จ่ายยา');
+        }
         var otherTrt = document.getElementById('reg-treatment-other-text').value.trim();
         if (otherTrt) treatments.push(otherTrt);
 
@@ -2198,9 +2196,9 @@
 
     // Toggle medication detail input
     function reg_toggleMedDetail() {
-        var cb = document.getElementById('reg-cb-med');
+        var btn = document.querySelector('.reg-tx-btn[data-value="จ่ายยา"]');
         var input = document.getElementById('reg-treatment-med-detail');
-        if (cb.checked) { input.classList.remove('d-none'); }
+        if (btn && btn.classList.contains('active')) { input.classList.remove('d-none'); }
         else { input.classList.add('d-none'); input.value = ''; }
     }
 </script>
