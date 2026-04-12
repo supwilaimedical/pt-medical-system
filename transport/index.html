@@ -57,6 +57,16 @@
     /* Init vitals popup */
     .init-vitals-display { background:#f8f9fa; border-radius:10px; padding:10px 14px; font-size:0.85rem; cursor:pointer; transition:all 0.2s; border:1px solid #e9ecef; }
     .init-vitals-display:hover { background:#e9ecef; }
+
+    /* Triage buttons: Red, Pink, Yellow, Green */
+    .btn-triage-resus { color:#dc3545; border-color:#dc3545; background:#fff; }
+    .btn-check:checked + .btn-triage-resus { background:#dc3545; color:#fff; border-color:#dc3545; }
+    .btn-triage-emer { color:#d63384; border-color:#d63384; background:#fff; }
+    .btn-check:checked + .btn-triage-emer { background:#d63384; color:#fff; border-color:#d63384; }
+    .btn-triage-urgent { color:#cc9a06; border-color:#ffc107; background:#fff; }
+    .btn-check:checked + .btn-triage-urgent { background:#ffc107; color:#000; border-color:#ffc107; }
+    .btn-triage-less { color:#198754; border-color:#198754; background:#fff; }
+    .btn-check:checked + .btn-triage-less { background:#198754; color:#fff; border-color:#198754; }
   </style>
 </head>
 <body>
@@ -220,13 +230,13 @@
                     <label class="form-label small fw-bold">Triage Level</label>
                     <div class="btn-group w-100" role="group">
                       <input type="radio" class="btn-check" name="triage_level" id="triage-resus" value="Resuscitation">
-                      <label class="btn btn-outline-danger btn-sm" for="triage-resus">Resuscitation</label>
+                      <label class="btn btn-triage-resus btn-sm" for="triage-resus">Resuscitation</label>
                       <input type="radio" class="btn-check" name="triage_level" id="triage-emer" value="Emergency">
-                      <label class="btn btn-outline-warning btn-sm" for="triage-emer">Emergency</label>
+                      <label class="btn btn-triage-emer btn-sm" for="triage-emer">Emergency</label>
                       <input type="radio" class="btn-check" name="triage_level" id="triage-urgent" value="Urgent">
-                      <label class="btn btn-outline-info btn-sm" for="triage-urgent">Urgent</label>
+                      <label class="btn btn-triage-urgent btn-sm" for="triage-urgent">Urgent</label>
                       <input type="radio" class="btn-check" name="triage_level" id="triage-less" value="Less Urgent" checked>
-                      <label class="btn btn-outline-success btn-sm" for="triage-less">Less Urgent</label>
+                      <label class="btn btn-triage-less btn-sm" for="triage-less">Less Urgent</label>
                     </div>
                   </div>
                   <div class="col-12">
