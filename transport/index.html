@@ -1498,6 +1498,7 @@
 
       // Populate from raw_data.rawSnapshot
       var raw = (data.raw_data && data.raw_data.rawSnapshot) ? data.raw_data.rawSnapshot : {};
+      if (typeof raw === 'string') try { raw = JSON.parse(raw); } catch(e) { raw = {}; }
 
       // Op info
       setRadioVal('op_level', raw.op_level || (data.op_info && data.op_info.level) || 'ALS');
@@ -1578,7 +1579,8 @@
       document.getElementById('f-central-side').value = raw.central_side || 'Right';
 
       // Initial IVs
-      var ivArr = (data.raw_data && data.raw_data.ivJson) ? data.raw_data.ivJson : (raw.initIvLines || []);
+      var ivRaw = (data.raw_data && data.raw_data.ivJson) ? data.raw_data.ivJson : (raw.initIvLines || []);
+      var ivArr = (typeof ivRaw === 'string') ? JSON.parse(ivRaw) : (Array.isArray(ivRaw) ? ivRaw : []);
       document.getElementById('init-iv-container').innerHTML = '';
       if (ivArr && ivArr.length > 0) {
         ivArr.forEach(function(iv) { addIvLine('init', iv); });
@@ -1646,7 +1648,8 @@
       }
 
       // Vitals from raw_data.vitalsJson
-      var vitalsArr = (data.raw_data && data.raw_data.vitalsJson) ? data.raw_data.vitalsJson : [];
+      var vitalsRaw = (data.raw_data && data.raw_data.vitalsJson) ? data.raw_data.vitalsJson : [];
+      var vitalsArr = (typeof vitalsRaw === 'string') ? JSON.parse(vitalsRaw) : (Array.isArray(vitalsRaw) ? vitalsRaw : []);
       document.getElementById('vital-log-container').innerHTML = '';
       currentVitals = [];
       if (vitalsArr && vitalsArr.length > 0) {
@@ -2582,8 +2585,11 @@
 
   function handlePrintWithData(caseData) {
     var raw = (caseData.rawData && caseData.rawData.rawSnapshot) ? caseData.rawData.rawSnapshot : {};
-    var vitals = (caseData.rawData && caseData.rawData.vitalsJson) ? caseData.rawData.vitalsJson : [];
-    var ivs = (caseData.rawData && caseData.rawData.ivJson) ? caseData.rawData.ivJson : [];
+    if (typeof raw === 'string') try { raw = JSON.parse(raw); } catch(e) { raw = {}; }
+    var vitalsR = (caseData.rawData && caseData.rawData.vitalsJson) ? caseData.rawData.vitalsJson : [];
+    var vitals = (typeof vitalsR === 'string') ? JSON.parse(vitalsR) : (Array.isArray(vitalsR) ? vitalsR : []);
+    var ivsR = (caseData.rawData && caseData.rawData.ivJson) ? caseData.rawData.ivJson : [];
+    var ivs = (typeof ivsR === 'string') ? JSON.parse(ivsR) : (Array.isArray(ivsR) ? ivsR : []);
     var pi = caseData.patientInfo || {};
 
     var w = window.open('', '_blank', 'width=800,height=900');
