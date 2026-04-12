@@ -212,7 +212,7 @@
                   <div class="col-6"><span class="small text-muted">Longitude</span><input type="text" id="loc-form-lng" class="form-control form-control-sm bg-white font-monospace" required readonly></div>
                 </div>
                 <p id="loc-form-gps-status" class="small fw-medium text-primary mt-1 mb-0"></p>
-                <div id="loc-form-geo-info" class="d-none mt-2 d-flex align-items-center gap-2">
+                <div id="loc-form-geo-info" class="mt-2 align-items-center gap-2" style="display:none;">
                   <span class="badge bg-light text-dark border px-2 py-1" id="loc-form-geo-label"><i class="bi bi-geo-alt me-1"></i><span id="loc-form-geo-text">—</span></span>
                   <button type="button" class="btn btn-outline-primary btn-sm rounded-pill px-2 py-0" onclick="loc_reGeocode()" title="อัปเดตพื้นที่จากพิกัด" style="font-size:0.7rem;">
                     <i class="bi bi-arrow-repeat me-1"></i>อัปเดตพื้นที่
@@ -532,8 +532,7 @@
       var d = district || 'ไม่ระบุ';
       var p = province || 'ไม่ระบุ';
       txt.textContent = 'อ.' + d + ' จ.' + p;
-      wrap.classList.remove('d-none');
-      wrap.classList.add('d-flex');
+      wrap.style.display = 'flex';
     }
 
     // Re-geocode: update district/province from current lat/lng in form
@@ -545,7 +544,7 @@
       var txt = document.getElementById('loc-form-geo-text');
       var wrap = document.getElementById('loc-form-geo-info');
       if (txt) txt.innerHTML = '<span class="spinner-border spinner-border-sm me-1" style="width:12px;height:12px;"></span>กำลังหาพื้นที่...';
-      if (wrap) { wrap.classList.remove('d-none'); wrap.classList.add('d-flex'); }
+      if (wrap) wrap.style.display = 'flex';
 
       var geo = await loc_reverseGeocode(lat, lng);
       if (txt) txt.textContent = 'อ.' + geo.district + ' จ.' + geo.province;
@@ -566,7 +565,7 @@
       var p = document.getElementById('loc-form-photo-preview'); if (p) { p.src = ''; p.classList.add('d-none'); }
       var ph = document.getElementById('loc-form-photo-placeholder'); if (ph) ph.classList.remove('d-none');
       var st = document.getElementById('loc-form-gps-status'); if (st) st.textContent = '';
-      var gi = document.getElementById('loc-form-geo-info'); if (gi) { gi.classList.add('d-none'); gi.classList.remove('d-flex'); }
+      var gi = document.getElementById('loc-form-geo-info'); if (gi) gi.style.display = 'none';
       var gc = document.getElementById('loc-form-geo-cache'); if (gc) gc.value = '';
     }
 
