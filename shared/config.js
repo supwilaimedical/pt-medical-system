@@ -4,5 +4,6 @@ const CONFIG = {
   SUPABASE_ANON_KEY: 'sb_publishable_5jmlKl7w2H_Qb4Yp1Y8gWA_-SMZfB0a',
   CLOUDINARY_CLOUD_NAME: 'deimrg3xs',
   CLOUDINARY_UPLOAD_PRESET: 'pt-medical',
-  BASE_URL: '/pt-medical-system'
+  BASE_URL: '/pt-medical-system',
+  GAS_AUTH_API_URL: 'https://script.google.com/macros/s/AKfycbybpea7XetHbLnibNWUHV_Mg9CpmIWzXR_5lCKzPWoWUAjPcy-wUVAgAP_dWd0Avf4jug/exec'
 };

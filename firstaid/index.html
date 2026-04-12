@@ -103,39 +103,8 @@
   <script src="../shared/auth.js"></script>
   <script src="../shared/cloudinary.js"></script>
 
-  <!-- ==================== LOGIN SCREEN ==================== -->
-  <div id="login-view">
-    <div class="card p-4 shadow" style="width:100%;max-width:380px;border-radius:16px;border:none;">
-      <div class="text-center mb-4">
-        <div class="bg-success-subtle text-success rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width:80px;height:80px;">
-          <i class="bi bi-heart-pulse-fill fs-1"></i>
-        </div>
-        <h4 class="fw-bold text-dark">ระบบปฐมพยาบาล</h4>
-        <p class="text-muted small">First Aid Event Management</p>
-      </div>
-      <form id="login-form" onsubmit="handleLogin(event)">
-        <div class="mb-3">
-          <label class="form-label small fw-bold text-secondary">Username / Email</label>
-          <div class="input-group">
-            <span class="input-group-text bg-light border-end-0"><i class="bi bi-person text-muted"></i></span>
-            <input type="text" id="login-user" class="form-control bg-light border-start-0 ps-0" placeholder="admin" required>
-          </div>
-        </div>
-        <div class="mb-4">
-          <label class="form-label small fw-bold text-secondary">Password</label>
-          <div class="input-group">
-            <span class="input-group-text bg-light border-end-0"><i class="bi bi-key text-muted"></i></span>
-            <input type="password" id="login-pass" class="form-control bg-light border-start-0 ps-0" placeholder="รหัสผ่าน" required>
-          </div>
-        </div>
-        <button type="submit" class="btn btn-success w-100 py-2 fw-bold rounded-3 shadow-sm" id="btn-login">เข้าสู่ระบบ (Login)</button>
-      </form>
-      <div id="login-error" class="alert alert-danger mt-3 d-none small text-center rounded-3"></div>
-    </div>
-  </div>
-
   <!-- ==================== MAIN APP ==================== -->
-  <div id="app-main-wrapper" style="display:none;">
+  <div id="app-main-wrapper">
 
     <!-- Navbar -->
     <nav class="navbar navbar-dark bg-modern-primary px-3 py-2">
@@ -793,10 +762,8 @@
   // INIT
   // =============================================
   window.addEventListener('load', async function() {
-    document.getElementById('nav-username').textContent = getUserName();
-    await checkAuth(function() {
-      fa_loadEvents();
-    });
+    if (!requireAuth()) return; // redirect if not logged in
+    onLoginSuccess();
   });
 
   function onLoginSuccess() {

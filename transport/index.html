@@ -68,39 +68,8 @@
   <script src="../shared/auth.js"></script>
   <script src="../shared/cloudinary.js"></script>
 
-  <!-- ==================== LOGIN SCREEN ==================== -->
-  <div id="login-view">
-    <div class="card p-4 shadow" style="width:100%;max-width:380px;border-radius:16px;border:none;">
-      <div class="text-center mb-4">
-        <div class="bg-primary-subtle text-primary rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width:80px;height:80px;">
-          <i class="bi bi-ambulance fs-1"></i>
-        </div>
-        <h4 class="fw-bold text-dark">ระบบนำส่งผู้ป่วย</h4>
-        <p class="text-muted small">Patient Transport System</p>
-      </div>
-      <form id="login-form" onsubmit="handleLogin(event)">
-        <div class="mb-3">
-          <label class="form-label small fw-bold text-secondary">Username / Email</label>
-          <div class="input-group">
-            <span class="input-group-text bg-light border-end-0"><i class="bi bi-person text-muted"></i></span>
-            <input type="text" id="login-user" class="form-control bg-light border-start-0 ps-0" placeholder="admin" required>
-          </div>
-        </div>
-        <div class="mb-4">
-          <label class="form-label small fw-bold text-secondary">Password</label>
-          <div class="input-group">
-            <span class="input-group-text bg-light border-end-0"><i class="bi bi-key text-muted"></i></span>
-            <input type="password" id="login-pass" class="form-control bg-light border-start-0 ps-0" placeholder="รหัสผ่าน" required>
-          </div>
-        </div>
-        <button type="submit" class="btn btn-primary w-100 py-2 fw-bold rounded-3 shadow-sm" id="btn-login">เข้าสู่ระบบ (Login)</button>
-      </form>
-      <div id="login-error" class="alert alert-danger mt-3 d-none small text-center rounded-3"></div>
-    </div>
-  </div>
-
   <!-- ==================== MAIN APP ==================== -->
-  <div id="app-main-wrapper" style="display:none;">
+  <div id="app-main-wrapper">
 
     <!-- Navbar -->
     <nav class="navbar navbar-dark bg-modern-primary px-3 py-2">
@@ -112,6 +81,7 @@
       <div class="d-flex align-items-center gap-2">
         <span class="text-white-50 small d-none d-md-inline" id="nav-username"></span>
         <button class="btn btn-sm btn-outline-light rounded-pill px-3 d-none" id="btn-admin-settings" onclick="showAdminView()"><i class="bi bi-gear me-1"></i>ตั้งค่า</button>
+        <a href="../" class="btn btn-sm btn-outline-light rounded-pill px-3"><i class="bi bi-house me-1"></i><span class="d-none d-sm-inline">หน้าหลัก</span></a>
         <button class="btn btn-sm btn-outline-light rounded-pill px-3" onclick="handleLogout()"><i class="bi bi-box-arrow-right me-1"></i>ออก</button>
       </div>
     </nav>
@@ -2894,16 +2864,8 @@
     initVitalsModal = new bootstrap.Modal(document.getElementById('initVitalsModal'));
     shareModalInstance = new bootstrap.Modal(document.getElementById('shareModal'));
 
-    await checkAuth(function() {
-      dbReady = true;
-      document.getElementById('nav-username').textContent = getUserName();
-      loadDashboardData(1);
-      loadSettings();
-      if (getUserRole() === 'Admin') {
-        var adminBtn = document.getElementById('btn-admin-settings');
-        if (adminBtn) adminBtn.classList.remove('d-none');
-      }
-    });
+    if (!requireAuth()) return; // redirect if not logged in
+    onLoginSuccess();
 
     // Form dirty tracking
     var mainForm = document.getElementById('main-form');

@@ -2,167 +2,1067 @@
 <html lang="th">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="theme-color" content="#212529">
   <title>PT Medical System</title>
   <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;600;700&display=swap" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="shared/styles.css">
   <style>
-    * { margin:0; padding:0; box-sizing:border-box; }
-    body {
-      font-family: 'Sarabun', sans-serif;
-      background: linear-gradient(135deg, #0f2027 0%, #203a43 50%, #2c5364 100%);
-      min-height: 100vh;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 24px;
+    /* === LOGIN SCREEN (dark gradient) === */
+    #login-view {
+      background: linear-gradient(135deg, #0f2027 0%, #203a43 50%, #2c5364 100%) !important;
     }
-    .landing-wrapper {
-      text-align: center;
-      max-width: 600px;
+    #login-view .card {
+      background: rgba(255,255,255,0.07) !important;
+      border: 1px solid rgba(255,255,255,0.15) !important;
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      max-width: 400px;
       width: 100%;
     }
-    .landing-logo {
+    #login-view .form-control {
+      background: rgba(255,255,255,0.08);
+      border: 1px solid rgba(255,255,255,0.15);
+      color: #fff;
+    }
+    #login-view .form-control::placeholder { color: rgba(255,255,255,0.4); }
+    #login-view .form-control:focus {
+      background: rgba(255,255,255,0.12) !important;
+      border-color: rgba(13,110,253,0.6);
+      color: #fff;
+      box-shadow: 0 0 0 3px rgba(13,110,253,0.15);
+    }
+    #login-view .input-group-text {
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(255,255,255,0.15);
+      color: rgba(255,255,255,0.5);
+    }
+    .login-logo {
       width: 72px; height: 72px;
-      background: rgba(255,255,255,0.15);
+      background: rgba(255,255,255,0.12);
       border-radius: 20px;
       display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 36px;
-      color: #fff;
-      margin-bottom: 16px;
-      backdrop-filter: blur(8px);
+      align-items: center; justify-content: center;
+      font-size: 36px; color: #fff;
     }
-    .landing-title {
-      color: #fff;
-      font-size: 1.8rem;
-      font-weight: 700;
-      margin-bottom: 4px;
-    }
-    .landing-subtitle {
-      color: rgba(255,255,255,0.6);
-      font-size: 0.95rem;
-      margin-bottom: 36px;
-    }
-    .module-grid {
-      display: grid;
-      grid-template-columns: 1fr;
-      gap: 16px;
-    }
+
+    /* === MODULE CARDS (Home tab) === */
     .module-card {
-      display: flex;
-      align-items: center;
-      gap: 16px;
-      background: rgba(255,255,255,0.08);
-      backdrop-filter: blur(12px);
-      border: 1px solid rgba(255,255,255,0.12);
+      display: flex; align-items: center; gap: 16px;
+      background: #fff;
+      border: 1px solid rgba(0,0,0,0.06);
       border-radius: 16px;
       padding: 20px 24px;
-      text-decoration: none;
-      color: #fff;
+      text-decoration: none; color: #333;
       transition: all 0.3s cubic-bezier(0.4,0,0.2,1);
       cursor: pointer;
     }
     .module-card:hover {
-      background: rgba(255,255,255,0.15);
       transform: translateY(-3px);
-      box-shadow: 0 12px 32px rgba(0,0,0,0.2);
-      color: #fff;
-      text-decoration: none;
+      box-shadow: 0 12px 32px rgba(0,0,0,0.08);
+      color: #333; text-decoration: none;
     }
-    .module-card:active {
-      transform: translateY(0);
-    }
+    .module-card:active { transform: translateY(0); }
     .module-icon {
       width: 52px; height: 52px;
       border-radius: 14px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 24px;
-      flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 24px; color: #fff; flex-shrink: 0;
     }
     .module-icon.transport { background: linear-gradient(135deg, #dc3545, #e74c5e); }
-    .module-icon.firstaid { background: linear-gradient(135deg, #fd7e14, #f59e42); }
-    .module-icon.location { background: linear-gradient(135deg, #198754, #28a770); }
-    .module-info { text-align: left; }
-    .module-name {
-      font-size: 1.1rem;
-      font-weight: 600;
-      margin-bottom: 2px;
+    .module-icon.firstaid  { background: linear-gradient(135deg, #fd7e14, #f59e42); }
+    .module-icon.location   { background: linear-gradient(135deg, #198754, #28a770); }
+    .module-name { font-size: 1.1rem; font-weight: 600; margin-bottom: 2px; }
+    .module-desc { font-size: 0.82rem; color: #6c757d; line-height: 1.3; }
+    .module-arrow { margin-left: auto; font-size: 18px; color: #ced4da; transition: all 0.3s; }
+    .module-card:hover .module-arrow { color: #0d6efd; transform: translateX(4px); }
+
+    /* === MONITOR === */
+    .monitor-header {
+      background: #fff; border-radius: 14px; padding: 12px 18px;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+      border: 1px solid rgba(0,0,0,0.04);
     }
-    .module-desc {
-      font-size: 0.82rem;
-      color: rgba(255,255,255,0.55);
-      line-height: 1.3;
+    .live-badge {
+      display: inline-flex; align-items: center; gap: 6px;
+      background: #198754; color: #fff;
+      padding: 4px 12px; border-radius: 20px;
+      font-size: 0.78rem; font-weight: 600;
     }
-    .module-arrow {
-      margin-left: auto;
-      font-size: 18px;
-      color: rgba(255,255,255,0.3);
-      transition: all 0.3s;
+    .live-dot {
+      width: 8px; height: 8px; border-radius: 50%;
+      background: #fff; animation: blinkPulse 1.2s ease-in-out infinite;
     }
-    .module-card:hover .module-arrow {
-      color: rgba(255,255,255,0.7);
-      transform: translateX(4px);
+    .countdown-ring { transform: rotate(-90deg); }
+    .countdown-ring circle {
+      fill: none; stroke-width: 3;
     }
-    .landing-footer {
-      margin-top: 40px;
-      color: rgba(255,255,255,0.3);
-      font-size: 0.78rem;
+    .countdown-ring .bg { stroke: #e9ecef; }
+    .countdown-ring .fg { stroke: #0d6efd; stroke-linecap: round; transition: stroke-dashoffset 1s linear; }
+
+    /* Monitor case cards */
+    .monitor-case-card {
+      background: #fff; border-radius: 14px;
+      box-shadow: 0 1px 6px rgba(0,0,0,0.04);
+      border: 1px solid rgba(0,0,0,0.05);
+      overflow: hidden; transition: all 0.25s;
     }
-    @media (min-width: 480px) {
-      .module-grid { grid-template-columns: 1fr; }
+    .monitor-case-card:hover {
+      box-shadow: 0 6px 20px rgba(0,0,0,0.07);
+      transform: translateY(-2px);
     }
+    .triage-bar { height: 5px; }
+    .triage-red    { background: linear-gradient(90deg, #dc3545, #e74c5e); }
+    .triage-pink   { background: linear-gradient(90deg, #e83e8c, #f06292); }
+    .triage-yellow { background: linear-gradient(90deg, #ffc107, #ffca2c); }
+    .triage-green  { background: linear-gradient(90deg, #198754, #28a770); }
+    .triage-default { background: #6c757d; }
+
+    .vitals-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 4px;
+    }
+    .vitals-grid .vital-item {
+      background: #f8f9fa; border-radius: 8px; padding: 4px 8px; text-align: center;
+    }
+    .vital-label { font-size: 0.65rem; color: #6c757d; text-transform: uppercase; font-weight: 600; }
+    .vital-value { font-size: 0.85rem; font-weight: 700; color: #333; }
+
+    /* Arrest card */
+    .arrest-card {
+      border-radius: 10px; padding: 10px 14px; border: 2px solid;
+    }
+    .arrest-ongoing { border-color: #dc3545; background: #fff5f5; }
+    .arrest-ongoing .arrest-header { color: #dc3545; }
+    .arrest-rosc { border-color: #198754; background: #f0fdf4; }
+    .arrest-rosc .arrest-header { color: #198754; }
+    .arrest-dead { border-color: #6c757d; background: #f8f9fa; }
+    .arrest-dead .arrest-header { color: #6c757d; }
+
+    /* FA event card */
+    .fa-event-card {
+      background: #fff; border-radius: 14px;
+      box-shadow: 0 1px 6px rgba(0,0,0,0.04);
+      border: 1px solid rgba(0,0,0,0.05);
+      border-left: 5px solid #fd7e14;
+      transition: all 0.25s;
+    }
+    .fa-event-card:hover {
+      box-shadow: 0 6px 20px rgba(0,0,0,0.07);
+      transform: translateY(-2px);
+    }
+    .fa-stat-pill {
+      display: inline-flex; align-items: center; gap: 4px;
+      padding: 3px 10px; border-radius: 20px;
+      font-size: 0.75rem; font-weight: 600;
+    }
+
+    /* === ADMIN === */
+    .admin-sub-tab {
+      background: transparent; border: 1px solid #dee2e6;
+      border-radius: 10px; padding: 6px 16px;
+      font-size: 0.85rem; font-weight: 500; color: #6c757d;
+      transition: all 0.2s;
+    }
+    .admin-sub-tab:hover { background: #f8f9fa; color: #333; }
+    .admin-sub-tab.active {
+      background: #0d6efd; color: #fff; border-color: #0d6efd;
+      box-shadow: 0 2px 8px rgba(13,110,253,0.25);
+    }
+
+    /* === NAV TAB BUTTONS === */
+    .nav-tab-btn {
+      background: transparent; border: none; color: rgba(255,255,255,0.6);
+      padding: 6px 14px; border-radius: 8px; font-size: 0.88rem;
+      font-weight: 500; transition: all 0.2s;
+    }
+    .nav-tab-btn:hover { color: #fff; background: rgba(255,255,255,0.1); }
+    .nav-tab-btn.active { color: #fff; background: rgba(255,255,255,0.15); font-weight: 600; }
+
+    /* empty state */
+    .empty-state {
+      text-align: center; padding: 48px 24px; color: #adb5bd;
+    }
+    .empty-state i { font-size: 3rem; margin-bottom: 12px; display: block; }
   </style>
 </head>
 <body>
-  <div class="landing-wrapper">
-    <div class="landing-logo">
-      <i class="bi bi-heart-pulse"></i>
+
+<!-- ========== LOGIN VIEW ========== -->
+<div id="login-view" class="view-section active" style="display:flex">
+  <div class="card border-0 rounded-4 p-4 mx-auto">
+    <div class="text-center mb-4">
+      <div class="login-logo mx-auto mb-3"><i class="bi bi-heart-pulse"></i></div>
+      <h4 class="text-white fw-bold mb-1">PT Medical System</h4>
+      <p class="text-white-50 small mb-0">Petians Transport &mdash; Emergency Medical Services</p>
     </div>
-    <h1 class="landing-title">PT Medical System</h1>
-    <p class="landing-subtitle">Petians Transport — Emergency Medical Services</p>
-
-    <div class="module-grid">
-      <a href="transport/" class="module-card">
-        <div class="module-icon transport">
-          <i class="bi bi-truck"></i>
-        </div>
-        <div class="module-info">
-          <div class="module-name">Patient Transport</div>
-          <div class="module-desc">บันทึกการส่งต่อผู้ป่วย ข้อมูลผู้ป่วย Vitals Signs</div>
-        </div>
-        <i class="bi bi-chevron-right module-arrow"></i>
-      </a>
-
-      <a href="firstaid/" class="module-card">
-        <div class="module-icon firstaid">
-          <i class="bi bi-bandaid"></i>
-        </div>
-        <div class="module-info">
-          <div class="module-name">First Aid & Registry</div>
-          <div class="module-desc">จุดปฐมพยาบาล บันทึกผู้ป่วย Event สนาม</div>
-        </div>
-        <i class="bi bi-chevron-right module-arrow"></i>
-      </a>
-
-      <a href="location/" class="module-card">
-        <div class="module-icon location">
-          <i class="bi bi-geo-alt"></i>
-        </div>
-        <div class="module-info">
-          <div class="module-name">PT Location</div>
-          <div class="module-desc">จัดการลูกค้า แผนที่ แชร์ตำแหน่ง</div>
-        </div>
-        <i class="bi bi-chevron-right module-arrow"></i>
-      </a>
-    </div>
-
-    <div class="landing-footer">
-      &copy; 2025 Petians Transport Medical System
+    <form id="login-form" onsubmit="handleLogin(event)">
+      <div class="input-group mb-3">
+        <span class="input-group-text"><i class="bi bi-person"></i></span>
+        <input type="text" class="form-control" id="login-user" placeholder="Username" autocomplete="username" required>
+      </div>
+      <div class="input-group mb-3">
+        <span class="input-group-text"><i class="bi bi-lock"></i></span>
+        <input type="password" class="form-control" id="login-pass" placeholder="Password" autocomplete="current-password" required>
+      </div>
+      <div id="login-error" class="alert alert-danger py-2 small d-none"></div>
+      <button type="submit" id="btn-login" class="btn btn-primary w-100 fw-semibold py-2">
+        เข้าสู่ระบบ (Login)
+      </button>
+    </form>
+    <div class="text-center mt-3">
+      <small class="text-white-50" style="font-size:0.72rem">&copy; 2025 Petians Transport Medical System</small>
     </div>
   </div>
+</div>
+
+<!-- ========== MAIN APP WRAPPER ========== -->
+<div id="app-main-wrapper">
+
+  <!-- NAVBAR -->
+  <nav class="navbar navbar-dark bg-dark sticky-top px-3">
+    <div class="container-fluid px-0">
+      <span class="navbar-brand mb-0 d-flex align-items-center gap-2 fw-bold">
+        <i class="bi bi-heart-pulse text-danger"></i>
+        <span>PT Medical System</span>
+      </span>
+      <div class="d-flex align-items-center gap-2">
+        <div class="d-none d-sm-flex gap-1 me-2">
+          <button class="nav-tab-btn active" data-tab="home" onclick="showTab('home')"><i class="bi bi-house-door me-1"></i>Home</button>
+          <button class="nav-tab-btn" data-tab="monitor" onclick="showTab('monitor')"><i class="bi bi-display me-1"></i>Monitor</button>
+          <button class="nav-tab-btn" data-tab="admin" id="nav-admin-btn" style="display:none" onclick="showTab('admin')"><i class="bi bi-gear me-1"></i>Admin</button>
+        </div>
+        <span class="badge bg-secondary bg-opacity-50 d-flex align-items-center gap-1 py-1 px-2">
+          <i class="bi bi-person-circle"></i>
+          <span id="nav-username" class="small"></span>
+          <span id="nav-role" class="badge bg-info bg-opacity-25 ms-1" style="font-size:0.65rem"></span>
+        </span>
+        <button class="btn btn-sm btn-outline-light rounded-pill px-2" onclick="handleLogout()" title="ออกจากระบบ">
+          <i class="bi bi-box-arrow-right"></i>
+        </button>
+      </div>
+    </div>
+    <!-- Mobile tab bar -->
+    <div class="d-flex d-sm-none gap-1 w-100 mt-2">
+      <button class="nav-tab-btn active flex-fill" data-tab="home" onclick="showTab('home')"><i class="bi bi-house-door me-1"></i>Home</button>
+      <button class="nav-tab-btn flex-fill" data-tab="monitor" onclick="showTab('monitor')"><i class="bi bi-display me-1"></i>Monitor</button>
+      <button class="nav-tab-btn flex-fill" data-tab="admin" id="nav-admin-btn-mobile" style="display:none" onclick="showTab('admin')"><i class="bi bi-gear me-1"></i>Admin</button>
+    </div>
+  </nav>
+
+  <!-- ========== TAB: HOME ========== -->
+  <div id="tab-home" class="main-tab active">
+    <div class="container py-4" style="max-width:640px">
+      <div class="text-center mb-4">
+        <h4 class="dashboard-header mb-1"><i class="bi bi-grid-1x2 me-2 text-primary"></i>เลือกโมดูล</h4>
+        <p class="text-muted small mb-0">เลือกระบบที่ต้องการใช้งาน</p>
+      </div>
+      <div class="d-flex flex-column gap-3">
+        <a href="transport/" class="module-card">
+          <div class="module-icon transport"><i class="bi bi-truck"></i></div>
+          <div>
+            <div class="module-name">Patient Transport</div>
+            <div class="module-desc">บันทึกการส่งต่อผู้ป่วย ข้อมูลผู้ป่วย Vital Signs</div>
+          </div>
+          <i class="bi bi-chevron-right module-arrow"></i>
+        </a>
+        <a href="firstaid/" class="module-card">
+          <div class="module-icon firstaid"><i class="bi bi-bandaid"></i></div>
+          <div>
+            <div class="module-name">First Aid &amp; Registry</div>
+            <div class="module-desc">จุดปฐมพยาบาล บันทึกผู้ป่วย Event สนาม</div>
+          </div>
+          <i class="bi bi-chevron-right module-arrow"></i>
+        </a>
+        <a href="location/" class="module-card">
+          <div class="module-icon location"><i class="bi bi-geo-alt"></i></div>
+          <div>
+            <div class="module-name">PT Location</div>
+            <div class="module-desc">จัดการลูกค้า แผนที่ แชร์ตำแหน่ง</div>
+          </div>
+          <i class="bi bi-chevron-right module-arrow"></i>
+        </a>
+      </div>
+      <div class="text-center mt-4">
+        <small class="text-muted" style="font-size:0.72rem">&copy; 2025 Petians Transport Medical System</small>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========== TAB: MONITOR ========== -->
+  <div id="tab-monitor" class="main-tab" style="display:none">
+    <div class="container py-3">
+      <!-- Monitor Header -->
+      <div class="monitor-header d-flex align-items-center justify-content-between flex-wrap gap-2 mb-3">
+        <div class="d-flex align-items-center gap-3">
+          <div class="live-badge"><div class="live-dot"></div>LIVE</div>
+          <span class="text-muted small">อัปเดตล่าสุด: <strong id="monitor-last-refresh">--:--:--</strong></span>
+        </div>
+        <div class="d-flex align-items-center gap-2">
+          <svg width="32" height="32" class="countdown-ring" id="monitor-countdown-svg">
+            <circle class="bg" cx="16" cy="16" r="14"/>
+            <circle class="fg" id="monitor-countdown-circle" cx="16" cy="16" r="14" stroke-dasharray="87.96" stroke-dashoffset="0"/>
+          </svg>
+          <button class="btn btn-sm btn-outline-primary rounded-pill px-3" onclick="loadMonitor()" id="btn-monitor-refresh">
+            <i class="bi bi-arrow-clockwise me-1" id="monitor-refresh-icon"></i>Refresh
+          </button>
+        </div>
+      </div>
+
+      <!-- Transport Section -->
+      <div class="mb-4">
+        <div class="d-flex align-items-center gap-2 mb-2">
+          <h6 class="fw-bold mb-0"><i class="bi bi-truck text-danger me-1"></i>PT-Transport &mdash; Active Cases</h6>
+          <span class="badge bg-danger rounded-pill" id="monitor-transport-count">0</span>
+        </div>
+        <div class="row g-3 monitor-fade-in" id="monitor-transport-list">
+          <div class="col-12">
+            <div class="empty-state"><i class="bi bi-inbox"></i>กำลังโหลดข้อมูล...</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- First Aid Section -->
+      <div class="mb-4">
+        <div class="d-flex align-items-center gap-2 mb-2">
+          <h6 class="fw-bold mb-0"><i class="bi bi-bandaid text-warning me-1"></i>PT-First Aid &mdash; Active Events</h6>
+          <span class="badge bg-warning text-dark rounded-pill" id="monitor-fa-count">0</span>
+        </div>
+        <div class="row g-3 monitor-fade-in" id="monitor-fa-list">
+          <div class="col-12">
+            <div class="empty-state"><i class="bi bi-inbox"></i>กำลังโหลดข้อมูล...</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========== TAB: ADMIN ========== -->
+  <div id="tab-admin" class="main-tab" style="display:none">
+    <div class="container py-3">
+      <h5 class="fw-bold mb-3"><i class="bi bi-gear text-primary me-2"></i>Admin Panel</h5>
+
+      <!-- Admin Sub-tabs -->
+      <div class="d-flex gap-2 mb-3 flex-wrap">
+        <button class="admin-sub-tab active" data-admin-tab="settings" onclick="showAdminTab('settings')"><i class="bi bi-sliders me-1"></i>Settings</button>
+        <button class="admin-sub-tab" data-admin-tab="stats" onclick="showAdminTab('stats')"><i class="bi bi-bar-chart me-1"></i>Statistics</button>
+        <button class="admin-sub-tab" data-admin-tab="log" onclick="showAdminTab('log')"><i class="bi bi-journal-text me-1"></i>Activity Log</button>
+      </div>
+
+      <!-- Settings Sub-tab -->
+      <div id="admin-settings" class="admin-panel">
+        <div class="card island-card mb-3">
+          <div class="card-body">
+            <h6 class="card-title fw-bold"><i class="bi bi-printer me-2 text-primary"></i>Print Header</h6>
+            <div class="input-group">
+              <input type="text" class="form-control bg-light" id="setting-print-header" placeholder="หัวกระดาษ พิมพ์ Report">
+              <button class="btn btn-primary" onclick="saveSetting('PRINT_HEADER', document.getElementById('setting-print-header').value)">
+                <i class="bi bi-check-lg"></i> บันทึก
+              </button>
+            </div>
+          </div>
+        </div>
+        <div class="card island-card mb-3">
+          <div class="card-body">
+            <h6 class="card-title fw-bold"><i class="bi bi-image me-2 text-primary"></i>App Logo</h6>
+            <div class="input-group mb-2">
+              <input type="text" class="form-control bg-light" id="setting-logo-url" placeholder="URL รูปโลโก้">
+              <button class="btn btn-primary" onclick="saveSetting('APP_LOGO_URL', document.getElementById('setting-logo-url').value)">
+                <i class="bi bi-check-lg"></i> บันทึก
+              </button>
+            </div>
+            <div class="d-flex align-items-center gap-3">
+              <div id="logo-preview" class="border rounded-3 d-flex align-items-center justify-content-center bg-light" style="width:80px;height:80px;overflow:hidden">
+                <i class="bi bi-image text-muted fs-4"></i>
+              </div>
+              <div>
+                <input type="file" accept="image/*" class="form-control form-control-sm" id="logo-file-input" onchange="handleLogoUpload(this)">
+                <small class="text-muted">รูปจะถูกย่อเหลือ 200px และอัปโหลดอัตโนมัติ</small>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Statistics Sub-tab -->
+      <div id="admin-stats" class="admin-panel" style="display:none">
+        <div class="d-flex align-items-center gap-2 mb-3">
+          <label class="small fw-semibold">เดือน:</label>
+          <select class="form-select form-select-sm" style="width:auto" id="stats-month-filter" onchange="loadStats()">
+          </select>
+        </div>
+        <div id="stats-content" class="row g-3">
+          <div class="col-md-6">
+            <div class="card island-card">
+              <div class="card-body">
+                <h6 class="card-title fw-bold small"><i class="bi bi-bar-chart-fill text-primary me-1"></i>Cases by Status</h6>
+                <canvas id="chart-status" height="200"></canvas>
+              </div>
+            </div>
+          </div>
+          <div class="col-md-6">
+            <div class="card island-card">
+              <div class="card-body">
+                <h6 class="card-title fw-bold small"><i class="bi bi-pie-chart-fill text-danger me-1"></i>Triage Level</h6>
+                <canvas id="chart-triage" height="200"></canvas>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Activity Log Sub-tab -->
+      <div id="admin-log" class="admin-panel" style="display:none">
+        <div class="table-responsive">
+          <table class="table table-sm table-hover align-middle small">
+            <thead class="table-light">
+              <tr>
+                <th>เวลา</th>
+                <th>ผู้ใช้</th>
+                <th>Role</th>
+                <th>Action</th>
+                <th>Target</th>
+                <th class="d-none d-md-table-cell">Details</th>
+              </tr>
+            </thead>
+            <tbody id="admin-log-body"></tbody>
+          </table>
+        </div>
+        <nav id="admin-log-pagination" class="d-flex justify-content-center"></nav>
+      </div>
+    </div>
+  </div>
+
+</div><!-- /app-main-wrapper -->
+
+<!-- ========== FULLSCREEN PREVIEW MODAL ========== -->
+<div class="modal fade" id="monitorPreviewModal" tabindex="-1">
+  <div class="modal-dialog modal-fullscreen">
+    <div class="modal-content">
+      <div class="modal-header py-2 bg-dark text-white border-0">
+        <h6 class="modal-title fw-bold" id="monitorPreviewTitle"></h6>
+        <div class="d-flex gap-2">
+          <button class="btn btn-sm btn-outline-light rounded-pill px-3" onclick="monitorPrintIframe()"><i class="bi bi-printer me-1"></i>Print</button>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+        </div>
+      </div>
+      <div class="modal-body p-0" id="monitorPreviewBody"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ========== SCRIPTS ========== -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script src="shared/config.js"></script>
+<script src="shared/auth.js"></script>
+<script src="shared/cloudinary.js"></script>
+
+<script>
+/* =============================================
+   PT Medical System — Main Entry Point
+   ============================================= */
+
+// --- Monitor state ---
+let monitorTimer = null;
+let monitorCountdownInterval = null;
+const MONITOR_INTERVAL = 180; // 3 minutes in seconds
+
+// --- Chart instances ---
+let chartStatus = null;
+let chartTriage = null;
+
+// --- Activity log pagination ---
+let logPage = 1;
+const LOG_PER_PAGE = 20;
+
+// =============================================
+// PAGE INIT
+// =============================================
+window.addEventListener('load', function() {
+  checkAuth(function() {
+    onLoginSuccess();
+  });
+});
+
+function onLoginSuccess() {
+  // Update navbar user info
+  document.getElementById('nav-username').textContent = getUserName();
+  document.getElementById('nav-role').textContent = getUserRole();
+
+  // Show/hide admin tab based on role
+  if (getUserRole() === 'Admin') {
+    document.getElementById('nav-admin-btn').style.display = '';
+    var mobileBtn = document.getElementById('nav-admin-btn-mobile');
+    if (mobileBtn) mobileBtn.style.display = '';
+  }
+
+  // Load monitor data
+  loadMonitor();
+}
+
+// =============================================
+// TAB SWITCHING
+// =============================================
+function showTab(tab) {
+  document.querySelectorAll('.main-tab').forEach(function(t) { t.style.display = 'none'; t.classList.remove('active'); });
+  var el = document.getElementById('tab-' + tab);
+  if (el) { el.style.display = 'block'; el.classList.add('active'); }
+
+  // Update nav active state (desktop + mobile)
+  document.querySelectorAll('.nav-tab-btn').forEach(function(b) { b.classList.remove('active'); });
+  document.querySelectorAll('[data-tab="' + tab + '"]').forEach(function(b) { b.classList.add('active'); });
+
+  if (tab === 'monitor') loadMonitor();
+  if (tab === 'admin') { loadSettings(); initStatsFilter(); loadActivityLog(); }
+}
+
+// =============================================
+// MONITOR — Loading states
+// =============================================
+function monitorShowLoading() {
+  var icon = document.getElementById('monitor-refresh-icon');
+  if (icon) icon.classList.add('monitor-spin');
+  ['monitor-transport-list', 'monitor-fa-list'].forEach(function(id) {
+    var el = document.getElementById(id);
+    if (el) el.classList.add('monitor-loading');
+  });
+}
+
+function monitorHideLoading() {
+  var icon = document.getElementById('monitor-refresh-icon');
+  if (icon) icon.classList.remove('monitor-spin');
+  ['monitor-transport-list', 'monitor-fa-list'].forEach(function(id) {
+    var el = document.getElementById(id);
+    if (el) el.classList.remove('monitor-loading');
+  });
+}
+
+// =============================================
+// MONITOR — Countdown timer
+// =============================================
+function monitorStartCountdown() {
+  if (monitorCountdownInterval) clearInterval(monitorCountdownInterval);
+  if (monitorTimer) clearTimeout(monitorTimer);
+
+  var remaining = MONITOR_INTERVAL;
+  var circle = document.getElementById('monitor-countdown-circle');
+  var circumference = 2 * Math.PI * 14; // r=14
+
+  function updateRing() {
+    var offset = circumference * (1 - remaining / MONITOR_INTERVAL);
+    if (circle) circle.setAttribute('stroke-dashoffset', offset);
+  }
+
+  updateRing();
+
+  monitorCountdownInterval = setInterval(function() {
+    remaining--;
+    updateRing();
+    if (remaining <= 0) {
+      clearInterval(monitorCountdownInterval);
+    }
+  }, 1000);
+
+  monitorTimer = setTimeout(function() {
+    loadMonitor();
+  }, MONITOR_INTERVAL * 1000);
+}
+
+// =============================================
+// MONITOR — Load data
+// =============================================
+async function loadMonitor() {
+  monitorShowLoading();
+
+  document.getElementById('monitor-last-refresh').textContent =
+    new Date().toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+
+  monitorStartCountdown();
+
+  try {
+    // Load Transport cases
+    var casesRes = await _supabase.from('cases').select('*').eq('status', 'Active').order('created_at', { ascending: false });
+    var cases = casesRes.data || [];
+
+    // Load FA events
+    var eventsRes = await _supabase.from('fa_events').select('*').eq('status', 'Active');
+    var events = eventsRes.data || [];
+
+    // For each event, get registry counts
+    for (var i = 0; i < events.length; i++) {
+      var ev = events[i];
+      var countRes = await _supabase.from('fa_registry').select('*', { count: 'exact', head: true }).eq('event_id', ev.event_id);
+      ev.registryCount = countRes.count || 0;
+
+      var regsRes = await _supabase.from('fa_registry').select('etiology, result').eq('event_id', ev.event_id);
+      var regs = regsRes.data || [];
+      ev.registryMed = regs.filter(function(r) { return r.etiology === 'Med'; }).length;
+      ev.registryTrauma = regs.filter(function(r) { return r.etiology === 'Trauma'; }).length;
+      ev.registryTransfer = regs.filter(function(r) { return r.result && r.result.startsWith('transfer'); }).length;
+    }
+
+    renderMonitorTransport(cases);
+    renderMonitorFA(events);
+  } catch (err) {
+    console.error('Monitor load error:', err);
+  }
+
+  monitorHideLoading();
+}
+
+// =============================================
+// MONITOR — Render Transport cards
+// =============================================
+function getTriageClass(level) {
+  if (!level) return 'triage-default';
+  var l = level.toLowerCase();
+  if (l === 'emergency' || l === 'resuscitation' || l.includes('red')) return 'triage-red';
+  if (l === 'urgent' || l.includes('pink')) return 'triage-pink';
+  if (l === 'less urgent' || l.includes('yellow')) return 'triage-yellow';
+  if (l === 'non-urgent' || l.includes('green')) return 'triage-green';
+  return 'triage-default';
+}
+
+function getTriageLabel(level) {
+  if (!level) return 'N/A';
+  var l = level.toLowerCase();
+  if (l === 'emergency' || l === 'resuscitation' || l.includes('red')) return 'RED';
+  if (l === 'urgent' || l.includes('pink')) return 'PINK';
+  if (l === 'less urgent' || l.includes('yellow')) return 'YELLOW';
+  if (l === 'non-urgent' || l.includes('green')) return 'GREEN';
+  return level;
+}
+
+function renderMonitorTransport(cases) {
+  var container = document.getElementById('monitor-transport-list');
+  document.getElementById('monitor-transport-count').textContent = cases.length;
+
+  if (!cases.length) {
+    container.innerHTML = '<div class="col-12"><div class="empty-state"><i class="bi bi-check-circle"></i>ไม่มี Case ที่กำลังดำเนินการ</div></div>';
+    return;
+  }
+
+  var html = '';
+  cases.forEach(function(c) {
+    var pt = c.patient_info || {};
+    var raw = c.raw_data || {};
+    var snap = (raw.rawSnapshot) || {};
+    var op = c.op_info || {};
+    var vitalsArr = raw.vitalsJson || [];
+
+    // Get latest non-arrest vitals
+    var vitals = null;
+    for (var i = vitalsArr.length - 1; i >= 0; i--) {
+      if (vitalsArr[i].type !== 'arrest') { vitals = vitalsArr[i]; break; }
+    }
+
+    // Fallback to initial vitals from snapshot
+    var bp = vitals ? (vitals.bp_sys ? vitals.bp_sys + '/' + (vitals.bp_dia || '') : '-') : (snap.init_bp || '-');
+    var pr = vitals ? (vitals.pr || '-') : (snap.init_pr || '-');
+    var spo2 = vitals ? (vitals.spo2 || '-') : (snap.init_spo2 || '-');
+    var rr = vitals ? (vitals.rr || '-') : (snap.init_rr || '-');
+    var temp = vitals ? (vitals.temp || '-') : (snap.init_temp || '-');
+    var gcs = '-';
+    if (vitals && vitals.gcs_e != null) {
+      gcs = (vitals.gcs_e || 0) + (vitals.gcs_v || 0) + (vitals.gcs_m || 0);
+    } else if (snap.gcs_e != null) {
+      gcs = (parseInt(snap.gcs_e) || 0) + (parseInt(snap.gcs_v) || 0) + (parseInt(snap.gcs_m) || 0);
+    }
+
+    // Arrest check
+    var arrestHtml = '';
+    var hasArrest = snap.circ_arrest === 'yes' || snap.arrest_pre_arrest;
+    var arrestEntries = vitalsArr.filter(function(v) { return v.type === 'arrest'; });
+
+    if (hasArrest || arrestEntries.length > 0) {
+      var lastArrest = arrestEntries.length > 0 ? arrestEntries[arrestEntries.length - 1] : null;
+      var outcome = lastArrest ? (lastArrest.outcome || '') : '';
+      var arrestClass = 'arrest-ongoing';
+      var arrestLabel = '<span class="blink-badge fw-bold"><i class="bi bi-exclamation-triangle-fill me-1"></i>CARDIAC ARREST &mdash; Ongoing</span>';
+
+      if (outcome.toLowerCase().includes('rosc')) {
+        arrestClass = 'arrest-rosc';
+        arrestLabel = '<i class="bi bi-heart-pulse-fill me-1"></i>ROSC &mdash; Arrest Recovered';
+      } else if (outcome.toLowerCase().includes('dead') || outcome.toLowerCase().includes('terminate')) {
+        arrestClass = 'arrest-dead';
+        arrestLabel = '<i class="bi bi-dash-circle me-1"></i>Terminate CPR';
+      }
+
+      arrestHtml = '<div class="arrest-card ' + arrestClass + ' mt-2">' +
+        '<div class="arrest-header fw-bold small mb-1">' + arrestLabel + '</div>' +
+        '<div class="d-flex flex-wrap gap-2 small text-muted">';
+      if (snap.arrest_pre_arrest) arrestHtml += '<span><strong>Pre-arrest:</strong> ' + escapeHtml(snap.arrest_pre_arrest) + '</span>';
+      if (lastArrest) {
+        if (lastArrest.time) arrestHtml += '<span><strong>Time:</strong> ' + escapeHtml(lastArrest.time) + '</span>';
+        if (lastArrest.rhythm) arrestHtml += '<span><strong>Rhythm:</strong> ' + escapeHtml(lastArrest.rhythm) + '</span>';
+        if (lastArrest.cpr_start) arrestHtml += '<span><strong>CPR:</strong> ' + escapeHtml(lastArrest.cpr_start) + '</span>';
+        if (outcome) arrestHtml += '<span><strong>Outcome:</strong> ' + escapeHtml(outcome) + '</span>';
+      }
+      arrestHtml += '</div></div>';
+    }
+
+    html += '<div class="col-12 col-lg-6">' +
+      '<div class="monitor-case-card" onclick="openMonitorPreview(\'transport\',\'' + escapeHtml(c.case_id) + '\')">' +
+      '<div class="triage-bar ' + getTriageClass(c.triage_level) + '"></div>' +
+      '<div class="p-3">' +
+        '<div class="d-flex justify-content-between align-items-start mb-2">' +
+          '<div>' +
+            '<span class="badge bg-dark bg-opacity-75 me-1 small">' + escapeHtml(c.case_id || '') + '</span>' +
+            '<span class="badge bg-' + (getTriageClass(c.triage_level).replace('triage-','')) + ' bg-opacity-10 text-' + (getTriageClass(c.triage_level).includes('red') ? 'danger' : getTriageClass(c.triage_level).includes('yellow') ? 'warning' : getTriageClass(c.triage_level).includes('green') ? 'success' : 'secondary') + ' small">' + getTriageLabel(c.triage_level) + '</span>' +
+          '</div>' +
+          '<small class="text-muted">' + (op.type || '') + ' ' + (op.level || '') + (op.unitNo ? ' #' + op.unitNo : '') + '</small>' +
+        '</div>' +
+        '<h6 class="fw-bold mb-1">' + escapeHtml(pt.name || 'ไม่ระบุชื่อ') +
+          ' <small class="text-muted fw-normal">' + (pt.age ? pt.age + ' ปี' : '') + (pt.gender ? ' ' + escapeHtml(pt.gender) : '') + '</small></h6>' +
+        (pt.origin || pt.destination ?
+          '<div class="small text-muted mb-2"><i class="bi bi-geo me-1"></i>' + escapeHtml(pt.origin || '?') + ' <i class="bi bi-arrow-right mx-1"></i> ' + escapeHtml(pt.destination || '?') + '</div>' : '') +
+        '<div class="d-flex flex-wrap gap-1 mb-2">' +
+          (snap.pt_cc ? '<span class="badge bg-light text-dark border small"><strong>CC:</strong> ' + escapeHtml(snap.pt_cc) + '</span>' : '') +
+          (snap.pt_dx ? '<span class="badge bg-light text-dark border small"><strong>Dx:</strong> ' + escapeHtml(snap.pt_dx) + '</span>' : '') +
+          (snap.pt_allergies ? '<span class="badge bg-warning bg-opacity-10 text-warning border-warning small"><strong>Allergy:</strong> ' + escapeHtml(snap.pt_allergies) + '</span>' : '') +
+        '</div>' +
+        '<div class="vitals-grid">' +
+          '<div class="vital-item"><div class="vital-label">BP</div><div class="vital-value">' + escapeHtml(String(bp)) + '</div></div>' +
+          '<div class="vital-item"><div class="vital-label">PR</div><div class="vital-value">' + escapeHtml(String(pr)) + '</div></div>' +
+          '<div class="vital-item"><div class="vital-label">SpO2</div><div class="vital-value">' + escapeHtml(String(spo2)) + '</div></div>' +
+          '<div class="vital-item"><div class="vital-label">RR</div><div class="vital-value">' + escapeHtml(String(rr)) + '</div></div>' +
+          '<div class="vital-item"><div class="vital-label">Temp</div><div class="vital-value">' + escapeHtml(String(temp)) + '</div></div>' +
+          '<div class="vital-item"><div class="vital-label">GCS</div><div class="vital-value">' + escapeHtml(String(gcs)) + '</div></div>' +
+        '</div>' +
+        arrestHtml +
+      '</div></div></div>';
+  });
+
+  container.innerHTML = html;
+}
+
+// =============================================
+// MONITOR — Render FA cards
+// =============================================
+function renderMonitorFA(events) {
+  var container = document.getElementById('monitor-fa-list');
+  document.getElementById('monitor-fa-count').textContent = events.length;
+
+  if (!events.length) {
+    container.innerHTML = '<div class="col-12"><div class="empty-state"><i class="bi bi-check-circle"></i>ไม่มี Event ที่กำลังดำเนินการ</div></div>';
+    return;
+  }
+
+  var html = '';
+  events.forEach(function(ev) {
+    var dateRange = (ev.event_date || '') + (ev.start_time ? ' ' + ev.start_time : '');
+    if (ev.end_date && ev.end_date !== ev.event_date) dateRange += ' — ' + ev.end_date;
+    if (ev.end_time) dateRange += ' ' + ev.end_time;
+
+    html += '<div class="col-12 col-lg-6">' +
+      '<div class="fa-event-card p-3" onclick="openMonitorPreview(\'fa\',\'' + escapeHtml(ev.event_id) + '\')">' +
+        '<div class="d-flex justify-content-between align-items-start mb-2">' +
+          '<div>' +
+            '<h6 class="fw-bold mb-0">' + escapeHtml(ev.event_name || '') + '</h6>' +
+            '<small class="text-muted"><i class="bi bi-geo-alt me-1"></i>' + escapeHtml(ev.location || '') + '</small>' +
+          '</div>' +
+          '<span class="badge bg-success bg-opacity-10 text-success">Active</span>' +
+        '</div>' +
+        '<div class="small text-muted mb-2"><i class="bi bi-calendar-event me-1"></i>' + escapeHtml(dateRange) + '</div>' +
+        '<div class="d-flex flex-wrap gap-1 mb-2">' +
+          '<span class="fa-stat-pill bg-primary bg-opacity-10 text-primary"><i class="bi bi-people-fill me-1"></i>' + (ev.registryCount || 0) + ' Total</span>' +
+          '<span class="fa-stat-pill bg-info bg-opacity-10 text-info">Med ' + (ev.registryMed || 0) + '</span>' +
+          '<span class="fa-stat-pill bg-danger bg-opacity-10 text-danger">Trauma ' + (ev.registryTrauma || 0) + '</span>' +
+          '<span class="fa-stat-pill bg-warning bg-opacity-10 text-warning">Transfer ' + (ev.registryTransfer || 0) + '</span>' +
+        '</div>' +
+        '<div class="d-flex flex-wrap gap-2 small">' +
+          '<span class="text-muted" title="แอมโมเนีย"><i class="bi bi-droplet-half text-primary me-1"></i>' + (ev.q_ammonia || 0) + '</span>' +
+          '<span class="text-muted" title="พลาสเตอร์"><i class="bi bi-bandaid text-warning me-1"></i>' + (ev.q_plaster || 0) + '</span>' +
+          '<span class="text-muted" title="สเปรย์"><i class="bi bi-snow text-info me-1"></i>' + (ev.q_spray || 0) + '</span>' +
+          '<span class="text-muted" title="ทำแผล"><i class="bi bi-heart-pulse text-danger me-1"></i>' + (ev.q_wound || 0) + '</span>' +
+        '</div>' +
+      '</div></div>';
+  });
+
+  container.innerHTML = html;
+}
+
+// =============================================
+// MONITOR — Preview modal
+// =============================================
+function openMonitorPreview(type, id) {
+  var modal = new bootstrap.Modal(document.getElementById('monitorPreviewModal'));
+  var title = document.getElementById('monitorPreviewTitle');
+  var body = document.getElementById('monitorPreviewBody');
+
+  if (type === 'transport') {
+    title.textContent = 'Transport Case: ' + id;
+    body.innerHTML = '<iframe src="transport/#view/' + encodeURIComponent(id) + '" style="width:100%;height:100%;border:none"></iframe>';
+  } else if (type === 'fa') {
+    title.textContent = 'First Aid Event: ' + id;
+    body.innerHTML = '<iframe src="firstaid/#event/' + encodeURIComponent(id) + '" style="width:100%;height:100%;border:none"></iframe>';
+  }
+
+  modal.show();
+}
+
+function monitorPrintIframe() {
+  var iframe = document.querySelector('#monitorPreviewBody iframe');
+  if (iframe && iframe.contentWindow) {
+    iframe.contentWindow.print();
+  }
+}
+
+// =============================================
+// ADMIN — Sub-tab switching
+// =============================================
+function showAdminTab(tab) {
+  document.querySelectorAll('.admin-panel').forEach(function(p) { p.style.display = 'none'; });
+  document.querySelectorAll('.admin-sub-tab').forEach(function(b) { b.classList.remove('active'); });
+
+  var panel = document.getElementById('admin-' + tab);
+  if (panel) panel.style.display = 'block';
+  document.querySelector('[data-admin-tab="' + tab + '"]').classList.add('active');
+
+  if (tab === 'settings') loadSettings();
+  if (tab === 'stats') loadStats();
+  if (tab === 'log') loadActivityLog();
+}
+
+// =============================================
+// ADMIN — Settings
+// =============================================
+async function loadSettings() {
+  try {
+    var res = await _supabase.from('settings').select('*');
+    var data = res.data || [];
+    data.forEach(function(s) {
+      if (s.key === 'PRINT_HEADER') {
+        document.getElementById('setting-print-header').value = s.value || '';
+      }
+      if (s.key === 'APP_LOGO_URL') {
+        document.getElementById('setting-logo-url').value = s.value || '';
+        updateLogoPreview(s.value);
+      }
+    });
+  } catch (err) {
+    console.error('Load settings error:', err);
+  }
+}
+
+function updateLogoPreview(url) {
+  var preview = document.getElementById('logo-preview');
+  if (url) {
+    preview.innerHTML = '<img src="' + escapeHtml(url) + '" style="max-width:100%;max-height:100%;object-fit:contain" onerror="this.parentElement.innerHTML=\'<i class=\\\'bi bi-image text-muted fs-4\\\'></i>\'">';
+  } else {
+    preview.innerHTML = '<i class="bi bi-image text-muted fs-4"></i>';
+  }
+}
+
+async function saveSetting(key, value) {
+  try {
+    await _supabase.from('settings').upsert({ key: key, value: value });
+    await _supabase.from('activity_log').insert({
+      username: getUserName(),
+      role: getUserRole(),
+      action: 'SETTINGS',
+      target: key,
+      details: 'Updated to: ' + value
+    });
+    Swal.fire({ icon: 'success', title: 'บันทึกแล้ว', timer: 1500, showConfirmButton: false });
+    if (key === 'APP_LOGO_URL') updateLogoPreview(value);
+  } catch (err) {
+    Swal.fire({ icon: 'error', title: 'Error', text: err.message });
+  }
+}
+
+async function handleLogoUpload(input) {
+  if (!input.files || !input.files[0]) return;
+  var file = input.files[0];
+
+  // Compress to 200px
+  try {
+    var compressed = await compressImage(file, 200);
+    Swal.fire({ title: 'กำลังอัปโหลด...', allowOutsideClick: false, didOpen: function() { Swal.showLoading(); } });
+    var url = await uploadBase64ToCloudinary(compressed, 'logos');
+    Swal.close();
+    document.getElementById('setting-logo-url').value = url;
+    updateLogoPreview(url);
+    await saveSetting('APP_LOGO_URL', url);
+  } catch (err) {
+    Swal.fire({ icon: 'error', title: 'Upload failed', text: err.message });
+  }
+}
+
+function compressImage(file, maxSize) {
+  return new Promise(function(resolve, reject) {
+    var reader = new FileReader();
+    reader.onload = function(e) {
+      var img = new Image();
+      img.onload = function() {
+        var canvas = document.createElement('canvas');
+        var ratio = Math.min(maxSize / img.width, maxSize / img.height, 1);
+        canvas.width = img.width * ratio;
+        canvas.height = img.height * ratio;
+        var ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+        resolve(canvas.toDataURL('image/png', 0.9));
+      };
+      img.onerror = reject;
+      img.src = e.target.result;
+    };
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+}
+
+// =============================================
+// ADMIN — Statistics
+// =============================================
+function initStatsFilter() {
+  var sel = document.getElementById('stats-month-filter');
+  if (sel.options.length > 1) return; // already initialized
+  sel.innerHTML = '';
+  var now = new Date();
+  for (var i = 0; i < 12; i++) {
+    var d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+    var val = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0');
+    var label = d.toLocaleDateString('th-TH', { year: 'numeric', month: 'long' });
+    sel.innerHTML += '<option value="' + val + '">' + label + '</option>';
+  }
+  loadStats();
+}
+
+async function loadStats() {
+  var month = document.getElementById('stats-month-filter').value;
+  if (!month) return;
+
+  var startDate = month + '-01';
+  var parts = month.split('-');
+  var endDate = new Date(parseInt(parts[0]), parseInt(parts[1]), 1);
+  var endStr = endDate.toISOString().split('T')[0];
+
+  try {
+    var res = await _supabase.from('cases').select('status, triage_level')
+      .gte('created_at', startDate + 'T00:00:00')
+      .lt('created_at', endStr + 'T00:00:00');
+
+    var rows = res.data || [];
+
+    // Status chart
+    var statusCounts = {};
+    rows.forEach(function(r) {
+      var s = r.status || 'Unknown';
+      statusCounts[s] = (statusCounts[s] || 0) + 1;
+    });
+
+    var statusLabels = Object.keys(statusCounts);
+    var statusData = statusLabels.map(function(k) { return statusCounts[k]; });
+    var statusColors = statusLabels.map(function(s) {
+      if (s === 'Active') return '#0d6efd';
+      if (s === 'Completed') return '#198754';
+      if (s === 'Cancelled') return '#dc3545';
+      return '#6c757d';
+    });
+
+    if (chartStatus) chartStatus.destroy();
+    chartStatus = new Chart(document.getElementById('chart-status'), {
+      type: 'bar',
+      data: {
+        labels: statusLabels.length ? statusLabels : ['No data'],
+        datasets: [{ label: 'Cases', data: statusData.length ? statusData : [0], backgroundColor: statusColors.length ? statusColors : ['#e9ecef'] }]
+      },
+      options: { responsive: true, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } } }
+    });
+
+    // Triage chart
+    var triageCounts = {};
+    rows.forEach(function(r) {
+      var t = r.triage_level || 'Unknown';
+      triageCounts[t] = (triageCounts[t] || 0) + 1;
+    });
+
+    var triageLabels = Object.keys(triageCounts);
+    var triageData = triageLabels.map(function(k) { return triageCounts[k]; });
+    var triageColors = triageLabels.map(function(t) {
+      var l = t.toLowerCase();
+      if (l.includes('emergency') || l.includes('resuscitation') || l.includes('red')) return '#dc3545';
+      if (l.includes('urgent') || l.includes('pink')) return '#e83e8c';
+      if (l.includes('less') || l.includes('yellow')) return '#ffc107';
+      if (l.includes('non') || l.includes('green')) return '#198754';
+      return '#6c757d';
+    });
+
+    if (chartTriage) chartTriage.destroy();
+    chartTriage = new Chart(document.getElementById('chart-triage'), {
+      type: 'doughnut',
+      data: {
+        labels: triageLabels.length ? triageLabels : ['No data'],
+        datasets: [{ data: triageData.length ? triageData : [1], backgroundColor: triageColors.length ? triageColors : ['#e9ecef'] }]
+      },
+      options: { responsive: true, plugins: { legend: { position: 'bottom', labels: { font: { size: 11 } } } } }
+    });
+  } catch (err) {
+    console.error('Stats load error:', err);
+  }
+}
+
+// =============================================
+// ADMIN — Activity Log
+// =============================================
+async function loadActivityLog(page) {
+  logPage = page || 1;
+  var offset = (logPage - 1) * LOG_PER_PAGE;
+
+  try {
+    var countRes = await _supabase.from('activity_log').select('*', { count: 'exact', head: true });
+    var total = countRes.count || 0;
+
+    var res = await _supabase.from('activity_log').select('*')
+      .order('created_at', { ascending: false })
+      .range(offset, offset + LOG_PER_PAGE - 1);
+
+    var rows = res.data || [];
+    var tbody = document.getElementById('admin-log-body');
+
+    if (!rows.length) {
+      tbody.innerHTML = '<tr><td colspan="6" class="text-center text-muted py-4">ไม่มีข้อมูล</td></tr>';
+    } else {
+      tbody.innerHTML = rows.map(function(r) {
+        var ts = r.created_at ? new Date(r.created_at).toLocaleString('th-TH', { dateStyle: 'short', timeStyle: 'short' }) : '-';
+        return '<tr>' +
+          '<td class="text-nowrap">' + escapeHtml(ts) + '</td>' +
+          '<td>' + escapeHtml(r.username || '') + '</td>' +
+          '<td><span class="badge bg-secondary bg-opacity-25 text-dark">' + escapeHtml(r.role || '') + '</span></td>' +
+          '<td><span class="badge bg-primary bg-opacity-10 text-primary">' + escapeHtml(r.action || '') + '</span></td>' +
+          '<td>' + escapeHtml(r.target || '') + '</td>' +
+          '<td class="d-none d-md-table-cell small text-muted">' + escapeHtml(r.details || '') + '</td>' +
+          '</tr>';
+      }).join('');
+    }
+
+    // Pagination
+    var totalPages = Math.ceil(total / LOG_PER_PAGE);
+    var pagNav = document.getElementById('admin-log-pagination');
+    if (totalPages <= 1) {
+      pagNav.innerHTML = '';
+      return;
+    }
+
+    var pagHtml = '<ul class="pagination pagination-sm mb-0">';
+    pagHtml += '<li class="page-item ' + (logPage <= 1 ? 'disabled' : '') + '"><a class="page-link" href="#" onclick="event.preventDefault();loadActivityLog(' + (logPage - 1) + ')">&laquo;</a></li>';
+    for (var p = 1; p <= totalPages; p++) {
+      pagHtml += '<li class="page-item ' + (p === logPage ? 'active' : '') + '"><a class="page-link" href="#" onclick="event.preventDefault();loadActivityLog(' + p + ')">' + p + '</a></li>';
+    }
+    pagHtml += '<li class="page-item ' + (logPage >= totalPages ? 'disabled' : '') + '"><a class="page-link" href="#" onclick="event.preventDefault();loadActivityLog(' + (logPage + 1) + ')">&raquo;</a></li>';
+    pagHtml += '</ul>';
+    pagNav.innerHTML = pagHtml;
+  } catch (err) {
+    console.error('Activity log error:', err);
+  }
+}
+</script>
 </body>
 </html>

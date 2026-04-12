@@ -1,82 +1,115 @@
-// PT Medical System — Auth Helper
-// Requires: supabase-js CDN + config.js loaded before this
+// PT Medical System — Auth Helper (GAS HR API)
+// Requires: config.js loaded before this, supabase-js CDN
 
 const _supabase = supabase.createClient(CONFIG.SUPABASE_URL, CONFIG.SUPABASE_ANON_KEY);
 
 // --- Session helpers ---
-function getSession() {
-  return _supabase.auth.getSession();
-}
-
-async function isLoggedIn() {
-  const { data } = await _supabase.auth.getSession();
-  return !!data.session;
-}
-
 function getUserMeta() {
   const raw = localStorage.getItem('pt_user_meta');
-  return raw ? JSON.parse(raw) : {};
+  return raw ? JSON.parse(raw) : null;
+}
+
+function isLoggedIn() {
+  return !!getUserMeta();
 }
 
 function getUserRole() {
-  return getUserMeta().role || 'User';
+  const meta = getUserMeta();
+  return meta ? (meta.role || 'User') : 'User';
 }
 
 function getUserName() {
-  return getUserMeta().full_name || 'Unknown';
+  const meta = getUserMeta();
+  return meta ? (meta.full_name || meta.name || 'Unknown') : 'Unknown';
 }
 
-// --- Login ---
+function getUserUsername() {
+  const meta = getUserMeta();
+  return meta ? (meta.username || '') : '';
+}
+
+// --- Login via GAS HR API ---
 async function handleLogin(e) {
   e.preventDefault();
-  const email = document.getElementById('login-user').value.trim();
+  const username = document.getElementById('login-user').value.trim();
   const pass = document.getElementById('login-pass').value;
   const errEl = document.getElementById('login-error');
   const btn = document.getElementById('btn-login');
 
-  if (errEl) { errEl.classList.add('d-none'); errEl.textContent = ''; }
-  if (btn) { btn.disabled = true; btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>กำลังเข้าสู่ระบบ...'; }
-
-  // Allow login with just username (append @supwilai.com)
-  const loginEmail = email.includes('@') ? email : email + '@supwilai.com';
-
-  const { data, error } = await _supabase.auth.signInWithPassword({ email: loginEmail, password: pass });
-
-  if (error) {
-    if (errEl) { errEl.textContent = 'เข้าสู่ระบบไม่สำเร็จ: ' + error.message; errEl.classList.remove('d-none'); }
-    if (btn) { btn.disabled = false; btn.innerHTML = 'เข้าสู่ระบบ (Login)'; }
+  if (!username || !pass) {
+    if (errEl) { errEl.textContent = 'กรุณากรอก Username และ Password'; errEl.classList.remove('d-none'); }
     return;
   }
 
-  // Save user metadata
-  const meta = data.user.user_metadata || {};
-  localStorage.setItem('pt_user_meta', JSON.stringify(meta));
+  if (errEl) { errEl.classList.add('d-none'); errEl.textContent = ''; }
+  if (btn) { btn.disabled = true; btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>กำลังเข้าสู่ระบบ...'; }
 
-  // Show app
-  document.getElementById('login-view').style.display = 'none';
-  const wrapper = document.getElementById('app-main-wrapper');
-  if (wrapper) wrapper.style.display = 'block';
+  try {
+    const res = await fetch(CONFIG.GAS_AUTH_API_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify({ username: username, password: pass }),
+      redirect: 'follow'
+    });
+    const result = await res.json();
 
-  if (typeof onLoginSuccess === 'function') onLoginSuccess();
+    if (result.status === 'success') {
+      localStorage.setItem('pt_user_meta', JSON.stringify({
+        full_name: result.name || username,
+        role: result.role || 'User',
+        username: username,
+        loginAt: new Date().toISOString()
+      }));
+
+      // Show app
+      const loginView = document.getElementById('login-view');
+      if (loginView) loginView.style.display = 'none';
+      const wrapper = document.getElementById('app-main-wrapper');
+      if (wrapper) wrapper.style.display = 'block';
+
+      if (typeof onLoginSuccess === 'function') onLoginSuccess();
+    } else {
+      throw new Error(result.message || 'เข้าสู่ระบบไม่สำเร็จ');
+    }
+  } catch (err) {
+    const msg = err.message || 'ไม่สามารถเชื่อมต่อระบบได้';
+    if (errEl) { errEl.textContent = 'เข้าสู่ระบบไม่สำเร็จ: ' + msg; errEl.classList.remove('d-none'); }
+  }
+
+  if (btn) { btn.disabled = false; btn.innerHTML = 'เข้าสู่ระบบ (Login)'; }
 }
 
 // --- Logout ---
-async function handleLogout() {
-  await _supabase.auth.signOut();
+function handleLogout() {
   localStorage.removeItem('pt_user_meta');
-  window.location.reload();
+  window.location.href = CONFIG.BASE_URL + '/';
 }
 
-// --- Auto-login check ---
-async function checkAuth(onSuccess) {
-  const { data } = await _supabase.auth.getSession();
-  if (data.session) {
-    const meta = data.session.user.user_metadata || {};
-    localStorage.setItem('pt_user_meta', JSON.stringify(meta));
-    document.getElementById('login-view').style.display = 'none';
+// --- Auth guard (for module pages) ---
+function requireAuth() {
+  if (!isLoggedIn()) {
+    window.location.href = CONFIG.BASE_URL + '/';
+    return false;
+  }
+  return true;
+}
+
+// --- Check auth on page load ---
+function checkAuth(onSuccess) {
+  if (isLoggedIn()) {
+    const loginView = document.getElementById('login-view');
+    if (loginView) loginView.style.display = 'none';
     const wrapper = document.getElementById('app-main-wrapper');
     if (wrapper) wrapper.style.display = 'block';
     if (onSuccess) onSuccess();
+  } else {
+    // On module pages, redirect to root login
+    const isRootPage = window.location.pathname === CONFIG.BASE_URL + '/' ||
+                       window.location.pathname === CONFIG.BASE_URL + '/index.html' ||
+                       window.location.pathname === '/';
+    if (!isRootPage) {
+      window.location.href = CONFIG.BASE_URL + '/';
+    }
   }
 }
 
