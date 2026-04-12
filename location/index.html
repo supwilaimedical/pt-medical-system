@@ -680,7 +680,23 @@
         loc_reGeocode();
       }
 
-      // Strategy 1: Supabase Edge Function (follow redirects server-side, เหมือน GAS เดิม)
+      // Strategy 1: Supabase Database Function (follow redirects server-side, เหมือน GAS เดิม)
+      // ต้องเปิด http extension + รัน SQL ก่อน (ดู supabase/migrations/001_expand_maps_url.sql)
+      try {
+        var { data: rpcData, error: rpcErr } = await _supabase.rpc('expand_maps_url', { short_url: shortUrl });
+        if (!rpcErr && rpcData && rpcData.success) {
+          setCoords({ lat: rpcData.lat, lng: rpcData.lng });
+          return;
+        }
+        // RPC returned resolved URL but couldn't parse coords — try our local parser
+        if (rpcData && rpcData.resolved_url) {
+          var coords = loc_parseGoogleMapsUrl(rpcData.resolved_url);
+          if (coords) { setCoords(coords); return; }
+        }
+        if (rpcErr) console.warn('RPC expand_maps_url error:', rpcErr.message);
+      } catch (e) { console.warn('RPC failed:', e); }
+
+      // Strategy 2: Supabase Edge Function fallback
       try {
         var edgeRes = await fetch(CONFIG.SUPABASE_URL + '/functions/v1/expand-url', {
           method: 'POST',
@@ -693,22 +709,11 @@
           setCoords({ lat: edgeData.lat, lng: edgeData.lng });
           return;
         }
-        // Edge Function returned resolved URL but couldn't parse coords — try our parser
         if (edgeData.resolvedUrl) {
           var coords = loc_parseGoogleMapsUrl(edgeData.resolvedUrl);
           if (coords) { setCoords(coords); return; }
         }
       } catch (e) { console.warn('Edge Function failed:', e); }
-
-      // Strategy 2: allorigins.win fallback
-      try {
-        var res = await fetch('https://api.allorigins.win/get?url=' + encodeURIComponent(shortUrl), { signal: AbortSignal.timeout(10000) });
-        var json = await res.json();
-        if (json.contents) {
-          var coords = loc_parseGoogleMapsUrl(json.contents);
-          if (coords) { setCoords(coords); return; }
-        }
-      } catch (e) { console.warn('allorigins failed:', e); }
 
       // All strategies failed
       st.innerHTML = '[ไม่สำเร็จ] ไม่สามารถขยายลิงก์ย่อได้ — <b>วิธีแก้:</b> เปิดลิงก์ใน Google Maps → คัดลอก URL แบบเต็มมาวาง';
