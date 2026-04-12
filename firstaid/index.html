@@ -1656,11 +1656,17 @@
     };
 
     var REG_TREATMENTS = [
-        'Cold pack', 'Cool down', 'CPR/AED', 'Eye wash',
-        'Hot pack', 'IV Fluid', 'Keep warm', 'Nebulization',
-        'Oxygen/O2', 'Splint/ดาม', 'Stretching/ยืดกล้ามเนื้อ',
-        'ทำแผล/Wound dressing', 'พลาสเตอร์ยา', 'ยานวด/สเปรย์',
-        'แอมโมเนีย', 'ห้ามเลือด/Pressure'
+        // A — Airway
+        'แอมโมเนีย',
+        // B — Breathing
+        'Oxygen/O2', 'Nebulization',
+        // C — Circulation
+        'CPR/AED', 'IV Fluid', 'ห้ามเลือด/Pressure',
+        // D — Disability
+        'Splint/ดาม', 'Stretching/ยืดกล้ามเนื้อ', 'ยานวด/สเปรย์',
+        // E — Exposure / Environment
+        'ทำแผล/Wound dressing', 'พลาสเตอร์ยา', 'Eye wash',
+        'Cold pack', 'Hot pack', 'Cool down', 'Keep warm'
     ];
 
     // Build treatment ghost buttons from array
