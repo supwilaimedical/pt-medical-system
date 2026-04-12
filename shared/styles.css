@@ -57,7 +57,7 @@ body {
     border: 1px solid rgba(255,255,255,0.8) !important;
     max-width: 100%;
 }
-#app-main-wrapper { display: none; }
+/* #app-main-wrapper visibility controlled by JS per page */
 
 /* --- DASHBOARD --- */
 .dashboard-header {
