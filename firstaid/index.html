@@ -374,14 +374,6 @@
                 <label class="form-label small text-secondary mb-1">จุดรักษา <span class="text-muted">(คั่นด้วย comma)</span></label>
                 <input type="text" id="fa-ev-cfg-locations" class="form-control form-control-sm" placeholder="เช่น Sector 1, Sector 2, Finish-line, Medical Tent">
               </div>
-              <div>
-                <label class="form-label small text-secondary mb-1">ชุด Problem List</label>
-                <select id="fa-ev-cfg-problemset" class="form-select form-select-sm">
-                  <option value="sports">Sports (กีฬา)</option>
-                  <option value="concert">Concert (คอนเสิร์ต)</option>
-                  <option value="general" selected>General (ทั่วไป)</option>
-                </select>
-              </div>
             </div>
             <div class="row g-3 mb-3">
                 <div class="col-6"><label class="form-label fw-bold small">เริ่ม: วันที่ <span class="text-danger">*</span></label><input type="date" id="fa-ev-start-date" class="form-control" required></div>
@@ -434,18 +426,20 @@
                   <label class="form-label fw-bold small">เพศ <span class="text-danger">*</span></label>
                   <input type="hidden" id="reg-gender" value="">
                   <div class="btn-group" role="group" id="reg-gender-toggle">
-                    <button type="button" class="btn btn-sm reg-gender-btn" data-value="ชาย" onclick="reg_setGender('ชาย')" title="ชาย" style="--gc:#0d6efd;">♂</button>
-                    <button type="button" class="btn btn-sm reg-gender-btn" data-value="หญิง" onclick="reg_setGender('หญิง')" title="หญิง" style="--gc:#d63384;">♀</button>
-                    <button type="button" class="btn btn-sm reg-gender-btn" data-value="ไม่ระบุ" onclick="reg_setGender('ไม่ระบุ')" title="ไม่ระบุ" style="--gc:#f59e0b;">⚧</button>
+                    <button type="button" class="btn btn-sm reg-gender-btn" data-value="ชาย" onclick="reg_setGender('ชาย')" title="ชาย" style="--gc:#0d6efd;">M</button>
+                    <button type="button" class="btn btn-sm reg-gender-btn" data-value="หญิง" onclick="reg_setGender('หญิง')" title="หญิง" style="--gc:#d63384;">F</button>
+                    <button type="button" class="btn btn-sm reg-gender-btn" data-value="ไม่ระบุ" onclick="reg_setGender('ไม่ระบุ')" title="ไม่ระบุ" style="--gc:#f59e0b;">U</button>
                   </div>
                 </div>
-                <div class="col-4 col-md-2">
-                  <label class="form-label fw-bold small">อายุ</label>
-                  <input type="number" id="reg-age" class="form-control form-control-sm" min="1" max="120">
-                </div>
-                <div class="col-12 col-md-5">
+              </div>
+            <div class="row g-2 mb-3">
+                <div class="col">
                   <label class="form-label fw-bold small">ชื่อ-สกุล</label>
                   <input type="text" id="reg-name" class="form-control form-control-sm" placeholder="ชื่อ-สกุล (BIB)">
+                </div>
+                <div class="col-3" style="max-width:80px;">
+                  <label class="form-label fw-bold small">อายุ</label>
+                  <input type="number" id="reg-age" class="form-control form-control-sm" min="1" max="120">
                 </div>
             </div>
 
@@ -904,9 +898,9 @@
 
     // --- Event Type Template Presets ---
     var fa_eventTypePresets = {
-        sports: { idLabel: 'BIB', categories: '42K, 21K, 10K, 5K, Fun Run', locations: 'Sector 1, Sector 2, Sector 3, Sector 4, Finish-line, Medical Tent', problemSet: 'sports' },
-        concert: { idLabel: 'Ticket', categories: 'Zone A, Zone B, VIP, GA', locations: 'จุดปฐมพยาบาล 1, จุดปฐมพยาบาล 2, Medical Tent', problemSet: 'concert' },
-        general: { idLabel: '', categories: '', locations: 'จุด 1, จุด 2, จุด 3', problemSet: 'general' }
+        sports: { idLabel: 'BIB', categories: '42K, 21K, 10K, 5K, Fun Run', locations: 'Sector 1, Sector 2, Sector 3, Sector 4, Finish-line, Medical Tent' },
+        concert: { idLabel: 'Ticket', categories: 'Zone A, Zone B, VIP, GA', locations: 'จุดปฐมพยาบาล 1, จุดปฐมพยาบาล 2, Medical Tent' },
+        general: { idLabel: '', categories: '', locations: 'จุด 1, จุด 2, จุด 3' }
     };
 
     function fa_onEventTypeChange(type) {
@@ -914,7 +908,6 @@
         document.getElementById('fa-ev-cfg-idlabel').value = preset.idLabel;
         document.getElementById('fa-ev-cfg-categories').value = preset.categories;
         document.getElementById('fa-ev-cfg-locations').value = preset.locations;
-        document.getElementById('fa-ev-cfg-problemset').value = preset.problemSet;
     }
 
     function fa_getEventConfigFromForm() {
@@ -924,7 +917,6 @@
             idLabel: document.getElementById('fa-ev-cfg-idlabel').value.trim(),
             categories: cats ? cats.split(',').map(function(s) { return s.trim(); }).filter(Boolean) : [],
             locations: locs ? locs.split(',').map(function(s) { return s.trim(); }).filter(Boolean) : [],
-            problemSet: document.getElementById('fa-ev-cfg-problemset').value || 'general'
         };
     }
 
@@ -938,7 +930,6 @@
         document.getElementById('fa-ev-cfg-idlabel').value = cfg.idLabel || '';
         document.getElementById('fa-ev-cfg-categories').value = (cfg.categories || []).join(', ');
         document.getElementById('fa-ev-cfg-locations').value = (cfg.locations || []).join(', ');
-        document.getElementById('fa-ev-cfg-problemset').value = cfg.problemSet || 'general';
     }
 
     // --- Create/Edit Event ---
@@ -1620,6 +1611,10 @@
         'Eye problem/ปัญหาทางตา',
         'Insect bite & sting/แมลงกัดต่อย',
         'Dehydration/ขาดน้ำ',
+        'Seizure/ชัก',
+        'Cardiac arrest/หัวใจหยุดเต้น',
+        'Hypo-Hyperglycemia/น้ำตาลในเลือดผิดปกติ',
+        'Anxiety & Panic attack/วิตกกังวล แพนิค',
         'Other (ระบุ)'
     ];
 
@@ -1637,54 +1632,33 @@
         'Other (ระบุ)'
     ];
 
-    var REG_PROBLEMS = {
-        sports: [
-            'EAMC — ตะคริวจากออกกำลังกาย',
-            'EAC — หมดแรง/ล้มขณะวิ่ง',
-            'EAH — ภาวะโซเดียมต่ำ',
-            'Exertional Heat Stroke — ลมแดด/ฮีทสโตรก',
-            'Heat Exhaustion — เพลียแดด',
-            'Hypothermia — อุณหภูมิร่างกายต่ำ',
-            'Trauma/Musculoskeletal — บาดเจ็บกล้ามเนื้อ/กระดูก',
-            'Skin/Soft tissue — ผิวหนัง/เนื้อเยื่ออ่อน',
-            'Respiratory Distress — หายใจลำบาก',
-            'Emergency Cardiac Care — หัวใจฉุกเฉิน',
-            'Cardiac Arrest — หัวใจหยุดเต้น',
-            'Allergy/Anaphylaxis — แพ้/แอนาฟิแล็กซิส',
-            'Hydration Guidance — แนะนำการดื่มน้ำ',
-            'GI Distress — ระบบทางเดินอาหาร',
-            'Neurological — ระบบประสาท',
-            'Other (ระบุ)'
-        ],
-        concert: [
-            'Intoxication — มึนเมา/สารเสพติด',
-            'Syncope/Collapse — หมดสติ/เป็นลม',
-            'Anxiety/Panic Attack — วิตกกังวล/แพนิค',
-            'Crowd Crush Injury — บาดเจ็บจากฝูงชนเบียด',
-            'Dehydration/Heat-related — ขาดน้ำ/ความร้อน',
-            'Wound/Laceration — แผล/ฉีกขาด',
-            'Allergic Reaction — แพ้',
-            'Respiratory Distress — หายใจลำบาก',
-            'Cardiac Emergency — หัวใจฉุกเฉิน',
-            'Seizure — ชัก',
-            'Assault Injury — บาดเจ็บจากทำร้ายร่างกาย',
-            'Other (ระบุ)'
-        ],
-        general: [
-            'Syncope/Collapse — หมดสติ/เป็นลม',
-            'Dehydration/Heat-related — ขาดน้ำ/ความร้อน',
-            'Allergic Reaction — แพ้',
-            'Respiratory Distress — หายใจลำบาก',
-            'Cardiac Emergency — หัวใจฉุกเฉิน',
-            'Seizure — ชัก',
-            'Trauma/Musculoskeletal — บาดเจ็บกล้ามเนื้อ/กระดูก',
-            'GI Distress — ระบบทางเดินอาหาร',
-            'Intoxication — มึนเมา/สารเสพติด',
-            'Anxiety/Panic Attack — วิตกกังวล/แพนิค',
-            'Wound/Laceration — แผล/ฉีกขาด',
-            'Other (ระบุ)'
-        ]
-    };
+    var REG_PROBLEMS = [
+        'EAMC — ตะคริวจากออกกำลังกาย',
+        'EAC — หมดแรง/ล้มขณะวิ่ง',
+        'EAH — ภาวะโซเดียมต่ำ',
+        'Exertional Heat Stroke — ลมแดด/ฮีทสโตรก',
+        'Heat Exhaustion — เพลียแดด',
+        'Hypothermia — อุณหภูมิร่างกายต่ำ',
+        'Trauma/Musculoskeletal — บาดเจ็บกล้ามเนื้อ/กระดูก',
+        'Skin/Soft tissue — ผิวหนัง/เนื้อเยื่ออ่อน',
+        'Respiratory Distress — หายใจลำบาก',
+        'Emergency Cardiac Care — หัวใจฉุกเฉิน',
+        'Cardiac Arrest — หัวใจหยุดเต้น',
+        'Allergy/Anaphylaxis — แพ้/แอนาฟิแล็กซิส',
+        'Hydration Guidance — แนะนำการดื่มน้ำ',
+        'GI Distress — ระบบทางเดินอาหาร',
+        'Neurological — ระบบประสาท',
+        'Syncope/Collapse — หมดสติ/เป็นลม',
+        'Intoxication — มึนเมา/สารเสพติด',
+        'Anxiety/Panic Attack — วิตกกังวล/แพนิค',
+        'Crowd Crush Injury — บาดเจ็บจากฝูงชนเบียด',
+        'Seizure — ชัก',
+        'Assault Injury — บาดเจ็บจากทำร้ายร่างกาย',
+        'Wound/Laceration — แผล/ฉีกขาด',
+        'Hypo/Hyperglycemia — น้ำตาลในเลือดผิดปกติ',
+        'Fever/Infection — ไข้/ติดเชื้อ',
+        'Other (ระบุ)'
+    ];
 
     var REG_TREATMENTS = [
         { group: 'ทั่วไป', color: '#198754', items: ['แอมโมเนีย', 'พลาสเตอร์ยา', 'ยานวด/สเปรย์', 'Cold pack'] },
@@ -1795,11 +1769,9 @@
 
     // --- Populate Problem List based on event config ---
     function reg_populateProblemList() {
-        var problemSet = (fa_currentEventConfig && fa_currentEventConfig.problemSet) || 'general';
-        var list = REG_PROBLEMS[problemSet] || REG_PROBLEMS.general;
         var sel = document.getElementById('reg-problem');
         sel.innerHTML = '<option value="">-- เลือก Problem --</option>';
-        list.forEach(function(item) {
+        REG_PROBLEMS.forEach(function(item) {
             sel.innerHTML += '<option value="' + item + '">' + item + '</option>';
         });
     }
