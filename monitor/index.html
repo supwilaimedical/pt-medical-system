@@ -186,6 +186,7 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="../shared/config.js"></script>
     <script src="../shared/auth.js"></script>
+    <script src="../shared/realtime.js"></script>
 
     <script>
     // =============================================
@@ -284,6 +285,12 @@
 
         // Load settings (logo, print header)
         loadNavSettings();
+
+        // Init Realtime — subscribe to cases + fa_events, replaces polling
+        RT.initStatusDot();
+        RT.subscribeMulti('monitor-live', ['cases', 'fa_events', 'fa_registry'], function() {
+            loadMonitor();
+        });
 
         // Load monitor data
         loadMonitor();

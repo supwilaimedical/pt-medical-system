@@ -80,6 +80,7 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
   <script src="../shared/config.js"></script>
   <script src="../shared/auth.js"></script>
+  <script src="../shared/realtime.js"></script>
   <script src="../shared/cloudinary.js"></script>
 
   <!-- shared_splash.html — Splash/Loading Screen -->
@@ -640,6 +641,12 @@
         var createBtn = document.getElementById('fa-btn-create-event');
         if (createBtn) createBtn.style.display = isAdmin ? '' : 'none';
 
+        // Realtime: subscribe to events dashboard
+        RT.unsubscribe('fa-registry');
+        RT.subscribe('fa-events', 'fa_events', function() {
+            fa_fetchAllEvents();
+        });
+
         fa_fetchAllEvents();
     }
 
@@ -1097,11 +1104,18 @@
             document.getElementById('fa-qWound').value = ev.qWound || 0;
         }
 
+        // Realtime: subscribe to registry for this event
+        RT.unsubscribe('fa-events');
+        RT.subscribeMulti('fa-registry', ['fa_registry', 'fa_events'], function() {
+            fa_refreshPatientList();
+        });
+
         fa_refreshPatientList();
     }
 
     function fa_closeEventDetails() {
         fa_currentViewedEventId = null;
+        RT.unsubscribe('fa-registry');
         fa_showDashboard();
     }
 
@@ -2789,6 +2803,9 @@
 
         // Load settings (logo, etc.)
         loadAppSettings();
+
+        // Init Realtime status dot
+        RT.initStatusDot();
 
         // Load dashboard
         fa_showDashboard();

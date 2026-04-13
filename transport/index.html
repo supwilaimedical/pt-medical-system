@@ -76,6 +76,7 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
   <script src="../shared/config.js"></script>
   <script src="../shared/auth.js"></script>
+  <script src="../shared/realtime.js"></script>
   <script src="../shared/cloudinary.js"></script>
 
   <!-- shared_splash.html -->
@@ -3727,6 +3728,17 @@
         updateAirwayLogic();
         updateOpUnitLogic();
         startAutoSave();
+
+        // Init Realtime — auto-refresh dashboard when others edit
+        RT.initStatusDot();
+        RT.subscribe('transport-cases', 'cases', function() {
+            // Only refresh if on dashboard view (not editing a form)
+            var dashView = document.getElementById('dashboard-view');
+            if (dashView && dashView.classList.contains('active')) {
+                loadDashboardData(currentPage);
+            }
+        });
+
         showDashboard();
     }
 
