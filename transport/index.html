@@ -4226,7 +4226,8 @@
       // ────── Auto-save ก่อนถ้ายังไม่มี Case ID ──────
       var caseIdCheck = document.getElementById('caseId').value || '';
       if (!caseIdCheck) {
-        saveData(false, true, function() {
+        formDirty = true; // force save even if no input events triggered
+        saveData(false, false, function() {
           openConsentModal(); // retry after save
         });
         return;
