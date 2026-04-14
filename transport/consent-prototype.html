@@ -401,6 +401,7 @@
     .consent-card { box-shadow: none; border-radius: 0; max-width: 100%; margin: 0; overflow: visible; }
     .consent-body { padding: 4px 8px !important; }
     .no-print, .sig-placeholder, .sig-clear-inline, .sig-modal-overlay, .idcard-remove, .lang-switcher { display: none !important; }
+    #readonly-notice, #readonly-overlay { display: none !important; }
 
     /* Header */
     .consent-header { padding: 5px 12px !important; }
@@ -966,6 +967,7 @@ if (IS_EMBED) {
 
             // Show notice (above overlay) — different message per mode
             var notice = document.createElement('div');
+            notice.id = 'readonly-notice';
             notice.className = 'no-print';
             notice.style.cssText = 'position:sticky; top:0; z-index:1000; padding:10px 16px; text-align:center; font-size:0.85rem;';
             if (VIEW_MODE === 'preview') {
