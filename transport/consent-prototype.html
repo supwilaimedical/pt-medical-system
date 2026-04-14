@@ -544,8 +544,8 @@
           <div class="subtitle" data-i18n="header.subtitle">Ambulance Service Consent Form</div>
         </div>
         <div class="consent-header-meta">
-          <div id="consent-case-id">CASE-20260414-001</div>
-          <div><span id="consent-date">14 เม.ย. 2569</span> | <span id="consent-time">21:30</span></div>
+          <div id="consent-case-id"></div>
+          <div><span id="consent-date"></span> | <span id="consent-time"></span></div>
         </div>
       </div>
     </div>
@@ -1091,6 +1091,51 @@ function toggleConsentCheck(item) {
 }
 
 // ===========================
+// Multi-language Date Formatting
+// ===========================
+var MONTHS_I18N = {
+    th: ['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'],
+    en: ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'],
+    zh: ['1月','2月','3月','4月','5月','6月','7月','8月','9月','10月','11月','12月'],
+    my: ['ဇန်','ဖေ','မတ်','ဧပြီ','မေ','ဇွန်','ဇူ','ဩ','စက်','အောက်','နို','ဒီ']
+};
+var TIME_LABEL = { th: 'เวลา', en: '', zh: '', my: '' };
+
+function formatDateI18n(d, lang) {
+    if (!d) return '';
+    lang = lang || currentLang || 'th';
+    var pad = function(n) { return n < 10 ? '0' + n : n; };
+    var months = MONTHS_I18N[lang] || MONTHS_I18N.th;
+    var day = d.getDate();
+    var month = months[d.getMonth()];
+    var year = lang === 'th' ? (d.getFullYear() + 543) : d.getFullYear();
+    return day + ' ' + month + ' ' + year;
+}
+
+function formatDateTimeI18n(d, lang) {
+    if (!d) return '';
+    lang = lang || currentLang || 'th';
+    var pad = function(n) { return n < 10 ? '0' + n : n; };
+    var dateStr = formatDateI18n(d, lang);
+    var timeStr = pad(d.getHours()) + ':' + pad(d.getMinutes()) + ':' + pad(d.getSeconds());
+    var label = TIME_LABEL[lang];
+    return dateStr + (label ? ' ' + label + ' ' : ' ') + timeStr;
+}
+
+function updateHeaderDate() {
+    var d = window._consentCreatedAt || new Date();
+    document.getElementById('consent-date').textContent = formatDateI18n(d, currentLang);
+    var pad = function(n) { return n < 10 ? '0' + n : n; };
+    document.getElementById('consent-time').textContent = pad(d.getHours()) + ':' + pad(d.getMinutes());
+}
+
+function updateSignatureTimestamp() {
+    if (!sigTimestamp) return;
+    var tsVal = document.getElementById('sig-timestamp-value');
+    if (tsVal) tsVal.textContent = formatDateTimeI18n(sigTimestamp, currentLang);
+}
+
+// ===========================
 // Patient Data (set by Transport before opening, or null)
 // ===========================
 // Transport จะ set ก่อนเปิด consent:
@@ -1098,6 +1143,13 @@ function toggleConsentCheck(item) {
 var patientData = window.CONSENT_PATIENT_DATA || null;
 
 function initPatientInfo() {
+    // Set header Case ID & Date from real data
+    if (patientData && patientData.caseId) {
+        document.getElementById('consent-case-id').textContent = patientData.caseId;
+    }
+    window._consentCreatedAt = new Date();
+    updateHeaderDate();
+
     if (patientData && patientData.name) {
         document.getElementById('c-patient-name').value = patientData.name || '';
         document.getElementById('c-patient-age').value = patientData.age || '';
@@ -1332,13 +1384,7 @@ function confirmSig() {
 
     // Show timestamp
     var tsEl = document.getElementById('sig-timestamp');
-    var tsVal = document.getElementById('sig-timestamp-value');
-    var d = sigTimestamp;
-    var pad = function(n) { return n < 10 ? '0' + n : n; };
-    var thMonths = ['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
-    var dateStr = d.getDate() + ' ' + thMonths[d.getMonth()] + ' ' + (d.getFullYear() + 543)
-        + ' เวลา ' + pad(d.getHours()) + ':' + pad(d.getMinutes()) + ':' + pad(d.getSeconds());
-    tsVal.textContent = dateStr;
+    updateSignatureTimestamp();
     tsEl.classList.add('show');
 
     closeSigModal();
@@ -1534,11 +1580,7 @@ function submitConsent() {
         // Format signed-at display string
         var signedAtDisplay = '';
         if (sigTimestamp) {
-            var d = sigTimestamp;
-            var thMonths = ['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
-            var pad = function(n) { return n < 10 ? '0' + n : n; };
-            signedAtDisplay = d.getDate() + ' ' + thMonths[d.getMonth()] + ' ' + (d.getFullYear() + 543)
-                + ' เวลา ' + pad(d.getHours()) + ':' + pad(d.getMinutes());
+            signedAtDisplay = formatDateTimeI18n(sigTimestamp, 'th');
         }
         // Send data to parent Transport window
         window.parent.postMessage({
@@ -1859,6 +1901,10 @@ function switchLang(lang) {
         var labels = { th: 'ลงลายเซ็นที่นี่', en: 'Sign here', zh: '在此签名', my: 'ဒီမှာ လက်မှတ်ထိုးပါ' };
         guideLabel.textContent = labels[lang] || labels.th;
     }
+
+    // Update dates to match current language
+    updateHeaderDate();
+    updateSignatureTimestamp();
 }
 
 // ===========================
@@ -2012,16 +2058,9 @@ function restoreConsentData(cd) {
         // Timestamp
         if (cd.signatureTimestamp) {
             sigTimestamp = new Date(cd.signatureTimestamp);
+            updateSignatureTimestamp();
             var tsEl = document.getElementById('sig-timestamp');
-            var tsVal = document.getElementById('sig-timestamp-value');
-            if (tsEl && tsVal) {
-                var d = sigTimestamp;
-                var pad = function(n) { return n < 10 ? '0' + n : n; };
-                var thM = ['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
-                tsVal.textContent = d.getDate() + ' ' + thM[d.getMonth()] + ' ' + (d.getFullYear() + 543)
-                    + ' เวลา ' + pad(d.getHours()) + ':' + pad(d.getMinutes()) + ':' + pad(d.getSeconds());
-                tsEl.classList.add('show');
-            }
+            if (tsEl) tsEl.classList.add('show');
         }
     }
 
