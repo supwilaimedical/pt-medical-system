@@ -3,6 +3,22 @@
 // รองรับหลาย GPS software (cmsv6, gpsone, ...)
 // =============================================
 
+// HTTPS Proxy — แก้ Mixed Content (HTTPS page → HTTP API)
+// ตั้งค่าใน CONFIG.GPS_PROXY_URL หรือปล่อยว่างถ้าไม่ต้องใช้
+async function gpsFetch(url) {
+  var proxyUrl = (typeof CONFIG !== 'undefined' && CONFIG.GPS_PROXY_URL) ? CONFIG.GPS_PROXY_URL : '';
+  if (proxyUrl && url.startsWith('http://')) {
+    // ใช้ proxy: GAS จะ forward request ไปให้
+    var finalUrl = proxyUrl + '?url=' + encodeURIComponent(url);
+    var resp = await fetch(finalUrl);
+    return await resp.json();
+  } else {
+    // เรียกตรง (localhost / HTTP page)
+    var resp = await fetch(url);
+    return await resp.json();
+  }
+}
+
 const GPS_ADAPTERS = {
 
   // ============ CMSV6 ============
@@ -12,8 +28,7 @@ const GPS_ADAPTERS = {
         '/StandardApiAction_login.action?account=' +
         encodeURIComponent(provider.account) +
         '&password=' + encodeURIComponent(provider.password);
-      var resp = await fetch(url);
-      var data = await resp.json();
+      var data = await gpsFetch(url);
       if (data.result === 0 && data.jsession) return data.jsession;
       throw new Error('CMSV6 login failed: ' + (data.error || 'Unknown'));
     },
@@ -21,8 +36,7 @@ const GPS_ADAPTERS = {
     async getVehicles(provider, session) {
       var url = provider.base_url.replace(/\/$/, '') +
         '/StandardApiAction_queryUserVehicle.action?jsession=' + session;
-      var resp = await fetch(url);
-      var data = await resp.json();
+      var data = await gpsFetch(url);
       var vehicles = [];
       (data.vehicles || []).forEach(function(v) {
         (v.dl || []).forEach(function(d) {
@@ -40,8 +54,7 @@ const GPS_ADAPTERS = {
       var url = provider.base_url.replace(/\/$/, '') +
         '/StandardApiAction_getDeviceStatus.action?jsession=' +
         session + '&toMap=1&geoaddress=1';
-      var resp = await fetch(url);
-      var data = await resp.json();
+      var data = await gpsFetch(url);
       var all = data.status || [];
       if (deviceId) {
         all = all.filter(function(s) {

@@ -156,8 +156,11 @@
               <button type="button" class="btn btn-sm sys-tog" id="sys-tog-firstaid" onclick="switchSystem('firstaid')" title="First Aid" style="min-width:40px;">
                 <i class="bi bi-bandaid-fill"></i><span class="d-none d-lg-inline ms-1">First Aid</span>
               </button>
-              <button type="button" class="btn btn-sm rounded-pill-end sys-tog" id="sys-tog-location" onclick="switchSystem('location')" title="PT Location" style="min-width:40px;">
+              <button type="button" class="btn btn-sm sys-tog" id="sys-tog-location" onclick="switchSystem('location')" title="PT Location" style="min-width:40px;">
                 <i class="bi bi-geo-alt-fill"></i><span class="d-none d-lg-inline ms-1">Location</span>
+              </button>
+              <button type="button" class="btn btn-sm rounded-pill-end sys-tog" id="sys-tog-gps" onclick="switchSystem('gps')" title="GPS Tracking" style="min-width:40px; display:none;">
+                <i class="bi bi-broadcast"></i><span class="d-none d-lg-inline ms-1">GPS</span>
               </button>
             </div>
             <button class="btn btn-light btn-sm rounded-pill px-2 px-md-3 fw-semibold shadow-sm" id="btn-system-dashboard" onclick="goToLanding()" title="กลับหน้าเลือกระบบ">
@@ -1019,6 +1022,8 @@
                 if (s.key === 'GPS_ENABLED' && s.value === '1') {
                     var gpsCard = document.getElementById('landing-gps-card');
                     if (gpsCard) gpsCard.style.display = '';
+                    var gpsBtn = document.getElementById('sys-tog-gps');
+                    if (gpsBtn) gpsBtn.style.display = '';
                 }
             });
         } catch(e) {}
