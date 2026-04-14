@@ -402,6 +402,10 @@
     .consent-body { padding: 4px 8px !important; }
     .no-print, .sig-placeholder, .sig-clear-inline, .sig-modal-overlay, .idcard-remove, .lang-switcher { display: none !important; }
     #readonly-notice, #readonly-overlay { display: none !important; }
+    #staff-mode-toggle { display: none !important; }
+    #staff-position-row { display: none !important; }
+    #staff-manual-display > div:first-child { display: none !important; }
+    #staff-manual-print { display: flex !important; }
 
     /* Header */
     .consent-header { padding: 5px 12px !important; }
@@ -798,15 +802,49 @@
         <span data-i18n="sig.signed_at">ลงนามเมื่อ</span>: <span id="sig-timestamp-value"></span>
       </div>
 
-      <!-- Staff Info (auto from login) -->
+      <!-- Staff Info — toggle between login / manual -->
       <label class="info-label mt-3 mb-1" data-i18n="sig.staff">ผู้ให้ข้อมูล / เจ้าหน้าที่</label>
-      <div class="sig-info">
-        <div class="avatar" id="staff-avatar">PN</div>
+
+      <!-- Mode toggle (no-print) -->
+      <div class="no-print" id="staff-mode-toggle" style="display:flex;gap:6px;margin-bottom:8px;">
+        <button type="button" class="rel-btn active" id="staff-mode-login" onclick="setStaffMode('login')" style="font-size:0.75rem;padding:4px 12px;">จาก Login</button>
+        <button type="button" class="rel-btn" id="staff-mode-manual" onclick="setStaffMode('manual')" style="font-size:0.75rem;padding:4px 12px;">กรอกเอง</button>
+      </div>
+
+      <!-- Medical position selector (shared for both modes) -->
+      <div class="no-print" id="staff-position-row" style="margin-bottom:8px;">
+        <label class="info-label mb-1" style="font-size:0.7rem;">ตำแหน่งทางการแพทย์</label>
+        <div style="display:flex;gap:6px;flex-wrap:wrap;" id="staff-position-btns">
+          <button type="button" class="rel-btn" onclick="selectStaffPosition(this)" data-value="ผู้ปฏิบัติการฉุกเฉิน (EMR/EMT/AEMT)" style="font-size:0.72rem;padding:4px 10px;">ผู้ปฏิบัติการฉุกเฉิน</button>
+          <button type="button" class="rel-btn" onclick="selectStaffPosition(this)" data-value="Paramedic/พยาบาลวิชาชีพ" style="font-size:0.72rem;padding:4px 10px;">Paramedic/พยาบาล</button>
+          <button type="button" class="rel-btn" onclick="selectStaffPosition(this)" data-value="แพทย์" style="font-size:0.72rem;padding:4px 10px;">แพทย์</button>
+        </div>
+      </div>
+
+      <!-- Login mode: auto-filled name from session -->
+      <div id="staff-login-display" class="sig-info">
+        <div class="avatar" id="staff-avatar">?</div>
         <div>
-          <div class="sig-name" id="staff-name">พิทักษ์ พันธุ์ดี</div>
-          <div class="sig-role"><i class="bi bi-shield-check me-1"></i>EMT: <span id="staff-cert">ผู้ปฏิบัติการฉุกเฉิน</span> — <span id="staff-role">เจ้าหน้าที่</span></div>
+          <div class="sig-name" id="staff-name">—</div>
+          <div class="sig-role"><i class="bi bi-shield-check me-1"></i><span id="staff-position-text">—</span></div>
         </div>
         <i class="bi bi-check-circle-fill text-success ms-auto" style="font-size:1.2rem;"></i>
+      </div>
+
+      <!-- Manual mode: name input -->
+      <div id="staff-manual-display" style="display:none;">
+        <div style="margin-bottom:6px;">
+          <label class="info-label mb-1" style="font-size:0.7rem;">ชื่อ-สกุล เจ้าหน้าที่</label>
+          <input type="text" id="staff-manual-name" class="form-control form-control-sm" placeholder="กรอกชื่อ-สกุล">
+        </div>
+        <!-- Print-only: show manual staff info as card -->
+        <div class="sig-info" id="staff-manual-print" style="display:none;">
+          <div class="avatar" id="staff-manual-avatar">?</div>
+          <div>
+            <div class="sig-name" id="staff-manual-name-display">—</div>
+            <div class="sig-role"><i class="bi bi-shield-check me-1"></i><span id="staff-manual-position-display">—</span></div>
+          </div>
+        </div>
       </div>
     </div>
 
@@ -1131,6 +1169,79 @@ function selectRel(btn) {
 // ===========================
 // DNR Toggle
 // ===========================
+// ===========================
+// Staff Mode Toggle (Login / Manual)
+// ===========================
+var staffMode = 'login'; // 'login' or 'manual'
+var selectedStaffPosition = '';
+
+function initStaffInfo() {
+    var meta = null;
+    try {
+        var raw = localStorage.getItem('pt_user_meta');
+        if (raw) meta = JSON.parse(raw);
+    } catch(e) {}
+
+    if (meta && (meta.name || meta.full_name)) {
+        var name = meta.full_name || meta.name || 'Unknown';
+        var initials = name.split(' ').map(function(w) { return w.charAt(0); }).join('').substring(0, 2).toUpperCase();
+        document.getElementById('staff-name').textContent = name;
+        document.getElementById('staff-avatar').textContent = initials;
+    } else {
+        setStaffMode('manual');
+    }
+}
+
+function setStaffMode(mode) {
+    staffMode = mode;
+    document.getElementById('staff-mode-login').classList.toggle('active', mode === 'login');
+    document.getElementById('staff-mode-manual').classList.toggle('active', mode === 'manual');
+    document.getElementById('staff-login-display').style.display = mode === 'login' ? '' : 'none';
+    document.getElementById('staff-manual-display').style.display = mode === 'manual' ? '' : 'none';
+}
+
+function selectStaffPosition(btn) {
+    document.querySelectorAll('#staff-position-btns .rel-btn').forEach(function(b) { b.classList.remove('active'); });
+    btn.classList.add('active');
+    selectedStaffPosition = btn.dataset.value;
+    // Update display for both modes
+    document.getElementById('staff-position-text').textContent = selectedStaffPosition;
+    document.getElementById('staff-manual-position-display').textContent = selectedStaffPosition;
+}
+
+function updateManualStaffPrint() {
+    var name = document.getElementById('staff-manual-name').value.trim();
+    var display = document.getElementById('staff-manual-name-display');
+    var avatar = document.getElementById('staff-manual-avatar');
+    var printDiv = document.getElementById('staff-manual-print');
+
+    if (name) {
+        display.textContent = name;
+        var initials = name.split(' ').map(function(w) { return w.charAt(0); }).join('').substring(0, 2).toUpperCase();
+        avatar.textContent = initials;
+        printDiv.style.display = '';
+    } else {
+        printDiv.style.display = 'none';
+    }
+}
+
+function getStaffInfo() {
+    if (staffMode === 'manual') {
+        return {
+            name: document.getElementById('staff-manual-name').value.trim(),
+            position: selectedStaffPosition,
+            source: 'manual'
+        };
+    }
+    var meta = null;
+    try { meta = JSON.parse(localStorage.getItem('pt_user_meta')); } catch(e) {}
+    return {
+        name: meta ? (meta.full_name || meta.name || '') : '',
+        position: selectedStaffPosition,
+        source: 'login'
+    };
+}
+
 function toggleDnr(item) {
     item.classList.toggle('checked');
     var cb = item.querySelector('input');
@@ -1386,6 +1497,7 @@ function submitConsent() {
         signatureDataUrl: sigDataUrl,
         signatureTimestamp: sigTimestamp ? sigTimestamp.toISOString() : null,
         timestamp: new Date().toISOString(),
+        staffInfo: getStaffInfo(),
     };
 
     // Collect DNR items
@@ -1481,6 +1593,9 @@ var I18N = {
     'sig.label': 'ลายเซ็น ผู้ป่วย/ญาติผู้ยินยอม',
     'sig.tap': 'แตะเพื่อลงลายเซ็น',
     'sig.staff': 'ผู้ให้ข้อมูล / เจ้าหน้าที่',
+    'staff.from_login': 'จาก Login', 'staff.manual': 'กรอกเอง',
+    'staff.name_label': 'ชื่อ-สกุล เจ้าหน้าที่', 'staff.name_ph': 'กรอกชื่อ-สกุล',
+    'staff.position_label': 'ตำแหน่ง', 'staff.position_ph': 'เช่น EMT, พยาบาล',
     'sig.modal_title': 'ลงลายเซ็น',
     'sig.hint': 'ใช้นิ้วหรือปากกาเซ็นชื่อ',
     'sig.clear': 'ล้าง', 'sig.confirm': 'ยืนยันลายเซ็น', 'sig.signed_at': 'ลงนามเมื่อ',
@@ -1539,6 +1654,9 @@ var I18N = {
     'sig.label': 'Patient / Consenter Signature',
     'sig.tap': 'Tap to sign',
     'sig.staff': 'Informer / Staff',
+    'staff.from_login': 'From Login', 'staff.manual': 'Manual',
+    'staff.name_label': 'Staff Name', 'staff.name_ph': 'Enter name',
+    'staff.position_label': 'Position', 'staff.position_ph': 'e.g. EMT, Nurse',
     'sig.modal_title': 'Sign Here',
     'sig.hint': 'Use finger or stylus to sign',
     'sig.clear': 'Clear', 'sig.confirm': 'Confirm Signature', 'sig.signed_at': 'Signed at',
@@ -1825,6 +1943,32 @@ function restoreConsentData(cd) {
             photoPreview.style.display = 'block';
         }
     }
+
+    // 9) Staff info
+    if (cd.staffInfo) {
+        if (cd.staffInfo.source === 'manual') {
+            setStaffMode('manual');
+            document.getElementById('staff-manual-name').value = cd.staffInfo.name || '';
+            updateManualStaffPrint();
+        } else {
+            setStaffMode('login');
+            if (cd.staffInfo.name) {
+                document.getElementById('staff-name').textContent = cd.staffInfo.name;
+                var initials = cd.staffInfo.name.split(' ').map(function(w) { return w.charAt(0); }).join('').substring(0, 2).toUpperCase();
+                document.getElementById('staff-avatar').textContent = initials;
+            }
+        }
+        // Restore position selection
+        if (cd.staffInfo.position) {
+            selectedStaffPosition = cd.staffInfo.position;
+            document.getElementById('staff-position-text').textContent = cd.staffInfo.position;
+            document.getElementById('staff-manual-position-display').textContent = cd.staffInfo.position;
+            // Highlight matching button
+            document.querySelectorAll('#staff-position-btns .rel-btn').forEach(function(b) {
+                if (b.dataset.value === cd.staffInfo.position) b.classList.add('active');
+            });
+        }
+    }
 }
 
 // Listen for restore-consent-data from parent
@@ -1838,6 +1982,11 @@ window.addEventListener('message', function(e) {
 // Init
 // ===========================
 initPatientInfo();
+initStaffInfo();
+
+// Manual staff name input listener
+document.getElementById('staff-manual-name').addEventListener('input', updateManualStaffPrint);
+
 // Signature modal is self-initializing (event listeners attached above)
 </script>
 
