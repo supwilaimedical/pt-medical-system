@@ -1848,6 +1848,56 @@ function switchLang(lang) {
 function restoreConsentData(cd) {
     if (!cd) return;
 
+    // ===== RESET all fields before restoring =====
+    // Consenter info
+    document.getElementById('c-consenter-name').value = '';
+    document.getElementById('c-consenter-id').value = '';
+    // Relationship
+    document.querySelectorAll('.rel-btn').forEach(function(b) { b.classList.remove('active'); });
+    selectedRel = '';
+    var otherInputReset = document.getElementById('c-rel-other');
+    if (otherInputReset) { otherInputReset.value = ''; otherInputReset.classList.add('d-none'); }
+    // Consent checklist
+    document.querySelectorAll('.consent-check-item').forEach(function(item) { item.classList.remove('checked'); });
+    // Parts
+    ['part2', 'part3'].forEach(function(pid) {
+        var el = document.getElementById(pid);
+        if (el) el.classList.remove('active');
+    });
+    // Destination
+    var dfR = document.getElementById('c-dest-from'); if (dfR) dfR.value = '';
+    var dtR = document.getElementById('c-dest-to'); if (dtR) dtR.value = '';
+    // DNR
+    document.querySelectorAll('.dnr-item').forEach(function(item) {
+        item.classList.remove('checked');
+        var cb = item.querySelector('input');
+        if (cb) cb.checked = false;
+    });
+    var dnrOther = document.getElementById('c-dnr-other');
+    if (dnrOther) { dnrOther.value = ''; dnrOther.classList.add('d-none'); }
+    // Signature
+    sigDataUrl = null;
+    var sigPreviewR = document.getElementById('sig-preview');
+    var sigImgR = document.getElementById('sig-preview-img');
+    if (sigImgR) sigImgR.src = '';
+    if (sigPreviewR) sigPreviewR.classList.remove('has-sig');
+    var tsElR = document.getElementById('sig-timestamp');
+    if (tsElR) tsElR.classList.remove('show');
+    // ID card photo
+    idCardPhotoDataUrl = null;
+    var photoR = document.getElementById('idcard-preview');
+    if (photoR) photoR.src = '';
+    var uploadR = document.getElementById('idcard-upload-area');
+    if (uploadR) uploadR.classList.remove('has-photo');
+    var printR = document.getElementById('idcard-preview-print');
+    if (printR) printR.src = '';
+    // Staff info
+    var staffNameR = document.getElementById('staff-manual-name');
+    if (staffNameR) staffNameR.value = '';
+    document.querySelectorAll('#staff-position-btns .rel-btn').forEach(function(b) { b.classList.remove('active'); });
+
+    // ===== Now restore from consent data =====
+
     // 1) Consenter info
     if (cd.consenterName) {
         document.getElementById('c-consenter-name').value = cd.consenterName;
