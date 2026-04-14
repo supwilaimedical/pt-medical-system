@@ -585,8 +585,8 @@
           <input type="text" class="form-control form-control-sm" id="c-consenter-name" data-i18n-ph="consenter.name_ph" placeholder="กรอกชื่อ-สกุล">
         </div>
         <div class="col-5">
-          <label class="info-label" data-i18n="consenter.id">เลขบัตรประชาชน</label>
-          <input type="tel" class="form-control form-control-sm" id="c-consenter-id" placeholder="X-XXXX-XXXXX-XX-X" maxlength="17" oninput="formatIdCard(this)" inputmode="numeric">
+          <label class="info-label" data-i18n="consenter.id">เลขบัตร ปชช. / Passport No.</label>
+          <input type="text" class="form-control form-control-sm" id="c-consenter-id" data-i18n-ph="consenter.id_ph" placeholder="เลขบัตร 13 หลัก หรือ Passport" maxlength="20" oninput="formatIdInput(this)">
         </div>
       </div>
       <!-- ID Card Photo (mobile: inline here) -->
@@ -1429,18 +1429,25 @@ function removeIdCardPhoto() {
 }
 
 // ===========================
-// ID Card Formatting (X-XXXX-XXXXX-XX-X)
+// ID Card / Passport Formatting
 // ===========================
-function formatIdCard(input) {
-    var raw = input.value.replace(/\D/g, '').substring(0, 13);
-    var formatted = '';
-    for (var i = 0; i < raw.length; i++) {
-        if (i === 1 || i === 5 || i === 10 || i === 12) formatted += '-';
-        formatted += raw[i];
+function formatIdInput(input) {
+    var val = input.value;
+    // If input looks like Thai ID (only digits/dashes), format as X-XXXX-XXXXX-XX-X
+    if (/^[\d\-]+$/.test(val)) {
+        var raw = val.replace(/\D/g, '').substring(0, 13);
+        var formatted = '';
+        for (var i = 0; i < raw.length; i++) {
+            if (i === 1 || i === 5 || i === 10 || i === 12) formatted += '-';
+            formatted += raw[i];
+        }
+        input.value = formatted;
     }
-    input.value = formatted;
+    // Passport: allow alphanumeric, no special formatting
     validateForm();
 }
+// Keep old name for patient ID field
+function formatIdCard(input) { formatIdInput(input); }
 
 // ===========================
 // Form Validation
@@ -1448,8 +1455,10 @@ function formatIdCard(input) {
 function validateForm() {
     var btn = document.getElementById('btn-submit-consent');
     var nameOk = document.getElementById('c-consenter-name').value.trim().length > 0;
-    var idRaw = document.getElementById('c-consenter-id').value.replace(/\D/g, '');
-    var idOk = idRaw.length === 13;
+    var idVal = document.getElementById('c-consenter-id').value.trim();
+    var idDigits = idVal.replace(/\D/g, '');
+    // Accept: Thai ID (13 digits) OR Passport (at least 5 alphanumeric chars)
+    var idOk = idDigits.length === 13 || (idVal.length >= 5 && /[A-Za-z]/.test(idVal));
     var relOk = selectedRel && selectedRel !== '';
     var sigOk = sigDataUrl !== null;
     btn.disabled = !(nameOk && idOk && relOk && sigOk);
@@ -1486,7 +1495,7 @@ function submitConsent() {
         },
         consentChecklist: checklist,
         consenterName: document.getElementById('c-consenter-name').value.trim(),
-        consenterId: document.getElementById('c-consenter-id').value.replace(/\D/g, ''),
+        consenterId: document.getElementById('c-consenter-id').value.trim(),
         consenterIdCardPhoto: idCardPhotoDataUrl,
         relationship: selectedRel === 'other'
             ? document.getElementById('c-rel-other').value.trim()
@@ -1553,7 +1562,8 @@ var I18N = {
     'patient.id': 'เลขบัตร ปชช.',
     'consenter.title': 'ผู้ให้ความยินยอม',
     'consenter.name': 'ชื่อ-สกุล ผู้ยินยอม', 'consenter.name_ph': 'กรอกชื่อ-สกุล',
-    'consenter.id': 'เลขบัตรประชาชน',
+    'consenter.id': 'เลขบัตร ปชช. / Passport No.',
+    'consenter.id_ph': 'เลขบัตร 13 หลัก หรือ Passport',
     'consenter.photo': 'รูปบัตรประชาชน (ถ้ามี)',
     'consenter.photo_action': 'ถ่ายรูป หรือ เลือกจากไฟล์',
     'consenter.rel': 'ความสัมพันธ์กับผู้ป่วย',
@@ -1614,7 +1624,8 @@ var I18N = {
     'patient.id': 'National ID',
     'consenter.title': 'Consenter',
     'consenter.name': 'Consenter Name', 'consenter.name_ph': 'Enter full name',
-    'consenter.id': 'National ID',
+    'consenter.id': 'National ID / Passport No.',
+    'consenter.id_ph': '13-digit ID or Passport',
     'consenter.photo': 'ID Card Photo (optional)',
     'consenter.photo_action': 'Take photo or choose file',
     'consenter.rel': 'Relationship to Patient',
@@ -1675,7 +1686,8 @@ var I18N = {
     'patient.id': '身份证号',
     'consenter.title': '同意人',
     'consenter.name': '同意人姓名', 'consenter.name_ph': '请输入姓名',
-    'consenter.id': '身份证号码',
+    'consenter.id': '身份证 / 护照号码',
+    'consenter.id_ph': '13位身份证号或护照号',
     'consenter.photo': '身份证照片（可选）',
     'consenter.photo_action': '拍照或选择文件',
     'consenter.rel': '与患者关系',
@@ -1733,7 +1745,8 @@ var I18N = {
     'patient.id': 'မှတ်ပုံတင်',
     'consenter.title': 'သဘောတူညီသူ',
     'consenter.name': 'သဘောတူညီသူအမည်', 'consenter.name_ph': 'အမည်ထည့်ပါ',
-    'consenter.id': 'မှတ်ပုံတင်အမှတ်',
+    'consenter.id': 'မှတ်ပုံတင် / Passport နံပါတ်',
+    'consenter.id_ph': 'မှတ်ပုံတင် ၁၃ လုံး သို့ Passport',
     'consenter.photo': 'မှတ်ပုံတင်ဓာတ်ပုံ (ရှိလျှင်)',
     'consenter.photo_action': 'ဓာတ်ပုံရိုက်ပါ သို့ ဖိုင်ရွေးပါ',
     'consenter.rel': 'လူနာနှင့်ဆက်နွယ်မှု',
@@ -1837,10 +1850,12 @@ function restoreConsentData(cd) {
     }
     if (cd.consenterId) {
         var raw = cd.consenterId;
-        // Format as X-XXXX-XXXXX-XX-X
-        if (raw.length === 13) {
-            raw = raw[0] + '-' + raw.substr(1,4) + '-' + raw.substr(5,5) + '-' + raw.substr(10,2) + '-' + raw[12];
+        var digitsOnly = raw.replace(/\D/g, '');
+        // Thai ID (13 pure digits) → format as X-XXXX-XXXXX-XX-X
+        if (digitsOnly.length === 13 && raw === digitsOnly) {
+            raw = digitsOnly[0] + '-' + digitsOnly.substr(1,4) + '-' + digitsOnly.substr(5,5) + '-' + digitsOnly.substr(10,2) + '-' + digitsOnly[12];
         }
+        // Passport or already-formatted → use as-is
         document.getElementById('c-consenter-id').value = raw;
     }
 
@@ -1939,10 +1954,18 @@ function restoreConsentData(cd) {
 
     // 8) ID card photo
     if (cd.consenterIdCardPhoto) {
-        var photoPreview = document.getElementById('id-card-preview');
+        idCardPhotoDataUrl = cd.consenterIdCardPhoto;
+        var photoPreview = document.getElementById('idcard-preview');
         if (photoPreview) {
             photoPreview.src = cd.consenterIdCardPhoto;
-            photoPreview.style.display = 'block';
+        }
+        var uploadArea = document.getElementById('idcard-upload-area');
+        if (uploadArea) {
+            uploadArea.classList.add('has-photo');
+        }
+        var printPreview = document.getElementById('idcard-preview-print');
+        if (printPreview) {
+            printPreview.src = cd.consenterIdCardPhoto;
         }
     }
 
