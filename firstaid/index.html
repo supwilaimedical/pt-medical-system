@@ -127,8 +127,11 @@
               <button type="button" class="btn btn-sm sys-tog active" id="sys-tog-firstaid" title="First Aid" style="min-width:40px;">
                 <i class="bi bi-bandaid-fill"></i><span class="d-none d-lg-inline ms-1">First Aid</span>
               </button>
-              <button type="button" class="btn btn-sm rounded-pill-end sys-tog" id="sys-tog-location" onclick="window.location.href='../location/'" title="PT Location" style="min-width:40px;">
+              <button type="button" class="btn btn-sm sys-tog" id="sys-tog-location" onclick="window.location.href='../location/'" title="PT Location" style="min-width:40px;">
                 <i class="bi bi-geo-alt-fill"></i><span class="d-none d-lg-inline ms-1">Location</span>
+              </button>
+              <button type="button" class="btn btn-sm rounded-pill-end sys-tog" id="sys-tog-gps" onclick="window.location.href='../gps/'" title="GPS Tracking" style="min-width:40px; display:none;">
+                <i class="bi bi-broadcast"></i><span class="d-none d-lg-inline ms-1">GPS</span>
               </button>
             </div>
             <button class="btn btn-light btn-sm rounded-pill px-2 px-md-3 fw-semibold shadow-sm" id="btn-system-dashboard" onclick="fa_showDashboard()" title="กลับหน้า Dashboard ของระบบนี้">
@@ -148,6 +151,7 @@
         #sys-tog-transport.active { background:#0d6efd; border-color:#0d6efd; }
         #sys-tog-firstaid.active { background:#dc3545; border-color:#dc3545; }
         #sys-tog-location.active { background:#198754; border-color:#198754; }
+        #sys-tog-gps.active { background:#6366f1; border-color:#6366f1; }
         .system-toggle .sys-tog:first-child { border-radius:50rem 0 0 50rem; }
         .system-toggle .sys-tog:last-child { border-radius:0 50rem 50rem 0; }
         .system-toggle .sys-tog:not(:first-child) { border-left:none; }
@@ -2853,6 +2857,10 @@
                         if (logo) { logo.src = s.value; logo.style.display = ''; }
                         var icon = document.getElementById('navbar-icon');
                         if (icon) icon.style.display = 'none';
+                    }
+                    if (s.key === 'GPS_ENABLED' && s.value === '1') {
+                        var gpsBtn = document.getElementById('sys-tog-gps');
+                        if (gpsBtn) gpsBtn.style.display = '';
                     }
                 });
             }
