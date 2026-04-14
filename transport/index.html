@@ -1670,6 +1670,12 @@
        loadedCaseStatus = "Active";
        refreshInitVitalsDisplay();
 
+       // Reset consent state for new case
+       consentSigned = false;
+       consentData = null;
+       consentVersions = [];
+       consentActiveVersion = null;
+
        var loggedUser = getUserName();
        if (loggedUser) {
            document.querySelector('input[name="staff_1_name"]').value = loggedUser;
@@ -4217,8 +4223,17 @@
     }
 
     function openConsentModal() {
+      // ────── Auto-save ก่อนถ้ายังไม่มี Case ID ──────
+      var caseIdCheck = document.getElementById('caseId').value || '';
+      if (!caseIdCheck) {
+        saveData(false, true, function() {
+          openConsentModal(); // retry after save
+        });
+        return;
+      }
+
       var f = document.forms['main-form'];
-      var caseId = document.getElementById('caseId').value || '';
+      var caseId = caseIdCheck;
       var ptName = f ? (f.pt_name?.value || '') : '';
       var ptAge = f ? (f.pt_age?.value || '') : '';
       var ptIdCard = '';
