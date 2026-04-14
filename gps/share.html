@@ -154,7 +154,7 @@
         await fetchStatus();
 
         // Auto refresh every 10 seconds
-        _refreshInterval = setInterval(fetchStatus, 5000);
+        _refreshInterval = setInterval(fetchStatus, 10000);
 
         // Update expire countdown
         updateExpireCountdown();

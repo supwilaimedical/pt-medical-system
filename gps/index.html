@@ -327,7 +327,7 @@
         label.textContent = 'OFF';
         btn.classList.remove('active-toggle');
       } else {
-        _autoInterval = setInterval(fetchAllStatuses, 5000);
+        _autoInterval = setInterval(fetchAllStatuses, 10000);
         label.textContent = 'ON';
         btn.classList.add('active-toggle');
       }

@@ -2118,7 +2118,7 @@
             _gpsModalDeviceId = match.device_id;
 
             await gpsModalFetchStatus();
-            _gpsModalInterval = setInterval(gpsModalFetchStatus, 5000);
+            _gpsModalInterval = setInterval(gpsModalFetchStatus, 10000);
 
         } catch(e) {
             document.getElementById('gps-modal-info').innerHTML = '<span class="text-danger"><i class="bi bi-x-circle me-1"></i>' + escapeHtml(e.message) + '</span>';
