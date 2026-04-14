@@ -952,6 +952,7 @@ if (IS_EMBED) {
 
             // Block entire form interaction with overlay
             var overlay = document.createElement('div');
+            overlay.className = 'no-print';
             overlay.style.cssText = 'position:fixed; top:0; left:0; right:0; bottom:0; z-index:999; cursor:default;';
             overlay.id = 'readonly-overlay';
             document.body.appendChild(overlay);
@@ -965,6 +966,7 @@ if (IS_EMBED) {
 
             // Show notice (above overlay) — different message per mode
             var notice = document.createElement('div');
+            notice.className = 'no-print';
             notice.style.cssText = 'position:sticky; top:0; z-index:1000; padding:10px 16px; text-align:center; font-size:0.85rem;';
             if (VIEW_MODE === 'preview') {
                 notice.style.background = '#fef3c7';
