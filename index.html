@@ -613,7 +613,13 @@
             // GPS settings
             document.getElementById('admin-gps-enabled').checked = settings['GPS_ENABLED'] === '1';
             toggleGpsConfig();
-            if (settings['GPS_ENABLED'] === '1') loadGpsAdminData();
+            if (settings['GPS_ENABLED'] === '1') {
+                loadGpsAdminData();
+                var gpsCard = document.getElementById('landing-gps-card');
+                if (gpsCard) gpsCard.style.display = '';
+                var gpsBtn = document.getElementById('sys-tog-gps');
+                if (gpsBtn) gpsBtn.style.display = '';
+            }
 
             var logoUrl = (settings['APP_LOGO_URL'] || '').trim();
             var previewEl = document.getElementById('admin-logo-img');
