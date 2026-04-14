@@ -930,6 +930,15 @@
         printContainer.style.display = 'block';
         document.getElementById('app-main-wrapper').style.display = 'none';
 
+        // Send consent_data to iframe after it loads
+        var activeVer = _monitorConsentVersions.find(function(v) { return v.status === 'active'; }) || _monitorConsentVersions[0];
+        if (activeVer && activeVer.consent_data) {
+          var mIframe = document.getElementById('monitor-consent-iframe');
+          mIframe.addEventListener('load', function() {
+            mIframe.contentWindow.postMessage({ type: 'restore-consent-data', consentData: activeVer.consent_data }, '*');
+          });
+        }
+
         var ps = document.createElement('style');
         ps.id = 'monitor-print-inject';
         ps.textContent = '#monitor-print-layout-container { position:fixed; top:0; left:0; right:0; bottom:0; z-index:99999; background:#fff; overflow:auto; } @media print { #app-main-wrapper, .modal, .modal-backdrop, .swal2-container, .no-print { display:none!important; } #monitor-print-layout-container { position:static!important; display:block!important; overflow:visible!important; } #monitor-consent-iframe { height:auto!important; min-height:0!important; } }';
@@ -959,6 +968,12 @@
             if (cd.route.to) src += '&route_to=' + encodeURIComponent(cd.route.to);
         }
         src += '&consent_version=' + selectedVer;
+
+        // Send consent_data after iframe reloads
+        iframe.addEventListener('load', function onLoad() {
+          iframe.removeEventListener('load', onLoad);
+          if (cd) iframe.contentWindow.postMessage({ type: 'restore-consent-data', consentData: cd }, '*');
+        });
         iframe.src = src;
     }
 

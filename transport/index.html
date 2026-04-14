@@ -4137,6 +4137,15 @@
       printContainer.style.display = 'block';
       document.getElementById('app-main-wrapper').style.display = 'none';
 
+      // Send consent_data to iframe after it loads
+      var activeVer = _previewConsentVersions.find(function(v) { return v.status === 'active'; }) || _previewConsentVersions[0];
+      if (activeVer && activeVer.consent_data) {
+        var pIframe = document.getElementById('consent-print-iframe');
+        pIframe.addEventListener('load', function() {
+          pIframe.contentWindow.postMessage({ type: 'restore-consent-data', consentData: activeVer.consent_data }, '*');
+        });
+      }
+
       var ps = document.createElement('style');
       ps.id = 'transport-print-inject';
       ps.textContent = '#print-layout-container { position:fixed; top:0; left:0; right:0; bottom:0; z-index:99999; background:#fff; overflow:auto; } @media print { #app-main-wrapper, .modal, .modal-backdrop, .swal2-container, .no-print { display:none!important; } #print-layout-container { position:static!important; display:block!important; overflow:visible!important; } #consent-print-iframe { height:auto!important; min-height:0!important; } }';
@@ -4176,16 +4185,17 @@
         if (cd.route.from) src += '&route_from=' + encodeURIComponent(cd.route.from);
         if (cd.route.to) src += '&route_to=' + encodeURIComponent(cd.route.to);
       }
-      // Pass version ID to load specific data
       src += '&consent_version=' + selectedVer;
 
+      // Send consent_data after iframe reloads
+      iframe.addEventListener('load', function onLoad() {
+        iframe.removeEventListener('load', onLoad);
+        if (cd) iframe.contentWindow.postMessage({ type: 'restore-consent-data', consentData: cd }, '*');
+      });
       iframe.src = src;
     }
 
     function openConsentModal() {
-      var modal = document.getElementById('consent-modal');
-      var iframe = document.getElementById('consent-iframe');
-      // Gather patient data from Transport form
       var f = document.forms['main-form'];
       var caseId = document.getElementById('caseId').value || '';
       var ptName = f ? (f.pt_name?.value || '') : '';
@@ -4196,8 +4206,106 @@
       } catch(e) {}
       var routeFrom = f ? (f.origin?.value || '') : '';
       var routeTo = f ? (f.destination?.value || '') : '';
-
       var isLocked = document.getElementById('formStatus').value === 'Completed';
+
+      // ────── ถ้ายังไม่เซ็น → เปิดฟอร์มแก้ไขเลย ──────
+      if (!consentSigned) {
+        var modal = document.getElementById('consent-modal');
+        var iframe = document.getElementById('consent-iframe');
+        var src = 'consent-prototype.html?embed=1';
+        if (caseId) src += '&case_id=' + encodeURIComponent(caseId);
+        if (ptName) src += '&pt_name=' + encodeURIComponent(ptName);
+        if (ptIdCard) src += '&pt_id=' + encodeURIComponent(ptIdCard);
+        if (ptAge) src += '&pt_age=' + encodeURIComponent(ptAge);
+        if (routeFrom) src += '&route_from=' + encodeURIComponent(routeFrom);
+        if (routeTo) src += '&route_to=' + encodeURIComponent(routeTo);
+        iframe.src = src;
+        modal.classList.add('show');
+        document.body.style.overflow = 'hidden';
+        return;
+      }
+
+      // ────── เซ็นแล้ว → เปิด Preview ก่อน (พร้อมปุ่มแก้ไขถ้า Active) ──────
+      _previewConsentVersions = consentVersions || [];
+      _previewConsentCaseId = caseId;
+
+      // Build version dropdown
+      var versionDropdown = '';
+      if (_previewConsentVersions.length > 1) {
+        versionDropdown = '<select id="consent-version-select" onchange="switchConsentVersion()" style="padding:8px 12px;font-size:14px;border-radius:6px;border:1px solid #cbd5e1;font-family:Sarabun,sans-serif;margin:0 8px;min-width:200px;">';
+        _previewConsentVersions.forEach(function(v) {
+          var d = new Date(v.signed_at);
+          var thM = ['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
+          var pad = function(n) { return n < 10 ? '0' + n : n; };
+          var label = 'ฉบับที่ ' + v.version + ' — ' + d.getDate() + ' ' + thM[d.getMonth()] + ' ' + pad(d.getHours()) + ':' + pad(d.getMinutes());
+          if (v.status === 'active') label += ' (ปัจจุบัน)';
+          else label += ' (ยกเลิก)';
+          versionDropdown += '<option value="' + v.version + '"' + (v.status === 'active' ? ' selected' : '') + '>' + label + '</option>';
+        });
+        versionDropdown += '</select>';
+      } else if (_previewConsentVersions.length === 1) {
+        versionDropdown = '<span style="font-size:14px;color:#64748b;margin:0 8px;">ฉบับที่ 1</span>';
+      }
+
+      // Build toolbar buttons
+      var editBtn = '';
+      if (!isLocked) {
+        editBtn = '<button onclick="openConsentEditMode()" style="padding:10px 20px;font-size:16px;border-radius:6px;border:none;cursor:pointer;font-family:Sarabun,sans-serif;font-weight:600;margin:0 5px;background:#f59e0b;color:#fff;">✏️ แก้ไข Consent</button>';
+      }
+
+      var mode = isLocked ? 'preview' : 'print-preview';
+      var src = 'consent-prototype.html?embed=1&mode=' + mode;
+      src += '&case_id=' + encodeURIComponent(caseId);
+      if (ptName) src += '&pt_name=' + encodeURIComponent(ptName);
+      if (ptIdCard) src += '&pt_id=' + encodeURIComponent(ptIdCard);
+      if (ptAge) src += '&pt_age=' + encodeURIComponent(ptAge);
+      if (routeFrom) src += '&route_from=' + encodeURIComponent(routeFrom);
+      if (routeTo) src += '&route_to=' + encodeURIComponent(routeTo);
+
+      var printArea = document.getElementById('print-content-area');
+      var printContainer = document.getElementById('print-layout-container');
+
+      var toolbar = '<div style="display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:6px;padding:12px;background:#f8fafc;border-bottom:1px solid #e2e8f0;" class="no-print">' +
+          versionDropdown +
+          editBtn +
+          '<button onclick="printConsentIframe()" style="padding:10px 20px;font-size:16px;border-radius:6px;border:none;cursor:pointer;font-family:Sarabun,sans-serif;font-weight:600;margin:0 5px;background:#2563eb;color:#fff;">🖨️ พิมพ์</button>' +
+          '<button onclick="transport_closePrintView()" style="padding:10px 20px;font-size:16px;border-radius:6px;border:none;cursor:pointer;font-family:Sarabun,sans-serif;font-weight:600;margin:0 5px;background:#64748b;color:#fff;">✕ กลับ</button></div>';
+
+      printArea.innerHTML = toolbar + '<iframe id="consent-print-iframe" src="' + src + '" style="width:100%;border:none;min-height:calc(100vh - 60px);"></iframe>';
+      printContainer.style.display = 'block';
+      document.getElementById('app-main-wrapper').style.display = 'none';
+
+      // Send consent_data to iframe after it loads
+      var activeVer2 = _previewConsentVersions.find(function(v) { return v.status === 'active'; }) || _previewConsentVersions[0];
+      if (activeVer2 && activeVer2.consent_data) {
+        var pIframe2 = document.getElementById('consent-print-iframe');
+        pIframe2.addEventListener('load', function() {
+          pIframe2.contentWindow.postMessage({ type: 'restore-consent-data', consentData: activeVer2.consent_data }, '*');
+        });
+      }
+
+      var ps = document.createElement('style');
+      ps.id = 'transport-print-inject';
+      ps.textContent = '#print-layout-container { position:fixed; top:0; left:0; right:0; bottom:0; z-index:99999; background:#fff; overflow:auto; } @media print { #app-main-wrapper, .modal, .modal-backdrop, .swal2-container, .no-print { display:none!important; } #print-layout-container { position:static!important; display:block!important; overflow:visible!important; } #consent-print-iframe { height:auto!important; min-height:0!important; } }';
+      document.head.appendChild(ps);
+    }
+
+    // ปุ่ม "แก้ไข Consent" → เปลี่ยนจาก Preview เป็น Editable
+    function openConsentEditMode() {
+      // Close print view first
+      transport_closePrintView();
+
+      // Open editable consent modal
+      var modal = document.getElementById('consent-modal');
+      var iframe = document.getElementById('consent-iframe');
+      var f = document.forms['main-form'];
+      var caseId = document.getElementById('caseId').value || '';
+      var ptName = f ? (f.pt_name?.value || '') : '';
+      var ptAge = f ? (f.pt_age?.value || '') : '';
+      var ptIdCard = '';
+      try { ptIdCard = (f.pt_idcard?.value || f.pt_passport?.value || '').trim(); } catch(e) {}
+      var routeFrom = f ? (f.origin?.value || '') : '';
+      var routeTo = f ? (f.destination?.value || '') : '';
 
       var src = 'consent-prototype.html?embed=1';
       if (caseId) src += '&case_id=' + encodeURIComponent(caseId);
@@ -4206,7 +4314,6 @@
       if (ptAge) src += '&pt_age=' + encodeURIComponent(ptAge);
       if (routeFrom) src += '&route_from=' + encodeURIComponent(routeFrom);
       if (routeTo) src += '&route_to=' + encodeURIComponent(routeTo);
-      if (isLocked) src += '&mode=preview';
 
       iframe.src = src;
       modal.classList.add('show');

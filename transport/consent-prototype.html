@@ -924,9 +924,10 @@ if (IS_EMBED) {
                     el.style.display = 'none';
                 }
             });
-            // Hide the big submit button
-            var submitBtns = document.querySelectorAll('button[onclick*="submitConsent"], .consent-submit-btn');
-            submitBtns.forEach(function(el) { el.style.display = 'none'; });
+            // Hide the big submit button AND print button
+            document.querySelectorAll('#btn-submit-consent, .btn-consent').forEach(function(el) {
+                el.style.display = 'none';
+            });
 
             // Block entire form interaction with overlay
             var overlay = document.createElement('div');
@@ -1670,6 +1671,135 @@ function switchLang(lang) {
         guideLabel.textContent = labels[lang] || labels.th;
     }
 }
+
+// ===========================
+// Restore consent data from DB (via postMessage)
+// ===========================
+function restoreConsentData(cd) {
+    if (!cd) return;
+
+    // 1) Consenter info
+    if (cd.consenterName) {
+        document.getElementById('c-consenter-name').value = cd.consenterName;
+    }
+    if (cd.consenterId) {
+        var raw = cd.consenterId;
+        // Format as X-XXXX-XXXXX-XX-X
+        if (raw.length === 13) {
+            raw = raw[0] + '-' + raw.substr(1,4) + '-' + raw.substr(5,5) + '-' + raw.substr(10,2) + '-' + raw[12];
+        }
+        document.getElementById('c-consenter-id').value = raw;
+    }
+
+    // 2) Relationship
+    if (cd.relationship) {
+        var relValue = cd.relationship;
+        var relBtn = null;
+        var knownRels = ['ผู้ป่วยเอง','บิดา/มารดา','คู่สมรส','บุตร','พี่น้อง'];
+        if (knownRels.indexOf(relValue) >= 0) {
+            document.querySelectorAll('.rel-btn').forEach(function(b) {
+                if (b.dataset.value === relValue) relBtn = b;
+            });
+        } else {
+            // It's "other"
+            document.querySelectorAll('.rel-btn').forEach(function(b) {
+                if (b.dataset.value === 'other') relBtn = b;
+            });
+            var otherInput = document.getElementById('c-rel-other');
+            if (otherInput) { otherInput.value = relValue; otherInput.classList.remove('d-none'); }
+        }
+        if (relBtn) {
+            document.querySelectorAll('.rel-btn').forEach(function(b) { b.classList.remove('active'); });
+            relBtn.classList.add('active');
+            selectedRel = relBtn.dataset.value;
+        }
+    }
+
+    // 3) Consent checklist
+    if (cd.consentChecklist && cd.consentChecklist.length) {
+        document.querySelectorAll('.consent-check-item').forEach(function(item, idx) {
+            var entry = cd.consentChecklist[idx];
+            if (entry && entry.checked) {
+                item.classList.add('checked');
+            } else {
+                item.classList.remove('checked');
+            }
+        });
+    }
+
+    // 4) Parts active state
+    if (cd.parts) {
+        ['part2', 'part3'].forEach(function(pid) {
+            var el = document.getElementById(pid);
+            if (!el) return;
+            if (cd.parts[pid]) el.classList.add('active');
+            else el.classList.remove('active');
+        });
+    }
+
+    // 5) Destination change
+    if (cd.destChange) {
+        var df = document.getElementById('c-dest-from');
+        var dt = document.getElementById('c-dest-to');
+        if (df && cd.destChange.from) df.value = cd.destChange.from;
+        if (dt && cd.destChange.to) dt.value = cd.destChange.to;
+    }
+
+    // 6) DNR items
+    if (cd.dnr && cd.dnr.length) {
+        document.querySelectorAll('.dnr-item').forEach(function(item) {
+            var cb = item.querySelector('input');
+            if (cb && cd.dnr.indexOf(cb.value) >= 0) {
+                item.classList.add('checked');
+                cb.checked = true;
+                if (cb.value === 'other') {
+                    var otherInput = document.getElementById('c-dnr-other');
+                    if (otherInput) otherInput.classList.remove('d-none');
+                }
+            }
+        });
+    }
+
+    // 7) Signature
+    if (cd.signatureDataUrl) {
+        sigDataUrl = cd.signatureDataUrl;
+        var preview = document.getElementById('sig-preview');
+        var img = document.getElementById('sig-preview-img');
+        if (img) img.src = cd.signatureDataUrl;
+        if (preview) preview.classList.add('has-sig');
+
+        // Timestamp
+        if (cd.signatureTimestamp) {
+            sigTimestamp = new Date(cd.signatureTimestamp);
+            var tsEl = document.getElementById('sig-timestamp');
+            var tsVal = document.getElementById('sig-timestamp-value');
+            if (tsEl && tsVal) {
+                var d = sigTimestamp;
+                var pad = function(n) { return n < 10 ? '0' + n : n; };
+                var thM = ['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
+                tsVal.textContent = d.getDate() + ' ' + thM[d.getMonth()] + ' ' + (d.getFullYear() + 543)
+                    + ' เวลา ' + pad(d.getHours()) + ':' + pad(d.getMinutes()) + ':' + pad(d.getSeconds());
+                tsEl.classList.add('show');
+            }
+        }
+    }
+
+    // 8) ID card photo
+    if (cd.consenterIdCardPhoto) {
+        var photoPreview = document.getElementById('id-card-preview');
+        if (photoPreview) {
+            photoPreview.src = cd.consenterIdCardPhoto;
+            photoPreview.style.display = 'block';
+        }
+    }
+}
+
+// Listen for restore-consent-data from parent
+window.addEventListener('message', function(e) {
+    if (e.data && e.data.type === 'restore-consent-data' && e.data.consentData) {
+        restoreConsentData(e.data.consentData);
+    }
+});
 
 // ===========================
 // Init
