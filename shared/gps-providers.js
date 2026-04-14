@@ -7,11 +7,27 @@
 // ตั้งค่าใน CONFIG.GPS_PROXY_URL หรือปล่อยว่างถ้าไม่ต้องใช้
 async function gpsFetch(url) {
   var proxyUrl = (typeof CONFIG !== 'undefined' && CONFIG.GPS_PROXY_URL) ? CONFIG.GPS_PROXY_URL : '';
+  var fallbackUrl = (typeof CONFIG !== 'undefined' && CONFIG.GPS_PROXY_FALLBACK) ? CONFIG.GPS_PROXY_FALLBACK : '';
+
   if (proxyUrl && url.startsWith('http://')) {
-    // ใช้ proxy: GAS จะ forward request ไปให้
-    var finalUrl = proxyUrl + '?url=' + encodeURIComponent(url);
-    var resp = await fetch(finalUrl);
-    return await resp.json();
+    // ลอง Render ก่อน (timeout 5 วินาที) → ถ้าช้า/fail สลับ GAS
+    try {
+      var controller = new AbortController();
+      var timer = setTimeout(function() { controller.abort(); }, 5000);
+      var finalUrl = proxyUrl + '?url=' + encodeURIComponent(url);
+      var resp = await fetch(finalUrl, { signal: controller.signal });
+      clearTimeout(timer);
+      return await resp.json();
+    } catch(e) {
+      // Render ช้า/fail → fallback GAS
+      if (fallbackUrl) {
+        console.warn('GPS Proxy: Render timeout, switching to GAS fallback');
+        var finalUrl2 = fallbackUrl + '?url=' + encodeURIComponent(url);
+        var resp2 = await fetch(finalUrl2);
+        return await resp2.json();
+      }
+      throw e;
+    }
   } else {
     // เรียกตรง (localhost / HTTP page)
     var resp = await fetch(url);
