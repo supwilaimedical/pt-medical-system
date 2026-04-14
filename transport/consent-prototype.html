@@ -536,8 +536,40 @@
   }
 
   @media (max-width: 576px) {
-    .consent-body { padding: 14px; }
+    .consent-body { padding: 12px; }
     .dnr-grid { grid-template-columns: 1fr; }
+    /* Stack patient & consenter fields vertically on mobile */
+    .info-card .row.g-2 > [class*="col-"] {
+      flex: 0 0 100% !important;
+      max-width: 100% !important;
+      width: 100% !important;
+    }
+    .info-card .form-control-sm {
+      font-size: 1rem !important;
+      padding: 8px 12px !important;
+      height: auto !important;
+    }
+    .info-card .info-label {
+      font-size: 0.75rem !important;
+      margin-bottom: 2px;
+    }
+    .info-card {
+      padding: 14px;
+    }
+    .dest-field input {
+      font-size: 1rem !important;
+      padding: 6px 0 !important;
+    }
+    .part-content {
+      font-size: 0.9rem;
+    }
+    .rel-group {
+      flex-wrap: wrap;
+    }
+    .rel-btn {
+      font-size: 0.8rem !important;
+      padding: 6px 10px !important;
+    }
   }
 </style>
 </head>
