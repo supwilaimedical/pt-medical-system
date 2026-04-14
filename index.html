@@ -285,6 +285,30 @@
                   <!-- GPS Config (ซ่อนเมื่อปิด) -->
                   <div id="admin-gps-config" style="display:none;">
 
+                    <!-- Proxy Status -->
+                    <h6 class="fw-bold text-secondary mt-2 mb-2"><i class="bi bi-shield-check me-1"></i> Proxy Status</h6>
+                    <div class="d-flex gap-2 mb-3 flex-wrap" id="admin-proxy-status">
+                      <div class="border rounded-3 px-3 py-2 d-flex align-items-center gap-2" style="min-width:200px;">
+                        <span class="spinner-border spinner-border-sm text-muted" id="proxy-render-spinner"></span>
+                        <span class="badge rounded-pill" id="proxy-render-badge" style="display:none;">--</span>
+                        <div>
+                          <div class="small fw-bold">Render</div>
+                          <div class="text-muted" style="font-size:0.7rem;" id="proxy-render-ms">กำลังตรวจสอบ...</div>
+                        </div>
+                      </div>
+                      <div class="border rounded-3 px-3 py-2 d-flex align-items-center gap-2" style="min-width:200px;">
+                        <span class="spinner-border spinner-border-sm text-muted" id="proxy-gas-spinner"></span>
+                        <span class="badge rounded-pill" id="proxy-gas-badge" style="display:none;">--</span>
+                        <div>
+                          <div class="small fw-bold">GAS (Fallback)</div>
+                          <div class="text-muted" style="font-size:0.7rem;" id="proxy-gas-ms">กำลังตรวจสอบ...</div>
+                        </div>
+                      </div>
+                      <button class="btn btn-outline-secondary btn-sm align-self-center" onclick="checkProxyStatus()">
+                        <i class="bi bi-arrow-clockwise"></i>
+                      </button>
+                    </div>
+
                     <!-- Providers -->
                     <h6 class="fw-bold text-secondary mt-3 mb-2"><i class="bi bi-hdd-network me-1"></i> Providers</h6>
                     <div id="admin-gps-providers-list" class="mb-2"></div>
@@ -1056,6 +1080,58 @@
     async function loadGpsAdminData() {
         await loadGpsProviders();
         await loadGpsVehicles();
+        checkProxyStatus();
+    }
+
+    // --- Proxy Status Check ---
+    async function checkProxyStatus() {
+        var testUrl = 'http://203.170.193.90/StandardApiAction_login.action?account=supwilai&password=1234';
+        checkOneProxy('render', CONFIG.GPS_PROXY_URL, testUrl);
+        checkOneProxy('gas', CONFIG.GPS_PROXY_FALLBACK, testUrl);
+    }
+
+    async function checkOneProxy(name, proxyBase, testUrl) {
+        var spinner = document.getElementById('proxy-' + name + '-spinner');
+        var badge = document.getElementById('proxy-' + name + '-badge');
+        var msEl = document.getElementById('proxy-' + name + '-ms');
+        if (!spinner || !badge || !msEl) return;
+
+        // Reset to loading
+        spinner.style.display = '';
+        badge.style.display = 'none';
+        msEl.textContent = 'กำลังตรวจสอบ...';
+
+        var start = Date.now();
+        try {
+            var controller = new AbortController();
+            var timer = setTimeout(function() { controller.abort(); }, 15000);
+            var resp = await fetch(proxyBase + '?url=' + encodeURIComponent(testUrl), { signal: controller.signal });
+            clearTimeout(timer);
+            var data = await resp.json();
+            var ms = Date.now() - start;
+
+            spinner.style.display = 'none';
+            badge.style.display = '';
+            if (data.result === 0) {
+                badge.textContent = '✓ Online';
+                badge.className = 'badge rounded-pill bg-success';
+                msEl.textContent = ms + ' ms';
+                msEl.style.color = ms < 1000 ? '#16a34a' : ms < 3000 ? '#f59e0b' : '#dc2626';
+            } else {
+                badge.textContent = '⚠ Error';
+                badge.className = 'badge rounded-pill bg-warning text-dark';
+                msEl.textContent = 'API error (result: ' + data.result + ')';
+                msEl.style.color = '#dc2626';
+            }
+        } catch(e) {
+            var ms = Date.now() - start;
+            spinner.style.display = 'none';
+            badge.style.display = '';
+            badge.textContent = '✗ Offline';
+            badge.className = 'badge rounded-pill bg-danger';
+            msEl.textContent = e.name === 'AbortError' ? 'Timeout (' + ms + ' ms)' : e.message;
+            msEl.style.color = '#dc2626';
+        }
     }
 
     // --- Providers ---
