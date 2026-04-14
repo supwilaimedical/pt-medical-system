@@ -567,8 +567,8 @@
           <input type="text" class="form-control form-control-sm" id="c-patient-age" data-i18n-ph="patient.age_ph" placeholder="อายุ">
         </div>
         <div class="col-4">
-          <div class="info-label" data-i18n="patient.id">เลขบัตร ปชช.</div>
-          <input type="tel" class="form-control form-control-sm" id="c-patient-idcard" placeholder="X-XXXX-XXXXX-XX-X" maxlength="17" oninput="formatIdCard(this)" inputmode="numeric">
+          <div class="info-label" data-i18n="patient.id">เลขบัตร ปชช. / Passport No.</div>
+          <input type="text" class="form-control form-control-sm" id="c-patient-idcard" data-i18n-ph="patient.id_ph" placeholder="เลขบัตร 13 หลัก หรือ Passport" maxlength="20" oninput="formatIdInput(this)">
         </div>
       </div>
     </div>
@@ -1559,7 +1559,8 @@ var I18N = {
     'patient.title': 'ข้อมูลผู้ป่วย',
     'patient.name': 'ชื่อ-สกุล', 'patient.name_ph': 'ชื่อ-สกุลผู้ป่วย',
     'patient.age': 'อายุ', 'patient.age_ph': 'อายุ',
-    'patient.id': 'เลขบัตร ปชช.',
+    'patient.id': 'เลขบัตร ปชช. / Passport No.',
+    'patient.id_ph': 'เลขบัตร 13 หลัก หรือ Passport',
     'consenter.title': 'ผู้ให้ความยินยอม',
     'consenter.name': 'ชื่อ-สกุล ผู้ยินยอม', 'consenter.name_ph': 'กรอกชื่อ-สกุล',
     'consenter.id': 'เลขบัตร ปชช. / Passport No.',
@@ -1621,7 +1622,8 @@ var I18N = {
     'patient.title': 'Patient Information',
     'patient.name': 'Full Name', 'patient.name_ph': 'Patient full name',
     'patient.age': 'Age', 'patient.age_ph': 'Age',
-    'patient.id': 'National ID',
+    'patient.id': 'National ID / Passport No.',
+    'patient.id_ph': '13-digit ID or Passport',
     'consenter.title': 'Consenter',
     'consenter.name': 'Consenter Name', 'consenter.name_ph': 'Enter full name',
     'consenter.id': 'National ID / Passport No.',
@@ -1683,7 +1685,8 @@ var I18N = {
     'patient.title': '患者信息',
     'patient.name': '姓名', 'patient.name_ph': '患者姓名',
     'patient.age': '年龄', 'patient.age_ph': '年龄',
-    'patient.id': '身份证号',
+    'patient.id': '身份证 / 护照号码',
+    'patient.id_ph': '13位身份证号或护照号',
     'consenter.title': '同意人',
     'consenter.name': '同意人姓名', 'consenter.name_ph': '请输入姓名',
     'consenter.id': '身份证 / 护照号码',
@@ -1742,7 +1745,8 @@ var I18N = {
     'patient.title': 'လူနာအချက်အလက်',
     'patient.name': 'အမည်', 'patient.name_ph': 'လူနာအမည်',
     'patient.age': 'အသက်', 'patient.age_ph': 'အသက်',
-    'patient.id': 'မှတ်ပုံတင်',
+    'patient.id': 'မှတ်ပုံတင် / Passport နံပါတ်',
+    'patient.id_ph': 'မှတ်ပုံတင် ၁၃ လုံး သို့ Passport',
     'consenter.title': 'သဘောတူညီသူ',
     'consenter.name': 'သဘောတူညီသူအမည်', 'consenter.name_ph': 'အမည်ထည့်ပါ',
     'consenter.id': 'မှတ်ပုံတင် / Passport နံပါတ်',
