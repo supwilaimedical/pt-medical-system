@@ -37,20 +37,23 @@
   .consent-header {
     background: linear-gradient(135deg, #1e3a5f 0%, #2c5282 100%);
     color: #fff;
-    padding: 16px 24px;
+    padding: 16px 20px 12px;
     border-radius: 16px 16px 0 0;
   }
-  .consent-header-row {
-    display: flex; align-items: center; gap: 14px;
+  .consent-header-top {
+    display: flex; align-items: center; gap: 10px; margin-bottom: 8px;
   }
-  .consent-header-left {
-    display: flex; align-items: center; gap: 12px; flex: 1; min-width: 0;
+  .consent-header-top img { height: 42px; flex-shrink: 0; }
+  .consent-header-info {
+    display: flex; justify-content: space-between; align-items: flex-start; flex: 1; min-width: 0;
   }
-  .consent-header-right {
-    text-align: right; flex-shrink: 0; font-size: 0.73rem; opacity: 0.75;
+  .consent-header-titles { }
+  .consent-header-meta {
+    text-align: right; flex-shrink: 0; font-size: 0.72rem; opacity: 0.75; padding-top: 2px;
   }
-  .consent-header h5 { font-weight: 700; margin: 0; font-size: 1.1rem; }
-  .consent-header .subtitle { font-size: 0.78rem; opacity: 0.8; margin-top: 2px; }
+  .consent-header h5 { font-weight: 700; margin: 0; font-size: 1.05rem; line-height: 1.3; }
+  .consent-header .company-name { font-size: 0.8rem; font-weight: 600; opacity: 0.9; margin-bottom: 1px; }
+  .consent-header .subtitle { font-size: 0.75rem; opacity: 0.8; margin-top: 1px; }
 
   .consent-body { padding: 20px; }
 
@@ -419,9 +422,9 @@
     .consent-header { padding: 5px 12px !important; }
     .consent-header h5 { font-size: 10pt !important; margin: 0 !important; }
     .consent-header .subtitle { font-size: 6.5pt !important; margin-top: 1px !important; }
-    #consent-company-name { font-size: 7pt !important; }
-    .consent-header-right { font-size: 6pt !important; }
-    #consent-logo { height: 30px !important; }
+    .consent-header .company-name { font-size: 7pt !important; }
+    .consent-header-meta { font-size: 6pt !important; }
+    .consent-header-top img { height: 28px !important; }
 
     /* All parts expanded */
     .part-content { display: block !important; padding: 0 10px 4px !important; }
@@ -532,21 +535,21 @@
 <div class="consent-card my-3 mx-auto px-0">
   <!-- Header -->
   <div class="consent-header">
-    <div class="consent-header-row">
-      <div class="consent-header-left">
-        <img id="consent-logo" src="" style="height:44px;display:none;" alt="logo">
-        <div>
-          <div id="consent-company-name" style="font-size:0.82rem;font-weight:600;opacity:0.9;margin-bottom:1px;"></div>
+    <div class="consent-header-top">
+      <img id="consent-logo" src="" style="display:none;" alt="logo">
+      <div class="consent-header-info">
+        <div class="consent-header-titles">
+          <div class="company-name" id="consent-company-name"></div>
           <h5 data-i18n="header.title">ใบยินยอม/ปฏิเสธ การให้บริการรถพยาบาลฉุกเฉิน</h5>
           <div class="subtitle" data-i18n="header.subtitle">Ambulance Service Consent Form</div>
         </div>
-      </div>
-      <div class="consent-header-right">
-        <div><span id="consent-case-id">CASE-20260414-001</span></div>
-        <div><span id="consent-date">14 เม.ย. 2569</span> | <span id="consent-time">21:30</span></div>
+        <div class="consent-header-meta">
+          <div id="consent-case-id">CASE-20260414-001</div>
+          <div><span id="consent-date">14 เม.ย. 2569</span> | <span id="consent-time">21:30</span></div>
+        </div>
       </div>
     </div>
-    <div class="lang-switcher no-print" style="margin-top:10px; display:flex; justify-content:center;">
+    <div class="lang-switcher no-print" style="display:flex; justify-content:center;">
       <div class="lang-btn active" onclick="switchLang('th')">ไทย</div>
       <div class="lang-btn" onclick="switchLang('en')">EN</div>
       <div class="lang-btn" onclick="switchLang('zh')">CH</div>
