@@ -930,12 +930,16 @@
         printContainer.style.display = 'block';
         document.getElementById('app-main-wrapper').style.display = 'none';
 
-        // Send consent_data to iframe after it loads
+        // Send consent_data to iframe after it loads (direct call)
         var activeVer = _monitorConsentVersions.find(function(v) { return v.status === 'active'; }) || _monitorConsentVersions[0];
         if (activeVer && activeVer.consent_data) {
           var mIframe = document.getElementById('monitor-consent-iframe');
           mIframe.addEventListener('load', function() {
-            mIframe.contentWindow.postMessage({ type: 'restore-consent-data', consentData: activeVer.consent_data }, '*');
+            setTimeout(function() {
+              if (mIframe.contentWindow && mIframe.contentWindow.restoreConsentData) {
+                mIframe.contentWindow.restoreConsentData(activeVer.consent_data);
+              }
+            }, 300);
           });
         }
 
@@ -969,10 +973,14 @@
         }
         src += '&consent_version=' + selectedVer;
 
-        // Send consent_data after iframe reloads
+        // Send consent_data after iframe reloads (direct call)
         iframe.addEventListener('load', function onLoad() {
           iframe.removeEventListener('load', onLoad);
-          if (cd) iframe.contentWindow.postMessage({ type: 'restore-consent-data', consentData: cd }, '*');
+          setTimeout(function() {
+            if (cd && iframe.contentWindow && iframe.contentWindow.restoreConsentData) {
+              iframe.contentWindow.restoreConsentData(cd);
+            }
+          }, 300);
         });
         iframe.src = src;
     }

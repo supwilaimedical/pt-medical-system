@@ -4137,12 +4137,16 @@
       printContainer.style.display = 'block';
       document.getElementById('app-main-wrapper').style.display = 'none';
 
-      // Send consent_data to iframe after it loads
+      // Send consent_data to iframe after it loads (direct call, not postMessage)
       var activeVer = _previewConsentVersions.find(function(v) { return v.status === 'active'; }) || _previewConsentVersions[0];
       if (activeVer && activeVer.consent_data) {
         var pIframe = document.getElementById('consent-print-iframe');
         pIframe.addEventListener('load', function() {
-          pIframe.contentWindow.postMessage({ type: 'restore-consent-data', consentData: activeVer.consent_data }, '*');
+          setTimeout(function() {
+            if (pIframe.contentWindow && pIframe.contentWindow.restoreConsentData) {
+              pIframe.contentWindow.restoreConsentData(activeVer.consent_data);
+            }
+          }, 300);
         });
       }
 
@@ -4187,10 +4191,14 @@
       }
       src += '&consent_version=' + selectedVer;
 
-      // Send consent_data after iframe reloads
+      // Send consent_data after iframe reloads (direct call)
       iframe.addEventListener('load', function onLoad() {
         iframe.removeEventListener('load', onLoad);
-        if (cd) iframe.contentWindow.postMessage({ type: 'restore-consent-data', consentData: cd }, '*');
+        setTimeout(function() {
+          if (cd && iframe.contentWindow && iframe.contentWindow.restoreConsentData) {
+            iframe.contentWindow.restoreConsentData(cd);
+          }
+        }, 300);
       });
       iframe.src = src;
     }
@@ -4275,12 +4283,16 @@
       printContainer.style.display = 'block';
       document.getElementById('app-main-wrapper').style.display = 'none';
 
-      // Send consent_data to iframe after it loads
+      // Send consent_data to iframe after it loads (direct call)
       var activeVer2 = _previewConsentVersions.find(function(v) { return v.status === 'active'; }) || _previewConsentVersions[0];
       if (activeVer2 && activeVer2.consent_data) {
         var pIframe2 = document.getElementById('consent-print-iframe');
         pIframe2.addEventListener('load', function() {
-          pIframe2.contentWindow.postMessage({ type: 'restore-consent-data', consentData: activeVer2.consent_data }, '*');
+          setTimeout(function() {
+            if (pIframe2.contentWindow && pIframe2.contentWindow.restoreConsentData) {
+              pIframe2.contentWindow.restoreConsentData(activeVer2.consent_data);
+            }
+          }, 300);
         });
       }
 
