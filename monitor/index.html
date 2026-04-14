@@ -935,11 +935,7 @@
         if (activeVer && activeVer.consent_data) {
           var mIframe = document.getElementById('monitor-consent-iframe');
           mIframe.addEventListener('load', function() {
-            setTimeout(function() {
-              if (mIframe.contentWindow && mIframe.contentWindow.restoreConsentData) {
-                mIframe.contentWindow.restoreConsentData(activeVer.consent_data);
-              }
-            }, 300);
+            monitorSendConsentData(mIframe, activeVer.consent_data);
           });
         }
 
@@ -947,6 +943,23 @@
         ps.id = 'monitor-print-inject';
         ps.textContent = '#monitor-print-layout-container { position:fixed; top:0; left:0; right:0; bottom:0; z-index:99999; background:#fff; overflow:auto; } @media print { #app-main-wrapper, .modal, .modal-backdrop, .swal2-container, .no-print { display:none!important; } #monitor-print-layout-container { position:static!important; display:block!important; overflow:visible!important; } #monitor-consent-iframe { height:auto!important; min-height:0!important; } }';
         document.head.appendChild(ps);
+    }
+
+    // Helper: restore consent data to iframe with retry
+    function monitorSendConsentData(iframe, consentData) {
+      if (!iframe || !consentData) return;
+      var attempts = 0;
+      function tryRestore() {
+        attempts++;
+        try {
+          if (iframe.contentWindow && iframe.contentWindow.restoreConsentData) {
+            iframe.contentWindow.restoreConsentData(consentData);
+            return;
+          }
+        } catch(e) {}
+        if (attempts < 15) setTimeout(tryRestore, 200);
+      }
+      setTimeout(tryRestore, 300);
     }
 
     function monitorSwitchConsentVersion() {
@@ -973,14 +986,10 @@
         }
         src += '&consent_version=' + selectedVer;
 
-        // Send consent_data after iframe reloads (direct call)
+        // Send consent_data after iframe reloads
         iframe.addEventListener('load', function onLoad() {
           iframe.removeEventListener('load', onLoad);
-          setTimeout(function() {
-            if (cd && iframe.contentWindow && iframe.contentWindow.restoreConsentData) {
-              iframe.contentWindow.restoreConsentData(cd);
-            }
-          }, 300);
+          monitorSendConsentData(iframe, cd);
         });
         iframe.src = src;
     }

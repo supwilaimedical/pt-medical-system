@@ -4137,16 +4137,12 @@
       printContainer.style.display = 'block';
       document.getElementById('app-main-wrapper').style.display = 'none';
 
-      // Send consent_data to iframe after it loads (direct call, not postMessage)
+      // Send consent_data to iframe after it loads
       var activeVer = _previewConsentVersions.find(function(v) { return v.status === 'active'; }) || _previewConsentVersions[0];
       if (activeVer && activeVer.consent_data) {
         var pIframe = document.getElementById('consent-print-iframe');
         pIframe.addEventListener('load', function() {
-          setTimeout(function() {
-            if (pIframe.contentWindow && pIframe.contentWindow.restoreConsentData) {
-              pIframe.contentWindow.restoreConsentData(activeVer.consent_data);
-            }
-          }, 300);
+          sendConsentDataToIframe(pIframe, activeVer.consent_data);
         });
       }
 
@@ -4154,6 +4150,27 @@
       ps.id = 'transport-print-inject';
       ps.textContent = '#print-layout-container { position:fixed; top:0; left:0; right:0; bottom:0; z-index:99999; background:#fff; overflow:auto; } @media print { #app-main-wrapper, .modal, .modal-backdrop, .swal2-container, .no-print { display:none!important; } #print-layout-container { position:static!important; display:block!important; overflow:visible!important; } #consent-print-iframe { height:auto!important; min-height:0!important; } }';
       document.head.appendChild(ps);
+    }
+
+    // Helper: restore consent data to iframe with retry
+    function sendConsentDataToIframe(iframe, consentData) {
+      if (!iframe || !consentData) return;
+      var attempts = 0;
+      var maxAttempts = 15;
+      function tryRestore() {
+        attempts++;
+        try {
+          if (iframe.contentWindow && iframe.contentWindow.restoreConsentData) {
+            iframe.contentWindow.restoreConsentData(consentData);
+            return;
+          }
+        } catch(e) {}
+        if (attempts < maxAttempts) {
+          setTimeout(tryRestore, 200);
+        }
+      }
+      // Start trying after initial delay for readonly mode to complete
+      setTimeout(tryRestore, 300);
     }
 
     function printConsentIframe() {
@@ -4191,14 +4208,10 @@
       }
       src += '&consent_version=' + selectedVer;
 
-      // Send consent_data after iframe reloads (direct call)
+      // Send consent_data after iframe reloads
       iframe.addEventListener('load', function onLoad() {
         iframe.removeEventListener('load', onLoad);
-        setTimeout(function() {
-          if (cd && iframe.contentWindow && iframe.contentWindow.restoreConsentData) {
-            iframe.contentWindow.restoreConsentData(cd);
-          }
-        }, 300);
+        sendConsentDataToIframe(iframe, cd);
       });
       iframe.src = src;
     }
@@ -4283,16 +4296,12 @@
       printContainer.style.display = 'block';
       document.getElementById('app-main-wrapper').style.display = 'none';
 
-      // Send consent_data to iframe after it loads (direct call)
+      // Send consent_data to iframe after it loads
       var activeVer2 = _previewConsentVersions.find(function(v) { return v.status === 'active'; }) || _previewConsentVersions[0];
       if (activeVer2 && activeVer2.consent_data) {
         var pIframe2 = document.getElementById('consent-print-iframe');
         pIframe2.addEventListener('load', function() {
-          setTimeout(function() {
-            if (pIframe2.contentWindow && pIframe2.contentWindow.restoreConsentData) {
-              pIframe2.contentWindow.restoreConsentData(activeVer2.consent_data);
-            }
-          }, 300);
+          sendConsentDataToIframe(pIframe2, activeVer2.consent_data);
         });
       }
 
