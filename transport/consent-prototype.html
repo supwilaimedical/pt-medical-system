@@ -556,7 +556,7 @@
         </div>
         <div class="consent-header-meta">
           <div id="consent-case-id"></div>
-          <div><span id="consent-date"></span> | <span id="consent-time"></span></div>
+          <div><span id="consent-date"></span></div>
         </div>
       </div>
     </div>
@@ -1136,8 +1136,6 @@ function formatDateTimeI18n(d, lang) {
 function updateHeaderDate() {
     var d = window._consentCreatedAt || new Date();
     document.getElementById('consent-date').textContent = formatDateI18n(d, currentLang);
-    var pad = function(n) { return n < 10 ? '0' + n : n; };
-    document.getElementById('consent-time').textContent = pad(d.getHours()) + ':' + pad(d.getMinutes());
 }
 
 function updateSignatureTimestamp() {
