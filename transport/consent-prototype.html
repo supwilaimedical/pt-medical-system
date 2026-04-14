@@ -1,0 +1,1682 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Consent Form - Prototype</title>
+<script src="../shared/config.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;600;700&display=swap');
+  @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;600;700&display=swap');
+  @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Myanmar:wght@300;400;600;700&display=swap');
+  * { font-family: 'Sarabun', 'Noto Sans SC', 'Noto Sans Myanmar', sans-serif; }
+
+  /* Language Switcher */
+  .lang-switcher { display: flex; gap: 4px; justify-content: center; margin-top: 6px; }
+  .lang-btn {
+    padding: 2px 10px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.35);
+    background: rgba(255,255,255,0.1); color: rgba(255,255,255,0.8);
+    font-size: 0.7rem; cursor: pointer; transition: all 0.2s; font-weight: 600;
+  }
+  .lang-btn:hover { background: rgba(255,255,255,0.2); }
+  .lang-btn.active { background: #fff; color: #1e3a5f; border-color: #fff; }
+  body { background: #f0f2f5; }
+
+  .consent-card {
+    max-width: 720px;
+    margin: 0 auto;
+    background: #fff;
+    border-radius: 16px;
+    box-shadow: 0 4px 24px rgba(0,0,0,0.08);
+    overflow: visible;
+  }
+
+  .consent-header {
+    background: linear-gradient(135deg, #1e3a5f 0%, #2c5282 100%);
+    color: #fff;
+    padding: 20px 24px;
+    text-align: center;
+    border-radius: 16px 16px 0 0;
+  }
+  .consent-header h5 { font-weight: 700; margin: 0; font-size: 1.1rem; }
+  .consent-header .subtitle { font-size: 0.8rem; opacity: 0.8; margin-top: 4px; }
+
+  .consent-body { padding: 20px; }
+
+  /* Patient Info Card */
+  .info-card {
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 16px;
+    margin-bottom: 16px;
+  }
+  .info-card .info-label { font-size: 0.7rem; color: #64748b; font-weight: 600; text-transform: uppercase; }
+  .info-card .info-value { font-size: 0.95rem; font-weight: 600; color: #1e293b; }
+
+  /* Part Sections */
+  .part-section {
+    border: 2px solid #e2e8f0;
+    border-radius: 12px;
+    margin-bottom: 16px;
+    overflow: hidden;
+    transition: all 0.3s;
+  }
+  .part-section.active { border-color: #2563eb; box-shadow: 0 0 0 3px rgba(37,99,235,0.1); }
+  .part-section.active .part-header { background: #eff6ff; }
+
+  .part-header {
+    padding: 14px 16px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    cursor: pointer;
+    user-select: none;
+    background: #f8fafc;
+    transition: background 0.3s;
+  }
+  .part-header:hover { background: #f1f5f9; }
+
+  .part-check {
+    width: 24px; height: 24px;
+    border: 2px solid #cbd5e1;
+    border-radius: 6px;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+    transition: all 0.2s;
+    font-size: 14px; color: #fff;
+  }
+  .part-section.active .part-check {
+    background: #2563eb; border-color: #2563eb;
+  }
+
+  .part-title { font-weight: 700; font-size: 0.95rem; color: #334155; }
+  .part-badge {
+    font-size: 0.65rem; padding: 2px 8px; border-radius: 10px; font-weight: 700;
+    margin-left: auto; white-space: nowrap;
+  }
+  .badge-required { background: #fee2e2; color: #dc2626; }
+  .badge-optional { background: #e0f2fe; color: #0284c7; }
+
+  .part-content {
+    padding: 0 16px 16px;
+    display: none;
+    font-size: 0.85rem;
+    color: #475569;
+    line-height: 1.7;
+  }
+  .part-section.active .part-content { display: block; }
+
+  .part-content p { margin-bottom: 8px; }
+
+  /* DNR Checkboxes */
+  .dnr-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    margin-top: 8px;
+  }
+  .dnr-item {
+    display: flex; align-items: center; gap: 8px;
+    padding: 8px 12px;
+    background: #fff5f5;
+    border: 1px solid #fecaca;
+    border-radius: 8px;
+    font-size: 0.82rem;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .dnr-item:hover { background: #fee2e2; }
+  .dnr-item.checked { background: #dc2626; color: #fff; border-color: #dc2626; }
+  .dnr-item input { display: none; }
+
+  /* Destination fields */
+  .dest-field {
+    background: #f1f5f9;
+    border: 1px dashed #94a3b8;
+    border-radius: 8px;
+    padding: 10px 14px;
+    margin: 6px 0;
+  }
+  .dest-field label { font-size: 0.75rem; color: #64748b; font-weight: 600; }
+  .dest-field input {
+    border: none; background: transparent; width: 100%;
+    font-size: 0.9rem; font-weight: 600; color: #1e293b;
+    border-bottom: 1px solid #cbd5e1; padding: 4px 0;
+    outline: none;
+  }
+  .dest-field input:focus { border-bottom-color: #2563eb; }
+
+  /* Signature Section */
+  .sig-section {
+    background: #fafbfc;
+    border: 2px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 16px;
+    margin-top: 20px;
+  }
+  .sig-section h6 { font-weight: 700; color: #334155; margin-bottom: 12px; }
+
+  /* Signature preview (inline thumbnail) */
+  .sig-preview {
+    border: 2px dashed #94a3b8;
+    border-radius: 12px;
+    background: #fff;
+    position: relative;
+    min-height: 120px;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .sig-preview:hover { border-color: #2563eb; background: #f8faff; }
+  .sig-preview.has-sig { border-color: #2563eb; border-style: solid; }
+  .sig-preview .sig-placeholder {
+    color: #94a3b8; font-size: 0.85rem; text-align: center; padding: 12px;
+  }
+  .sig-preview.has-sig .sig-placeholder { display: none; }
+  .sig-preview img {
+    display: none; max-width: 100%; max-height: 140px; padding: 8px;
+  }
+  .sig-preview.has-sig img { display: block; }
+
+  /* Signature timestamp */
+  .sig-timestamp {
+    display: none;
+    margin-top: 6px;
+    padding: 6px 10px;
+    background: #f0fdf4;
+    border: 1px solid #bbf7d0;
+    border-radius: 8px;
+    font-size: 0.75rem;
+    color: #16a34a;
+    font-weight: 600;
+  }
+  .sig-timestamp i { margin-right: 4px; }
+  .sig-timestamp.show { display: flex; align-items: center; gap: 6px; }
+  .sig-preview .sig-clear-inline {
+    position: absolute; top: 6px; right: 6px;
+    background: rgba(0,0,0,0.5); color: #fff;
+    border: none; border-radius: 50%; width: 28px; height: 28px;
+    display: none; align-items: center; justify-content: center;
+    font-size: 14px; cursor: pointer; z-index: 2;
+  }
+  .sig-preview.has-sig .sig-clear-inline { display: flex; }
+
+  /* Fullscreen Signature Modal */
+  .sig-modal-overlay {
+    display: none;
+    position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(0,0,0,0.6);
+    z-index: 99999;
+    animation: sigFadeIn 0.2s;
+  }
+  .sig-modal-overlay.show { display: flex; align-items: center; justify-content: center; }
+  @keyframes sigFadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+  .sig-modal {
+    background: #fff;
+    width: 100%; height: 100%;
+    display: flex; flex-direction: column;
+    position: relative;
+  }
+  .sig-modal-header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 12px 16px;
+    background: #1e3a5f; color: #fff;
+    flex-shrink: 0;
+  }
+  .sig-modal-header h6 { margin: 0; font-weight: 700; font-size: 1rem; }
+  .sig-modal-close {
+    background: rgba(255,255,255,0.2); border: none; color: #fff;
+    width: 36px; height: 36px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.2rem; cursor: pointer;
+  }
+  .sig-modal-close:hover { background: rgba(255,255,255,0.3); }
+
+  .sig-modal-canvas-wrap {
+    flex: 1;
+    position: relative;
+    touch-action: none;
+    background: #fff;
+    border-bottom: 1px solid #e2e8f0;
+  }
+  .sig-modal-canvas-wrap canvas {
+    display: block; width: 100%; height: 100%;
+    position: absolute; top: 0; left: 0;
+  }
+  .sig-modal-canvas-wrap .sig-guide {
+    position: absolute; bottom: 40%; left: 10%; right: 10%;
+    border-bottom: 1px dashed #d1d5db;
+    pointer-events: none;
+  }
+  .sig-modal-canvas-wrap .sig-guide-label {
+    position: absolute; bottom: calc(40% + 4px); left: 10%;
+    font-size: 0.7rem; color: #cbd5e1; pointer-events: none;
+  }
+  .sig-modal-hint {
+    position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%);
+    color: #d1d5db; font-size: 1.1rem; pointer-events: none;
+    text-align: center;
+  }
+  .sig-modal-canvas-wrap.has-sig .sig-modal-hint { display: none; }
+
+  .sig-modal-footer {
+    display: flex; gap: 10px; padding: 12px 16px;
+    background: #f8fafc; flex-shrink: 0;
+  }
+  .sig-modal-footer .btn { flex: 1; padding: 12px; font-weight: 700; border-radius: 10px; font-size: 0.95rem; }
+  .sig-modal-footer .btn-clear { background: #f1f5f9; color: #64748b; border: 1px solid #e2e8f0; }
+  .sig-modal-footer .btn-confirm { background: #2563eb; color: #fff; border: none; box-shadow: 0 2px 8px rgba(37,99,235,0.3); }
+  .sig-modal-footer .btn-confirm:disabled { opacity: 0.4; }
+
+  .sig-info {
+    display: flex; align-items: center; gap: 8px;
+    margin-top: 10px; padding: 10px; background: #f1f5f9; border-radius: 8px;
+  }
+  .sig-info .avatar {
+    width: 36px; height: 36px; border-radius: 50%;
+    background: #2563eb; color: #fff; display: flex;
+    align-items: center; justify-content: center; font-weight: 700; font-size: 0.8rem;
+  }
+  .sig-info .sig-name { font-weight: 600; font-size: 0.9rem; }
+  .sig-info .sig-role { font-size: 0.7rem; color: #64748b; }
+
+  /* Relationship */
+  .rel-group {
+    display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px;
+  }
+  .rel-btn {
+    padding: 6px 14px; border-radius: 20px; border: 1px solid #cbd5e1;
+    background: #fff; font-size: 0.82rem; cursor: pointer; transition: all 0.2s;
+  }
+  .rel-btn.active { background: #2563eb; color: #fff; border-color: #2563eb; }
+
+  /* Consent Checklist */
+  .consent-checklist { display: flex; flex-direction: column; gap: 8px; }
+  .consent-check-item {
+    display: flex; align-items: flex-start; gap: 10px;
+    padding: 10px 12px;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    font-size: 0.82rem;
+    color: #475569;
+    cursor: pointer;
+    transition: all 0.2s;
+    line-height: 1.5;
+  }
+  .consent-check-item:hover { background: #f1f5f9; }
+  .consent-check-item.checked {
+    background: #f0fdf4; border-color: #86efac; color: #1e293b;
+  }
+  .consent-checkbox {
+    width: 22px; height: 22px; min-width: 22px;
+    border: 2px solid #cbd5e1; border-radius: 5px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 13px; color: transparent;
+    transition: all 0.2s; margin-top: 1px;
+  }
+  .consent-check-item.checked .consent-checkbox {
+    background: #22c55e; border-color: #22c55e; color: #fff;
+  }
+  .consent-check-item.highlight-item {
+    background: #fffbeb; border-color: #fcd34d; border-width: 2px;
+  }
+  .consent-check-item.highlight-item:hover { background: #fef9c3; }
+  .consent-check-item.highlight-item.checked {
+    background: #f0fdf4; border-color: #86efac;
+  }
+
+  /* ID Card Upload */
+  .idcard-upload-area {
+    border: 2px dashed #cbd5e1;
+    border-radius: 10px;
+    padding: 12px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.2s;
+    background: #f8fafc;
+    position: relative;
+  }
+  .idcard-upload-area:hover { border-color: #2563eb; background: #f8faff; }
+  .idcard-upload-area.has-photo { border-color: #22c55e; border-style: solid; background: #f0fdf4; padding: 6px; }
+  .idcard-upload-area .upload-placeholder { color: #94a3b8; font-size: 0.82rem; }
+  .idcard-upload-area.has-photo .upload-placeholder { display: none; }
+  .idcard-upload-area img {
+    display: none; max-width: 100%; max-height: 140px; border-radius: 6px;
+    object-fit: contain;
+  }
+  .idcard-upload-area.has-photo img { display: inline-block; }
+  .idcard-upload-area input[type="file"] { display: none; }
+  .idcard-remove {
+    position: absolute; top: 4px; right: 4px;
+    background: rgba(220,38,38,0.85); color: #fff;
+    border: none; border-radius: 50%; width: 26px; height: 26px;
+    display: none; align-items: center; justify-content: center;
+    font-size: 13px; cursor: pointer; z-index: 2;
+  }
+  .idcard-upload-area.has-photo .idcard-remove { display: flex; }
+  .idcard-actions {
+    display: flex; gap: 8px; margin-top: 8px;
+  }
+  .idcard-actions button {
+    flex: 1; padding: 8px; border-radius: 8px; border: 1px solid #e2e8f0;
+    background: #fff; font-size: 0.8rem; font-weight: 600; color: #475569;
+    cursor: pointer; transition: all 0.2s;
+    display: flex; align-items: center; justify-content: center; gap: 6px;
+  }
+  .idcard-actions button:hover { background: #f1f5f9; border-color: #2563eb; color: #2563eb; }
+
+  /* Print top layout — hidden on screen */
+  .print-top-right { display: none; }
+  .print-idcard-box { display: none; }
+
+  /* Submit Button */
+  .btn-consent {
+    width: 100%; padding: 14px; border-radius: 12px; border: none;
+    background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+    color: #fff; font-size: 1rem; font-weight: 700;
+    display: flex; align-items: center; justify-content: center; gap: 8px;
+    margin-top: 20px; cursor: pointer;
+    box-shadow: 0 4px 12px rgba(37,99,235,0.3);
+  }
+  .btn-consent:disabled { opacity: 0.5; cursor: not-allowed; }
+
+  /* Disclaimer */
+  .disclaimer {
+    text-align: center; font-size: 0.72rem; color: #94a3b8;
+    margin-top: 12px; line-height: 1.5;
+  }
+
+  /* Print — A4 single page (balanced fit) */
+  @media print {
+    @page { size: A4; margin: 6mm 10mm; }
+    :root, html { color-scheme: light only !important; }
+    html, body { background: #fff !important; color: #000 !important; font-size: 7.5pt !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+
+    .consent-card { box-shadow: none; border-radius: 0; max-width: 100%; margin: 0; overflow: visible; }
+    .consent-body { padding: 4px 8px !important; }
+    .no-print, .sig-placeholder, .sig-clear-inline, .sig-modal-overlay, .idcard-remove, .lang-switcher { display: none !important; }
+
+    /* Header */
+    .consent-header { padding: 5px 12px !important; }
+    .consent-header h5 { font-size: 10pt !important; margin: 0 !important; }
+    .consent-header .subtitle { font-size: 6.5pt !important; margin-top: 1px !important; }
+    #consent-company-name { font-size: 7pt !important; }
+    .consent-header > div:last-child { margin-top: 2px !important; font-size: 6pt !important; }
+
+    /* All parts expanded */
+    .part-content { display: block !important; padding: 0 10px 4px !important; }
+    .part-section { border-width: 1px !important; margin-bottom: 3px !important; overflow: visible; }
+    .part-header { padding: 3px 8px !important; gap: 5px !important; }
+    .part-title { font-size: 7.5pt !important; }
+    .part-badge { font-size: 5.5pt !important; padding: 1px 5px !important; }
+    .part-check { width: 14px !important; height: 14px !important; font-size: 9px !important; }
+
+    /* Inactive parts — greyed */
+    .part-section:not(.active) { opacity: 0.45; }
+    .part-section:not(.active) .part-check { background: transparent !important; border-color: #999 !important; color: transparent !important; }
+    .part-section { position: relative; }
+
+    /* Active parts ☑ */
+    .part-section.active .part-check { background: #2563eb !important; border-color: #2563eb !important; color: #fff !important; }
+
+    /* Print 2-column: left info 55% / right photo 45% */
+    .print-top-layout { display: flex !important; gap: 8px !important; margin-bottom: 3px !important; }
+    .print-top-left { flex: 55 !important; min-width: 0 !important; }
+    .print-top-right { display: block !important; flex: 45 !important; flex-shrink: 0 !important; }
+    .idcard-mobile-wrap { display: none !important; }
+    .print-idcard-box {
+      display: flex !important; flex-direction: column; align-items: center; justify-content: center;
+      border: 1.5px solid #94a3b8; border-radius: 5px;
+      height: 100%; min-height: 90px;
+      padding: 4px; text-align: center;
+      background: #fafbfc;
+    }
+    .print-idcard-label { font-size: 5.5pt; color: #64748b; font-weight: 600; margin-bottom: 3px; }
+    .print-idcard-box img { max-width: 100%; max-height: 120px; object-fit: contain; display: none; }
+    .print-idcard-box img[src]:not([src=""]) { display: block !important; }
+    .print-idcard-box .print-idcard-empty { font-size: 6.5pt; color: #94a3b8; }
+    .print-idcard-box img[src]:not([src=""]) ~ .print-idcard-empty { display: none !important; }
+
+    /* Info cards */
+    .info-card { padding: 3px 7px !important; margin-bottom: 3px !important; }
+    .info-label { font-size: 5.5pt !important; margin-bottom: 0 !important; }
+    input.form-control { border: none !important; border-bottom: 1px solid #ccc !important; border-radius: 0 !important; padding: 1px 0 !important; background: transparent !important; height: auto !important; box-shadow: none !important; font-size: 7.5pt !important; min-height: 0 !important; line-height: 1.2 !important; }
+
+    /* Consent checklist */
+    .consent-checklist { gap: 1px !important; }
+    .consent-check-item { padding: 2px 5px !important; font-size: 6.5pt !important; gap: 5px !important; line-height: 1.25 !important; border-radius: 3px !important; }
+    .consent-checkbox { width: 13px !important; height: 13px !important; min-width: 13px !important; font-size: 8px !important; border-radius: 2px !important; }
+    .consent-check-item:not(.checked) .consent-checkbox { border-color: #999 !important; }
+    .consent-check-item.checked .consent-checkbox { background: #22c55e !important; border-color: #22c55e !important; color: #fff !important; }
+    .consent-check-item.highlight-item { border-color: #fbbf24 !important; border-width: 1px !important; }
+
+    /* DNR grid — 3 cols */
+    .dnr-grid { gap: 2px !important; grid-template-columns: 1fr 1fr 1fr !important; }
+    .dnr-item { padding: 2px 5px !important; font-size: 6pt !important; border-radius: 3px !important; gap: 3px !important; }
+    .dnr-item i { font-size: 7px !important; }
+    .dnr-item.checked { background: #dc2626 !important; color: #fff !important; }
+
+    /* Destination / Route fields */
+    .dest-field { padding: 2px 5px !important; margin: 2px 0 !important; }
+    .dest-field label { font-size: 5.5pt !important; }
+    .dest-field input { font-size: 7.5pt !important; padding: 1px 0 !important; }
+
+    /* Alert in Part 3 */
+    .alert { padding: 2px 5px !important; font-size: 6pt !important; margin-bottom: 3px !important; }
+
+    /* Signature section */
+    .sig-section { padding: 4px 7px !important; margin-top: 3px !important; border-width: 1px !important; }
+    .sig-section h6 { font-size: 7.5pt !important; margin-bottom: 3px !important; }
+    .sig-section > .mb-2 { margin-bottom: 1px !important; font-size: 6pt !important; }
+    .sig-preview { min-height: 40px !important; border-width: 1px !important; }
+    .sig-preview img { max-height: 45px !important; padding: 2px !important; }
+    .sig-timestamp { margin-top: 2px !important; padding: 2px 5px !important; font-size: 5.5pt !important; border-radius: 4px !important; }
+    .sig-timestamp i { font-size: 7px !important; }
+    .sig-info { padding: 3px 5px !important; margin-top: 3px !important; gap: 5px !important; }
+    .sig-info .avatar { width: 20px !important; height: 20px !important; font-size: 5.5pt !important; }
+    .sig-info .sig-name { font-size: 7.5pt !important; }
+    .sig-info .sig-role { font-size: 5.5pt !important; }
+
+    /* ID card photo (mobile version — hidden in print) */
+    .idcard-upload-area { min-height: auto !important; padding: 2px !important; }
+    .idcard-upload-area img { max-height: 40px !important; }
+    .idcard-upload-area:not(.has-photo) { display: none !important; }
+
+    /* Rel buttons — show selected only */
+    .rel-group { gap: 2px !important; margin-top: 2px !important; }
+    .rel-btn { font-size: 6pt !important; padding: 1px 7px !important; border-radius: 8px !important; }
+    .rel-btn:not(.active) { display: none !important; }
+
+    /* Texts */
+    .disclaimer { font-size: 5.5pt !important; margin-top: 3px !important; line-height: 1.3 !important; }
+    p { margin-bottom: 2px !important; font-size: 6.5pt !important; line-height: 1.25 !important; }
+    small { font-size: 6pt !important; }
+    h6 { margin-bottom: 3px !important; }
+    .row.g-2 { --bs-gutter-y: 0.12rem !important; --bs-gutter-x: 0.25rem !important; }
+    .mb-2 { margin-bottom: 0.15rem !important; }
+    .mb-3 { margin-bottom: 0.2rem !important; }
+    .mt-3 { margin-top: 0.2rem !important; }
+    .d-flex { gap: 4px !important; }
+    .info-card .d-flex span[style*="font-weight:700"] { font-size: 7.5pt !important; }
+    .info-card .d-flex i { font-size: 9px !important; }
+  }
+
+  @media (max-width: 576px) {
+    .consent-body { padding: 14px; }
+    .dnr-grid { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<div class="consent-card my-3 mx-auto px-0">
+  <!-- Header -->
+  <div class="consent-header">
+    <div style="display:flex;align-items:center;justify-content:center;gap:10px;margin-bottom:6px;">
+      <img id="consent-logo" src="" style="height:40px;display:none;" alt="logo">
+      <div>
+        <div id="consent-company-name" style="font-size:0.85rem;font-weight:600;opacity:0.9;margin-bottom:2px;"></div>
+        <h5 data-i18n="header.title">ใบยินยอม/ปฏิเสธ การให้บริการรถพยาบาลฉุกเฉิน</h5>
+        <div class="subtitle" data-i18n="header.subtitle">Ambulance Service Consent Form</div>
+      </div>
+    </div>
+    <div style="font-size:0.75rem;opacity:0.7;margin-top:4px;">
+      <span id="consent-case-id">CASE-20260414-001</span> |
+      <span id="consent-date">14 เม.ย. 2569</span> |
+      <span id="consent-time">21:30</span>
+    </div>
+    <div class="lang-switcher no-print">
+      <div class="lang-btn active" onclick="switchLang('th')">ไทย</div>
+      <div class="lang-btn" onclick="switchLang('en')">ENG</div>
+      <div class="lang-btn" onclick="switchLang('zh')">中文</div>
+      <div class="lang-btn" onclick="switchLang('my')">မြန်မာ</div>
+    </div>
+  </div>
+
+  <div class="consent-body">
+
+    <!-- Print layout: left info + right photo -->
+    <div class="print-top-layout">
+      <div class="print-top-left">
+
+    <!-- Patient Info (auto-filled from case OR editable) -->
+    <div class="info-card">
+      <div class="d-flex align-items-center gap-2 mb-10" style="margin-bottom:10px;">
+        <i class="bi bi-person-fill text-primary"></i>
+        <span style="font-weight:700;font-size:0.9rem;" data-i18n="patient.title">ข้อมูลผู้ป่วย</span>
+        <span class="badge bg-success bg-opacity-10 text-success" id="pt-autofill-badge" style="font-size:0.65rem;margin-left:auto;display:none;">Auto-filled</span>
+      </div>
+      <div class="row g-2">
+        <div class="col-5">
+          <div class="info-label" data-i18n="patient.name">ชื่อ-สกุล</div>
+          <input type="text" class="form-control form-control-sm" id="c-patient-name" data-i18n-ph="patient.name_ph" placeholder="ชื่อ-สกุลผู้ป่วย">
+        </div>
+        <div class="col-3">
+          <div class="info-label" data-i18n="patient.age">อายุ</div>
+          <input type="text" class="form-control form-control-sm" id="c-patient-age" data-i18n-ph="patient.age_ph" placeholder="อายุ">
+        </div>
+        <div class="col-4">
+          <div class="info-label" data-i18n="patient.id">เลขบัตร ปชช.</div>
+          <input type="tel" class="form-control form-control-sm" id="c-patient-idcard" placeholder="X-XXXX-XXXXX-XX-X" maxlength="17" oninput="formatIdCard(this)" inputmode="numeric">
+        </div>
+      </div>
+    </div>
+
+    <!-- Consenter Info -->
+    <div class="info-card">
+      <div class="d-flex align-items-center gap-2" style="margin-bottom:10px;">
+        <i class="bi bi-people-fill text-warning"></i>
+        <span style="font-weight:700;font-size:0.9rem;" data-i18n="consenter.title">ผู้ให้ความยินยอม</span>
+      </div>
+      <div class="row g-2 mb-2">
+        <div class="col-7">
+          <label class="info-label" data-i18n="consenter.name">ชื่อ-สกุล ผู้ยินยอม</label>
+          <input type="text" class="form-control form-control-sm" id="c-consenter-name" data-i18n-ph="consenter.name_ph" placeholder="กรอกชื่อ-สกุล">
+        </div>
+        <div class="col-5">
+          <label class="info-label" data-i18n="consenter.id">เลขบัตรประชาชน</label>
+          <input type="tel" class="form-control form-control-sm" id="c-consenter-id" placeholder="X-XXXX-XXXXX-XX-X" maxlength="17" oninput="formatIdCard(this)" inputmode="numeric">
+        </div>
+      </div>
+      <!-- ID Card Photo (mobile: inline here) -->
+      <div class="mb-2 idcard-mobile-wrap">
+        <label class="info-label mb-1"><i class="bi bi-credit-card-2-front me-1"></i><span data-i18n="consenter.photo">รูปบัตรประชาชน (ถ้ามี)</span></label>
+        <div class="idcard-upload-area" id="idcard-upload-area" onclick="document.getElementById('idcard-file').click()">
+          <div class="upload-placeholder">
+            <i class="bi bi-camera" style="font-size:1.3rem;display:block;margin-bottom:2px;"></i>
+            <span data-i18n="consenter.photo_action">ถ่ายรูป หรือ เลือกจากไฟล์</span>
+          </div>
+          <img id="idcard-preview" src="" alt="บัตรประชาชน">
+          <button class="idcard-remove" onclick="event.stopPropagation(); removeIdCardPhoto();" title="ลบรูป"><i class="bi bi-x-lg"></i></button>
+          <input type="file" id="idcard-file" accept="image/*" capture="environment" onchange="handleIdCardPhoto(this)">
+        </div>
+      </div>
+
+      <div class="row g-2">
+        <div class="col-12">
+          <label class="info-label" data-i18n="consenter.rel">ความสัมพันธ์กับผู้ป่วย</label>
+          <div class="rel-group">
+            <div class="rel-btn" onclick="selectRel(this)" data-value="ผู้ป่วยเอง" data-i18n="rel.self">ผู้ป่วยเอง</div>
+            <div class="rel-btn" onclick="selectRel(this)" data-value="บิดา/มารดา" data-i18n="rel.parent">บิดา/มารดา</div>
+            <div class="rel-btn" onclick="selectRel(this)" data-value="คู่สมรส" data-i18n="rel.spouse">คู่สมรส</div>
+            <div class="rel-btn" onclick="selectRel(this)" data-value="บุตร" data-i18n="rel.child">บุตร</div>
+            <div class="rel-btn" onclick="selectRel(this)" data-value="พี่น้อง" data-i18n="rel.sibling">พี่น้อง</div>
+            <div class="rel-btn" onclick="selectRel(this)" data-value="other" data-i18n="rel.other">อื่นๆ...</div>
+          </div>
+          <input type="text" class="form-control form-control-sm mt-2 d-none" id="c-rel-other" data-i18n-ph="rel.other_ph" placeholder="ระบุความสัมพันธ์...">
+        </div>
+      </div>
+    </div>
+
+      </div><!-- /print-top-left -->
+
+      <!-- Print right column: ID card photo -->
+      <div class="print-top-right">
+        <div class="print-idcard-box">
+          <div class="print-idcard-label" data-i18n="consenter.print_photo">รูปบัตรประชาชนผู้ยินยอม</div>
+          <img id="idcard-preview-print" src="" alt="บัตรประชาชน">
+          <div class="print-idcard-empty" data-i18n="consenter.no_photo">ไม่มีรูปแนบ</div>
+        </div>
+      </div>
+    </div><!-- /print-top-layout -->
+
+    <!-- ================================ -->
+    <!-- PART 1: Consent for Service -->
+    <!-- ================================ -->
+    <div class="part-section active" id="part1" onclick="togglePart('part1')">
+      <div class="part-header">
+        <div class="part-check"><i class="bi bi-check-lg"></i></div>
+        <div>
+          <div class="part-title" data-i18n="part1.title">ส่วนที่ 1: ยินยอมรับบริการ</div>
+          <div style="font-size:0.72rem;color:#64748b;" data-i18n="part1.subtitle">Consent for Ambulance Service</div>
+        </div>
+        <span class="part-badge badge-required" data-i18n="badge.required">จำเป็น</span>
+      </div>
+      <div class="part-content" onclick="event.stopPropagation()">
+        <p data-i18n-html="part1.intro">ยินยอมรับบริการของรถพยาบาล<span class="consent-company-text"></span> ในการรับ-ส่ง</p>
+
+        <!-- Route: From → To -->
+        <div class="row g-2 mb-3">
+          <div class="col-6">
+            <div class="dest-field">
+              <label data-i18n="part1.from">จาก</label>
+              <input type="text" id="c-route-from" data-i18n-ph="part1.from_ph" placeholder="ต้นทาง">
+            </div>
+          </div>
+          <div class="col-6">
+            <div class="dest-field">
+              <label data-i18n="part1.to">ไปยัง</label>
+              <input type="text" id="c-route-to" data-i18n-ph="part1.to_ph" placeholder="ปลายทาง">
+            </div>
+          </div>
+        </div>
+
+        <p style="font-size:0.82rem;color:#475569;margin-bottom:10px;" data-i18n="part1.check_intro">ข้าพเจ้ารับทราบและยืนยันดังต่อไปนี้:</p>
+
+        <div class="consent-checklist">
+          <div class="consent-check-item" onclick="toggleConsentCheck(this)">
+            <div class="consent-checkbox"><i class="bi bi-check-lg"></i></div>
+            <span data-i18n="part1.c1">ข้าพเจ้าได้รับคำอธิบายความเสี่ยง จากแพทย์/พยาบาล หรือผู้ที่เกี่ยวข้องในการดูแล นำส่ง และปฐมพยาบาลเบื้องต้น</span>
+          </div>
+          <div class="consent-check-item" onclick="toggleConsentCheck(this)">
+            <div class="consent-checkbox"><i class="bi bi-check-lg"></i></div>
+            <span data-i18n="part1.c2">ข้าพเจ้ารับทราบดีว่ามีเหตุที่เป็นสาเหตุอันตรายต่อสุขภาพหรือชีวิตแก่ผู้ป่วย ที่อาจเกิดขึ้นระหว่างการเดินทางนำส่งไปยังจุดหมายได้</span>
+          </div>
+          <div class="consent-check-item" onclick="toggleConsentCheck(this)">
+            <div class="consent-checkbox"><i class="bi bi-check-lg"></i></div>
+            <span data-i18n="part1.c3">ข้าพเจ้าได้ยินยอมรับความเสี่ยง หากเกิดผลเสียหรืออันตรายถึงแก่ชีวิตระหว่างการเดินทางนำส่ง</span>
+          </div>
+          <div class="consent-check-item" onclick="toggleConsentCheck(this)">
+            <div class="consent-checkbox"><i class="bi bi-check-lg"></i></div>
+            <span data-i18n-html="part1.c4">ข้าพเจ้าไม่มีข้อโต้แย้ง และไม่เรียกร้องค่าเสียหายใดๆ ทั้งสิ้นจากแพทย์/พยาบาล หรือผู้ที่เกี่ยวข้องของบริการรถพยาบาล<span class="consent-company-text"></span></span>
+          </div>
+          <div class="consent-check-item highlight-item" onclick="toggleConsentCheck(this)">
+            <div class="consent-checkbox"><i class="bi bi-check-lg"></i></div>
+            <span data-i18n-html="part1.c5">ข้าพเจ้ายินยอมให้รถพยาบาล<span class="consent-company-text"></span> นำส่งผู้ป่วยไปยังปลายทางตามความประสงค์ของข้าพเจ้า โดยยินยอมที่จะ<strong style="color:#dc2626;">ไม่ใช้บริการระบบการแพทย์ฉุกเฉินที่ให้บริการในพื้นที่</strong></span>
+          </div>
+        </div>
+
+        <p class="mt-3" style="font-size:0.78rem;color:#64748b;line-height:1.6;" data-i18n-html="part1.footer">
+          ทั้งนี้ แพทย์/พยาบาล หรือผู้ที่เกี่ยวข้องของบริการรถพยาบาล<span class="consent-company-text"></span> ได้อธิบายความเสี่ยงแก่ข้าพเจ้า
+          ข้าพเจ้าได้อ่านข้อความในใบยินยอมนี้ และเข้าใจข้อความโดยละเอียด จึงลงลายมือชื่อ หรือลายพิมพ์นิ้วมือให้เป็นหลักฐานเรียบร้อยแล้ว
+        </p>
+      </div>
+    </div>
+
+    <!-- ================================ -->
+    <!-- PART 2: Destination Change -->
+    <!-- ================================ -->
+    <div class="part-section" id="part2" >
+      <div class="part-header" onclick="togglePart('part2')">
+        <div class="part-check"><i class="bi bi-check-lg"></i></div>
+        <div>
+          <div class="part-title" data-i18n="part2.title">ส่วนที่ 2: เปลี่ยนแปลงสถานที่ส่งตัว</div>
+          <div style="font-size:0.72rem;color:#64748b;" data-i18n="part2.subtitle">Destination Change Confirmation</div>
+        </div>
+        <span class="part-badge badge-optional" data-i18n="badge.optional">เฉพาะกรณี</span>
+      </div>
+      <div class="part-content" onclick="event.stopPropagation()">
+        <p data-i18n="part2.text">ข้าพเจ้าขอแจ้งเจตจำนงเปลี่ยนแปลงสถานที่ส่งตัว โดยรับทราบถึงปัญหา ความเสี่ยง และค่าบริการที่อาจเปลี่ยนแปลง</p>
+        <div class="dest-field">
+          <label><i class="bi bi-geo-alt text-danger me-1"></i><span data-i18n="part2.from">จากเดิม</span></label>
+          <input type="text" id="c-dest-from" data-i18n-ph="part2.from_ph" placeholder="สถานที่เดิม...">
+        </div>
+        <div class="dest-field">
+          <label><i class="bi bi-geo-alt-fill text-success me-1"></i><span data-i18n="part2.to">เปลี่ยนเป็น</span></label>
+          <input type="text" id="c-dest-to" data-i18n-ph="part2.to_ph" placeholder="สถานที่ใหม่...">
+        </div>
+      </div>
+    </div>
+
+    <!-- ================================ -->
+    <!-- PART 3: Treatment Refusal / DNR -->
+    <!-- ================================ -->
+    <div class="part-section" id="part3">
+      <div class="part-header" onclick="togglePart('part3')">
+        <div class="part-check"><i class="bi bi-check-lg"></i></div>
+        <div>
+          <div class="part-title" style="color:#dc2626;" data-i18n="part3.title">ส่วนที่ 3: ปฏิเสธการรักษาเพิ่มเติม</div>
+          <div style="font-size:0.72rem;color:#ef4444;" data-i18n="part3.subtitle">Treatment Refusal (DNR) — เฉพาะผู้ป่วยระยะสุดท้าย</div>
+        </div>
+        <span class="part-badge badge-optional" data-i18n="badge.optional2">เฉพาะกรณี</span>
+      </div>
+      <div class="part-content" onclick="event.stopPropagation()">
+        <div class="alert alert-danger py-2 px-3" style="font-size:0.78rem;border-radius:8px;">
+          <i class="bi bi-exclamation-triangle-fill me-1"></i>
+          <strong data-i18n="part3.warn_label">สำคัญ:</strong> <span data-i18n="part3.warn_text">ส่วนนี้ใช้เฉพาะการเคลื่อนย้ายผู้ป่วยส่งกลับไปดูแลในระยะสุดท้ายเท่านั้น</span>
+        </div>
+        <p data-i18n="part3.text">ข้าพเจ้าขอยืนยันที่จะปฏิเสธการให้การช่วยเหลือ ไม่ให้แพทย์หรือพยาบาลหรือเจ้าหน้าที่ทำการฟื้นคืนชีพ เพื่อยื้อชีวิตหรือยืดการตายออกไปโดยไม่จำเป็น:</p>
+        <div class="dnr-grid">
+          <div class="dnr-item" onclick="toggleDnr(this)">
+            <input type="checkbox" name="dnr" value="no-tube">
+            <i class="bi bi-x-circle"></i> <span data-i18n="dnr.tube">ไม่ใส่ท่อช่วยหายใจ</span>
+          </div>
+          <div class="dnr-item" onclick="toggleDnr(this)">
+            <input type="checkbox" name="dnr" value="no-ventilator">
+            <i class="bi bi-x-circle"></i> <span data-i18n="dnr.vent">ไม่ใช้เครื่องช่วยหายใจ</span>
+          </div>
+          <div class="dnr-item" onclick="toggleDnr(this)">
+            <input type="checkbox" name="dnr" value="no-cpr">
+            <i class="bi bi-x-circle"></i> <span data-i18n="dnr.cpr">ไม่ทำ CPR</span>
+          </div>
+          <div class="dnr-item" onclick="toggleDnr(this)">
+            <input type="checkbox" name="dnr" value="no-inotrope">
+            <i class="bi bi-x-circle"></i> <span data-i18n="dnr.inotrope">ไม่ให้ยากระตุ้นหัวใจ</span>
+          </div>
+          <div class="dnr-item" onclick="toggleDnr(this)">
+            <input type="checkbox" name="dnr" value="no-ngt">
+            <i class="bi bi-x-circle"></i> <span data-i18n="dnr.ngt">ไม่ให้สารอาหารทางสาย</span>
+          </div>
+          <div class="dnr-item" onclick="toggleDnr(this)">
+            <input type="checkbox" name="dnr" value="other">
+            <i class="bi bi-x-circle"></i> <span data-i18n="dnr.other">อื่นๆ</span>
+          </div>
+        </div>
+        <input type="text" class="form-control form-control-sm mt-2 d-none" id="c-dnr-other" data-i18n-ph="dnr.other_ph" placeholder="ระบุการรักษาที่ปฏิเสธ...">
+      </div>
+    </div>
+
+    <!-- ================================ -->
+    <!-- SIGNATURE SECTION -->
+    <!-- ================================ -->
+    <div class="sig-section">
+      <h6><i class="bi bi-pen-fill text-primary me-2"></i><span data-i18n="sig.title">ลงลายมือชื่อ</span></h6>
+
+      <div class="mb-2" style="font-size:0.78rem;color:#64748b;">
+        <i class="bi bi-info-circle me-1"></i>
+        <span data-i18n-html="sig.note">ผู้ลงนามรับทราบและยินยอม/ปฏิเสธ <strong>เฉพาะในส่วนที่ทำเครื่องหมาย</strong> ☑ เท่านั้น</span>
+      </div>
+
+      <!-- Relative/Patient Signature (tap to open fullscreen) -->
+      <label class="info-label mb-1" data-i18n="sig.label">ลายเซ็น ผู้ป่วย/ญาติผู้ยินยอม</label>
+      <div class="sig-preview" id="sig-preview" onclick="openSigModal()">
+        <div class="sig-placeholder">
+          <i class="bi bi-pen" style="font-size:1.8rem;display:block;margin-bottom:4px;"></i>
+          <span data-i18n="sig.tap">แตะเพื่อลงลายเซ็น</span>
+        </div>
+        <img id="sig-preview-img" src="" alt="ลายเซ็น">
+        <button class="sig-clear-inline" onclick="event.stopPropagation(); clearSignature();" title="ล้าง"><i class="bi bi-x-lg"></i></button>
+      </div>
+      <div class="sig-timestamp" id="sig-timestamp">
+        <i class="bi bi-clock-fill"></i>
+        <span data-i18n="sig.signed_at">ลงนามเมื่อ</span>: <span id="sig-timestamp-value"></span>
+      </div>
+
+      <!-- Staff Info (auto from login) -->
+      <label class="info-label mt-3 mb-1" data-i18n="sig.staff">ผู้ให้ข้อมูล / เจ้าหน้าที่</label>
+      <div class="sig-info">
+        <div class="avatar" id="staff-avatar">PN</div>
+        <div>
+          <div class="sig-name" id="staff-name">พิทักษ์ พันธุ์ดี</div>
+          <div class="sig-role"><i class="bi bi-shield-check me-1"></i>EMT: <span id="staff-cert">ผู้ปฏิบัติการฉุกเฉิน</span> — <span id="staff-role">เจ้าหน้าที่</span></div>
+        </div>
+        <i class="bi bi-check-circle-fill text-success ms-auto" style="font-size:1.2rem;"></i>
+      </div>
+    </div>
+
+    <!-- Submit + Print -->
+    <button class="btn-consent no-print" id="btn-submit-consent" onclick="submitConsent()" disabled>
+      <i class="bi bi-check2-circle" style="font-size:1.2rem;"></i>
+      <span data-i18n="btn.submit">ยืนยันและบันทึก Consent</span>
+    </button>
+    <button class="btn-consent no-print" onclick="window.print()" style="background:linear-gradient(135deg,#475569 0%,#334155 100%);box-shadow:0 4px 12px rgba(71,85,105,0.3);margin-top:8px;">
+      <i class="bi bi-printer" style="font-size:1.2rem;"></i>
+      <span data-i18n="btn.print">พิมพ์เอกสาร A4</span>
+    </button>
+
+    <div class="disclaimer" data-i18n-html="disclaimer">
+      เอกสารนี้สร้างขึ้นทางอิเล็กทรอนิกส์ ลายเซ็นดิจิทัลมีผลผูกพันตามกฎหมาย<br>
+      ตาม พ.ร.บ. ว่าด้วยธุรกรรมทางอิเล็กทรอนิกส์ พ.ศ. 2544
+    </div>
+
+  </div><!-- /consent-body -->
+</div><!-- /consent-card -->
+
+<!-- =============================== -->
+<!-- FULLSCREEN SIGNATURE MODAL -->
+<!-- =============================== -->
+<div class="sig-modal-overlay" id="sig-modal">
+  <div class="sig-modal">
+    <div class="sig-modal-header">
+      <h6><i class="bi bi-pen-fill me-2"></i><span data-i18n="sig.modal_title">ลงลายเซ็น</span></h6>
+      <button class="sig-modal-close" onclick="closeSigModal()"><i class="bi bi-x-lg"></i></button>
+    </div>
+    <div class="sig-modal-canvas-wrap" id="sig-canvas-wrap">
+      <canvas id="sig-canvas"></canvas>
+      <div class="sig-guide"></div>
+      <div class="sig-guide-label">ลงลายเซ็นที่นี่</div>
+      <div class="sig-modal-hint">
+        <i class="bi bi-hand-index" style="font-size:2rem;display:block;margin-bottom:6px;"></i>
+        <span data-i18n="sig.hint">ใช้นิ้วหรือปากกาเซ็นชื่อ</span>
+      </div>
+    </div>
+    <div class="sig-modal-footer">
+      <button class="btn btn-clear" onclick="clearModalSig()"><i class="bi bi-arrow-counterclockwise me-1"></i><span data-i18n="sig.clear">ล้าง</span></button>
+      <button class="btn btn-confirm" id="btn-sig-confirm" onclick="confirmSig()" disabled><i class="bi bi-check-lg me-1"></i><span data-i18n="sig.confirm">ยืนยันลายเซ็น</span></button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ===========================
+// Supabase Init & Load Settings
+// ===========================
+var _supabase = supabase.createClient(CONFIG.SUPABASE_URL, CONFIG.SUPABASE_ANON_KEY);
+var COMPANY_NAME = '';
+
+// ===========================
+// Embed Mode (loaded inside iframe from Transport)
+// ===========================
+var _urlParams = new URLSearchParams(window.location.search);
+var IS_EMBED = _urlParams.get('embed') === '1';
+
+if (IS_EMBED) {
+    // Reduce padding, hide background for iframe
+    document.body.style.background = '#fff';
+    document.body.style.padding = '0';
+    document.body.style.margin = '0';
+    var consentCard = document.querySelector('.consent-card');
+    if (consentCard) {
+        consentCard.style.maxWidth = '100%';
+        consentCard.style.margin = '0';
+        consentCard.style.borderRadius = '0';
+        consentCard.style.boxShadow = 'none';
+    }
+
+    // Mode: 'print-preview' (readonly + print), 'preview' (readonly, no print), or editable
+    var VIEW_MODE = _urlParams.get('mode') || '';
+    var IS_READONLY = (VIEW_MODE === 'print-preview' || VIEW_MODE === 'preview');
+
+    // Pre-fill patient data from URL params
+    var paramName = _urlParams.get('pt_name');
+    var paramId = _urlParams.get('pt_id');
+    var paramAge = _urlParams.get('pt_age');
+    var paramFrom = _urlParams.get('route_from');
+    var paramTo = _urlParams.get('route_to');
+    var paramCaseId = _urlParams.get('case_id');
+
+    if (paramName || paramId || paramAge) {
+        window.CONSENT_PATIENT_DATA = {
+            name: paramName || '',
+            age: paramAge || '',
+            idCard: paramId || '',
+            routeFrom: paramFrom || '',
+            routeTo: paramTo || '',
+            caseId: paramCaseId || ''
+        };
+    }
+
+    // Apply readonly mode after DOM ready
+    if (IS_READONLY) {
+        setTimeout(function() {
+            // Disable ALL inputs, selects, textareas
+            document.querySelectorAll('input, select, textarea').forEach(function(el) {
+                el.disabled = true;
+                el.readOnly = true;
+                el.style.opacity = '0.7';
+                el.style.pointerEvents = 'none';
+            });
+
+            // Disable ALL buttons and clickable elements (except language switcher)
+            document.querySelectorAll('button, .btn, .rel-btn, .consent-check-item, .dnr-item').forEach(function(el) {
+                if (el.classList.contains('lang-btn')) return; // Keep lang buttons clickable
+                el.style.pointerEvents = 'none';
+                el.style.opacity = '0.7';
+                el.disabled = true;
+            });
+
+            // Disable part toggles
+            document.querySelectorAll('[onclick*="togglePart"], [onclick*="toggleConsentCheck"], [onclick*="selectRel"], [onclick*="confirmSig"], [onclick*="clearSignature"], [onclick*="submitConsent"]').forEach(function(el) {
+                el.style.pointerEvents = 'none';
+                el.removeAttribute('onclick');
+            });
+
+            // Hide submit button, signature area actions, photo upload
+            document.querySelectorAll('.btn-warning, .btn-primary, .btn-success, .sig-actions, #photo-upload-area').forEach(function(el) {
+                if (el.textContent.indexOf('ยืนยัน') > -1 || el.textContent.indexOf('บันทึก') > -1 ||
+                    el.textContent.indexOf('ล้าง') > -1 || el.textContent.indexOf('ถ่ายรูป') > -1) {
+                    el.style.display = 'none';
+                }
+            });
+            // Hide the big submit button
+            var submitBtns = document.querySelectorAll('button[onclick*="submitConsent"], .consent-submit-btn');
+            submitBtns.forEach(function(el) { el.style.display = 'none'; });
+
+            // Block entire form interaction with overlay
+            var overlay = document.createElement('div');
+            overlay.style.cssText = 'position:fixed; top:0; left:0; right:0; bottom:0; z-index:999; cursor:default;';
+            overlay.id = 'readonly-overlay';
+            document.body.appendChild(overlay);
+
+            // Keep language switcher above overlay so it's still clickable
+            var langSwitcher = document.querySelector('.lang-switcher');
+            if (langSwitcher) {
+                langSwitcher.style.position = 'relative';
+                langSwitcher.style.zIndex = '1001';
+            }
+
+            // Show notice (above overlay) — different message per mode
+            var notice = document.createElement('div');
+            notice.style.cssText = 'position:sticky; top:0; z-index:1000; padding:10px 16px; text-align:center; font-size:0.85rem;';
+            if (VIEW_MODE === 'preview') {
+                notice.style.background = '#fef3c7';
+                notice.style.borderBottom = '2px solid #fde68a';
+                notice.style.color = '#92400e';
+                notice.innerHTML = '<i class="bi bi-lock-fill me-1"></i> ดูได้อย่างเดียว (View Only)';
+            } else {
+                notice.style.background = '#dbeafe';
+                notice.style.borderBottom = '2px solid #93c5fd';
+                notice.style.color = '#1e40af';
+                notice.innerHTML = '<i class="bi bi-printer me-1"></i> Print Preview — ตรวจสอบข้อมูลก่อนพิมพ์';
+            }
+            document.body.insertBefore(notice, document.body.firstChild);
+
+            // Allow scrolling through overlay
+            overlay.addEventListener('wheel', function(e) { window.scrollBy(0, e.deltaY); }, { passive: true });
+            overlay.addEventListener('touchstart', function() {}, { passive: true });
+            overlay.addEventListener('touchmove', function(e) {
+                // Allow native scroll
+            }, { passive: true });
+        }, 600);
+    }
+}
+
+(async function loadConsentSettings() {
+    try {
+        var res = await _supabase.from('settings').select('*');
+        var settings = {};
+        (res.data || []).forEach(function(s) { settings[s.key] = s.value; });
+
+        // Company name
+        COMPANY_NAME = settings['FA_COMPANY_NAME'] || '';
+        if (COMPANY_NAME) {
+            document.getElementById('consent-company-name').textContent = COMPANY_NAME;
+            // Fill company name in consent body text
+            document.querySelectorAll('.consent-company-text').forEach(function(el) {
+                el.textContent = ' ' + COMPANY_NAME;
+            });
+        }
+
+        // Logo
+        var logoUrl = (settings['APP_LOGO_URL'] || '').trim();
+        if (logoUrl && logoUrl.startsWith('http')) {
+            var logoEl = document.getElementById('consent-logo');
+            logoEl.src = logoUrl;
+            logoEl.style.display = '';
+        }
+    } catch(e) { console.error('Failed to load settings:', e); }
+})();
+
+// ===========================
+// Part Toggle
+// ===========================
+function togglePart(id) {
+    var el = document.getElementById(id);
+    // Part 1 is always required
+    if (id === 'part1') return;
+    el.classList.toggle('active');
+    validateForm();
+}
+
+// ===========================
+// Consent Checklist Toggle
+// ===========================
+function toggleConsentCheck(item) {
+    item.classList.toggle('checked');
+}
+
+// ===========================
+// Patient Data (set by Transport before opening, or null)
+// ===========================
+// Transport จะ set ก่อนเปิด consent:
+// window.CONSENT_PATIENT_DATA = { name, age, idCard, routeFrom, routeTo }
+var patientData = window.CONSENT_PATIENT_DATA || null;
+
+function initPatientInfo() {
+    if (patientData && patientData.name) {
+        document.getElementById('c-patient-name').value = patientData.name || '';
+        document.getElementById('c-patient-age').value = patientData.age || '';
+        document.getElementById('c-patient-idcard').value = patientData.idCard || '';
+
+        // Mark patient fields as auto-filled
+        document.getElementById('pt-autofill-badge').style.display = '';
+        ['c-patient-name','c-patient-age','c-patient-idcard'].forEach(function(id) {
+            var el = document.getElementById(id);
+            if (el && el.value) { el.readOnly = true; el.style.background = '#f0fdf4'; el.style.fontWeight = '600'; }
+        });
+    }
+
+    // Route from/to (auto-fill from Transport)
+    if (patientData) {
+        var fromEl = document.getElementById('c-route-from');
+        var toEl = document.getElementById('c-route-to');
+        if (patientData.routeFrom && fromEl) {
+            fromEl.value = patientData.routeFrom;
+            fromEl.readOnly = true; fromEl.style.background = '#f0fdf4'; fromEl.style.fontWeight = '600';
+        }
+        if (patientData.routeTo && toEl) {
+            toEl.value = patientData.routeTo;
+            toEl.readOnly = true; toEl.style.background = '#f0fdf4'; toEl.style.fontWeight = '600';
+        }
+    }
+}
+
+// ===========================
+// Relationship Selection
+// ===========================
+var selectedRel = '';
+function selectRel(btn) {
+    document.querySelectorAll('.rel-btn').forEach(function(b) { b.classList.remove('active'); });
+    btn.classList.add('active');
+    selectedRel = btn.dataset.value;
+
+    var nameInput = document.getElementById('c-consenter-name');
+    var idInput = document.getElementById('c-consenter-id');
+    var otherInput = document.getElementById('c-rel-other');
+
+    if (selectedRel === 'ผู้ป่วยเอง') {
+        // Auto-fill from patient data
+        var ptName = document.getElementById('c-patient-name').value;
+        var ptId = document.getElementById('c-patient-idcard').value;
+        if (ptName) {
+            nameInput.value = ptName;
+            nameInput.readOnly = true;
+            nameInput.style.background = '#f0fdf4';
+            nameInput.style.fontWeight = '600';
+        }
+        if (ptId) {
+            idInput.value = ptId;
+            idInput.readOnly = true;
+            idInput.style.background = '#f0fdf4';
+            idInput.style.fontWeight = '600';
+        }
+        otherInput.classList.add('d-none');
+    } else {
+        // Clear auto-fill, make editable
+        nameInput.readOnly = false;
+        nameInput.style.background = '';
+        nameInput.style.fontWeight = '';
+        idInput.readOnly = false;
+        idInput.style.background = '';
+        idInput.style.fontWeight = '';
+
+        // Only clear if it was auto-filled from patient
+        if (nameInput.value === document.getElementById('c-patient-name').value) {
+            nameInput.value = '';
+            idInput.value = '';
+        }
+
+        if (selectedRel === 'other') {
+            otherInput.classList.remove('d-none');
+            otherInput.focus();
+        } else {
+            otherInput.classList.add('d-none');
+        }
+    }
+    validateForm();
+}
+
+// ===========================
+// DNR Toggle
+// ===========================
+function toggleDnr(item) {
+    item.classList.toggle('checked');
+    var cb = item.querySelector('input');
+    cb.checked = !cb.checked;
+    // Show other input if "อื่นๆ" selected
+    if (cb.value === 'other') {
+        var otherInput = document.getElementById('c-dnr-other');
+        if (cb.checked) otherInput.classList.remove('d-none');
+        else otherInput.classList.add('d-none');
+    }
+}
+
+// ===========================
+// Fullscreen Signature Modal
+// ===========================
+var sigDataUrl = null; // stores confirmed signature as base64 PNG
+var _sigDrawing = false;
+var _sigHasStroke = false;
+var _sigCtx = null;
+
+function openSigModal() {
+    var modal = document.getElementById('sig-modal');
+    var wrap = document.getElementById('sig-canvas-wrap');
+    var canvas = document.getElementById('sig-canvas');
+
+    modal.classList.add('show');
+    document.body.style.overflow = 'hidden';
+
+    // Size canvas to fill the wrap
+    setTimeout(function() {
+        var rect = wrap.getBoundingClientRect();
+        canvas.width = rect.width;
+        canvas.height = rect.height;
+
+        _sigCtx = canvas.getContext('2d');
+        _sigCtx.strokeStyle = '#1e293b';
+        _sigCtx.lineWidth = 3;
+        _sigCtx.lineCap = 'round';
+        _sigCtx.lineJoin = 'round';
+
+        _sigHasStroke = false;
+        wrap.classList.remove('has-sig');
+        document.getElementById('btn-sig-confirm').disabled = true;
+    }, 50);
+}
+
+function closeSigModal() {
+    document.getElementById('sig-modal').classList.remove('show');
+    document.body.style.overflow = '';
+}
+
+function clearModalSig() {
+    var canvas = document.getElementById('sig-canvas');
+    var wrap = document.getElementById('sig-canvas-wrap');
+    _sigCtx.clearRect(0, 0, canvas.width, canvas.height);
+    _sigHasStroke = false;
+    wrap.classList.remove('has-sig');
+    document.getElementById('btn-sig-confirm').disabled = true;
+}
+
+var sigTimestamp = null;
+
+function confirmSig() {
+    var canvas = document.getElementById('sig-canvas');
+    sigDataUrl = canvas.toDataURL('image/png');
+    sigTimestamp = new Date();
+
+    // Update preview
+    var preview = document.getElementById('sig-preview');
+    var img = document.getElementById('sig-preview-img');
+    img.src = sigDataUrl;
+    preview.classList.add('has-sig');
+
+    // Show timestamp
+    var tsEl = document.getElementById('sig-timestamp');
+    var tsVal = document.getElementById('sig-timestamp-value');
+    var d = sigTimestamp;
+    var pad = function(n) { return n < 10 ? '0' + n : n; };
+    var thMonths = ['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
+    var dateStr = d.getDate() + ' ' + thMonths[d.getMonth()] + ' ' + (d.getFullYear() + 543)
+        + ' เวลา ' + pad(d.getHours()) + ':' + pad(d.getMinutes()) + ':' + pad(d.getSeconds());
+    tsVal.textContent = dateStr;
+    tsEl.classList.add('show');
+
+    closeSigModal();
+    validateForm();
+}
+
+function clearSignature() {
+    sigDataUrl = null;
+    sigTimestamp = null;
+    var preview = document.getElementById('sig-preview');
+    preview.classList.remove('has-sig');
+    document.getElementById('sig-preview-img').src = '';
+    document.getElementById('sig-timestamp').classList.remove('show');
+    validateForm();
+}
+
+// Canvas drawing events (attached once on load)
+(function() {
+    var canvas = document.getElementById('sig-canvas');
+
+    function getPos(e) {
+        var rect = canvas.getBoundingClientRect();
+        var touch = e.touches ? e.touches[0] : e;
+        return { x: touch.clientX - rect.left, y: touch.clientY - rect.top };
+    }
+
+    function start(e) {
+        e.preventDefault();
+        _sigDrawing = true;
+        var pos = getPos(e);
+        _sigCtx.beginPath();
+        _sigCtx.moveTo(pos.x, pos.y);
+    }
+
+    function move(e) {
+        if (!_sigDrawing) return;
+        e.preventDefault();
+        var pos = getPos(e);
+        _sigCtx.lineTo(pos.x, pos.y);
+        _sigCtx.stroke();
+        if (!_sigHasStroke) {
+            _sigHasStroke = true;
+            document.getElementById('sig-canvas-wrap').classList.add('has-sig');
+            document.getElementById('btn-sig-confirm').disabled = false;
+        }
+    }
+
+    function end() { _sigDrawing = false; }
+
+    canvas.addEventListener('mousedown', start);
+    canvas.addEventListener('mousemove', move);
+    canvas.addEventListener('mouseup', end);
+    canvas.addEventListener('mouseleave', end);
+    canvas.addEventListener('touchstart', start, { passive: false });
+    canvas.addEventListener('touchmove', move, { passive: false });
+    canvas.addEventListener('touchend', end);
+})();
+
+// ===========================
+// ID Card Photo Upload
+// ===========================
+var idCardPhotoDataUrl = null;
+
+function handleIdCardPhoto(input) {
+    var file = input.files[0];
+    if (!file || !file.type.startsWith('image/')) return;
+
+    // Compress before storing
+    var reader = new FileReader();
+    reader.onload = function(e) {
+        var img = new Image();
+        img.onload = function() {
+            var canvas = document.createElement('canvas');
+            var MAX_W = 1200;
+            var scale = img.width > MAX_W ? MAX_W / img.width : 1;
+            canvas.width = img.width * scale;
+            canvas.height = img.height * scale;
+            var ctx = canvas.getContext('2d');
+            ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+            idCardPhotoDataUrl = canvas.toDataURL('image/jpeg', 0.7);
+
+            // Show preview
+            document.getElementById('idcard-preview').src = idCardPhotoDataUrl;
+            document.getElementById('idcard-upload-area').classList.add('has-photo');
+            // Sync to print column
+            document.getElementById('idcard-preview-print').src = idCardPhotoDataUrl;
+        };
+        img.src = e.target.result;
+    };
+    reader.readAsDataURL(file);
+
+    // Reset input so same file can be selected again
+    input.value = '';
+}
+
+function removeIdCardPhoto() {
+    idCardPhotoDataUrl = null;
+    document.getElementById('idcard-preview').src = '';
+    document.getElementById('idcard-upload-area').classList.remove('has-photo');
+    document.getElementById('idcard-preview-print').src = '';
+}
+
+// ===========================
+// ID Card Formatting (X-XXXX-XXXXX-XX-X)
+// ===========================
+function formatIdCard(input) {
+    var raw = input.value.replace(/\D/g, '').substring(0, 13);
+    var formatted = '';
+    for (var i = 0; i < raw.length; i++) {
+        if (i === 1 || i === 5 || i === 10 || i === 12) formatted += '-';
+        formatted += raw[i];
+    }
+    input.value = formatted;
+    validateForm();
+}
+
+// ===========================
+// Form Validation
+// ===========================
+function validateForm() {
+    var btn = document.getElementById('btn-submit-consent');
+    var nameOk = document.getElementById('c-consenter-name').value.trim().length > 0;
+    var idRaw = document.getElementById('c-consenter-id').value.replace(/\D/g, '');
+    var idOk = idRaw.length === 13;
+    var relOk = selectedRel && selectedRel !== '';
+    var sigOk = sigDataUrl !== null;
+    btn.disabled = !(nameOk && idOk && relOk && sigOk);
+}
+
+document.getElementById('c-consenter-name').addEventListener('input', validateForm);
+document.getElementById('c-consenter-id').addEventListener('input', validateForm);
+
+// ===========================
+// Submit
+// ===========================
+function submitConsent() {
+    // Collect consent checklist state
+    var checklist = [];
+    document.querySelectorAll('.consent-check-item').forEach(function(item, idx) {
+        checklist.push({ index: idx + 1, checked: item.classList.contains('checked') });
+    });
+
+    var data = {
+        companyName: COMPANY_NAME,
+        patient: {
+            name: document.getElementById('c-patient-name').value.trim(),
+            age: document.getElementById('c-patient-age').value.trim(),
+            idCard: document.getElementById('c-patient-idcard').value.replace(/\D/g, ''),
+        },
+        parts: {
+            part1: document.getElementById('part1').classList.contains('active'),
+            part2: document.getElementById('part2').classList.contains('active'),
+            part3: document.getElementById('part3').classList.contains('active'),
+        },
+        route: {
+            from: (document.getElementById('c-route-from') || {}).value || '',
+            to: (document.getElementById('c-route-to') || {}).value || '',
+        },
+        consentChecklist: checklist,
+        consenterName: document.getElementById('c-consenter-name').value.trim(),
+        consenterId: document.getElementById('c-consenter-id').value.replace(/\D/g, ''),
+        consenterIdCardPhoto: idCardPhotoDataUrl,
+        relationship: selectedRel === 'other'
+            ? document.getElementById('c-rel-other').value.trim()
+            : selectedRel,
+        destChange: {
+            from: document.getElementById('c-dest-from').value.trim(),
+            to: document.getElementById('c-dest-to').value.trim(),
+        },
+        dnr: [],
+        signatureDataUrl: sigDataUrl,
+        signatureTimestamp: sigTimestamp ? sigTimestamp.toISOString() : null,
+        timestamp: new Date().toISOString(),
+    };
+
+    // Collect DNR items
+    document.querySelectorAll('.dnr-item.checked input').forEach(function(cb) {
+        data.dnr.push(cb.value);
+    });
+
+    // Sync back to Transport
+    if (IS_EMBED && window.parent !== window) {
+        // Format signed-at display string
+        var signedAtDisplay = '';
+        if (sigTimestamp) {
+            var d = sigTimestamp;
+            var thMonths = ['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
+            var pad = function(n) { return n < 10 ? '0' + n : n; };
+            signedAtDisplay = d.getDate() + ' ' + thMonths[d.getMonth()] + ' ' + (d.getFullYear() + 543)
+                + ' เวลา ' + pad(d.getHours()) + ':' + pad(d.getMinutes());
+        }
+        // Send data to parent Transport window
+        window.parent.postMessage({
+            type: 'consent-signed',
+            payload: {
+                data: data,
+                signedAt: signedAtDisplay,
+                caseId: _urlParams.get('case_id') || ''
+            }
+        }, '*');
+        return; // Don't show alert in embed mode
+    }
+
+    // Standalone mode callback
+    if (typeof window.onConsentSubmit === 'function') {
+        window.onConsentSubmit(data);
+    }
+
+    console.log('Consent Data:', data);
+    alert('บันทึก Consent สำเร็จ!\n\n(ดูข้อมูลใน Console)');
+}
+
+// ===========================
+// i18n — 4-Language Support
+// ===========================
+var currentLang = 'th';
+var I18N = {
+  th: {
+    'header.title': 'ใบยินยอม/ปฏิเสธ การให้บริการรถพยาบาลฉุกเฉิน',
+    'header.subtitle': 'Ambulance Service Consent Form',
+    'patient.title': 'ข้อมูลผู้ป่วย',
+    'patient.name': 'ชื่อ-สกุล', 'patient.name_ph': 'ชื่อ-สกุลผู้ป่วย',
+    'patient.age': 'อายุ', 'patient.age_ph': 'อายุ',
+    'patient.id': 'เลขบัตร ปชช.',
+    'consenter.title': 'ผู้ให้ความยินยอม',
+    'consenter.name': 'ชื่อ-สกุล ผู้ยินยอม', 'consenter.name_ph': 'กรอกชื่อ-สกุล',
+    'consenter.id': 'เลขบัตรประชาชน',
+    'consenter.photo': 'รูปบัตรประชาชน (ถ้ามี)',
+    'consenter.photo_action': 'ถ่ายรูป หรือ เลือกจากไฟล์',
+    'consenter.rel': 'ความสัมพันธ์กับผู้ป่วย',
+    'consenter.print_photo': 'รูปบัตรประชาชนผู้ยินยอม',
+    'consenter.no_photo': 'ไม่มีรูปแนบ',
+    'rel.self': 'ผู้ป่วยเอง', 'rel.parent': 'บิดา/มารดา', 'rel.spouse': 'คู่สมรส',
+    'rel.child': 'บุตร', 'rel.sibling': 'พี่น้อง', 'rel.other': 'อื่นๆ...',
+    'rel.other_ph': 'ระบุความสัมพันธ์...',
+    'badge.required': 'จำเป็น', 'badge.optional': 'เฉพาะกรณี', 'badge.optional2': 'เฉพาะกรณี',
+    'part1.title': 'ส่วนที่ 1: ยินยอมรับบริการ',
+    'part1.subtitle': 'Consent for Ambulance Service',
+    'part1.intro': 'ยินยอมรับบริการของรถพยาบาล{{company}} ในการรับ-ส่ง',
+    'part1.from': 'จาก', 'part1.from_ph': 'ต้นทาง',
+    'part1.to': 'ไปยัง', 'part1.to_ph': 'ปลายทาง',
+    'part1.check_intro': 'ข้าพเจ้ารับทราบและยืนยันดังต่อไปนี้:',
+    'part1.c1': 'ข้าพเจ้าได้รับคำอธิบายความเสี่ยง จากแพทย์/พยาบาล หรือผู้ที่เกี่ยวข้องในการดูแล นำส่ง และปฐมพยาบาลเบื้องต้น',
+    'part1.c2': 'ข้าพเจ้ารับทราบดีว่ามีเหตุที่เป็นสาเหตุอันตรายต่อสุขภาพหรือชีวิตแก่ผู้ป่วย ที่อาจเกิดขึ้นระหว่างการเดินทางนำส่งไปยังจุดหมายได้',
+    'part1.c3': 'ข้าพเจ้าได้ยินยอมรับความเสี่ยง หากเกิดผลเสียหรืออันตรายถึงแก่ชีวิตระหว่างการเดินทางนำส่ง',
+    'part1.c4': 'ข้าพเจ้าไม่มีข้อโต้แย้ง และไม่เรียกร้องค่าเสียหายใดๆ ทั้งสิ้นจากแพทย์/พยาบาล หรือผู้ที่เกี่ยวข้องของบริการรถพยาบาล{{company}}',
+    'part1.c5': 'ข้าพเจ้ายินยอมให้รถพยาบาล{{company}} นำส่งผู้ป่วยไปยังปลายทางตามความประสงค์ของข้าพเจ้า โดยยินยอมที่จะ<strong style="color:#dc2626;">ไม่ใช้บริการระบบการแพทย์ฉุกเฉินที่ให้บริการในพื้นที่</strong>',
+    'part1.footer': 'ทั้งนี้ แพทย์/พยาบาล หรือผู้ที่เกี่ยวข้องของบริการรถพยาบาล{{company}} ได้อธิบายความเสี่ยงแก่ข้าพเจ้า ข้าพเจ้าได้อ่านข้อความในใบยินยอมนี้ และเข้าใจข้อความโดยละเอียด จึงลงลายมือชื่อ หรือลายพิมพ์นิ้วมือให้เป็นหลักฐานเรียบร้อยแล้ว',
+    'part2.title': 'ส่วนที่ 2: เปลี่ยนแปลงสถานที่ส่งตัว',
+    'part2.subtitle': 'Destination Change Confirmation',
+    'part2.text': 'ข้าพเจ้าขอแจ้งเจตจำนงเปลี่ยนแปลงสถานที่ส่งตัว โดยรับทราบถึงปัญหา ความเสี่ยง และค่าบริการที่อาจเปลี่ยนแปลง',
+    'part2.from': 'จากเดิม', 'part2.from_ph': 'สถานที่เดิม...',
+    'part2.to': 'เปลี่ยนเป็น', 'part2.to_ph': 'สถานที่ใหม่...',
+    'part3.title': 'ส่วนที่ 3: ปฏิเสธการรักษาเพิ่มเติม',
+    'part3.subtitle': 'Treatment Refusal (DNR) — เฉพาะผู้ป่วยระยะสุดท้าย',
+    'part3.warn_label': 'สำคัญ:', 'part3.warn_text': 'ส่วนนี้ใช้เฉพาะการเคลื่อนย้ายผู้ป่วยส่งกลับไปดูแลในระยะสุดท้ายเท่านั้น',
+    'part3.text': 'ข้าพเจ้าขอยืนยันที่จะปฏิเสธการให้การช่วยเหลือ ไม่ให้แพทย์หรือพยาบาลหรือเจ้าหน้าที่ทำการฟื้นคืนชีพ เพื่อยื้อชีวิตหรือยืดการตายออกไปโดยไม่จำเป็น:',
+    'dnr.tube': 'ไม่ใส่ท่อช่วยหายใจ', 'dnr.vent': 'ไม่ใช้เครื่องช่วยหายใจ',
+    'dnr.cpr': 'ไม่ทำ CPR', 'dnr.inotrope': 'ไม่ให้ยากระตุ้นหัวใจ',
+    'dnr.ngt': 'ไม่ให้สารอาหารทางสาย', 'dnr.other': 'อื่นๆ',
+    'dnr.other_ph': 'ระบุการรักษาที่ปฏิเสธ...',
+    'sig.title': 'ลงลายมือชื่อ',
+    'sig.note': 'ผู้ลงนามรับทราบและยินยอม/ปฏิเสธ <strong>เฉพาะในส่วนที่ทำเครื่องหมาย</strong> ☑ เท่านั้น',
+    'sig.label': 'ลายเซ็น ผู้ป่วย/ญาติผู้ยินยอม',
+    'sig.tap': 'แตะเพื่อลงลายเซ็น',
+    'sig.staff': 'ผู้ให้ข้อมูล / เจ้าหน้าที่',
+    'sig.modal_title': 'ลงลายเซ็น',
+    'sig.hint': 'ใช้นิ้วหรือปากกาเซ็นชื่อ',
+    'sig.clear': 'ล้าง', 'sig.confirm': 'ยืนยันลายเซ็น', 'sig.signed_at': 'ลงนามเมื่อ',
+    'btn.submit': 'ยืนยันและบันทึก Consent',
+    'btn.print': 'พิมพ์เอกสาร A4',
+    'disclaimer': 'เอกสารนี้สร้างขึ้นทางอิเล็กทรอนิกส์ ลายเซ็นดิจิทัลมีผลผูกพันตามกฎหมาย<br>ตาม พ.ร.บ. ว่าด้วยธุรกรรมทางอิเล็กทรอนิกส์ พ.ศ. 2544',
+  },
+  en: {
+    'header.title': 'Ambulance Service Consent / Refusal Form',
+    'header.subtitle': 'Emergency Medical Transport Consent',
+    'patient.title': 'Patient Information',
+    'patient.name': 'Full Name', 'patient.name_ph': 'Patient full name',
+    'patient.age': 'Age', 'patient.age_ph': 'Age',
+    'patient.id': 'National ID',
+    'consenter.title': 'Consenter',
+    'consenter.name': 'Consenter Name', 'consenter.name_ph': 'Enter full name',
+    'consenter.id': 'National ID',
+    'consenter.photo': 'ID Card Photo (optional)',
+    'consenter.photo_action': 'Take photo or choose file',
+    'consenter.rel': 'Relationship to Patient',
+    'consenter.print_photo': 'Consenter ID Card Photo',
+    'consenter.no_photo': 'No photo attached',
+    'rel.self': 'Patient', 'rel.parent': 'Parent', 'rel.spouse': 'Spouse',
+    'rel.child': 'Child', 'rel.sibling': 'Sibling', 'rel.other': 'Other...',
+    'rel.other_ph': 'Specify relationship...',
+    'badge.required': 'Required', 'badge.optional': 'If applicable', 'badge.optional2': 'If applicable',
+    'part1.title': 'Part 1: Service Consent',
+    'part1.subtitle': 'Consent for Ambulance Service',
+    'part1.intro': 'I consent to the ambulance service of{{company}} for patient transfer.',
+    'part1.from': 'From', 'part1.from_ph': 'Origin',
+    'part1.to': 'To', 'part1.to_ph': 'Destination',
+    'part1.check_intro': 'I acknowledge and confirm the following:',
+    'part1.c1': 'I have received a risk explanation from the doctor/nurse or relevant personnel regarding care, transport, and first aid.',
+    'part1.c2': 'I acknowledge that there are risks to the patient\'s health or life that may occur during transport to the destination.',
+    'part1.c3': 'I accept the risks of harm or death that may occur during the transport.',
+    'part1.c4': 'I will not dispute or claim any damages from the doctor/nurse or related personnel of the ambulance service{{company}}.',
+    'part1.c5': 'I consent to the ambulance{{company}} transporting the patient to the destination as I request, and I agree <strong style="color:#dc2626;">not to use the local emergency medical service system</strong>.',
+    'part1.footer': 'The doctor/nurse or related personnel of the ambulance service{{company}} have explained the risks to me. I have read and fully understood this consent form and hereby sign or provide fingerprint as evidence.',
+    'part2.title': 'Part 2: Destination Change',
+    'part2.subtitle': 'Destination Change Confirmation',
+    'part2.text': 'I hereby request a change of destination, acknowledging the potential issues, risks, and possible changes in service fees.',
+    'part2.from': 'Original destination', 'part2.from_ph': 'Previous location...',
+    'part2.to': 'Changed to', 'part2.to_ph': 'New location...',
+    'part3.title': 'Part 3: Treatment Refusal',
+    'part3.subtitle': 'Treatment Refusal (DNR) — End-of-life patients only',
+    'part3.warn_label': 'Important:', 'part3.warn_text': 'This section is only for transferring end-of-life patients for palliative care.',
+    'part3.text': 'I confirm my refusal of the following life-sustaining treatments to prevent unnecessary prolongation of life:',
+    'dnr.tube': 'No intubation', 'dnr.vent': 'No ventilator',
+    'dnr.cpr': 'No CPR', 'dnr.inotrope': 'No inotropic drugs',
+    'dnr.ngt': 'No NG tube feeding', 'dnr.other': 'Other',
+    'dnr.other_ph': 'Specify refused treatment...',
+    'sig.title': 'Signature',
+    'sig.note': 'The signatory acknowledges consent/refusal <strong>only for the checked sections</strong> ☑',
+    'sig.label': 'Patient / Consenter Signature',
+    'sig.tap': 'Tap to sign',
+    'sig.staff': 'Informer / Staff',
+    'sig.modal_title': 'Sign Here',
+    'sig.hint': 'Use finger or stylus to sign',
+    'sig.clear': 'Clear', 'sig.confirm': 'Confirm Signature', 'sig.signed_at': 'Signed at',
+    'btn.submit': 'Confirm & Save Consent',
+    'btn.print': 'Print A4 Document',
+    'disclaimer': 'This document was created electronically. Digital signatures are legally binding<br>under the Electronic Transactions Act B.E. 2544 (2001).',
+  },
+  zh: {
+    'header.title': '急救车服务同意/拒绝书',
+    'header.subtitle': '紧急医疗转运同意书',
+    'patient.title': '患者信息',
+    'patient.name': '姓名', 'patient.name_ph': '患者姓名',
+    'patient.age': '年龄', 'patient.age_ph': '年龄',
+    'patient.id': '身份证号',
+    'consenter.title': '同意人',
+    'consenter.name': '同意人姓名', 'consenter.name_ph': '请输入姓名',
+    'consenter.id': '身份证号码',
+    'consenter.photo': '身份证照片（可选）',
+    'consenter.photo_action': '拍照或选择文件',
+    'consenter.rel': '与患者关系',
+    'consenter.print_photo': '同意人身份证照片',
+    'consenter.no_photo': '未附照片',
+    'rel.self': '患者本人', 'rel.parent': '父/母', 'rel.spouse': '配偶',
+    'rel.child': '子女', 'rel.sibling': '兄弟姐妹', 'rel.other': '其他...',
+    'rel.other_ph': '请注明关系...',
+    'badge.required': '必填', 'badge.optional': '视情况', 'badge.optional2': '视情况',
+    'part1.title': '第1部分：服务同意',
+    'part1.subtitle': '急救车服务同意书',
+    'part1.intro': '同意接受{{company}}急救车的转运服务。',
+    'part1.from': '从', 'part1.from_ph': '出发地',
+    'part1.to': '到', 'part1.to_ph': '目的地',
+    'part1.check_intro': '本人确认并同意以下内容：',
+    'part1.c1': '本人已收到医生/护士或相关人员关于护理、转运和急救的风险说明。',
+    'part1.c2': '本人了解在转运途中可能存在危及患者健康或生命的风险。',
+    'part1.c3': '本人接受转运途中可能发生的伤害或死亡风险。',
+    'part1.c4': '本人不会向{{company}}急救车服务的医生/护士或相关人员提出任何争议或损害赔偿。',
+    'part1.c5': '本人同意{{company}}急救车按本人要求将患者转运至目的地，并同意<strong style="color:#dc2626;">不使用当地紧急医疗服务系统</strong>。',
+    'part1.footer': '{{company}}急救车服务的医生/护士或相关人员已向本人说明相关风险。本人已阅读并完全理解本同意书的内容，特此签名或按指纹作为证据。',
+    'part2.title': '第2部分：变更目的地',
+    'part2.subtitle': '目的地变更确认',
+    'part2.text': '本人特此申请变更送达地点，并了解可能产生的问题、风险及费用变更。',
+    'part2.from': '原目的地', 'part2.from_ph': '原地点...',
+    'part2.to': '变更为', 'part2.to_ph': '新地点...',
+    'part3.title': '第3部分：拒绝治疗',
+    'part3.subtitle': '拒绝治疗（DNR）— 仅限临终患者',
+    'part3.warn_label': '重要：', 'part3.warn_text': '本部分仅适用于转运临终关怀患者。',
+    'part3.text': '本人确认拒绝以下维持生命的治疗措施，以避免不必要的延长生命：',
+    'dnr.tube': '不插管', 'dnr.vent': '不使用呼吸机',
+    'dnr.cpr': '不进行心肺复苏', 'dnr.inotrope': '不使用强心药',
+    'dnr.ngt': '不鼻饲', 'dnr.other': '其他',
+    'dnr.other_ph': '请注明拒绝的治疗...',
+    'sig.title': '签名',
+    'sig.note': '签名人仅对<strong>已勾选的部分</strong> ☑ 表示同意/拒绝',
+    'sig.label': '患者/同意人签名',
+    'sig.tap': '点击签名',
+    'sig.staff': '信息提供者/工作人员',
+    'sig.modal_title': '请签名',
+    'sig.hint': '用手指或触控笔签名',
+    'sig.clear': '清除', 'sig.confirm': '确认签名', 'sig.signed_at': '签名时间',
+    'btn.submit': '确认并保存',
+    'btn.print': '打印A4文件',
+    'disclaimer': '本文件以电子方式创建，数字签名具有法律约束力。<br>依据《电子交易法》B.E. 2544（2001年）。',
+  },
+  my: {
+    'header.title': 'အရေးပေါ်လူနာတင်ယာဉ် သဘောတူ/ငြင်းဆိုလွှာ',
+    'header.subtitle': 'အရေးပေါ်ဆေးဘက်ပို့ဆောင်ရေး သဘောတူညီချက်',
+    'patient.title': 'လူနာအချက်အလက်',
+    'patient.name': 'အမည်', 'patient.name_ph': 'လူနာအမည်',
+    'patient.age': 'အသက်', 'patient.age_ph': 'အသက်',
+    'patient.id': 'မှတ်ပုံတင်',
+    'consenter.title': 'သဘောတူညီသူ',
+    'consenter.name': 'သဘောတူညီသူအမည်', 'consenter.name_ph': 'အမည်ထည့်ပါ',
+    'consenter.id': 'မှတ်ပုံတင်အမှတ်',
+    'consenter.photo': 'မှတ်ပုံတင်ဓာတ်ပုံ (ရှိလျှင်)',
+    'consenter.photo_action': 'ဓာတ်ပုံရိုက်ပါ သို့ ဖိုင်ရွေးပါ',
+    'consenter.rel': 'လူနာနှင့်ဆက်နွယ်မှု',
+    'consenter.print_photo': 'သဘောတူညီသူ မှတ်ပုံတင်ဓာတ်ပုံ',
+    'consenter.no_photo': 'ဓာတ်ပုံမပါ',
+    'rel.self': 'လူနာကိုယ်တိုင်', 'rel.parent': 'မိဘ', 'rel.spouse': 'အိမ်ထောင်ဖက်',
+    'rel.child': 'သား/သမီး', 'rel.sibling': 'မောင်နှမ', 'rel.other': 'အခြား...',
+    'rel.other_ph': 'ဆက်နွယ်မှုဖော်ပြပါ...',
+    'badge.required': 'လိုအပ်', 'badge.optional': 'လိုအပ်မှသာ', 'badge.optional2': 'လိုအပ်မှသာ',
+    'part1.title': 'အပိုင်း ၁: ဝန်ဆောင်မှုသဘောတူညီချက်',
+    'part1.subtitle': 'လူနာတင်ယာဉ် ဝန်ဆောင်မှု သဘောတူညီချက်',
+    'part1.intro': '{{company}} လူနာတင်ယာဉ်ဝန်ဆောင်မှုကို သဘောတူပါသည်။',
+    'part1.from': 'မှ', 'part1.from_ph': 'မူလနေရာ',
+    'part1.to': 'သို့', 'part1.to_ph': 'သွားမည့်နေရာ',
+    'part1.check_intro': 'ကျွန်ုပ်အောက်ပါတို့ကို အသိအမှတ်ပြုပြီး အတည်ပြုပါသည်:',
+    'part1.c1': 'ကျွန်ုပ်သည် ဆရာဝန်/သူနာပြု သို့မဟုတ် သက်ဆိုင်ရာပုဂ္ဂိုလ်ထံမှ ဆေးဘက်ဆိုင်ရာ အန္တရာယ်ရှင်းလင်းချက်ကို ရရှိပြီးဖြစ်ပါသည်။',
+    'part1.c2': 'သယ်ယူပို့ဆောင်မှုအတွင်း လူနာ၏ကျန်းမာရေး သို့မဟုတ် အသက်အန္တရာယ်ရှိနိုင်ကြောင်း ကျွန်ုပ်သိရှိပါသည်။',
+    'part1.c3': 'သယ်ယူပို့ဆောင်မှုအတွင်း ထိခိုက်ဒဏ်ရာရခြင်း သို့မဟုတ် သေဆုံးနိုင်ခြင်း အန္တရာယ်ကို ကျွန်ုပ်လက်ခံပါသည်။',
+    'part1.c4': '{{company}} လူနာတင်ယာဉ်ဝန်ဆောင်မှု၏ ဆရာဝန်/သူနာပြု သို့မဟုတ် သက်ဆိုင်ရာပုဂ္ဂိုလ်များအပေါ် မည်သည့်နစ်နာကြေးမျှ တောင်းဆိုမည်မဟုတ်ပါ။',
+    'part1.c5': 'ကျွန်ုပ်၏တောင်းဆိုချက်အတိုင်း {{company}} လူနာတင်ယာဉ်ဖြင့် လူနာကိုပို့ဆောင်ရန် သဘောတူပြီး <strong style="color:#dc2626;">ဒေသတွင်းအရေးပေါ်ဆေးဘက်ဝန်ဆောင်မှုကို အသုံးမပြုရန်</strong> သဘောတူပါသည်။',
+    'part1.footer': '{{company}} လူနာတင်ယာဉ်ဝန်ဆောင်မှု၏ ဆရာဝန်/သူနာပြုများက ကျွန်ုပ်အား အန္တရာယ်များကို ရှင်းပြပြီးဖြစ်ပါသည်။ ဤသဘောတူညီချက်ကို ဖတ်ရှုနားလည်ပြီး လက်မှတ်ရေးထိုးပါသည်။',
+    'part2.title': 'အပိုင်း ၂: သွားမည့်နေရာပြောင်းလဲ',
+    'part2.subtitle': 'သွားမည့်နေရာပြောင်းလဲခြင်း အတည်ပြုချက်',
+    'part2.text': 'ကျွန်ုပ်သည် သွားမည့်နေရာပြောင်းလဲရန် တောင်းဆိုပြီး ပြဿနာများ၊ အန္တရာယ်များနှင့် ဝန်ဆောင်ခပြောင်းလဲနိုင်ကြောင်း သိရှိပါသည်။',
+    'part2.from': 'မူလနေရာ', 'part2.from_ph': 'ယခင်နေရာ...',
+    'part2.to': 'ပြောင်းလဲမည်', 'part2.to_ph': 'နေရာအသစ်...',
+    'part3.title': 'အပိုင်း ၃: ကုသမှုငြင်းဆိုခြင်း',
+    'part3.subtitle': 'ကုသမှုငြင်းဆိုခြင်း (DNR) — နောက်ဆုံးအဆင့်လူနာသာ',
+    'part3.warn_label': 'အရေးကြီး:', 'part3.warn_text': 'ဤအပိုင်းသည် နောက်ဆုံးအဆင့်ပြုစုစောင့်ရှောက်မှုအတွက် လူနာပို့ဆောင်ခြင်းသာ ဖြစ်ပါသည်။',
+    'part3.text': 'ကျွန်ုပ်သည် အောက်ပါအသက်ကယ်ကုသမှုများကို ငြင်းဆိုကြောင်း အတည်ပြုပါသည်:',
+    'dnr.tube': 'ပိုက်မတပ်ရ', 'dnr.vent': 'အသက်ရှူစက်မသုံးရ',
+    'dnr.cpr': 'CPR မလုပ်ရ', 'dnr.inotrope': 'နှလုံးဆေးမထိုးရ',
+    'dnr.ngt': 'ပိုက်ဖြင့်အစာမကျွေးရ', 'dnr.other': 'အခြား',
+    'dnr.other_ph': 'ငြင်းဆိုသည့်ကုသမှုဖော်ပြပါ...',
+    'sig.title': 'လက်မှတ်',
+    'sig.note': 'လက်မှတ်ရေးထိုးသူသည် <strong>အမှန်ခြစ်ထားသောအပိုင်းများသာ</strong> ☑ သဘောတူ/ငြင်းဆိုပါသည်',
+    'sig.label': 'လူနာ/သဘောတူညီသူ လက်မှတ်',
+    'sig.tap': 'လက်မှတ်ထိုးရန် နှိပ်ပါ',
+    'sig.staff': 'အချက်အလက်ပေးသူ/ဝန်ထမ်း',
+    'sig.modal_title': 'လက်မှတ်ထိုးပါ',
+    'sig.hint': 'လက်ချောင်း သို့ ကလောင်ဖြင့် လက်မှတ်ထိုးပါ',
+    'sig.clear': 'ရှင်းပါ', 'sig.confirm': 'လက်မှတ်အတည်ပြု', 'sig.signed_at': 'လက်မှတ်ထိုးချိန်',
+    'btn.submit': 'အတည်ပြုပြီး သိမ်းဆည်းပါ',
+    'btn.print': 'A4 စာရွက်ပုံနှိပ်ပါ',
+    'disclaimer': 'ဤစာရွက်စာတမ်းသည် အီလက်ထရောနစ်နည်းဖြင့် ဖန်တီးထားပြီး ဒစ်ဂျစ်တယ်လက်မှတ်သည် ဥပဒေအရ တရားဝင်ပါသည်။<br>အီလက်ထရောနစ် ငွေကြေးလွှဲပြောင်းမှုဥပဒေ B.E. 2544 (2001) အရ။',
+  },
+};
+
+function switchLang(lang) {
+    currentLang = lang;
+    // Update button states
+    document.querySelectorAll('.lang-btn').forEach(function(b) { b.classList.remove('active'); });
+    document.querySelector('.lang-btn[onclick*="' + lang + '"]').classList.add('active');
+
+    var dict = I18N[lang] || I18N.th;
+    var companyText = COMPANY_NAME ? (' ' + COMPANY_NAME) : '';
+
+    // Update data-i18n (textContent)
+    document.querySelectorAll('[data-i18n]').forEach(function(el) {
+        var key = el.getAttribute('data-i18n');
+        if (dict[key] !== undefined) {
+            el.textContent = dict[key].replace(/\{\{company\}\}/g, companyText);
+        }
+    });
+
+    // Update data-i18n-html (innerHTML — for items with <strong>, <span>, <br>)
+    document.querySelectorAll('[data-i18n-html]').forEach(function(el) {
+        var key = el.getAttribute('data-i18n-html');
+        if (dict[key] !== undefined) {
+            el.innerHTML = dict[key].replace(/\{\{company\}\}/g, companyText);
+        }
+    });
+
+    // Update data-i18n-ph (placeholder)
+    document.querySelectorAll('[data-i18n-ph]').forEach(function(el) {
+        var key = el.getAttribute('data-i18n-ph');
+        if (dict[key] !== undefined) {
+            el.placeholder = dict[key];
+        }
+    });
+
+    // Update guide label in sig modal
+    var guideLabel = document.querySelector('.sig-guide-label');
+    if (guideLabel) {
+        var labels = { th: 'ลงลายเซ็นที่นี่', en: 'Sign here', zh: '在此签名', my: 'ဒီမှာ လက်မှတ်ထိုးပါ' };
+        guideLabel.textContent = labels[lang] || labels.th;
+    }
+}
+
+// ===========================
+// Init
+// ===========================
+initPatientInfo();
+// Signature modal is self-initializing (event listeners attached above)
+</script>
+
+</body>
+</html>

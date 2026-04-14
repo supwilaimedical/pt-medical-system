@@ -318,6 +318,13 @@ body {
     margin-bottom: 20px;
     box-shadow: 0 2px 12px rgba(0,0,0,0.04);
     border: 1px solid rgba(0,0,0,0.04);
+    overflow: hidden;
+}
+.patient-banner .badge {
+    white-space: normal;
+    word-break: break-word;
+    text-align: left;
+    max-width: 100%;
 }
 
 /* Island Card (Form Sections) */
