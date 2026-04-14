@@ -1329,6 +1329,7 @@
                             .from('transport_consents')
                             .select('case_id, version, status')
                             .in('case_id', caseIds)
+                            .neq('status', 'case_deleted')
                             .order('version', { ascending: false });
                         var consentMap = {};
                         (consentRes.data || []).forEach(function(c) {
@@ -1544,6 +1545,13 @@
          showLoaderOnConfirm: true,
          preConfirm: async function() {
              try {
+                 // Mark all consents for this case as 'case_deleted' (keep in DB for audit trail)
+                 var consentResp = await _supabase
+                   .from('transport_consents')
+                   .update({ status: 'case_deleted', superseded_at: new Date().toISOString(), superseded_reason: 'เคสถูกลบ' })
+                   .eq('case_id', id);
+                 if (consentResp.error) { console.warn('Mark consents deleted warning:', consentResp.error); }
+
                  var resp = await _supabase.from('cases').delete().eq('case_id', id);
                  if (resp.error) { Swal.showValidationMessage(resp.error.message); return { status: 'error' }; }
                  await logActivity('DELETE_CASE', id, 'ลบเคส');
@@ -4066,6 +4074,7 @@
           .from('transport_consents')
           .select('*')
           .eq('case_id', caseId)
+          .neq('status', 'case_deleted')
           .order('version', { ascending: false });
 
         if (res.error) { console.error('Load consents error:', res.error); return []; }

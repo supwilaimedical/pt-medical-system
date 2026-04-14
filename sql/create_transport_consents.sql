@@ -26,7 +26,7 @@ CREATE TABLE IF NOT EXISTS transport_consents (
   created_at TIMESTAMPTZ DEFAULT NOW(),
 
   -- Constraints
-  CONSTRAINT valid_status CHECK (status IN ('active', 'superseded'))
+  CONSTRAINT valid_status CHECK (status IN ('active', 'superseded', 'case_deleted'))
 );
 
 -- Index สำหรับ query ที่ใช้บ่อย

@@ -1130,19 +1130,24 @@
     }
 
     async function monitorOpenFADashboard(eventId, eventName) {
-        Swal.fire({ title: 'กำลังสร้าง Dashboard...', didOpen: function() { Swal.showLoading(); } });
+        // Open window BEFORE async call — iOS Safari blocks popups from async callbacks
+        var w = window.open('', '_blank');
+        if (!w || w.closed) {
+            Swal.fire({ icon:'warning', title:'Popup ถูกบล็อก', text:'กรุณาอนุญาต Popup หรือลองกดปุ่มอีกครั้ง' });
+            return;
+        }
+        w.document.write('<html><head><title>Loading...</title></head><body style="display:flex;align-items:center;justify-content:center;height:100vh;font-family:sans-serif;color:#666;"><h2>กำลังโหลด Dashboard...</h2></body></html>');
         try {
             var result = await getEventReportData(eventId);
-            Swal.close();
             if (result && result.event) {
                 var html = monitorBuildFADashboardHtml(result, eventId);
-                var w = window.open('', '_blank');
-                if (!w || w.closed) { Swal.fire({ icon:'warning', title:'Popup ถูกบล็อก', text:'กรุณาอนุญาต Popup' }); return; }
                 w.document.open(); w.document.write(html); w.document.close();
             } else {
-                Swal.fire('Error', 'ไม่พบข้อมูล Event', 'error');
+                w.document.open(); w.document.write('<html><body><h2>ไม่พบข้อมูล Event</h2></body></html>'); w.document.close();
             }
-        } catch(err) { Swal.close(); Swal.fire('Error', err.message, 'error'); }
+        } catch(err) {
+            w.document.open(); w.document.write('<html><body><h2>Error: ' + err.message + '</h2></body></html>'); w.document.close();
+        }
     }
 
     // =============================================
