@@ -304,6 +304,14 @@
                           <div class="text-muted" style="font-size:0.7rem;" id="proxy-gas-ms">กำลังตรวจสอบ...</div>
                         </div>
                       </div>
+                      <div class="border rounded-3 px-3 py-2 d-flex align-items-center gap-2" style="min-width:200px;" id="proxy-ocr-wrap">
+                        <span class="spinner-border spinner-border-sm text-muted" id="proxy-ocr-spinner"></span>
+                        <span class="badge rounded-pill" id="proxy-ocr-badge" style="display:none;">--</span>
+                        <div>
+                          <div class="small fw-bold">OCR (Gemini)</div>
+                          <div class="text-muted" style="font-size:0.7rem;" id="proxy-ocr-ms">กำลังตรวจสอบ...</div>
+                        </div>
+                      </div>
                       <button class="btn btn-outline-secondary btn-sm align-self-center" onclick="checkProxyStatus()">
                         <i class="bi bi-arrow-clockwise"></i>
                       </button>
@@ -1099,6 +1107,73 @@
         var testUrl = 'http://203.170.193.90/StandardApiAction_login.action?account=supwilai&password=1234';
         checkOneProxy('render', CONFIG.GPS_PROXY_URL, testUrl);
         checkOneProxy('gas', CONFIG.GPS_PROXY_FALLBACK, testUrl);
+        checkOcrProxy();
+    }
+
+    async function checkOcrProxy() {
+        var spinner = document.getElementById('proxy-ocr-spinner');
+        var badge = document.getElementById('proxy-ocr-badge');
+        var msEl = document.getElementById('proxy-ocr-ms');
+        var wrap = document.getElementById('proxy-ocr-wrap');
+        if (!spinner || !badge || !msEl) return;
+
+        var ocrUrl = (typeof CONFIG !== 'undefined' && CONFIG.OCR_PROXY_URL) ? CONFIG.OCR_PROXY_URL.trim().replace(/\/+$/,'') : '';
+        if (!ocrUrl) {
+            spinner.style.display = 'none';
+            badge.style.display = '';
+            badge.textContent = '— Not configured';
+            badge.className = 'badge rounded-pill bg-secondary';
+            msEl.textContent = 'OCR_PROXY_URL ว่าง (ใช้ API key ต่อเครื่อง)';
+            msEl.style.color = '#6b7280';
+            return;
+        }
+
+        // Reset to loading
+        spinner.style.display = '';
+        badge.style.display = 'none';
+        msEl.textContent = 'กำลังตรวจสอบ...';
+        msEl.style.color = '';
+
+        var start = Date.now();
+        try {
+            var controller = new AbortController();
+            var timer = setTimeout(function() { controller.abort(); }, 10000);
+            // GET → Worker จะตอบ 405 Method not allowed (= Online) หรือ 500 (= ไม่ได้ตั้ง secret)
+            var resp = await fetch(ocrUrl + '/', { method: 'GET', signal: controller.signal });
+            clearTimeout(timer);
+            var ms = Date.now() - start;
+            var data = {};
+            try { data = await resp.json(); } catch(_){}
+
+            spinner.style.display = 'none';
+            badge.style.display = '';
+
+            if (resp.status === 405) {
+                // Expected response → Worker reachable + code ถูกต้อง
+                badge.textContent = '✓ Online';
+                badge.className = 'badge rounded-pill bg-success';
+                msEl.textContent = ms + ' ms';
+                msEl.style.color = ms < 500 ? '#16a34a' : ms < 2000 ? '#f59e0b' : '#dc2626';
+            } else if (resp.status === 500 && data.error && /GEMINI_API_KEY/i.test(data.error)) {
+                badge.textContent = '⚠ No Key';
+                badge.className = 'badge rounded-pill bg-warning text-dark';
+                msEl.textContent = 'Secret GEMINI_API_KEY ไม่ได้ตั้ง';
+                msEl.style.color = '#dc2626';
+            } else {
+                badge.textContent = '⚠ ' + resp.status;
+                badge.className = 'badge rounded-pill bg-warning text-dark';
+                msEl.textContent = (data.error || 'Unexpected response') + ' (' + ms + ' ms)';
+                msEl.style.color = '#dc2626';
+            }
+        } catch(e) {
+            var ms = Date.now() - start;
+            spinner.style.display = 'none';
+            badge.style.display = '';
+            badge.textContent = '✗ Offline';
+            badge.className = 'badge rounded-pill bg-danger';
+            msEl.textContent = e.name === 'AbortError' ? 'Timeout (' + ms + ' ms)' : e.message;
+            msEl.style.color = '#dc2626';
+        }
     }
 
     async function checkOneProxy(name, proxyBase, testUrl) {

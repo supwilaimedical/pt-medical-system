@@ -1,0 +1,16 @@
+# Cloudflare Worker config for OCR Proxy
+# Deploy: cd cloudflare && wrangler deploy
+# See README.md for full setup instructions
+
+name = "gps-proxy"
+main = "ocr-proxy-worker.js"
+compatibility_date = "2024-11-01"
+
+# Optional: restrict origins that can call the proxy
+# Leave empty (or remove) during dev to allow all origins.
+# For production, set via `wrangler secret put ALLOWED_ORIGINS` OR uncomment below:
+# [vars]
+# ALLOWED_ORIGINS = "https://your-site.pages.dev,https://your-domain.com"
+
+# GEMINI_API_KEY must be set as a SECRET (not a var) — see README
+# wrangler secret put GEMINI_API_KEY

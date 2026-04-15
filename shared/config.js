@@ -7,5 +7,9 @@ const CONFIG = {
   BASE_URL: '/pt-medical-system',
   GAS_AUTH_API_URL: 'https://script.google.com/macros/s/AKfycbybpea7XetHbLnibNWUHV_Mg9CpmIWzXR_5lCKzPWoWUAjPcy-wUVAgAP_dWd0Avf4jug/exec',
   GPS_PROXY_URL: 'https://gps-proxy-lpdq.onrender.com',
-  GPS_PROXY_FALLBACK: 'https://script.google.com/macros/s/AKfycbxXbDS4vXO9v_q5bgyxv0WJeIR5CAr_6kZ-LrCINEFLFe1_VPV3Ls8geNv4jPT_FNPfNg/exec'
+  GPS_PROXY_FALLBACK: 'https://script.google.com/macros/s/AKfycbxXbDS4vXO9v_q5bgyxv0WJeIR5CAr_6kZ-LrCINEFLFe1_VPV3Ls8geNv4jPT_FNPfNg/exec',
+  // OCR Proxy (Cloudflare Worker) — ซ่อน Gemini API key จาก browser
+  // Deploy: see cloudflare/README.md
+  // ว่างไว้ = fallback ใช้ API key ใน localStorage ต่อเครื่อง
+  OCR_PROXY_URL: 'https://gps-proxy.supwilai-ambulance.workers.dev'
 };
