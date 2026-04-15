@@ -516,28 +516,10 @@
                   <div class="col-md-3"><label class="form-label fw-bold fs-7 text-secondary">อายุ</label><input type="text" class="form-control bg-light border-0 shadow-none" name="pt_age" id="pt_age"></div>
                   <div class="col-md-3"><label class="form-label fw-bold fs-7 text-secondary">เพศ</label><select class="form-select bg-light border-0 shadow-none" name="pt_gender"><option value="" disabled selected>-- เลือกเพศ --</option><option value="Male">ชาย (Male)</option><option value="Female">หญิง (Female)</option><option value="Other">อื่นๆ (Other)</option></select></div>
 
-                  <!-- ID Card / Passport -->
-                  <div class="col-12 mt-4">
-                    <label class="form-label fw-bold fs-7 text-secondary mb-2"><i class="bi bi-card-text me-1"></i> เอกสารระบุตัวตน</label>
-                    <div class="d-flex gap-3 mb-2">
-                      <div class="form-check form-check-inline m-0">
-                        <input class="form-check-input" type="radio" name="id_type" id="id_thai" value="ThaiID" checked onchange="toggleIdType()">
-                        <label class="form-check-label fw-medium" for="id_thai">บัตรประชาชน</label>
-                      </div>
-                      <div class="form-check form-check-inline m-0">
-                        <input class="form-check-input" type="radio" name="id_type" id="id_passport" value="Passport" onchange="toggleIdType()">
-                        <label class="form-check-label fw-medium" for="id_passport">Passport</label>
-                      </div>
-                    </div>
-                    <div id="id-thai-group">
-                      <div class="col-md-6"><input type="text" class="form-control bg-light border-0 shadow-none" name="pt_idcard" id="pt_idcard" placeholder="X-XXXX-XXXXX-XX-X" maxlength="17" oninput="formatIdCard(this)"></div>
-                    </div>
-                    <div id="id-passport-group" class="d-none">
-                      <div class="row g-2">
-                        <div class="col-md-4"><input type="text" class="form-control bg-light border-0 shadow-none" name="pt_passport" id="pt_passport" placeholder="Passport No."></div>
-                        <div class="col-md-4"><input type="text" class="form-control bg-light border-0 shadow-none" name="pt_nationality" id="pt_nationality" placeholder="สัญชาติ (Nationality)"></div>
-                      </div>
-                    </div>
+                  <!-- ID Card / Passport (merged single field) -->
+                  <div class="col-md-6 mt-4">
+                    <label class="form-label fw-bold fs-7 text-secondary mb-2"><i class="bi bi-card-text me-1"></i> บัตรประชาชน / Passport</label>
+                    <input type="text" class="form-control bg-light border-0 shadow-none" name="pt_idcard" id="pt_idcard" placeholder="เลขบัตร ปชช. (13 หลัก) หรือ Passport No." maxlength="30" oninput="formatIdOrPassport(this)">
                   </div>
 
                   <div class="col-md-6 mt-4"><label class="form-label fw-bold fs-7 text-secondary"><i class="bi bi-geo-alt text-primary"></i> รับจาก (ต้นทาง)</label><input type="text" class="form-control bg-light border-0 shadow-none" name="origin" id="pt_origin"></div>
@@ -981,19 +963,14 @@
                  <div class="col-md-6"><label class="form-label fs-8 fw-bold text-secondary">Patient Name</label><input type="text" class="form-control bg-light border-0" id="m_pt_name"></div>
                  <div class="col-md-3"><label class="form-label fs-8 fw-bold text-secondary">Age</label><input type="text" class="form-control bg-light border-0" id="m_pt_age"></div>
                  <div class="col-md-3"><label class="form-label fs-8 fw-bold text-secondary">Gender</label><select class="form-select bg-light border-0" id="m_pt_gender"><option value="" disabled>-- เลือกเพศ --</option><option value="Male">ชาย (Male)</option><option value="Female">หญิง (Female)</option><option value="Other">อื่นๆ (Other)</option></select></div>
+                 <!-- ID Card / Passport (merged, moved up below Gender) -->
+                 <div class="col-12 mt-3">
+                    <label class="form-label fs-8 fw-bold text-secondary">บัตรประชาชน / Passport</label>
+                    <input type="text" class="form-control form-control-sm bg-light border-0" id="m_pt_idcard" placeholder="เลขบัตร ปชช. (13 หลัก) หรือ Passport No." maxlength="30" oninput="formatIdOrPassport(this)">
+                 </div>
                  <div class="col-12 mt-3"><div class="row g-3"><div class="col-6"><label class="form-label fs-8 fw-bold text-secondary">Origin (รับจาก)</label><input type="text" class="form-control bg-light border-0" id="m_origin"></div><div class="col-6"><label class="form-label fs-8 fw-bold text-secondary">Destination (ไปส่ง)</label><input type="text" class="form-control bg-light border-0" id="m_destination"></div></div></div>
                  <div class="col-12 mt-3"><label class="form-label fs-8 fw-bold text-secondary">Diagnosis</label><textarea class="form-control bg-light border-0" id="m_pt_dx" rows="2"></textarea></div>
                  <div class="col-12 mt-3"><label class="form-label fs-8 fw-bold text-secondary">Chief Complaint (อาการสำคัญ)</label><textarea class="form-control bg-light border-0" id="m_pt_cc" rows="2"></textarea></div>
-                 <!-- ID Card / Passport -->
-                 <div class="col-12 mt-3">
-                    <label class="form-label fs-8 fw-bold text-secondary">เอกสารระบุตัวตน</label>
-                    <div class="d-flex gap-3 mb-2">
-                      <div class="form-check form-check-inline m-0"><input class="form-check-input" type="radio" name="m_id_type" id="m_id_thai" value="ThaiID" checked onchange="toggleModalIdType()"><label class="form-check-label small fw-medium" for="m_id_thai">บัตร ปชช.</label></div>
-                      <div class="form-check form-check-inline m-0"><input class="form-check-input" type="radio" name="m_id_type" id="m_id_passport" value="Passport" onchange="toggleModalIdType()"><label class="form-check-label small fw-medium" for="m_id_passport">Passport</label></div>
-                    </div>
-                    <div id="m-id-thai-group"><input type="text" class="form-control form-control-sm bg-light border-0" id="m_pt_idcard" placeholder="X-XXXX-XXXXX-XX-X" maxlength="17" oninput="formatIdCard(this)"></div>
-                    <div id="m-id-passport-group" class="d-none"><div class="row g-2"><div class="col-6"><input type="text" class="form-control form-control-sm bg-light border-0" id="m_pt_passport" placeholder="Passport No."></div><div class="col-6"><input type="text" class="form-control form-control-sm bg-light border-0" id="m_pt_nationality" placeholder="สัญชาติ"></div></div></div>
-                 </div>
                  <!-- Underlying -->
                  <div class="col-12 mt-3">
                     <label class="form-label fs-8 fw-bold text-secondary">โรคประจำตัว (Underlying)</label>
@@ -1515,10 +1492,10 @@
         card.className = 'col-12 px-2';
         var hasActionBtns = isAdmin || (rec.status === 'Completed');
         var rightPad = isAdmin ? '134px' : (rec.status === 'Completed' ? '40px' : '');
-        var consentCountLabel = consentCount > 1 ? ' (' + consentCount + ')' : '';
+        var consentVersionLabel = consentCount > 0 ? ' v' + consentCount : '';
         var consentBadgeHtml = hasConsent
-            ? '<span class="badge rounded-pill px-2 py-0" style="font-size:0.6rem; background:#dcfce7; color:#15803d; border:1px solid #86efac; cursor:pointer;" onclick="event.stopPropagation(); previewConsent(\'' + rec.id + '\')" title="ดู Consent (ลงนามแล้ว)"><i class="bi bi-check-circle-fill me-1"></i>Consent' + consentCountLabel + '</span>'
-            : '<span class="badge rounded-pill px-2 py-0" style="font-size:0.6rem; background:#fef9c3; color:#92400e; border:1px solid #fde68a; cursor:pointer;" onclick="event.stopPropagation(); previewConsent(\'' + rec.id + '\')" title="ดู Consent (รอลงนาม)"><i class="bi bi-file-earmark-check me-1"></i>Consent</span>';
+            ? '<span class="badge rounded-pill px-2 py-0" style="font-size:0.6rem; background:#dcfce7; color:#15803d; border:1px solid #86efac; cursor:pointer;" onclick="event.stopPropagation(); openConsentFromDashboard(\'' + rec.id + '\')" title="ดู / แก้ไข Consent"><i class="bi bi-check-circle-fill me-1"></i>Consent' + consentVersionLabel + '</span>'
+            : '<span class="badge rounded-pill px-2 py-0" style="font-size:0.6rem; background:#fef9c3; color:#92400e; border:1px solid #fde68a; cursor:pointer;" onclick="event.stopPropagation(); openConsentFromDashboard(\'' + rec.id + '\')" title="เซ็น Consent จากหน้า Dashboard"><i class="bi bi-pen me-1"></i>รอเซ็น</span>';
 
         card.innerHTML =
             '<div class="card patient-card mb-2">' + actionBtnsHtml +
@@ -1746,6 +1723,8 @@
        consentData = null;
        consentVersions = [];
        consentActiveVersion = null;
+       // Clear consent UI (otherwise previous case's "ลงนามแล้ว" banner persists)
+       if (typeof updateConsentUI === 'function') updateConsentUI();
 
        var loggedUser = getUserName();
        if (loggedUser) {
@@ -1858,6 +1837,7 @@
                   name: f.pt_name.value,
                   age: f.pt_age.value,
                   gender: f.pt_gender.value,
+                  idCard: (f.pt_idcard ? f.pt_idcard.value : '') || '',
                   origin: f.origin.value,
                   destination: f.destination.value
               },
@@ -1928,6 +1908,10 @@
                           else if (el.type === 'checkbox') el.checked = snapshot[key];
                           else el.value = snapshot[key];
                        }
+                    }
+                    // Migrate legacy pt_passport → pt_idcard (single merged field)
+                    if (f.pt_idcard && !f.pt_idcard.value && snapshot.pt_passport) {
+                        f.pt_idcard.value = snapshot.pt_passport;
                     }
                 } catch(e) { console.error("Error parsing snapshot", e); }
             }
@@ -3088,13 +3072,8 @@
        document.getElementById('m_pt_cc').value = f.pt_cc.value;
        document.getElementById('m_pt_allergies').value = f.pt_allergies.value;
 
-       var idType = f.id_type ? f.id_type.value : 'ThaiID';
-       var mIdRadios = document.getElementsByName('m_id_type');
-       for(var i=0; i<mIdRadios.length; i++) mIdRadios[i].checked = (mIdRadios[i].value === idType);
+       // Merged ID/Passport field (single input)
        document.getElementById('m_pt_idcard').value = f.pt_idcard ? f.pt_idcard.value : '';
-       document.getElementById('m_pt_passport').value = f.pt_passport ? f.pt_passport.value : '';
-       document.getElementById('m_pt_nationality').value = f.pt_nationality ? f.pt_nationality.value : '';
-       toggleModalIdType();
 
        var udNames = ['ud_dm','ud_ht','ud_dlp','ud_ihd','ud_cva','ud_ckd','ud_copd','ud_cancer','ud_epilepsy'];
        for(var i=0; i<udNames.length; i++) {
@@ -3129,14 +3108,8 @@
        if(editModal) editModal.show();
     }
 
-    function toggleModalIdType() {
-        var idType = document.querySelector('input[name="m_id_type"]:checked');
-        var val = idType ? idType.value : 'ThaiID';
-        var thaiGroup = document.getElementById('m-id-thai-group');
-        var passGroup = document.getElementById('m-id-passport-group');
-        if (val === 'ThaiID') { thaiGroup.classList.remove('d-none'); passGroup.classList.add('d-none'); }
-        else { thaiGroup.classList.add('d-none'); passGroup.classList.remove('d-none'); }
-    }
+    // Legacy no-op (ID/Passport merged into single field)
+    function toggleModalIdType() { return; }
 
     function saveEditModal() {
        var f = document.forms['main-form'];
@@ -3149,15 +3122,8 @@
        f.pt_cc.value = document.getElementById('m_pt_cc').value;
        f.pt_allergies.value = document.getElementById('m_pt_allergies').value;
 
-       var mIdType = document.querySelector('input[name="m_id_type"]:checked');
-       if (mIdType) {
-           var mainIdRadios = document.getElementsByName('id_type');
-           for(var i=0; i<mainIdRadios.length; i++) mainIdRadios[i].checked = (mainIdRadios[i].value === mIdType.value);
-       }
+       // Merged ID/Passport field (single input)
        f.pt_idcard.value = document.getElementById('m_pt_idcard').value;
-       f.pt_passport.value = document.getElementById('m_pt_passport').value;
-       f.pt_nationality.value = document.getElementById('m_pt_nationality').value;
-       toggleIdType();
 
        var udNames = ['ud_dm','ud_ht','ud_dlp','ud_ihd','ud_cva','ud_ckd','ud_copd','ud_cancer','ud_epilepsy'];
        for(var i=0; i<udNames.length; i++) {
@@ -3279,8 +3245,10 @@
         });
     }
 
-    // --- ID TYPE TOGGLE ---
+    // --- ID TYPE TOGGLE (legacy no-op — ID/Passport merged into single field) ---
     function toggleIdType() {
+        return;
+        // legacy body kept dead to preserve brace balance
         var idType = document.querySelector('input[name="id_type"]:checked');
         var val = idType ? idType.value : 'ThaiID';
         var thaiGroup = document.getElementById('id-thai-group');
@@ -3302,6 +3270,16 @@
             formatted += raw[i];
         }
         el.value = formatted;
+    }
+
+    // Smart formatter: auto-format as Thai ID only if input is purely numeric, otherwise leave as Passport text
+    function formatIdOrPassport(el) {
+        var v = el.value;
+        // Numeric / dash / space only → format as Thai ID
+        if (/^[0-9\-\s]*$/.test(v)) {
+            formatIdCard(el);
+        }
+        // Contains letters → treat as Passport, leave as-is
     }
 
     // --- UNDERLYING DISEASE HELPERS ---
@@ -3604,10 +3582,11 @@
         d.nrStatus = getVal('nr_status');
         d.nurseNote = getVal('nurse_note');
 
-        var idTypeRadio = document.querySelector('input[name="id_type"]:checked');
-        d.idType = idTypeRadio ? idTypeRadio.value : 'ThaiID';
+        // Merged ID/Passport — auto-detect type by value (13 digits → Thai ID, else Passport)
         d.idCard = getVal('pt_idcard');
-        d.passport = getVal('pt_passport');
+        var idDigits = (d.idCard || '').replace(/\D/g, '');
+        d.idType = (idDigits.length === 13 && /^[0-9\-\s]+$/.test(d.idCard || '')) ? 'ThaiID' : (d.idCard ? 'Passport' : 'ThaiID');
+        d.passport = d.idType === 'Passport' ? d.idCard : '';
         d.idDisplay = d.idType === 'Passport' ? ('Passport: ' + (d.passport || '-')) : ('ID: ' + (d.idCard || '-'));
         d.meds = getVal('pt_meds');
 
@@ -4039,6 +4018,38 @@
             }
         });
 
+        // Consent realtime — Device A knows when Device B signs/updates consent
+        RT.subscribe('transport-consents', 'transport_consents', function() {
+            // Refresh dashboard to update consent badge version
+            var dashView = document.getElementById('dashboard-view');
+            if (dashView && dashView.classList.contains('active')) {
+                loadDashboardData(currentPage);
+            }
+            // If editing a case, sync consent state + toast
+            var curCaseId = document.getElementById('caseId') ? document.getElementById('caseId').value : '';
+            if (curCaseId) {
+                (async function() {
+                    try {
+                        var vers = await loadConsentsFromDB(curCaseId);
+                        var prevCount = (consentVersions || []).length;
+                        if (vers && vers.length !== prevCount) {
+                            consentVersions = vers;
+                            consentActiveVersion = vers.find(function(v){ return v.status === 'active'; });
+                            consentSigned = !!consentActiveVersion;
+                            if (typeof updateConsentUI === 'function') updateConsentUI();
+                            try {
+                                Swal.fire({
+                                    toast: true, position: 'top-end', icon: 'info',
+                                    title: 'Consent ถูกอัปเดตจากอุปกรณ์อื่น',
+                                    timer: 3500, showConfirmButton: false
+                                });
+                            } catch(e) {}
+                        }
+                    } catch(err) { console.warn('Consent realtime sync error:', err); }
+                })();
+            }
+        });
+
         showDashboard();
     }
 
@@ -4116,6 +4127,7 @@
           consent_data: formData.data,
           signature_image: formData.data.signatureDataUrl || '',
           witness_name: formData.data.witnessName || '',
+          witness_signature_image: formData.data.witnessSignatureDataUrl || '',
           status: 'active'
         };
 
@@ -4325,7 +4337,7 @@
       var ptAge = f ? (f.pt_age?.value || '') : '';
       var ptIdCard = '';
       try {
-        ptIdCard = (f.pt_idcard?.value || f.pt_passport?.value || '').trim();
+        ptIdCard = (f.pt_idcard?.value || '').trim();
       } catch(e) {}
       var routeFrom = f ? (f.origin?.value || '') : '';
       var routeTo = f ? (f.destination?.value || '') : '';
@@ -4450,6 +4462,202 @@
       document.getElementById('consent-iframe').src = '';
     }
 
+    // ══════════════════════════════════════════════════════════════════
+    // Device B — Open Consent directly from Dashboard (without opening full form)
+    // ══════════════════════════════════════════════════════════════════
+    window._consentDashboardMode = false;
+    window._consentDashboardCaseId = null;
+    window._consentDashboardPatient = null;
+
+    function _exitConsentDashboardMode() {
+      window._consentDashboardMode = false;
+      window._consentDashboardCaseId = null;
+      window._consentDashboardPatient = null;
+    }
+
+    async function openConsentFromDashboard(caseId) {
+      if (!caseId) return;
+      Swal.fire({ title: 'กำลังโหลดข้อมูลเคส...', didOpen: function(){ Swal.showLoading(); }, allowOutsideClick: false });
+      try {
+        var results = await Promise.all([
+          _supabase.from('cases').select('patient_info,status,raw_data').eq('case_id', caseId).single(),
+          loadConsentsFromDB(caseId)
+        ]);
+        Swal.close();
+        var pi = (results[0].data && results[0].data.patient_info) || {};
+        // Legacy fallback: if patient_info.idCard empty, pull from rawSnapshot.pt_idcard (or pt_passport)
+        if (!pi.idCard && results[0].data && results[0].data.raw_data) {
+          try {
+            var rs = results[0].data.raw_data.rawSnapshot;
+            if (rs) {
+              var snap = typeof rs === 'string' ? JSON.parse(rs) : rs;
+              pi.idCard = snap.pt_idcard || snap.pt_passport || '';
+            }
+          } catch(e) { console.warn('rawSnapshot parse error:', e); }
+        }
+        var caseStatus = (results[0].data && results[0].data.status) || 'InProgress';
+        var versions = results[1] || [];
+        var activeVer = versions.find(function(v){ return v.status === 'active'; });
+        var isLocked = caseStatus === 'Completed';
+
+        // Pin dashboard mode (postMessage handler uses these)
+        window._consentDashboardMode = true;
+        window._consentDashboardCaseId = caseId;
+        window._consentDashboardPatient = pi;
+
+        _previewConsentVersions = versions;
+        _previewConsentCaseId = caseId;
+
+        if (!activeVer) {
+          // No consent yet → open editable modal directly
+          _openConsentEditFromDashboard(caseId, pi);
+          return;
+        }
+
+        // Has consent → show preview (view-first pattern)
+        _openConsentPreviewFromDashboard(caseId, pi, versions, isLocked);
+      } catch(err) {
+        Swal.close();
+        _exitConsentDashboardMode();
+        console.error('openConsentFromDashboard error:', err);
+        Swal.fire({ icon: 'error', title: 'โหลดข้อมูลไม่สำเร็จ', text: (err && err.message) || String(err) });
+      }
+    }
+
+    function _openConsentEditFromDashboard(caseId, pi) {
+      var modal = document.getElementById('consent-modal');
+      var iframe = document.getElementById('consent-iframe');
+      var src = 'consent-prototype.html?embed=1';
+      src += '&case_id=' + encodeURIComponent(caseId);
+      if (pi.name) src += '&pt_name=' + encodeURIComponent(pi.name);
+      if (pi.idCard) src += '&pt_id=' + encodeURIComponent(pi.idCard);
+      if (pi.age) src += '&pt_age=' + encodeURIComponent(pi.age);
+      if (pi.origin) src += '&route_from=' + encodeURIComponent(pi.origin);
+      if (pi.destination) src += '&route_to=' + encodeURIComponent(pi.destination);
+      iframe.src = src;
+      modal.classList.add('show');
+      document.body.style.overflow = 'hidden';
+    }
+
+    function _openConsentPreviewFromDashboard(caseId, pi, versions, isLocked) {
+      var role = (typeof getUserRole === 'function') ? getUserRole() : '';
+      var isAdmin = role === 'Admin';
+
+      // Version dropdown
+      var versionDropdown = '';
+      if (versions.length > 1) {
+        versionDropdown = '<select id="consent-version-select" onchange="switchConsentVersion()" style="padding:8px 12px;font-size:14px;border-radius:6px;border:1px solid #cbd5e1;font-family:Sarabun,sans-serif;margin:0 8px;min-width:200px;">';
+        versions.forEach(function(v) {
+          var d = new Date(v.signed_at);
+          var thM = ['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
+          var pad = function(n){ return n < 10 ? '0' + n : n; };
+          var label = 'ฉบับที่ ' + v.version + ' — ' + d.getDate() + ' ' + thM[d.getMonth()] + ' ' + pad(d.getHours()) + ':' + pad(d.getMinutes());
+          if (v.status === 'active') label += ' ✅ ฉบับปัจจุบัน';
+          else label += ' (ถูกแทนที่)';
+          versionDropdown += '<option value="' + v.version + '"' + (v.status === 'active' ? ' selected' : '') + '>' + label + '</option>';
+        });
+        versionDropdown += '</select>';
+      } else {
+        versionDropdown = '<span style="font-size:14px;color:#64748b;margin:0 8px;">ฉบับที่ 1</span>';
+      }
+
+      var editBtn = isLocked ? '' :
+        '<button onclick="openConsentEditFromDashboardMode()" style="padding:10px 20px;font-size:16px;border-radius:6px;border:none;cursor:pointer;font-family:Sarabun,sans-serif;font-weight:600;margin:0 5px;background:#f59e0b;color:#fff;">✏️ แก้ไข (เวอร์ชันใหม่)</button>';
+
+      var delBtn = isAdmin ?
+        '<button onclick="deleteConsentFromDashboard()" style="padding:10px 20px;font-size:16px;border-radius:6px;border:none;cursor:pointer;font-family:Sarabun,sans-serif;font-weight:600;margin:0 5px;background:#dc2626;color:#fff;">🗑️ ลบฉบับนี้ (Admin)</button>' : '';
+
+      var mode = isLocked ? 'preview' : 'print-preview';
+      var src = 'consent-prototype.html?embed=1&mode=' + mode;
+      src += '&case_id=' + encodeURIComponent(caseId);
+      if (pi.name) src += '&pt_name=' + encodeURIComponent(pi.name);
+      if (pi.idCard) src += '&pt_id=' + encodeURIComponent(pi.idCard);
+      if (pi.age) src += '&pt_age=' + encodeURIComponent(pi.age);
+      if (pi.origin) src += '&route_from=' + encodeURIComponent(pi.origin);
+      if (pi.destination) src += '&route_to=' + encodeURIComponent(pi.destination);
+
+      var printArea = document.getElementById('print-content-area');
+      var printContainer = document.getElementById('print-layout-container');
+      var toolbar = '<div style="display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:6px;padding:12px;background:#f8fafc;border-bottom:1px solid #e2e8f0;" class="no-print">' +
+          versionDropdown + editBtn + delBtn +
+          '<button onclick="printConsentIframe()" style="padding:10px 20px;font-size:16px;border-radius:6px;border:none;cursor:pointer;font-family:Sarabun,sans-serif;font-weight:600;margin:0 5px;background:#2563eb;color:#fff;">🖨️ พิมพ์</button>' +
+          '<button onclick="closeConsentDashboardPreview()" style="padding:10px 20px;font-size:16px;border-radius:6px;border:none;cursor:pointer;font-family:Sarabun,sans-serif;font-weight:600;margin:0 5px;background:#64748b;color:#fff;">✕ กลับ</button></div>';
+
+      printArea.innerHTML = toolbar + '<iframe id="consent-print-iframe" src="' + src + '" style="width:100%;border:none;min-height:calc(100vh - 60px);"></iframe>';
+      printContainer.style.display = 'block';
+      document.getElementById('app-main-wrapper').style.display = 'none';
+
+      var activeVer = versions.find(function(v){ return v.status === 'active'; }) || versions[0];
+      if (activeVer && activeVer.consent_data) {
+        var pIframe = document.getElementById('consent-print-iframe');
+        pIframe.addEventListener('load', function() {
+          sendConsentDataToIframe(pIframe, activeVer.consent_data);
+        });
+      }
+
+      var ps = document.createElement('style');
+      ps.id = 'transport-print-inject';
+      ps.textContent = '#print-layout-container { position:fixed; top:0; left:0; right:0; bottom:0; z-index:99999; background:#fff; overflow:auto; } @media print { #app-main-wrapper, .modal, .modal-backdrop, .swal2-container, .no-print { display:none!important; } #print-layout-container { position:static!important; display:block!important; overflow:visible!important; } #consent-print-iframe { height:auto!important; min-height:0!important; } }';
+      document.head.appendChild(ps);
+    }
+
+    function openConsentEditFromDashboardMode() {
+      // Switch from preview to editable modal (keeping dashboard mode flag)
+      transport_closePrintView();
+      var caseId = window._consentDashboardCaseId;
+      var pi = window._consentDashboardPatient || {};
+      if (!caseId) return;
+      _openConsentEditFromDashboard(caseId, pi);
+    }
+
+    function closeConsentDashboardPreview() {
+      transport_closePrintView();
+      _exitConsentDashboardMode();
+    }
+
+    async function deleteConsentFromDashboard() {
+      var caseId = window._consentDashboardCaseId;
+      if (!caseId) return;
+      var sel = document.getElementById('consent-version-select');
+      var verNum = sel ? parseInt(sel.value) : ((_previewConsentVersions[0] || {}).version);
+      if (!verNum) return;
+      var ver = _previewConsentVersions.find(function(v){ return v.version === verNum; });
+      if (!ver) return;
+
+      var confirm = await Swal.fire({
+        icon: 'warning',
+        title: 'ลบ Consent ฉบับที่ ' + verNum + '?',
+        html: '<div class="text-muted small">เคส: ' + caseId + '</div><div class="mt-2">การกระทำนี้ไม่สามารถย้อนกลับได้</div>',
+        showCancelButton: true,
+        confirmButtonText: 'ลบ',
+        cancelButtonText: 'ยกเลิก',
+        confirmButtonColor: '#dc2626'
+      });
+      if (!confirm.isConfirmed) return;
+
+      Swal.fire({ title: 'กำลังลบ...', didOpen: function(){ Swal.showLoading(); }, allowOutsideClick: false });
+      var res = await _supabase.from('transport_consents').delete().eq('id', ver.id);
+      if (res.error) {
+        Swal.fire({ icon: 'error', title: 'ลบไม่สำเร็จ', text: res.error.message });
+        return;
+      }
+
+      // If we deleted the active version, promote the newest superseded to active
+      if (ver.status === 'active') {
+        var remain = await loadConsentsFromDB(caseId);
+        if (remain && remain.length > 0) {
+          var newest = remain[0]; // already sorted desc by version
+          await _supabase.from('transport_consents')
+            .update({ status: 'active', superseded_at: null })
+            .eq('id', newest.id);
+        }
+      }
+
+      Swal.fire({ icon: 'success', title: 'ลบเรียบร้อย', timer: 1500, showConfirmButton: false });
+      closeConsentDashboardPreview();
+      if (typeof loadDashboardData === 'function') loadDashboardData(currentPage);
+    }
+
     function resizeConsentIframe() {
       // Auto-resize iframe to content
       try {
@@ -4464,42 +4672,79 @@
     // Listen for messages from consent iframe
     window.addEventListener('message', async function(e) {
       if (e.data && e.data.type === 'consent-signed') {
-        consentSigned = true;
+        var isDashboardMode = window._consentDashboardMode === true;
         consentData = e.data.payload || {};
         closeConsentModal();
 
-        // Sync consent data back to Transport form (fill empty fields)
-        try {
-          var cd = consentData.data || {};
-          var f = document.forms['main-form'];
-          if (f) {
-            // Patient info: only fill if Transport field is empty
-            if (cd.patient) {
-              if (cd.patient.name && !f.pt_name.value) f.pt_name.value = cd.patient.name;
-              if (cd.patient.age && !f.pt_age.value) f.pt_age.value = cd.patient.age;
-              // ID card / passport
-              var idField = f.pt_idcard || f.pt_passport;
-              if (idField && cd.patient.idCard && !idField.value) idField.value = cd.patient.idCard;
+        if (!isDashboardMode) {
+          consentSigned = true;
+          // Sync consent data back to Transport form (fill empty fields)
+          // ── Only in Device-A mode (editing form). In dashboard mode we must NOT
+          //    touch main-form because it might belong to a different case.
+          try {
+            var cd = consentData.data || {};
+            var f = document.forms['main-form'];
+            if (f) {
+              // Patient info: only fill if Transport field is empty
+              if (cd.patient) {
+                if (cd.patient.name && !f.pt_name.value) f.pt_name.value = cd.patient.name;
+                if (cd.patient.age && !f.pt_age.value) f.pt_age.value = cd.patient.age;
+                // Merged ID/Passport — consent may send either as idCard or passport, both go to pt_idcard
+                var idVal = cd.patient.idCard || cd.patient.passport || '';
+                if (f.pt_idcard && idVal && !f.pt_idcard.value) f.pt_idcard.value = idVal;
+              }
+              // Route: only fill if Transport field is empty
+              if (cd.route) {
+                if (cd.route.from && f.origin && !f.origin.value) f.origin.value = cd.route.from;
+                if (cd.route.to && f.destination && !f.destination.value) f.destination.value = cd.route.to;
+              }
+              // Mark form dirty so it will save
+              formDirty = true;
+              updateBanner();
             }
-            // Route: only fill if Transport field is empty
-            if (cd.route) {
-              if (cd.route.from && f.origin && !f.origin.value) f.origin.value = cd.route.from;
-              if (cd.route.to && f.destination && !f.destination.value) f.destination.value = cd.route.to;
-            }
-            // Mark form dirty so it will save
-            formDirty = true;
-            updateBanner();
-          }
-        } catch(syncErr) { console.warn('Consent→Transport sync error:', syncErr); }
+          } catch(syncErr) { console.warn('Consent→Transport sync error:', syncErr); }
+        }
+
+        // Determine target caseId (dashboard mode uses pinned caseId)
+        var caseId = isDashboardMode
+          ? window._consentDashboardCaseId
+          : (consentData.caseId || document.getElementById('caseId').value);
 
         // Save to Supabase
-        var caseId = consentData.caseId || document.getElementById('caseId').value;
         if (caseId) {
           Swal.fire({ title: 'กำลังบันทึก Consent...', didOpen: function() { Swal.showLoading(); }, allowOutsideClick: false });
           var ver = await saveConsentToDB(caseId, consentData);
+
+          // ── Sync consent idCard back into the case (both modes). ──
+          // Critical: wrong/missing patient ID on the case has legal/medical consequences.
+          // If the case has no idCard yet, persist the one captured in consent.
+          try {
+            var cdPatient = (consentData.data && consentData.data.patient) || {};
+            var consentIdCard = (cdPatient.idCard || cdPatient.passport || '').trim();
+            if (consentIdCard) {
+              var existing = await _supabase.from('cases').select('patient_info,raw_data').eq('case_id', caseId).single();
+              if (existing.data) {
+                var piCur = existing.data.patient_info || {};
+                var rd = existing.data.raw_data || {};
+                var snapCur = {};
+                try { snapCur = rd.rawSnapshot ? (typeof rd.rawSnapshot === 'string' ? JSON.parse(rd.rawSnapshot) : rd.rawSnapshot) : {}; } catch(e2) {}
+                var needUpdate = false;
+                if (!piCur.idCard) { piCur.idCard = consentIdCard; needUpdate = true; }
+                if (!snapCur.pt_idcard) { snapCur.pt_idcard = consentIdCard; needUpdate = true; }
+                if (needUpdate) {
+                  rd.rawSnapshot = JSON.stringify(snapCur);
+                  await _supabase.from('cases').update({ patient_info: piCur, raw_data: rd }).eq('case_id', caseId);
+                }
+              }
+            }
+          } catch(idSyncErr) { console.warn('Consent idCard → case sync error:', idSyncErr); }
+
           // Reload versions
-          consentVersions = await loadConsentsFromDB(caseId);
-          consentActiveVersion = consentVersions.find(function(v) { return v.status === 'active'; });
+          var vers = await loadConsentsFromDB(caseId);
+          if (!isDashboardMode) {
+            consentVersions = vers;
+            consentActiveVersion = vers.find(function(v) { return v.status === 'active'; });
+          }
           Swal.fire({
             icon: 'success',
             title: 'ลงนามสำเร็จ',
@@ -4511,7 +4756,12 @@
           Swal.fire({ icon: 'success', title: 'ลงนามสำเร็จ', timer: 2000, showConfirmButton: false });
         }
 
-        updateConsentUI();
+        if (isDashboardMode) {
+          _exitConsentDashboardMode();
+          if (typeof loadDashboardData === 'function') loadDashboardData(currentPage);
+        } else {
+          updateConsentUI();
+        }
       }
     });
 
