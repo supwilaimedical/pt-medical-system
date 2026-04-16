@@ -1305,9 +1305,12 @@
       var btn = document.getElementById('btnFindHospitals');
       if (!btn) return;
       var canUse = window.MapConfig && MapConfig.useGoogle();
-      var vehiclePicked = _selectedKey && _statuses[_selectedKey]
-        && _statuses[_selectedKey].lat && _statuses[_selectedKey].lng
-        && !(_statuses[_selectedKey].lat === 0 && _statuses[_selectedKey].lng === 0);
+      var vehiclePicked = false;
+      if (_selectedKey && _statuses[_selectedKey]) {
+        var s = _statuses[_selectedKey];
+        var lat = Number(s.lat), lng = Number(s.lng);
+        vehiclePicked = !isNaN(lat) && !isNaN(lng) && !(lat === 0 && lng === 0);
+      }
       btn.style.display = (canUse && vehiclePicked) ? '' : 'none';
     }
 
@@ -1316,10 +1319,11 @@
     function resolveHospitalOrigin() {
       if (_selectedKey && _statuses[_selectedKey]) {
         var s = _statuses[_selectedKey];
-        if (s.lat && s.lng && !(s.lat === 0 && s.lng === 0)) {
+        var lat = Number(s.lat), lng = Number(s.lng);
+        if (!isNaN(lat) && !isNaN(lng) && !(lat === 0 && lng === 0)) {
           var v = _vehicles.find(function(x){ return (x.device_id + '_' + x.provider) === _selectedKey; });
           return {
-            lat: s.lat, lng: s.lng,
+            lat: lat, lng: lng,
             label: v ? ('รถ: ' + (v.nickname || v.device_name || v.device_id)) : 'รถที่เลือก'
           };
         }
@@ -1368,7 +1372,7 @@
       clearHospitalMarkers();
       _hospitalOrigin = origin;
       document.getElementById('hospitals-origin-label').textContent = _hospitalOrigin.label
-        + ' (' + _hospitalOrigin.lat.toFixed(5) + ', ' + _hospitalOrigin.lng.toFixed(5) + ')';
+        + ' (' + Number(_hospitalOrigin.lat).toFixed(5) + ', ' + Number(_hospitalOrigin.lng).toFixed(5) + ')';
       document.getElementById('hospitals-list').innerHTML = '';
       document.getElementById('hospitals-error').style.display = 'none';
       // Reset to default type (hospital)
