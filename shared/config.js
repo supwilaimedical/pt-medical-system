@@ -1,4 +1,7 @@
 // PT Medical System — Configuration
+// APP_VERSION: bump on every significant update + add entry in memory/version.md
+window.APP_VERSION = '5.5';
+window.APP_VERSION_DATE = '2026-04-17';
 const CONFIG = {
   SUPABASE_URL: 'https://rwxaalgvkzlsyfzdebcj.supabase.co',
   SUPABASE_ANON_KEY: 'sb_publishable_5jmlKl7w2H_Qb4Yp1Y8gWA_-SMZfB0a',
