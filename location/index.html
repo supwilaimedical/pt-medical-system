@@ -1257,9 +1257,12 @@
           '    <option value="168">7 วัน</option>' +
           '    <option value="720">30 วัน</option>' +
           '  </select>' +
-          '  <label for="share-note" class="form-label small fw-bold mb-1">หมายเหตุ (ไม่บังคับ)</label>' +
-          '  <input type="text" id="share-note" class="form-control form-control-sm mb-3" ' +
-          '         placeholder="เช่น ส่งให้คุณ A ไปรับของแทน" maxlength="100" autocomplete="off">' +
+          '  <div class="form-label small fw-bold mb-1">หมายเหตุ (ไม่บังคับ)</div>' +
+          '  <input type="text" id="share-note" name="share-note-field" ' +
+          '         class="form-control form-control-sm mb-3" ' +
+          '         placeholder="เช่น ส่งให้คุณ A ไปรับของแทน" ' +
+          '         maxlength="100" autocomplete="off" tabindex="0" ' +
+          '         style="pointer-events:auto !important; user-select:text !important; -webkit-user-select:text !important;">' +
           '  <label class="form-label small fw-bold mb-2">ข้อมูลที่จะเปิดให้ผู้รับลิงก์เห็น</label>' +
           '  <div class="border rounded-3 p-2" style="background:#f0fdf4;">' +
           checkboxHtml +
@@ -1270,20 +1273,21 @@
         cancelButtonText: 'ยกเลิก',
         confirmButtonColor: '#16a34a',
         focusConfirm: false,
-        didOpen: function() {
-          // Make sure note input is fully interactive (some browsers lose
-          // focus-ability if modal transition + input are competing for focus)
+        didOpen: function(popup) {
+          // Clean-room re-attach of note input to guarantee it's interactive.
+          // (Observed issue: in some Safari/SweetAlert combos, clicking the
+          // input doesn't register after modal transition.)
           setTimeout(function() {
             var note = document.getElementById('share-note');
-            if (note) {
-              note.removeAttribute('disabled');
-              note.removeAttribute('readonly');
-              // Click to focus (belt & suspenders)
-              note.addEventListener('mousedown', function(e) { e.stopPropagation(); });
-              note.addEventListener('click', function() { this.focus(); });
-              note.focus();
-            }
-          }, 50);
+            if (!note) return;
+            note.removeAttribute('disabled');
+            note.removeAttribute('readonly');
+            // Force remove any inherited blocking CSS
+            note.style.pointerEvents = 'auto';
+            note.style.userSelect = 'text';
+            // Focus: wait for modal to finish its entrance animation
+            setTimeout(function() { try { note.focus(); } catch(_){} }, 250);
+          }, 0);
         },
         preConfirm: function() {
           var shareConfig = {};

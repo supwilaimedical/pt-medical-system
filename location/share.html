@@ -323,23 +323,44 @@
       return cfg[field] !== false;    // default true if not specified
     }
 
+    // Collapse photo area to solid green header (when no photo or hidden)
+    function collapsePhotoAreaToHeader() {
+      var wrap = document.getElementById('photoWrap');
+      var img = document.getElementById('custPhoto');
+      var fallback = document.getElementById('photoFallback');
+      if (wrap) {
+        wrap.style.height = 'auto';
+        wrap.style.minHeight = '0';
+        wrap.style.padding = '28px 20px 22px';
+        wrap.style.background = 'linear-gradient(135deg, #16a34a 0%, #15803d 100%)';
+      }
+      if (img) img.style.display = 'none';
+      if (fallback) fallback.style.display = 'none';
+      var overlay = document.querySelector('#photoWrap .overlay');
+      if (overlay) {
+        overlay.style.background = 'none';
+        overlay.style.position = 'static';
+        overlay.style.padding = '0';
+      }
+    }
+
     function renderCustomer() {
       var c = _customer;
       document.getElementById('loadingView').style.display = 'none';
       document.getElementById('mainView').style.display = '';
 
-      // Photo (respects share_config.photo)
-      if (canShow('photo') && c.photo) {
+      // Photo: DB column is `photo_url` (not `photo` — that's the mapped
+      // local name in location/index.html). Check both for backward-compat.
+      var photoUrl = c.photo_url || c.photo || null;
+
+      if (canShow('photo') && photoUrl) {
         var img = document.getElementById('custPhoto');
-        img.src = c.photo; img.style.display = '';
-        img.onerror = function() { img.style.display = 'none'; document.getElementById('photoFallback').style.display = ''; };
+        img.src = photoUrl;
+        img.style.display = '';
+        img.onerror = function() { img.style.display = 'none'; collapsePhotoAreaToHeader(); };
         document.getElementById('photoFallback').style.display = 'none';
-      } else if (!canShow('photo')) {
-        // Hide entire photo area if photo not shared
-        document.getElementById('photoWrap').style.height = 'auto';
-        document.getElementById('photoWrap').style.padding = '20px';
-        document.getElementById('photoFallback').style.display = 'none';
-        document.getElementById('custPhoto').style.display = 'none';
+      } else {
+        collapsePhotoAreaToHeader();
       }
 
       // Type badge (always show — identifies context)
