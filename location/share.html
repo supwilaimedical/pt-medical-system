@@ -316,20 +316,33 @@
       }
     }
 
+    // Field visibility from share_config (null = show all for backward-compat)
+    function canShow(field) {
+      var cfg = _tokenData && _tokenData.share_config;
+      if (cfg == null) return true;  // old token without config → show all
+      return cfg[field] !== false;    // default true if not specified
+    }
+
     function renderCustomer() {
       var c = _customer;
       document.getElementById('loadingView').style.display = 'none';
       document.getElementById('mainView').style.display = '';
 
-      // Photo
-      if (c.photo) {
+      // Photo (respects share_config.photo)
+      if (canShow('photo') && c.photo) {
         var img = document.getElementById('custPhoto');
         img.src = c.photo; img.style.display = '';
         img.onerror = function() { img.style.display = 'none'; document.getElementById('photoFallback').style.display = ''; };
         document.getElementById('photoFallback').style.display = 'none';
+      } else if (!canShow('photo')) {
+        // Hide entire photo area if photo not shared
+        document.getElementById('photoWrap').style.height = 'auto';
+        document.getElementById('photoWrap').style.padding = '20px';
+        document.getElementById('photoFallback').style.display = 'none';
+        document.getElementById('custPhoto').style.display = 'none';
       }
 
-      // Type badge
+      // Type badge (always show — identifies context)
       var typeEl = document.getElementById('typeBadge');
       var ct = c.customer_type || 'ลูกค้าทั่วไป';
       typeEl.textContent = ct;
@@ -338,27 +351,30 @@
       else if (ct === 'ศูนย์ดูแล') typeEl.classList.add('care');
       else if (ct === 'โรงแรม') typeEl.classList.add('hotel');
 
-      // Name + location
-      document.getElementById('custName').textContent = c.name || '-';
+      // Name (respects share_config.name)
+      document.getElementById('custName').textContent =
+        canShow('name') ? (c.name || '-') : '(ข้อมูลถูกซ่อน)';
+
+      // Location (district/province — always show, part of identity)
       document.getElementById('custLocation').textContent =
         'อ.' + (c.district || 'ไม่ระบุ') + ' จ.' + (c.province || 'ไม่ระบุ');
 
-      // Details
-      if (c.details) {
+      // Details (respects share_config.details)
+      if (canShow('details') && c.details) {
         document.getElementById('row-details').style.display = '';
         document.getElementById('custDetails').textContent = c.details;
       }
 
-      // Phone
-      if (c.phone) {
+      // Phone (respects share_config.phone)
+      if (canShow('phone') && c.phone) {
         document.getElementById('row-phone').style.display = '';
         var phoneA = document.getElementById('custPhone');
         phoneA.querySelector('span').textContent = c.phone;
         phoneA.href = 'tel:' + String(c.phone).replace(/\D/g, '');
       }
 
-      // Coordinates
-      if (c.lat != null && c.lng != null) {
+      // Coordinates + Map + Nav button (respects share_config.coords)
+      if (canShow('coords') && c.lat != null && c.lng != null) {
         var lat = Number(c.lat), lng = Number(c.lng);
         document.getElementById('custCoords').textContent = lat.toFixed(6) + ', ' + lng.toFixed(6);
 
@@ -372,10 +388,18 @@
           html: '<svg width="32" height="40" viewBox="0 0 32 40"><path d="M16 0C7.16 0 0 7.16 0 16c0 12 16 24 16 24s16-12 16-24C32 7.16 24.84 0 16 0z" fill="#16a34a" stroke="#fff" stroke-width="2"/><circle cx="16" cy="16" r="6" fill="#fff"/></svg>',
           iconSize: [32, 40], iconAnchor: [16, 40]
         });
-        L.marker([lat, lng], { icon: pin }).addTo(_map).bindPopup('<b>' + escapeHtml(c.name || '') + '</b>').openPopup();
+        L.marker([lat, lng], { icon: pin }).addTo(_map).bindPopup('<b>' + escapeHtml(canShow('name') ? (c.name || '') : 'สถานที่') + '</b>').openPopup();
+      } else {
+        // Hide coords row + map + nav button
+        var coordsRow = document.getElementById('custCoords').closest('.info-row');
+        if (coordsRow) coordsRow.style.display = 'none';
+        var mapCards = document.querySelectorAll('.card-mod');
+        if (mapCards.length > 1) mapCards[1].style.display = 'none';  // hide map card
+        var navBtn = document.querySelector('.btn-nav');
+        if (navBtn) navBtn.style.display = 'none';
       }
 
-      // Note
+      // Note (always show if present — it's from the sharer, not customer data)
       if (_tokenData.note) {
         document.getElementById('noteWrap').style.display = '';
         document.getElementById('shareNote').textContent = _tokenData.note;
