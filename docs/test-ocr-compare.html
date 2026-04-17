@@ -163,24 +163,71 @@ function clearKeys() {
 }
 
 // =============================================================
-// Image upload
+// Image upload + auto-compress (Claude limit = 5 MB)
 // =============================================================
 var _imageBase64 = null;
 var _imageMime = 'image/jpeg';
+var _imageInfo = '';
 
 function handleFileSelect(e) {
   var file = e.target.files[0];
   if (!file) return;
-  _imageMime = file.type || 'image/jpeg';
+  var originalSizeMB = (file.size / 1024 / 1024).toFixed(2);
+
+  // Show loading
+  document.getElementById('dropPlaceholder').innerHTML =
+    '<div class="loader"></div><div class="text-muted small">กำลังบีบอัดรูป...</div>';
+
   var reader = new FileReader();
   reader.onload = function(ev) {
-    var dataUrl = ev.target.result;
-    _imageBase64 = dataUrl.split(',')[1];
-    document.getElementById('previewImg').src = dataUrl;
-    document.getElementById('previewImg').style.display = '';
-    document.getElementById('dropPlaceholder').style.display = 'none';
-    document.getElementById('dropZone').classList.add('has-image');
-    document.getElementById('runBtn').disabled = false;
+    var img = new Image();
+    img.onload = function() {
+      // Resize if too large (max 1600 on longest side — plenty for OCR)
+      var MAX_DIM = 1600;
+      var w = img.width, h = img.height;
+      if (w > MAX_DIM || h > MAX_DIM) {
+        if (w > h) { h = Math.round(h * MAX_DIM / w); w = MAX_DIM; }
+        else { w = Math.round(w * MAX_DIM / h); h = MAX_DIM; }
+      }
+      var canvas = document.createElement('canvas');
+      canvas.width = w;
+      canvas.height = h;
+      var ctx = canvas.getContext('2d');
+      ctx.fillStyle = '#fff';
+      ctx.fillRect(0, 0, w, h);
+      ctx.drawImage(img, 0, 0, w, h);
+
+      // Try 0.85 quality first; reduce if still > 4.5 MB
+      var quality = 0.85;
+      var dataUrl = canvas.toDataURL('image/jpeg', quality);
+      while (dataUrl.length > 4.5 * 1024 * 1024 * 1.37 && quality > 0.4) {  // 1.37 = base64 overhead
+        quality -= 0.1;
+        dataUrl = canvas.toDataURL('image/jpeg', quality);
+      }
+
+      _imageMime = 'image/jpeg';
+      _imageBase64 = dataUrl.split(',')[1];
+      var compressedSizeMB = (_imageBase64.length * 0.75 / 1024 / 1024).toFixed(2);
+      _imageInfo = 'เดิม ' + originalSizeMB + ' MB · ขนาด ' + img.width + '×' + img.height +
+                   ' → บีบอัดเหลือ ' + compressedSizeMB + ' MB · ' + w + '×' + h + ' · Q ' + quality.toFixed(2);
+
+      document.getElementById('previewImg').src = dataUrl;
+      document.getElementById('previewImg').style.display = '';
+      document.getElementById('dropPlaceholder').style.display = 'none';
+      document.getElementById('dropZone').classList.add('has-image');
+      document.getElementById('runBtn').disabled = false;
+
+      // Show compression info
+      var info = document.getElementById('compressionInfo');
+      if (!info) {
+        info = document.createElement('div');
+        info.id = 'compressionInfo';
+        info.className = 'small text-muted mt-2';
+        document.getElementById('dropZone').appendChild(info);
+      }
+      info.innerHTML = '<i class="bi bi-info-circle"></i> ' + _imageInfo;
+    };
+    img.src = ev.target.result;
   };
   reader.readAsDataURL(file);
 }
