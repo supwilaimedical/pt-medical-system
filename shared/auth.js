@@ -3,6 +3,15 @@
 
 const _supabase = supabase.createClient(CONFIG.SUPABASE_URL, CONFIG.SUPABASE_ANON_KEY);
 
+// =============================================
+// Session policy
+// =============================================
+// 1) Session timeout: auto-logout 8 hours after login
+// 2) Force logout: admin sets settings.FORCE_LOGOUT_AFTER = <ms timestamp>
+//    → any session with loginAt < FORCE_LOGOUT_AFTER is invalidated
+var SESSION_TIMEOUT_MS = 8 * 60 * 60 * 1000;
+var _forceLogoutAfter = 0;  // cached timestamp (ms), loaded on page init + every 5 min
+
 // --- Session helpers ---
 function getUserMeta() {
   const raw = localStorage.getItem('pt_user_meta');
@@ -10,7 +19,63 @@ function getUserMeta() {
 }
 
 function isLoggedIn() {
-  return !!getUserMeta();
+  var meta = getUserMeta();
+  if (!meta) return false;
+  var loginAt = meta.loginAt ? new Date(meta.loginAt).getTime() : 0;
+  if (!loginAt) return false;
+  // 8-hour session timeout
+  if (Date.now() - loginAt > SESSION_TIMEOUT_MS) {
+    localStorage.removeItem('pt_user_meta');
+    return false;
+  }
+  // Admin-triggered force logout
+  if (_forceLogoutAfter > 0 && loginAt < _forceLogoutAfter) {
+    localStorage.removeItem('pt_user_meta');
+    return false;
+  }
+  return true;
+}
+
+// Load FORCE_LOGOUT_AFTER from Supabase + evaluate current session
+// Returns true if user was force-logged-out (caller may redirect)
+async function refreshForceLogoutCheck() {
+  if (typeof _supabase === 'undefined') return false;
+  try {
+    var r = await _supabase.from('settings')
+      .select('value').eq('key', 'FORCE_LOGOUT_AFTER').maybeSingle();
+    if (r && r.data && r.data.value) {
+      _forceLogoutAfter = parseInt(r.data.value, 10) || 0;
+    }
+    var meta = getUserMeta();
+    if (meta && _forceLogoutAfter > 0) {
+      var loginAt = meta.loginAt ? new Date(meta.loginAt).getTime() : 0;
+      if (loginAt && loginAt < _forceLogoutAfter) {
+        localStorage.removeItem('pt_user_meta');
+        return true;
+      }
+    }
+  } catch(e) { console.warn('refreshForceLogoutCheck:', e.message || e); }
+  return false;
+}
+
+// Start periodic force-logout polling (every 5 min) + run once immediately
+var _forceLogoutInterval = null;
+function startSessionPolicyPolling() {
+  if (_forceLogoutInterval) clearInterval(_forceLogoutInterval);
+  refreshForceLogoutCheck().then(function(kicked) {
+    if (kicked) {
+      alert('Session หมดอายุ (admin force logout) — กรุณา login ใหม่');
+      window.location.href = CONFIG.BASE_URL + '/';
+    }
+  });
+  _forceLogoutInterval = setInterval(function() {
+    refreshForceLogoutCheck().then(function(kicked) {
+      if (kicked) {
+        alert('Session หมดอายุ (admin force logout) — กรุณา login ใหม่');
+        window.location.href = CONFIG.BASE_URL + '/';
+      }
+    });
+  }, 5 * 60 * 1000);
 }
 
 function getUserRole() {
@@ -102,6 +167,8 @@ function checkAuth(onSuccess) {
     const wrapper = document.getElementById('app-main-wrapper');
     if (wrapper) wrapper.style.display = 'block';
     if (onSuccess) onSuccess();
+    // Start polling for force-logout + periodic session re-check
+    startSessionPolicyPolling();
   } else {
     // On module pages, redirect to root login
     const isRootPage = window.location.pathname === CONFIG.BASE_URL + '/' ||

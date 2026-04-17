@@ -748,7 +748,46 @@
                 </div>
               </div>
 
-              <!-- หมายเหตุ: ข้อมูลระบบย้ายไปอยู่ใน tab "ภาพรวม" แล้ว -->
+              <!-- ===== หมวด: Session & Security ===== -->
+              <div class="card border-0 shadow-sm rounded-3 mb-3">
+                <div class="card-body p-4">
+                  <h5 class="fw-bold mb-1"><i class="bi bi-shield-lock me-2 text-danger"></i>Session &amp; Security</h5>
+                  <p class="text-muted small mb-3">ตั้งค่า session timeout และ force logout เมื่อสงสัยว่ามี security incident</p>
+
+                  <!-- Session timeout info -->
+                  <div class="border rounded-3 p-3 mb-3" style="background:#f8fafc;">
+                    <div class="d-flex align-items-center gap-2 mb-1">
+                      <i class="bi bi-clock-history text-primary"></i>
+                      <span class="fw-semibold">Auto logout timeout</span>
+                      <span class="badge bg-primary-subtle text-primary border">8 ชั่วโมง</span>
+                    </div>
+                    <div class="small text-muted">
+                      User ทุกคนจะถูก logout อัตโนมัติเมื่อครบ 8 ชั่วโมงหลัง login
+                      <br>ตั้งค่านี้เป็น <code>hard-coded</code> ใน <code>SESSION_TIMEOUT_MS</code> (shared/auth.js + index.html)
+                    </div>
+                  </div>
+
+                  <!-- Force Logout All -->
+                  <div class="border rounded-3 p-3 mb-2" style="background:#fff7ed; border-color:#fdba74 !important;">
+                    <div class="d-flex align-items-center gap-2 mb-2">
+                      <i class="bi bi-exclamation-triangle-fill text-warning"></i>
+                      <span class="fw-semibold">Force Logout All Users</span>
+                    </div>
+                    <p class="small text-muted mb-2">
+                      บังคับให้ทุก user login ใหม่ทันที (ภายใน 5 นาที) — ใช้เมื่อ:
+                    </p>
+                    <ul class="small text-muted mb-2" style="padding-left:1.2rem;">
+                      <li>สงสัยว่ามี account ถูก compromise</li>
+                      <li>user ลืม logout แล้วเครื่องหาย</li>
+                      <li>ต้องการ reset session ทั้งระบบ</li>
+                    </ul>
+                    <button class="btn btn-danger btn-sm rounded-pill px-4" onclick="triggerForceLogoutAll()">
+                      <i class="bi bi-power me-1"></i> Force Logout All
+                    </button>
+                    <div id="force-logout-status" class="small mt-2"></div>
+                  </div>
+                </div>
+              </div>
             </div>
 
             <!-- Stats Tab -->
@@ -839,12 +878,65 @@
     // =============================================
     // AUTH
     // =============================================
+    // Session policy (see shared/auth.js for same logic)
+    //   - 8-hour session timeout
+    //   - Admin force logout via settings.FORCE_LOGOUT_AFTER = <ms timestamp>
+    var SESSION_TIMEOUT_MS = 8 * 60 * 60 * 1000;
+    var _forceLogoutAfter = 0;
+
     function getUserMeta() {
         var raw = localStorage.getItem('pt_user_meta');
         return raw ? JSON.parse(raw) : null;
     }
 
-    function isLoggedIn() { return !!getUserMeta(); }
+    function isLoggedIn() {
+        var meta = getUserMeta();
+        if (!meta) return false;
+        var loginAt = meta.loginAt ? new Date(meta.loginAt).getTime() : 0;
+        if (!loginAt) return false;
+        if (Date.now() - loginAt > SESSION_TIMEOUT_MS) {
+            localStorage.removeItem('pt_user_meta');
+            return false;
+        }
+        if (_forceLogoutAfter > 0 && loginAt < _forceLogoutAfter) {
+            localStorage.removeItem('pt_user_meta');
+            return false;
+        }
+        return true;
+    }
+
+    async function refreshForceLogoutCheck() {
+        if (typeof _supabase === 'undefined') return false;
+        try {
+            var r = await _supabase.from('settings')
+                .select('value').eq('key', 'FORCE_LOGOUT_AFTER').maybeSingle();
+            if (r && r.data && r.data.value) {
+                _forceLogoutAfter = parseInt(r.data.value, 10) || 0;
+            }
+            var meta = getUserMeta();
+            if (meta && _forceLogoutAfter > 0) {
+                var loginAt = meta.loginAt ? new Date(meta.loginAt).getTime() : 0;
+                if (loginAt && loginAt < _forceLogoutAfter) {
+                    localStorage.removeItem('pt_user_meta');
+                    return true;
+                }
+            }
+        } catch(e) { console.warn('refreshForceLogoutCheck:', e.message || e); }
+        return false;
+    }
+
+    var _forceLogoutInterval = null;
+    function startSessionPolicyPolling() {
+        if (_forceLogoutInterval) clearInterval(_forceLogoutInterval);
+        var onKicked = function() {
+            alert('Session หมดอายุ (admin force logout) — กรุณา login ใหม่');
+            window.location.reload();
+        };
+        refreshForceLogoutCheck().then(function(k) { if (k) onKicked(); });
+        _forceLogoutInterval = setInterval(function() {
+            refreshForceLogoutCheck().then(function(k) { if (k) onKicked(); });
+        }, 5 * 60 * 1000);
+    }
 
     function getUserRole() {
         var meta = getUserMeta();
@@ -898,6 +990,7 @@
                 if (loginView) loginView.style.display = 'none';
 
                 onLoginSuccess();
+                startSessionPolicyPolling();
             } else {
                 throw new Error(result.message || 'เข้าสู่ระบบไม่สำเร็จ');
             }
@@ -919,6 +1012,7 @@
             var loginView = document.getElementById('login-view');
             if (loginView) loginView.style.display = 'none';
             onLoginSuccess();
+            startSessionPolicyPolling();
         }
     }
 
@@ -1015,6 +1109,59 @@
         } catch(e) { console.error(e); }
 
         // Overview tab จะถูกโหลดเมื่อผู้ใช้คลิก tab (ภาพรวมอยู่ขวาสุด)
+    }
+
+    // Admin: บังคับ logout ทุก user (ส่งผล user ทุกคนภายใน 5 นาที หรือเมื่อ refresh หน้า)
+    async function triggerForceLogoutAll() {
+        var confirm = await Swal.fire({
+            title: 'Force Logout ทุก user?',
+            html: 'User ทุกคน (รวมคุณเอง) จะถูก logout ภายใน <b>5 นาที</b>' +
+                  '<br>ทุกคนต้อง login ใหม่<br><br>' +
+                  'ใช้เมื่อสงสัย security incident — <b>ย้อนกลับไม่ได้</b>',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonText: 'ใช่ Force Logout ทั้งหมด',
+            cancelButtonText: 'ยกเลิก',
+            confirmButtonColor: '#dc2626'
+        });
+        if (!confirm.isConfirmed) return;
+
+        var statusEl = document.getElementById('force-logout-status');
+        if (statusEl) statusEl.innerHTML = '<span class="text-muted"><span class="spinner-border spinner-border-sm"></span> กำลังตั้งค่า...</span>';
+
+        try {
+            var now = Date.now();
+            await _supabase.from('settings').upsert({
+                key: 'FORCE_LOGOUT_AFTER',
+                value: String(now)
+            });
+            await _supabase.from('activity_log').insert({
+                username: getUserName(), role: getUserRole(),
+                action: 'FORCE_LOGOUT_ALL',
+                target: 'all users',
+                details: 'Force logout triggered at ' + new Date(now).toISOString()
+            });
+
+            if (statusEl) {
+                statusEl.innerHTML = '<span class="text-success"><i class="bi bi-check-circle-fill"></i> ' +
+                    'ตั้งค่าสำเร็จ — ทุก user จะถูก logout ภายใน 5 นาที (' + new Date(now).toLocaleString('th-TH') + ')</span>';
+            }
+
+            Swal.fire({
+                icon: 'success',
+                title: 'Force Logout ทั้งหมดสำเร็จ',
+                html: 'คุณจะถูก logout ใน 3 วินาที...',
+                timer: 3000,
+                showConfirmButton: false
+            }).then(function() {
+                // Kick ตัวเองด้วย
+                localStorage.removeItem('pt_user_meta');
+                window.location.reload();
+            });
+        } catch (err) {
+            if (statusEl) statusEl.innerHTML = '<span class="text-danger"><i class="bi bi-x-circle"></i> ผิดพลาด: ' + (err.message || err) + '</span>';
+            Swal.fire('Error', err.message || String(err), 'error');
+        }
     }
 
     async function saveAdminSetting(key, value) {
