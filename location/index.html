@@ -1257,19 +1257,34 @@
           '    <option value="168">7 วัน</option>' +
           '    <option value="720">30 วัน</option>' +
           '  </select>' +
+          '  <label for="share-note" class="form-label small fw-bold mb-1">หมายเหตุ (ไม่บังคับ)</label>' +
+          '  <input type="text" id="share-note" class="form-control form-control-sm mb-3" ' +
+          '         placeholder="เช่น ส่งให้คุณ A ไปรับของแทน" maxlength="100" autocomplete="off">' +
           '  <label class="form-label small fw-bold mb-2">ข้อมูลที่จะเปิดให้ผู้รับลิงก์เห็น</label>' +
-          '  <div class="border rounded-3 p-2 mb-3" style="background:#f0fdf4;">' +
+          '  <div class="border rounded-3 p-2" style="background:#f0fdf4;">' +
           checkboxHtml +
           '  </div>' +
-          '  <label class="form-label small fw-bold mb-1">หมายเหตุ (ไม่บังคับ)</label>' +
-          '  <input type="text" id="share-note" class="form-control form-control-sm" ' +
-          '         placeholder="เช่น ส่งให้คุณ A ไปรับของแทน" maxlength="100">' +
           '</div>',
         confirmButtonText: '<i class="bi bi-link-45deg me-1"></i> สร้างลิงก์',
         showCancelButton: true,
         cancelButtonText: 'ยกเลิก',
         confirmButtonColor: '#16a34a',
         focusConfirm: false,
+        didOpen: function() {
+          // Make sure note input is fully interactive (some browsers lose
+          // focus-ability if modal transition + input are competing for focus)
+          setTimeout(function() {
+            var note = document.getElementById('share-note');
+            if (note) {
+              note.removeAttribute('disabled');
+              note.removeAttribute('readonly');
+              // Click to focus (belt & suspenders)
+              note.addEventListener('mousedown', function(e) { e.stopPropagation(); });
+              note.addEventListener('click', function() { this.focus(); });
+              note.focus();
+            }
+          }, 50);
+        },
         preConfirm: function() {
           var shareConfig = {};
           document.querySelectorAll('.share-field-cb').forEach(function(cb) {
@@ -1283,7 +1298,7 @@
           }
           return {
             expiryHours: parseInt(document.getElementById('share-expiry').value, 10),
-            note: document.getElementById('share-note').value.trim(),
+            note: (document.getElementById('share-note').value || '').trim(),
             shareConfig: shareConfig
           };
         }
@@ -1298,17 +1313,32 @@
       Swal.fire({ title: 'กำลังสร้างลิงก์...', didOpen: function() { Swal.showLoading(); } });
 
       try {
-        var res = await _supabase.from('loc_shared_tokens').insert({
+        var baseRow = {
           token: token,
           customer_id: c.id,
           expiry_date: expiryDate.toISOString(),
           status: 'Active',
           note: cfg.note || null,
-          share_config: cfg.shareConfig,
           created_by: (typeof getUserName === 'function' ? getUserName() : 'Unknown')
-        }).select().single();
+        };
+        // Try with share_config first; if column missing (schema not migrated yet),
+        // retry without + warn admin later
+        var insertRow = Object.assign({ share_config: cfg.shareConfig }, baseRow);
+        var res = await _supabase.from('loc_shared_tokens').insert(insertRow).select().single();
 
-        if (res.error) throw res.error;
+        var schemaMissing = false;
+        if (res.error) {
+          var em = (res.error.message || '').toLowerCase();
+          if (em.indexOf('share_config') >= 0 || em.indexOf('schema cache') >= 0) {
+            // Fallback: insert without share_config column
+            console.warn('loc_shared_tokens.share_config column missing — inserting without privacy config. Run SQL migration: sql/loc_shared_tokens_add_share_config.sql');
+            schemaMissing = true;
+            res = await _supabase.from('loc_shared_tokens').insert(baseRow).select().single();
+            if (res.error) throw res.error;
+          } else {
+            throw res.error;
+          }
+        }
 
         // Build field summary for audit log (human-readable)
         var sharedFields = LOC_SHARE_FIELDS
@@ -1339,7 +1369,15 @@
         var base = window.location.origin + (CONFIG.BASE_URL || '');
         var shareUrl = base + '/location/share.html?token=' + encodeURIComponent(token);
 
-        // Show success with copy button
+        // Show success with copy button + (optional) schema warning
+        var schemaWarningHtml = schemaMissing
+          ? '<div class="alert alert-warning small mt-3 mb-0 text-start" style="font-size:0.8rem;">' +
+            '  <i class="bi bi-exclamation-triangle-fill me-1"></i> <b>ยังไม่ได้เปิด privacy feature</b><br>' +
+            '  ลิงก์นี้จะโชว์ข้อมูลลูกค้า<u>ทุกช่อง</u> (ตัวกรองยังไม่ทำงาน)' +
+            '  <br>Admin: รัน <code>sql/loc_shared_tokens_add_share_config.sql</code> ใน Supabase SQL Editor เพื่อเปิด' +
+            '</div>'
+          : '';
+
         Swal.fire({
           title: '<i class="bi bi-check-circle-fill text-success"></i> สร้างลิงก์สำเร็จ',
           html:
@@ -1352,6 +1390,7 @@
             '    <i class="bi bi-clipboard me-1"></i> คัดลอกลิงก์' +
             '  </button>' +
             '  <div class="small text-muted mt-2">หมดอายุ: ' + expiryDate.toLocaleString('th-TH') + '</div>' +
+            schemaWarningHtml +
             '</div>',
           showConfirmButton: false,
           showCloseButton: true
