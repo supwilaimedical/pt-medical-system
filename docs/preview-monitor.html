@@ -1,0 +1,481 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<title>Monitor — Redesign Preview (2 options)</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+<style>
+  * { font-family: 'Sarabun', sans-serif; box-sizing: border-box; }
+  body { margin: 0; background: #0f172a; color: #e2e8f0; }
+  .preview-wrap { padding: 20px; max-width: 1600px; margin: 0 auto; }
+
+  /* Option switcher */
+  .option-switcher {
+    display: flex; gap: 0; border-radius: 12px; overflow: hidden;
+    background: #1e293b; padding: 4px; margin-bottom: 20px; width: fit-content;
+  }
+  .option-switcher button {
+    background: transparent; border: 0; color: #94a3b8;
+    padding: 8px 20px; font-weight: 600; cursor: pointer; border-radius: 8px; font-size: 0.9rem;
+  }
+  .option-switcher button.active { background: #2563eb; color: #fff; }
+
+  .preview-banner {
+    background: linear-gradient(135deg, #2563eb, #7c3aed);
+    padding: 14px 20px; border-radius: 12px; margin-bottom: 20px;
+    display: flex; align-items: center; gap: 12px; color: #fff;
+  }
+  .preview-banner .badge-preview {
+    background: rgba(255,255,255,0.25); padding: 4px 12px; border-radius: 100px;
+    font-size: 0.75rem; font-weight: 700;
+  }
+
+  .option-section { display: none; }
+  .option-section.active { display: block; }
+
+  /* ============ OPTION A: COMMAND CENTER ============ */
+  .cc-topbar {
+    background: #1e293b; border-radius: 14px; padding: 14px 20px;
+    display: flex; align-items: center; gap: 20px; flex-wrap: wrap;
+    border: 1px solid #334155; margin-bottom: 16px;
+  }
+  .cc-live {
+    display: inline-flex; align-items: center; gap: 6px;
+    background: rgba(220,38,38,0.15); border: 1px solid rgba(220,38,38,0.4);
+    color: #fecaca; padding: 4px 12px; border-radius: 100px;
+    font-size: 0.8rem; font-weight: 700;
+  }
+  .cc-live .dot { width: 8px; height: 8px; background: #ef4444; border-radius: 50%; animation: pulse 1.5s infinite; }
+  @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.4; } }
+
+  .cc-kpi-row { display: flex; gap: 12px; }
+  .cc-kpi {
+    background: rgba(37,99,235,0.15); border: 1px solid rgba(37,99,235,0.3);
+    padding: 6px 14px; border-radius: 10px; text-align: center;
+  }
+  .cc-kpi .val { font-size: 1.3rem; font-weight: 800; line-height: 1; }
+  .cc-kpi .lab { font-size: 0.65rem; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.05em; margin-top: 2px; }
+  .cc-kpi.danger { background: rgba(220,38,38,0.15); border-color: rgba(220,38,38,0.3); }
+  .cc-kpi.danger .val { color: #fecaca; }
+  .cc-kpi.warn { background: rgba(245,158,11,0.15); border-color: rgba(245,158,11,0.3); }
+  .cc-kpi.warn .val { color: #fde68a; }
+  .cc-kpi.success { background: rgba(22,163,74,0.15); border-color: rgba(22,163,74,0.3); }
+  .cc-kpi.success .val { color: #bbf7d0; }
+
+  .cc-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; }
+  .cc-panel {
+    background: #1e293b; border-radius: 14px; padding: 16px;
+    border: 1px solid #334155; min-height: 400px;
+  }
+  .cc-panel h6 { color: #e2e8f0; font-weight: 800; margin-bottom: 12px; padding-bottom: 10px; border-bottom: 1px solid #334155; display: flex; align-items: center; gap: 8px; }
+  .cc-panel .count-pill { background: #2563eb; color: #fff; padding: 2px 10px; border-radius: 100px; font-size: 0.75rem; margin-left: auto; }
+
+  .cc-card {
+    background: #0f172a; border: 1px solid #334155; border-radius: 10px;
+    padding: 10px 12px; margin-bottom: 8px; border-left: 3px solid #64748b;
+  }
+  .cc-card.urgent { border-left-color: #dc2626; background: rgba(220,38,38,0.08); }
+  .cc-card.warn { border-left-color: #f59e0b; background: rgba(245,158,11,0.05); }
+  .cc-card.ok { border-left-color: #16a34a; }
+  .cc-card .top-row { display: flex; justify-content: space-between; font-size: 0.75rem; color: #94a3b8; margin-bottom: 4px; }
+  .cc-card .name { font-weight: 700; color: #fff; font-size: 0.95rem; }
+  .cc-card .sub { font-size: 0.78rem; color: #94a3b8; margin-top: 2px; }
+  .cc-card .chips { margin-top: 6px; display: flex; gap: 4px; flex-wrap: wrap; }
+  .cc-card .chip { font-size: 0.68rem; padding: 2px 7px; border-radius: 4px; background: #334155; color: #cbd5e1; }
+  .cc-card .chip.danger { background: #7f1d1d; color: #fecaca; }
+  .cc-card .chip.ok { background: #166534; color: #bbf7d0; }
+
+  .cc-card.vehicle { border-left-color: #16a34a; }
+  .cc-card.vehicle.alert { border-left-color: #dc2626; }
+  .cc-card.vehicle .name { display: flex; align-items: center; gap: 8px; }
+  .cc-card.vehicle .speed-big { font-size: 1.4rem; font-weight: 800; }
+  .cc-card.vehicle.overspeed .speed-big { color: #fecaca; }
+
+  /* ============ OPTION B: MISSION CONTROL (map-centric) ============ */
+  .mc-header {
+    display: flex; justify-content: space-between; align-items: center;
+    background: #1e293b; padding: 14px 20px; border-radius: 14px; margin-bottom: 16px;
+    border: 1px solid #334155;
+  }
+  .mc-map-container {
+    background: #1e293b; border-radius: 14px; overflow: hidden;
+    height: 420px; margin-bottom: 16px; border: 1px solid #334155;
+    display: flex; align-items: center; justify-content: center; position: relative;
+  }
+  .mc-map-placeholder {
+    background: linear-gradient(135deg, #1e3a5f 0%, #0f172a 100%);
+    width: 100%; height: 100%;
+    display: flex; align-items: center; justify-content: center;
+    position: relative;
+    background-image:
+      repeating-linear-gradient(0deg, rgba(255,255,255,0.03) 0 1px, transparent 1px 40px),
+      repeating-linear-gradient(90deg, rgba(255,255,255,0.03) 0 1px, transparent 1px 40px);
+  }
+  .mc-map-pin {
+    position: absolute; width: 36px; height: 36px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    color: #fff; font-weight: 800; font-size: 0.7rem;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+    border: 3px solid #fff;
+  }
+  .mc-map-pin.ambulance { background: #2563eb; }
+  .mc-map-pin.event { background: #dc2626; animation: pulse 2s infinite; }
+  .mc-map-pin.destination { background: #16a34a; }
+
+  .mc-map-legend {
+    position: absolute; bottom: 12px; left: 12px;
+    background: rgba(15,23,42,0.9); padding: 8px 12px; border-radius: 8px;
+    border: 1px solid #334155;
+    display: flex; gap: 14px; font-size: 0.75rem;
+  }
+  .mc-map-legend .item { display: flex; align-items: center; gap: 6px; color: #cbd5e1; }
+  .mc-map-legend .dot { width: 10px; height: 10px; border-radius: 50%; }
+
+  .mc-bottom-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; }
+  .mc-panel-compact {
+    background: #1e293b; border-radius: 14px; padding: 14px;
+    border: 1px solid #334155;
+  }
+  .mc-panel-compact h6 { color: #e2e8f0; font-size: 0.85rem; font-weight: 800; margin-bottom: 10px; display: flex; align-items: center; gap: 6px; }
+  .mc-list-item {
+    padding: 8px 0; border-bottom: 1px solid #334155;
+    display: flex; justify-content: space-between; align-items: center; gap: 8px;
+  }
+  .mc-list-item:last-child { border: 0; }
+  .mc-list-item .left { display: flex; align-items: center; gap: 8px; min-width: 0; }
+  .mc-list-item .dot-status { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+  .mc-list-item .dot-status.online { background: #22c55e; }
+  .mc-list-item .dot-status.offline { background: #64748b; }
+  .mc-list-item .dot-status.danger { background: #ef4444; animation: pulse 1.2s infinite; }
+  .mc-list-item .item-name { color: #e2e8f0; font-size: 0.85rem; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .mc-list-item .item-meta { font-size: 0.7rem; color: #94a3b8; }
+
+  @media (max-width: 992px) {
+    .cc-grid, .mc-bottom-grid { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+<div class="preview-wrap">
+
+  <div class="preview-banner">
+    <i class="bi bi-display-fill fs-4"></i>
+    <div style="flex:1;">
+      <span class="badge-preview">DESIGN PREVIEW</span>
+      <div class="fw-bold mt-1">Monitor Page — 2 ทางเลือก</div>
+      <div class="small" style="opacity:0.85;">เลือกดูแต่ละ option → ตัดสินใจว่าชอบแบบไหน ผมจะ implement ให้</div>
+    </div>
+  </div>
+
+  <!-- Switcher -->
+  <div class="option-switcher">
+    <button class="active" onclick="switchOpt('A')">Option A: Command Center</button>
+    <button onclick="switchOpt('B')">Option B: Mission Control (Map-centric)</button>
+  </div>
+
+  <!-- ============ OPTION A ============ -->
+  <div id="opt-A" class="option-section active">
+
+    <div class="cc-topbar">
+      <span class="cc-live"><span class="dot"></span> LIVE</span>
+      <span class="text-muted small">อัปเดต: <b class="text-light">17 เม.ย. 14:42:35</b> · Auto-refresh 3:00</span>
+      <div style="flex:1;"></div>
+      <div class="cc-kpi-row">
+        <div class="cc-kpi danger">
+          <div class="val">1</div>
+          <div class="lab">Critical 🔴</div>
+        </div>
+        <div class="cc-kpi warn">
+          <div class="val">3</div>
+          <div class="lab">Active Cases</div>
+        </div>
+        <div class="cc-kpi">
+          <div class="val">2</div>
+          <div class="lab">FA Events</div>
+        </div>
+        <div class="cc-kpi success">
+          <div class="val">5/8</div>
+          <div class="lab">Vehicles Online</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="cc-grid">
+      <!-- Panel 1: Transport cases -->
+      <div class="cc-panel">
+        <h6><i class="bi bi-truck text-primary"></i> Transport <span class="count-pill">3</span></h6>
+
+        <div class="cc-card urgent">
+          <div class="top-row">
+            <span>#2504170001 · 12 นาที</span>
+            <span style="color:#fecaca;">🔴 RED</span>
+          </div>
+          <div class="name">นายสมชาย ใจดี (ช 65)</div>
+          <div class="sub">EMS · หนองปลิง → รพ.จุฬา</div>
+          <div class="chips">
+            <span class="chip ok">V/S</span>
+            <span class="chip ok">IV</span>
+            <span class="chip ok">Consent</span>
+            <span class="chip danger">🚨 Resus</span>
+          </div>
+        </div>
+
+        <div class="cc-card warn">
+          <div class="top-row">
+            <span>#2504170002 · 28 นาที</span>
+            <span style="color:#fbcfe8;">PINK</span>
+          </div>
+          <div class="name">นส.มาลี สวยงาม (ญ 42)</div>
+          <div class="sub">Refer · นครสวรรค์ → รามา</div>
+          <div class="chips">
+            <span class="chip ok">V/S</span>
+            <span class="chip ok">IV</span>
+            <span class="chip danger">Consent ค้าง</span>
+          </div>
+        </div>
+
+        <div class="cc-card ok">
+          <div class="top-row">
+            <span>#2504170003 · 45 นาที</span>
+            <span style="color:#fef3c7;">YELLOW</span>
+          </div>
+          <div class="name">นายประสิทธิ์ ร. (ช 58)</div>
+          <div class="sub">Discharge · รพ → บ้าน</div>
+          <div class="chips">
+            <span class="chip ok">V/S</span>
+            <span class="chip">ไม่ต้อง IV</span>
+            <span class="chip ok">Consent</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Panel 2: First Aid events -->
+      <div class="cc-panel">
+        <h6><i class="bi bi-heart-pulse text-danger"></i> First Aid <span class="count-pill">2</span></h6>
+
+        <div class="cc-card urgent">
+          <div class="top-row">
+            <span>#FA-042 · 1:15 ชม.</span>
+            <span style="color:#fecaca;">🚨 ACTIVE</span>
+          </div>
+          <div class="name">อุบัติเหตุ ถ.พหลโยธิน กม.186</div>
+          <div class="sub">บาดเจ็บ 3 · Triage: Red 1, Yellow 2</div>
+          <div class="chips">
+            <span class="chip danger">CPR Ongoing</span>
+            <span class="chip ok">3/3 Triaged</span>
+          </div>
+        </div>
+
+        <div class="cc-card ok">
+          <div class="top-row">
+            <span>#FA-041 · 3:20 ชม.</span>
+            <span style="color:#bbf7d0;">ACTIVE</span>
+          </div>
+          <div class="name">งานวิ่งเทศบาล</div>
+          <div class="sub">บาดเจ็บ 7 · เล็กน้อยทุกเคส</div>
+          <div class="chips">
+            <span class="chip ok">No critical</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Panel 3: GPS vehicles -->
+      <div class="cc-panel">
+        <h6><i class="bi bi-broadcast-pin text-success"></i> GPS Vehicles <span class="count-pill">5</span></h6>
+
+        <div class="cc-card vehicle overspeed">
+          <div class="top-row">
+            <span>🚑 EMS-01 · 2 วิ</span>
+            <span style="color:#fecaca;">⚠️ เร็วเกิน</span>
+          </div>
+          <div class="name">สมชาย คนขับ</div>
+          <div class="speed-big">128 <span style="font-size:0.7rem; font-weight:400;">km/h</span></div>
+          <div class="sub">ถ.สุรสิงห์ · กำลังวิ่ง</div>
+        </div>
+
+        <div class="cc-card vehicle">
+          <div class="top-row">
+            <span>🚑 EMS-02 · 4 วิ</span>
+            <span style="color:#bbf7d0;">Online</span>
+          </div>
+          <div class="name">ภูมิ คนขับ</div>
+          <div class="speed-big">62 <span style="font-size:0.7rem; font-weight:400;">km/h</span></div>
+          <div class="sub">ถ.เทศบาล</div>
+        </div>
+
+        <div class="cc-card vehicle">
+          <div class="top-row">
+            <span>🚑 EMS-03 · 6 วิ</span>
+            <span style="color:#bbf7d0;">Idle</span>
+          </div>
+          <div class="name">สมศรี คนขับ</div>
+          <div class="speed-big">0 <span style="font-size:0.7rem; font-weight:400;">km/h</span></div>
+          <div class="sub">ฐาน · 15 นาที</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ OPTION B ============ -->
+  <div id="opt-B" class="option-section">
+
+    <div class="mc-header">
+      <div class="d-flex align-items-center gap-3">
+        <span class="cc-live"><span class="dot"></span> LIVE · MISSION CONTROL</span>
+        <span class="text-muted small">อัปเดต: <b class="text-light">14:42:35</b></span>
+      </div>
+      <div class="cc-kpi-row">
+        <div class="cc-kpi danger"><div class="val">1</div><div class="lab">Critical</div></div>
+        <div class="cc-kpi warn"><div class="val">5</div><div class="lab">Active</div></div>
+        <div class="cc-kpi success"><div class="val">5/8</div><div class="lab">Online</div></div>
+      </div>
+    </div>
+
+    <div class="mc-map-container">
+      <div class="mc-map-placeholder">
+        <!-- Fake map with pins -->
+        <div class="mc-map-pin ambulance" style="top:45%; left:30%;">01</div>
+        <div class="mc-map-pin ambulance" style="top:35%; left:60%;">02</div>
+        <div class="mc-map-pin ambulance" style="top:60%; left:70%;">03</div>
+        <div class="mc-map-pin event" style="top:30%; left:45%;"><i class="bi bi-heart-pulse"></i></div>
+        <div class="mc-map-pin destination" style="top:20%; left:55%;"><i class="bi bi-hospital"></i></div>
+        <div class="mc-map-pin destination" style="top:70%; left:80%;"><i class="bi bi-hospital"></i></div>
+
+        <div class="mc-map-legend">
+          <span class="item"><span class="dot" style="background:#2563eb;"></span> รถพยาบาล</span>
+          <span class="item"><span class="dot" style="background:#dc2626;"></span> เหตุการณ์ Active</span>
+          <span class="item"><span class="dot" style="background:#16a34a;"></span> โรงพยาบาลปลายทาง</span>
+        </div>
+
+        <div style="position:absolute; top:12px; right:12px; background:rgba(15,23,42,0.9); padding:8px 14px; border-radius:8px; border:1px solid #334155; color:#e2e8f0; font-size:0.78rem;">
+          <i class="bi bi-geo-alt-fill text-warning"></i> 5 เคส active · 2 FA events
+        </div>
+      </div>
+    </div>
+
+    <div class="mc-bottom-grid">
+      <div class="mc-panel-compact">
+        <h6><i class="bi bi-truck text-primary"></i> Transport (3)</h6>
+        <div class="mc-list-item">
+          <div class="left">
+            <span class="dot-status danger"></span>
+            <div style="min-width:0;">
+              <div class="item-name">นายสมชาย ใจดี</div>
+              <div class="item-meta">🔴 Red · 12 นาที</div>
+            </div>
+          </div>
+          <div><i class="bi bi-chevron-right text-muted"></i></div>
+        </div>
+        <div class="mc-list-item">
+          <div class="left">
+            <span class="dot-status online"></span>
+            <div style="min-width:0;">
+              <div class="item-name">นส.มาลี สวยงาม</div>
+              <div class="item-meta">🩷 Pink · 28 นาที</div>
+            </div>
+          </div>
+          <div><i class="bi bi-chevron-right text-muted"></i></div>
+        </div>
+        <div class="mc-list-item">
+          <div class="left">
+            <span class="dot-status online"></span>
+            <div style="min-width:0;">
+              <div class="item-name">นายประสิทธิ์ ร.</div>
+              <div class="item-meta">🟡 Yellow · 45 นาที</div>
+            </div>
+          </div>
+          <div><i class="bi bi-chevron-right text-muted"></i></div>
+        </div>
+      </div>
+
+      <div class="mc-panel-compact">
+        <h6><i class="bi bi-heart-pulse text-danger"></i> First Aid (2)</h6>
+        <div class="mc-list-item">
+          <div class="left">
+            <span class="dot-status danger"></span>
+            <div style="min-width:0;">
+              <div class="item-name">อุบัติเหตุถนน</div>
+              <div class="item-meta">🚨 3 injured · 1:15 ชม.</div>
+            </div>
+          </div>
+          <div><i class="bi bi-chevron-right text-muted"></i></div>
+        </div>
+        <div class="mc-list-item">
+          <div class="left">
+            <span class="dot-status online"></span>
+            <div style="min-width:0;">
+              <div class="item-name">งานวิ่งเทศบาล</div>
+              <div class="item-meta">7 injured · 3:20 ชม.</div>
+            </div>
+          </div>
+          <div><i class="bi bi-chevron-right text-muted"></i></div>
+        </div>
+      </div>
+
+      <div class="mc-panel-compact">
+        <h6><i class="bi bi-broadcast-pin text-success"></i> Vehicles (5/8)</h6>
+        <div class="mc-list-item">
+          <div class="left">
+            <span class="dot-status danger"></span>
+            <div style="min-width:0;">
+              <div class="item-name">EMS-01 ⚠️ Overspeed</div>
+              <div class="item-meta">128 km/h · ถ.สุรสิงห์</div>
+            </div>
+          </div>
+          <div class="item-meta">2 วิ</div>
+        </div>
+        <div class="mc-list-item">
+          <div class="left">
+            <span class="dot-status online"></span>
+            <div style="min-width:0;">
+              <div class="item-name">EMS-02</div>
+              <div class="item-meta">62 km/h · ถ.เทศบาล</div>
+            </div>
+          </div>
+          <div class="item-meta">4 วิ</div>
+        </div>
+        <div class="mc-list-item">
+          <div class="left">
+            <span class="dot-status online"></span>
+            <div style="min-width:0;">
+              <div class="item-name">EMS-03</div>
+              <div class="item-meta">Idle · ฐาน</div>
+            </div>
+          </div>
+          <div class="item-meta">6 วิ</div>
+        </div>
+        <div class="mc-list-item">
+          <div class="left">
+            <span class="dot-status offline"></span>
+            <div style="min-width:0;">
+              <div class="item-name">EMS-04</div>
+              <div class="item-meta">Offline · last seen 3 ชม.</div>
+            </div>
+          </div>
+          <div class="item-meta">—</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="text-center mt-4 pb-4 text-muted small">
+    💡 เลือก Option ที่ชอบ → บอกผม ผมจะ implement ให้ตาม design ที่เลือก<br>
+    (สามารถผสม features จาก 2 options ได้ เช่น "เอา A แต่เพิ่ม map จาก B")
+  </div>
+
+</div>
+
+<script>
+function switchOpt(key) {
+  document.querySelectorAll('.option-section').forEach(function(s) { s.classList.remove('active'); });
+  document.getElementById('opt-' + key).classList.add('active');
+  document.querySelectorAll('.option-switcher button').forEach(function(b) { b.classList.remove('active'); });
+  event.target.classList.add('active');
+}
+</script>
+
+</body>
+</html>

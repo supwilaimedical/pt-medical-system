@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<title>Transport Dashboard — Redesign Preview</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+<style>
+  * { font-family: 'Sarabun', sans-serif; box-sizing: border-box; }
+  body { background: #f1f5f9; padding: 20px; color: #1e293b; }
+  .container-main { max-width: 1400px; margin: 0 auto; }
+
+  /* Preview banner */
+  .preview-banner {
+    background: linear-gradient(135deg, #2563eb, #7c3aed);
+    color: #fff; padding: 14px 20px; border-radius: 12px; margin-bottom: 24px;
+    display: flex; align-items: center; gap: 12px;
+  }
+  .preview-banner .badge-preview {
+    background: rgba(255,255,255,0.25); padding: 4px 12px; border-radius: 100px;
+    font-size: 0.75rem; font-weight: 700; letter-spacing: 1px;
+  }
+
+  /* Compact search panel */
+  .search-compact {
+    background: #fff; border-radius: 12px; padding: 12px 16px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05); margin-bottom: 24px;
+    display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
+  }
+  .search-compact .form-control, .search-compact .form-select {
+    border: 1px solid #e2e8f0; background: #f8fafc; font-size: 0.9rem;
+  }
+
+  /* Section headers */
+  .section-header {
+    display: flex; align-items: baseline; gap: 10px;
+    margin: 20px 0 12px; padding-bottom: 8px; border-bottom: 2px solid #e2e8f0;
+  }
+  .section-header h5 { margin: 0; font-weight: 800; }
+  .section-header .count-badge {
+    background: #16a34a; color: #fff; padding: 2px 10px; border-radius: 100px;
+    font-size: 0.78rem; font-weight: 700;
+  }
+  .section-header.closed .count-badge { background: #94a3b8; }
+  .section-header .line-filler { flex: 1; }
+
+  /* ============ ACTIVE CARDS ============ */
+  .active-cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 16px; margin-bottom: 32px; }
+  .active-card {
+    background: #fff; border-radius: 16px; padding: 0; overflow: hidden;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+    border-left: 6px solid #dc3545;  /* triage-dependent */
+    transition: transform 0.15s, box-shadow 0.15s;
+    cursor: pointer; position: relative;
+  }
+  .active-card:hover { transform: translateY(-3px); box-shadow: 0 8px 24px rgba(0,0,0,0.12); }
+  .active-card.triage-resus { border-left-color: #dc2626; }
+  .active-card.triage-emerg { border-left-color: #d63384; }
+  .active-card.triage-urgent { border-left-color: #f59e0b; }
+  .active-card.triage-nonurg { border-left-color: #16a34a; }
+
+  .active-card .card-head {
+    padding: 12px 16px; display: flex; justify-content: space-between; align-items: center;
+    background: #f8fafc; border-bottom: 1px solid #f1f5f9;
+  }
+  .active-card .case-id { font-family: 'Consolas', monospace; font-size: 0.7rem; color: #94a3b8; font-weight: 600; }
+  .active-card .time-badge {
+    background: #dc2626; color: #fff; padding: 3px 10px; border-radius: 100px;
+    font-size: 0.72rem; font-weight: 700; display: inline-flex; align-items: center; gap: 4px;
+  }
+  .active-card .time-badge.older { background: #94a3b8; }
+
+  .active-card .patient-row {
+    padding: 14px 16px 8px; display: flex; align-items: center; gap: 12px;
+  }
+  .active-card .gender-avatar {
+    width: 44px; height: 44px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 800; font-size: 1.1rem;
+    background: linear-gradient(135deg, #e0e7ff, #c7d2fe); color: #4338ca;
+    flex-shrink: 0;
+  }
+  .active-card .gender-avatar.female { background: linear-gradient(135deg, #fce7f3, #fbcfe8); color: #be185d; }
+  .active-card .patient-name { font-size: 1.05rem; font-weight: 700; color: #0f172a; margin: 0; line-height: 1.3; }
+  .active-card .patient-sub { font-size: 0.75rem; color: #64748b; }
+
+  .active-card .triage-badge {
+    display: inline-block; padding: 3px 10px; border-radius: 100px;
+    font-size: 0.72rem; font-weight: 700; margin-bottom: 6px;
+  }
+
+  .active-card .route-row {
+    padding: 8px 16px; background: #f8fafc; display: flex; align-items: center; gap: 8px;
+    font-size: 0.82rem; color: #475569;
+  }
+  .active-card .route-row .arrow { color: #94a3b8; }
+
+  .active-card .meta-strip {
+    padding: 8px 16px; display: flex; gap: 8px; flex-wrap: wrap;
+    background: #fff; border-top: 1px solid #f1f5f9;
+  }
+  .active-card .meta-chip {
+    font-size: 0.7rem; background: #f1f5f9; color: #475569;
+    padding: 3px 8px; border-radius: 6px; display: inline-flex; align-items: center; gap: 4px;
+  }
+  .active-card .meta-chip.ok { background: #d1fae5; color: #065f46; }
+  .active-card .meta-chip.warn { background: #fef3c7; color: #92400e; }
+  .active-card .meta-chip.danger { background: #fee2e2; color: #991b1b; }
+
+  .active-card .action-row {
+    padding: 10px 16px; display: flex; gap: 8px; background: #fafbfc; border-top: 1px solid #f1f5f9;
+  }
+  .active-card .btn-continue {
+    flex: 1; background: #2563eb; color: #fff; border: 0; border-radius: 8px;
+    padding: 8px; font-weight: 600; font-size: 0.85rem;
+  }
+  .active-card .btn-continue:hover { background: #1d4ed8; }
+  .active-card .btn-icon {
+    width: 36px; background: #fff; border: 1px solid #e2e8f0; border-radius: 8px;
+    color: #64748b; transition: all 0.15s;
+  }
+  .active-card .btn-icon:hover { background: #f1f5f9; }
+
+  /* ============ CLOSED LIST ============ */
+  .closed-table {
+    background: #fff; border-radius: 12px; overflow: hidden;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+  }
+  .closed-table table { margin: 0; font-size: 0.88rem; }
+  .closed-table thead th {
+    background: #f8fafc; color: #64748b; font-size: 0.7rem;
+    text-transform: uppercase; letter-spacing: 0.05em;
+    padding: 10px 12px; border: 0; font-weight: 700;
+  }
+  .closed-table tbody td {
+    padding: 10px 12px; vertical-align: middle; border-top: 1px solid #f1f5f9;
+  }
+  .closed-table tbody tr:hover { background: #f8fafc; cursor: pointer; }
+  .closed-table .mini-triage {
+    width: 10px; height: 10px; border-radius: 50%; display: inline-block; margin-right: 6px;
+  }
+  .closed-table .mini-triage.resus { background: #dc2626; }
+  .closed-table .mini-triage.emerg { background: #d63384; }
+  .closed-table .mini-triage.urgent { background: #f59e0b; }
+  .closed-table .mini-triage.nonurg { background: #16a34a; }
+
+  .closed-table .btn-micro {
+    background: transparent; border: 0; color: #64748b; padding: 4px 6px; border-radius: 4px;
+    font-size: 0.85rem;
+  }
+  .closed-table .btn-micro:hover { background: #e2e8f0; color: #1e293b; }
+
+  /* FAB */
+  .fab {
+    position: fixed; bottom: 24px; right: 24px; width: 60px; height: 60px;
+    border-radius: 50%; background: linear-gradient(135deg, #2563eb, #7c3aed);
+    color: #fff; display: flex; align-items: center; justify-content: center;
+    font-size: 1.6rem; box-shadow: 0 8px 24px rgba(37,99,235,0.35);
+    cursor: pointer; border: 0;
+  }
+  .fab:hover { transform: scale(1.08); }
+
+  @media (max-width: 768px) {
+    .active-cards { grid-template-columns: 1fr; }
+    .closed-table td:nth-child(4) { display: none; }
+    .closed-table th:nth-child(4) { display: none; }
+  }
+</style>
+</head>
+<body>
+<div class="container-main">
+
+  <div class="preview-banner">
+    <i class="bi bi-eye-fill fs-4"></i>
+    <div style="flex:1;">
+      <span class="badge-preview">DESIGN PREVIEW</span>
+      <div class="fw-bold mt-1">Transport Dashboard — Redesigned</div>
+      <div class="small" style="opacity:0.85;">Active cases = Card layout (visual, prominent) · Completed = List (compact, scannable)</div>
+    </div>
+  </div>
+
+  <!-- Compact Search -->
+  <div class="search-compact">
+    <i class="bi bi-search text-muted"></i>
+    <input type="text" class="form-control form-control-sm" placeholder="ค้นหาชื่อผู้ป่วย หรือ รหัสเคส..." style="max-width:280px;">
+    <input type="date" class="form-control form-control-sm" style="max-width:150px;">
+    <select class="form-select form-select-sm" style="max-width:160px;">
+      <option>ทุกระดับ triage</option>
+      <option>Red - Resuscitation</option>
+      <option>Pink - Emergency</option>
+      <option>Yellow - Urgent</option>
+      <option>Green - Non-Urgent</option>
+    </select>
+    <select class="form-select form-select-sm" style="max-width:160px;">
+      <option>ทุกประเภท</option>
+      <option>EMS</option>
+      <option>Refer</option>
+      <option>Discharge</option>
+    </select>
+    <button class="btn btn-sm btn-outline-secondary rounded-pill px-3"><i class="bi bi-x"></i> ล้าง</button>
+  </div>
+
+  <!-- ============ ACTIVE CARDS ============ -->
+  <div class="section-header">
+    <i class="bi bi-broadcast-pin text-success"></i>
+    <h5>กำลังดำเนินการ</h5>
+    <span class="count-badge">3</span>
+    <span class="line-filler"></span>
+    <span class="text-muted small">เรียงจากล่าสุด → เก่าสุด</span>
+  </div>
+
+  <div class="active-cards">
+
+    <!-- Active Card 1: RESUS -->
+    <div class="active-card triage-resus">
+      <div class="card-head">
+        <span class="case-id">#2504170001</span>
+        <span class="time-badge"><i class="bi bi-clock-fill"></i> 12 นาที</span>
+      </div>
+      <div class="patient-row">
+        <div class="gender-avatar">ช</div>
+        <div>
+          <span class="triage-badge" style="background:#fee2e2; color:#991b1b;">RED · Resuscitation</span>
+          <div class="patient-name">นายสมชาย ใจดี</div>
+          <div class="patient-sub">65 ปี · รถพยาบาล: EMS-01 · EMS (รับจุดเกิดเหตุ)</div>
+        </div>
+      </div>
+      <div class="route-row">
+        <i class="bi bi-geo-alt-fill text-primary"></i>
+        <span>หนองปลิง</span>
+        <i class="bi bi-arrow-right arrow"></i>
+        <span class="fw-semibold">รพ.จุฬาลงกรณ์</span>
+      </div>
+      <div class="meta-strip">
+        <span class="meta-chip ok"><i class="bi bi-check-circle-fill"></i> V/S แรกรับ</span>
+        <span class="meta-chip ok"><i class="bi bi-check-circle-fill"></i> IV</span>
+        <span class="meta-chip ok"><i class="bi bi-check-circle-fill"></i> Consent</span>
+        <span class="meta-chip warn"><i class="bi bi-hourglass-split"></i> ยังไม่มาถึง</span>
+      </div>
+      <div class="action-row">
+        <button class="btn btn-continue"><i class="bi bi-play-fill me-1"></i> เปิดเคส / แก้ไข</button>
+        <button class="btn btn-icon" title="แชร์ public link"><i class="bi bi-share"></i></button>
+      </div>
+    </div>
+
+    <!-- Active Card 2: EMERG -->
+    <div class="active-card triage-emerg">
+      <div class="card-head">
+        <span class="case-id">#2504170002</span>
+        <span class="time-badge older"><i class="bi bi-clock-fill"></i> 28 นาที</span>
+      </div>
+      <div class="patient-row">
+        <div class="gender-avatar female">ญ</div>
+        <div>
+          <span class="triage-badge" style="background:#fbcfe8; color:#9f1239;">PINK · Emergency</span>
+          <div class="patient-name">นางสาวมาลี สวยงาม</div>
+          <div class="patient-sub">42 ปี · รถพยาบาล: EMS-02 · Refer (ส่งต่อ)</div>
+        </div>
+      </div>
+      <div class="route-row">
+        <i class="bi bi-geo-alt-fill text-primary"></i>
+        <span>รพ.นครสวรรค์</span>
+        <i class="bi bi-arrow-right arrow"></i>
+        <span class="fw-semibold">รพ.รามา</span>
+      </div>
+      <div class="meta-strip">
+        <span class="meta-chip ok"><i class="bi bi-check-circle-fill"></i> V/S</span>
+        <span class="meta-chip ok"><i class="bi bi-check-circle-fill"></i> IV</span>
+        <span class="meta-chip danger"><i class="bi bi-x-circle-fill"></i> Consent ค้าง</span>
+      </div>
+      <div class="action-row">
+        <button class="btn btn-continue"><i class="bi bi-play-fill me-1"></i> เปิดเคส / แก้ไข</button>
+        <button class="btn btn-icon" title="แชร์ public link"><i class="bi bi-share"></i></button>
+      </div>
+    </div>
+
+    <!-- Active Card 3: URGENT -->
+    <div class="active-card triage-urgent">
+      <div class="card-head">
+        <span class="case-id">#2504170003</span>
+        <span class="time-badge older"><i class="bi bi-clock-fill"></i> 45 นาที</span>
+      </div>
+      <div class="patient-row">
+        <div class="gender-avatar">ช</div>
+        <div>
+          <span class="triage-badge" style="background:#fef3c7; color:#92400e;">YELLOW · Urgent</span>
+          <div class="patient-name">นายประสิทธิ์ รวมมิตร</div>
+          <div class="patient-sub">58 ปี · รถพยาบาล: EMS-03 · Discharge</div>
+        </div>
+      </div>
+      <div class="route-row">
+        <i class="bi bi-geo-alt-fill text-primary"></i>
+        <span>รพ.นครสวรรค์</span>
+        <i class="bi bi-arrow-right arrow"></i>
+        <span class="fw-semibold">บ้าน</span>
+      </div>
+      <div class="meta-strip">
+        <span class="meta-chip ok"><i class="bi bi-check-circle-fill"></i> V/S</span>
+        <span class="meta-chip"><i class="bi bi-dash-circle"></i> ไม่ต้อง IV</span>
+        <span class="meta-chip ok"><i class="bi bi-check-circle-fill"></i> Consent</span>
+      </div>
+      <div class="action-row">
+        <button class="btn btn-continue"><i class="bi bi-play-fill me-1"></i> เปิดเคส / แก้ไข</button>
+        <button class="btn btn-icon" title="แชร์ public link"><i class="bi bi-share"></i></button>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ============ CLOSED LIST ============ -->
+  <div class="section-header closed">
+    <i class="bi bi-archive text-secondary"></i>
+    <h5>ปิดเคสแล้ว</h5>
+    <span class="count-badge">142</span>
+    <span class="line-filler"></span>
+    <button class="btn btn-sm btn-outline-secondary rounded-pill px-3"><i class="bi bi-download"></i> Export CSV</button>
+  </div>
+
+  <div class="closed-table">
+    <table class="table table-hover">
+      <thead>
+        <tr>
+          <th style="width:90px;">วันที่</th>
+          <th style="width:110px;">รหัสเคส</th>
+          <th>ผู้ป่วย</th>
+          <th style="width:200px;">เส้นทาง</th>
+          <th style="width:120px;">ประเภท</th>
+          <th style="width:80px;">Triage</th>
+          <th style="width:140px;">ทีม</th>
+          <th style="width:120px;" class="text-end">จัดการ</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><div class="fw-semibold">17 เม.ย.</div><div class="text-muted small">14:30</div></td>
+          <td><code class="small">2504170000</code></td>
+          <td>
+            <div class="fw-semibold">นายวิชัย มีสุข</div>
+            <div class="text-muted small">ช · 72 ปี</div>
+          </td>
+          <td class="small text-muted">หนองปลิง → รพ.จุฬา</td>
+          <td><span class="badge bg-primary-subtle text-primary border">EMS</span></td>
+          <td><span class="mini-triage resus"></span> <span class="small">Red</span></td>
+          <td class="small text-muted">EMS-01</td>
+          <td class="text-end">
+            <button class="btn-micro" title="ดู"><i class="bi bi-eye"></i></button>
+            <button class="btn-micro" title="Print"><i class="bi bi-printer"></i></button>
+            <button class="btn-micro" title="เปิดกลับ"><i class="bi bi-unlock"></i></button>
+          </td>
+        </tr>
+        <tr>
+          <td><div class="fw-semibold">17 เม.ย.</div><div class="text-muted small">11:15</div></td>
+          <td><code class="small">2504170099</code></td>
+          <td>
+            <div class="fw-semibold">นางวิไล สายใจ</div>
+            <div class="text-muted small">ญ · 58 ปี</div>
+          </td>
+          <td class="small text-muted">รพ.นครสวรรค์ → บ้าน</td>
+          <td><span class="badge bg-secondary-subtle text-secondary border">Discharge</span></td>
+          <td><span class="mini-triage urgent"></span> <span class="small">Yellow</span></td>
+          <td class="small text-muted">EMS-02</td>
+          <td class="text-end">
+            <button class="btn-micro"><i class="bi bi-eye"></i></button>
+            <button class="btn-micro"><i class="bi bi-printer"></i></button>
+            <button class="btn-micro"><i class="bi bi-unlock"></i></button>
+          </td>
+        </tr>
+        <tr>
+          <td><div class="fw-semibold">16 เม.ย.</div><div class="text-muted small">22:48</div></td>
+          <td><code class="small">2504160081</code></td>
+          <td>
+            <div class="fw-semibold">นายอำนาจ บุญมี</div>
+            <div class="text-muted small">ช · 65 ปี</div>
+          </td>
+          <td class="small text-muted">สว่างอารมณ์ → รพ.นครสวรรค์</td>
+          <td><span class="badge bg-warning-subtle text-warning border">Refer</span></td>
+          <td><span class="mini-triage emerg"></span> <span class="small">Pink</span></td>
+          <td class="small text-muted">EMS-01</td>
+          <td class="text-end">
+            <button class="btn-micro"><i class="bi bi-eye"></i></button>
+            <button class="btn-micro"><i class="bi bi-printer"></i></button>
+            <button class="btn-micro"><i class="bi bi-unlock"></i></button>
+          </td>
+        </tr>
+        <tr>
+          <td><div class="fw-semibold">16 เม.ย.</div><div class="text-muted small">19:22</div></td>
+          <td><code class="small">2504160075</code></td>
+          <td>
+            <div class="fw-semibold">นายภูมิพัฒน์ ดีงาม</div>
+            <div class="text-muted small">ช · 45 ปี</div>
+          </td>
+          <td class="small text-muted">ป่าเตา → รพ.พะเยา</td>
+          <td><span class="badge bg-primary-subtle text-primary border">EMS</span></td>
+          <td><span class="mini-triage nonurg"></span> <span class="small">Green</span></td>
+          <td class="small text-muted">EMS-03</td>
+          <td class="text-end">
+            <button class="btn-micro"><i class="bi bi-eye"></i></button>
+            <button class="btn-micro"><i class="bi bi-printer"></i></button>
+            <button class="btn-micro"><i class="bi bi-unlock"></i></button>
+          </td>
+        </tr>
+        <tr>
+          <td><div class="fw-semibold">16 เม.ย.</div><div class="text-muted small">14:05</div></td>
+          <td><code class="small">2504160068</code></td>
+          <td>
+            <div class="fw-semibold">นางสมหญิง ใจเย็น</div>
+            <div class="text-muted small">ญ · 38 ปี</div>
+          </td>
+          <td class="small text-muted">รพ.ชุมพร → บ้าน</td>
+          <td><span class="badge bg-info-subtle text-info border">Follow up</span></td>
+          <td><span class="mini-triage nonurg"></span> <span class="small">Green</span></td>
+          <td class="small text-muted">EMS-02</td>
+          <td class="text-end">
+            <button class="btn-micro"><i class="bi bi-eye"></i></button>
+            <button class="btn-micro"><i class="bi bi-printer"></i></button>
+            <button class="btn-micro"><i class="bi bi-unlock"></i></button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="d-flex justify-content-center align-items-center gap-2 mt-3 pb-5">
+    <span class="text-muted small">1-5 จาก 142 เคส</span>
+    <button class="btn btn-sm btn-light"><i class="bi bi-chevron-left"></i></button>
+    <span class="small">หน้า 1 / 29</span>
+    <button class="btn btn-sm btn-light"><i class="bi bi-chevron-right"></i></button>
+  </div>
+
+</div>
+
+<button class="fab" title="เปิดเคสใหม่"><i class="bi bi-plus-lg"></i></button>
+
+</body>
+</html>
