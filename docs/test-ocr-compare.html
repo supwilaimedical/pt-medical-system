@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<title>OCR Compare — Gemini vs Claude (Haiku + Sonnet + Opus)</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+<style>
+  * { font-family: 'Sarabun', sans-serif; }
+  body { background: #f1f5f9; padding: 20px; }
+  .container-narrow { max-width: 1400px; margin: 0 auto; }
+  .api-key-row { background: #fff; border-radius: 12px; padding: 16px; margin-bottom: 16px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
+  .model-col { background: #fff; border-radius: 12px; padding: 16px; height: 100%; }
+  .model-header { font-weight: 700; padding-bottom: 8px; border-bottom: 2px solid #e2e8f0; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; }
+  .model-col.gemini .model-header { border-bottom-color: #4285F4; }
+  .model-col.haiku .model-header { border-bottom-color: #8b5cf6; }
+  .model-col.sonnet .model-header { border-bottom-color: #ec4899; }
+  .badge-gemini { background: #4285F4; }
+  .badge-haiku { background: #8b5cf6; }
+  .badge-sonnet { background: #ec4899; }
+  .badge-opus { background: #f59e0b; color: #000; }
+  .model-col.opus .model-header { border-bottom-color: #f59e0b; }
+  .result-field { font-size: 0.85rem; margin-bottom: 6px; padding: 8px; background: #f8fafc; border-radius: 6px; }
+  .result-field .label { font-weight: 600; color: #64748b; font-size: 0.7rem; text-transform: uppercase; }
+  .result-field .value { font-weight: 500; color: #0f172a; word-break: break-word; }
+  .result-field .value.empty { color: #cbd5e1; font-style: italic; }
+  .result-field .value.diff { background: #fef3c7; padding: 2px 6px; border-radius: 3px; }
+  .timing-bar { font-size: 0.75rem; color: #64748b; margin-bottom: 10px; }
+  .drop-zone { border: 2px dashed #cbd5e1; border-radius: 12px; padding: 40px; text-align: center; background: #fff; cursor: pointer; transition: all 0.2s; }
+  .drop-zone:hover { border-color: #64748b; background: #f8fafc; }
+  .drop-zone.has-image { padding: 10px; }
+  .preview-img { max-width: 100%; max-height: 400px; border-radius: 8px; }
+  .loader { width: 40px; height: 40px; border: 3px solid #e2e8f0; border-top-color: #3b82f6; border-radius: 50%; animation: spin 0.8s linear infinite; margin: 20px auto; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .error-box { background: #fef2f2; border-left: 4px solid #dc2626; padding: 10px 14px; border-radius: 6px; font-size: 0.85rem; color: #7f1d1d; margin-top: 10px; }
+  .pdpa-warning { background: #fef3c7; border-left: 4px solid #f59e0b; padding: 12px 16px; border-radius: 8px; margin-bottom: 20px; font-size: 0.9rem; color: #78350f; }
+  .raw-toggle { font-size: 0.7rem; margin-top: 8px; }
+  .raw-box { font-family: 'Consolas', monospace; font-size: 0.75rem; background: #0f172a; color: #94a3b8; padding: 10px; border-radius: 6px; max-height: 200px; overflow: auto; white-space: pre-wrap; word-break: break-all; }
+</style>
+</head>
+<body>
+<div class="container-narrow">
+
+  <h2 class="fw-bold mb-2"><i class="bi bi-clipboard-data-fill me-2 text-primary"></i>OCR Compare — 4-way Benchmark 💪</h2>
+  <p class="text-muted small mb-3">เปรียบเทียบ Gemini 2.5 Flash vs Claude Haiku 4.5 vs Sonnet 4.5 vs <b>Opus 4.7</b> สำหรับ OCR บัตรประชาชน</p>
+
+  <div class="pdpa-warning">
+    <i class="bi bi-shield-exclamation me-1"></i>
+    <b>PDPA Warning:</b> หน้านี้ส่งรูปไปที่ Google (Gemini) + Anthropic (Claude) โดยตรงจาก browser ของคุณ
+    — ใช้<b>เฉพาะทดสอบ</b>เท่านั้น ไม่ควรอัพโหลดข้อมูลจริงของผู้ป่วย
+    (API keys ถูกเก็บใน browser's localStorage เฉพาะเครื่องคุณ)
+  </div>
+
+  <!-- API Keys -->
+  <div class="api-key-row">
+    <h6 class="fw-bold mb-2"><i class="bi bi-key-fill text-warning me-1"></i> API Keys</h6>
+    <div class="row g-2">
+      <div class="col-md-6">
+        <label class="small fw-semibold mb-1">Gemini API Key</label>
+        <input type="password" id="gemini-key" class="form-control form-control-sm" placeholder="AIzaSy..." autocomplete="off">
+        <div class="small text-muted">ดึงจาก <a href="https://aistudio.google.com/apikey" target="_blank">aistudio.google.com/apikey</a></div>
+      </div>
+      <div class="col-md-6">
+        <label class="small fw-semibold mb-1">Anthropic Claude API Key</label>
+        <input type="password" id="claude-key" class="form-control form-control-sm" placeholder="sk-ant-..." autocomplete="off">
+        <div class="small text-muted">ดึงจาก <a href="https://console.anthropic.com/settings/keys" target="_blank">console.anthropic.com/settings/keys</a></div>
+      </div>
+    </div>
+    <button class="btn btn-sm btn-primary rounded-pill mt-2" onclick="saveKeys()">
+      <i class="bi bi-save"></i> Save keys (ใน localStorage)
+    </button>
+    <button class="btn btn-sm btn-outline-danger rounded-pill mt-2 ms-1" onclick="clearKeys()">
+      <i class="bi bi-trash"></i> Clear keys
+    </button>
+  </div>
+
+  <!-- Upload -->
+  <div class="api-key-row">
+    <h6 class="fw-bold mb-2"><i class="bi bi-cloud-upload-fill text-success me-1"></i> Upload ID Card Image</h6>
+    <div class="drop-zone" id="dropZone" onclick="document.getElementById('fileInput').click()">
+      <input type="file" id="fileInput" accept="image/*" style="display:none;" onchange="handleFileSelect(event)">
+      <div id="dropPlaceholder">
+        <i class="bi bi-image fs-2 text-muted"></i>
+        <div class="mt-2 text-muted">คลิกเพื่อเลือกรูปบัตรประชาชน</div>
+      </div>
+      <img id="previewImg" class="preview-img" style="display:none;">
+    </div>
+    <div class="text-center mt-3">
+      <button id="runBtn" class="btn btn-success btn-lg rounded-pill px-4" onclick="runCompare()" disabled>
+        <i class="bi bi-play-fill"></i> รัน OCR ทั้ง 3 ตัวพร้อมกัน
+      </button>
+    </div>
+  </div>
+
+  <!-- Results side-by-side (4-way) -->
+  <div class="row g-3 mt-3">
+    <div class="col-lg-3 col-md-6">
+      <div class="model-col gemini">
+        <div class="model-header">
+          <span><span class="badge badge-gemini">Gemini 2.5 Flash</span><div class="small text-muted">~0.04฿/scan</div></span>
+          <span class="small" id="gemini-timing"></span>
+        </div>
+        <div id="gemini-body"><div class="text-muted small">กดรันเพื่อดูผล</div></div>
+      </div>
+    </div>
+    <div class="col-lg-3 col-md-6">
+      <div class="model-col haiku">
+        <div class="model-header">
+          <span><span class="badge badge-haiku">Claude Haiku 4.5</span><div class="small text-muted">~0.12฿/scan</div></span>
+          <span class="small" id="haiku-timing"></span>
+        </div>
+        <div id="haiku-body"><div class="text-muted small">กดรันเพื่อดูผล</div></div>
+      </div>
+    </div>
+    <div class="col-lg-3 col-md-6">
+      <div class="model-col sonnet">
+        <div class="model-header">
+          <span><span class="badge badge-sonnet">Claude Sonnet 4.5</span><div class="small text-muted">~0.36฿/scan</div></span>
+          <span class="small" id="sonnet-timing"></span>
+        </div>
+        <div id="sonnet-body"><div class="text-muted small">กดรันเพื่อดูผล</div></div>
+      </div>
+    </div>
+    <div class="col-lg-3 col-md-6">
+      <div class="model-col opus">
+        <div class="model-header">
+          <span><span class="badge badge-opus">Claude Opus 4.7 💎</span><div class="small text-muted">~1.80฿/scan</div></span>
+          <span class="small" id="opus-timing"></span>
+        </div>
+        <div id="opus-body"><div class="text-muted small">กดรันเพื่อดูผล</div></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="text-center text-muted small mt-4 pb-4">
+    เปรียบเทียบแบบ single-run — รันหลายรอบได้เพื่อดู consistency
+  </div>
+
+</div>
+
+<script>
+// =============================================================
+// Keys management (localStorage)
+// =============================================================
+var GK = 'test_gemini_key', CK = 'test_claude_key';
+function loadKeys() {
+  document.getElementById('gemini-key').value = localStorage.getItem(GK) || '';
+  document.getElementById('claude-key').value = localStorage.getItem(CK) || '';
+}
+function saveKeys() {
+  localStorage.setItem(GK, document.getElementById('gemini-key').value.trim());
+  localStorage.setItem(CK, document.getElementById('claude-key').value.trim());
+  alert('บันทึก keys แล้ว (เฉพาะใน browser ของคุณ)');
+}
+function clearKeys() {
+  if (!confirm('Clear keys ทั้ง 2 ตัว?')) return;
+  localStorage.removeItem(GK);
+  localStorage.removeItem(CK);
+  document.getElementById('gemini-key').value = '';
+  document.getElementById('claude-key').value = '';
+}
+
+// =============================================================
+// Image upload
+// =============================================================
+var _imageBase64 = null;
+var _imageMime = 'image/jpeg';
+
+function handleFileSelect(e) {
+  var file = e.target.files[0];
+  if (!file) return;
+  _imageMime = file.type || 'image/jpeg';
+  var reader = new FileReader();
+  reader.onload = function(ev) {
+    var dataUrl = ev.target.result;
+    _imageBase64 = dataUrl.split(',')[1];
+    document.getElementById('previewImg').src = dataUrl;
+    document.getElementById('previewImg').style.display = '';
+    document.getElementById('dropPlaceholder').style.display = 'none';
+    document.getElementById('dropZone').classList.add('has-image');
+    document.getElementById('runBtn').disabled = false;
+  };
+  reader.readAsDataURL(file);
+}
+
+// =============================================================
+// Prompt (same as transport/index.html)
+// =============================================================
+var PROMPT = 'You are a highly accurate OCR assistant for Thai National ID cards.\n\n' +
+  'CRITICAL RULES:\n' +
+  '1. Thai ID cards show BOTH Thai and English names. USE THE ENGLISH as cross-check for Thai reading.\n' +
+  '2. Confusing Thai chars: ฐ/รู้, ฑ/ฌ, ธ/ท/พ, ฆ/ม, ฉ/ณ, ษ/ห. Match English transliteration when in doubt.\n' +
+  '3. If English says "Dhitivara", Thai must start with ฐ/ฑ/ธ/ฒ — NOT รู้.\n' +
+  '4. Return ONLY valid JSON matching the schema. Empty string "" for unreadable fields.\n' +
+  '5. birthDate/issueDate/expiryDate: convert Thai Buddhist Era (พ.ศ.) to Gregorian (ค.ศ.) by subtracting 543.\n' +
+  '6. idCard: 13 digits only, strip dashes and spaces.\n\n' +
+  'Accuracy is critical — this data enters medical records.';
+
+var SCHEMA = {
+  idCard: '', nameTh: '', nameEn: '', birthDate: '',
+  address: '', religion: '', issueDate: '', expiryDate: ''
+};
+
+var PROMPT_WITH_SCHEMA = PROMPT +
+  '\n\nReturn JSON with this exact schema:\n' + JSON.stringify(SCHEMA, null, 2);
+
+// =============================================================
+// Gemini call (direct from browser)
+// =============================================================
+async function callGemini(apiKey, base64, mime) {
+  var url = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=' + encodeURIComponent(apiKey);
+  var body = {
+    contents: [{
+      parts: [
+        { inlineData: { mimeType: mime, data: base64 } },
+        { text: PROMPT_WITH_SCHEMA }
+      ]
+    }],
+    generationConfig: { responseMimeType: 'application/json' }
+  };
+  var resp = await fetch(url, { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify(body) });
+  var data = await resp.json();
+  if (!resp.ok) throw new Error(JSON.stringify(data));
+  var text = ((data.candidates || [])[0] || {}).content;
+  var parts = (text && text.parts) || [];
+  var raw = (parts[0] && parts[0].text) || '{}';
+  return { parsed: tryParse(raw), raw: raw };
+}
+
+// =============================================================
+// Claude call (direct from browser with dangerous-direct-browser-access)
+// =============================================================
+async function callClaude(apiKey, model, base64, mime) {
+  var body = {
+    model: model,
+    max_tokens: 1024,
+    messages: [{
+      role: 'user',
+      content: [
+        { type: 'image', source: { type: 'base64', media_type: mime, data: base64 } },
+        { type: 'text', text: PROMPT_WITH_SCHEMA + '\n\nReturn ONLY the JSON object, no markdown, no explanation.' }
+      ]
+    }]
+  };
+  var resp = await fetch('https://api.anthropic.com/v1/messages', {
+    method: 'POST',
+    headers: {
+      'x-api-key': apiKey,
+      'anthropic-version': '2023-06-01',
+      'anthropic-dangerous-direct-browser-access': 'true',
+      'content-type': 'application/json'
+    },
+    body: JSON.stringify(body)
+  });
+  var data = await resp.json();
+  if (!resp.ok) throw new Error(JSON.stringify(data));
+  var text = ((data.content || [])[0] || {}).text || '{}';
+  return { parsed: tryParse(text), raw: text };
+}
+
+function tryParse(str) {
+  // Strip markdown code fence if present
+  var cleaned = String(str || '').trim();
+  cleaned = cleaned.replace(/^```(?:json)?\s*/i, '').replace(/```\s*$/, '');
+  try { return JSON.parse(cleaned); } catch(e) { return { _parse_error: e.message, _raw: cleaned }; }
+}
+
+// =============================================================
+// Run all 3 in parallel
+// =============================================================
+async function runCompare() {
+  var gKey = (document.getElementById('gemini-key').value || '').trim();
+  var cKey = (document.getElementById('claude-key').value || '').trim();
+  if (!_imageBase64) return alert('กรุณาอัพโหลดรูปก่อน');
+  if (!gKey && !cKey) return alert('กรุณาใส่ API key อย่างน้อย 1 ตัว');
+
+  var runBtn = document.getElementById('runBtn');
+  runBtn.disabled = true;
+  runBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> กำลังรัน...';
+
+  // Reset UI
+  ['gemini', 'haiku', 'sonnet', 'opus'].forEach(function(m) {
+    document.getElementById(m + '-body').innerHTML = '<div class="loader"></div>';
+    document.getElementById(m + '-timing').textContent = '';
+  });
+
+  // Kick off all 4 in parallel
+  var promises = [
+    gKey ? runOne('gemini', function() { return callGemini(gKey, _imageBase64, _imageMime); })
+         : markSkipped('gemini', 'ไม่มี Gemini key'),
+    cKey ? runOne('haiku', function() { return callClaude(cKey, 'claude-haiku-4-5', _imageBase64, _imageMime); })
+         : markSkipped('haiku', 'ไม่มี Claude key'),
+    cKey ? runOne('sonnet', function() { return callClaude(cKey, 'claude-sonnet-4-5', _imageBase64, _imageMime); })
+         : markSkipped('sonnet', 'ไม่มี Claude key'),
+    cKey ? runOne('opus', function() { return callClaude(cKey, 'claude-opus-4-7', _imageBase64, _imageMime); })
+         : markSkipped('opus', 'ไม่มี Claude key')
+  ];
+
+  await Promise.allSettled(promises);
+
+  runBtn.disabled = false;
+  runBtn.innerHTML = '<i class="bi bi-arrow-clockwise"></i> รันใหม่';
+  highlightDiffs();
+}
+
+async function runOne(modelKey, callFn) {
+  var t0 = performance.now();
+  try {
+    var result = await callFn();
+    var ms = Math.round(performance.now() - t0);
+    document.getElementById(modelKey + '-timing').innerHTML =
+      '<span class="badge bg-secondary">' + ms + ' ms</span>';
+    renderResult(modelKey, result.parsed, result.raw);
+  } catch (err) {
+    document.getElementById(modelKey + '-timing').innerHTML =
+      '<span class="badge bg-danger">ERROR</span>';
+    document.getElementById(modelKey + '-body').innerHTML =
+      '<div class="error-box"><b>Error:</b><br>' + escapeHtml(String(err.message || err)).substring(0, 500) + '</div>';
+  }
+}
+
+function markSkipped(modelKey, msg) {
+  document.getElementById(modelKey + '-body').innerHTML =
+    '<div class="text-muted small text-center py-4">' + escapeHtml(msg) + '</div>';
+  document.getElementById(modelKey + '-timing').innerHTML = '<span class="badge bg-light text-muted">skipped</span>';
+  return Promise.resolve();
+}
+
+// =============================================================
+// Render
+// =============================================================
+var FIELD_LABELS = {
+  idCard: 'เลขบัตร ปชช.',
+  nameTh: 'ชื่อ (ไทย)',
+  nameEn: 'ชื่อ (English)',
+  birthDate: 'วันเกิด',
+  address: 'ที่อยู่',
+  religion: 'ศาสนา',
+  issueDate: 'วันออกบัตร',
+  expiryDate: 'วันหมดอายุ'
+};
+
+function renderResult(modelKey, parsed, raw) {
+  var html = '';
+  Object.keys(FIELD_LABELS).forEach(function(key) {
+    var val = parsed[key];
+    var isEmpty = !val || val === '';
+    html += '<div class="result-field" data-field="' + key + '" data-model="' + modelKey + '">' +
+      '<div class="label">' + FIELD_LABELS[key] + '</div>' +
+      '<div class="value ' + (isEmpty ? 'empty' : '') + '">' + (isEmpty ? '(ว่าง)' : escapeHtml(val)) + '</div>' +
+    '</div>';
+  });
+
+  // Raw output toggle
+  html += '<div class="raw-toggle">' +
+    '<a href="#" onclick="toggleRaw(\'' + modelKey + '\');return false;" class="small text-muted">' +
+    '<i class="bi bi-code"></i> Show raw output</a></div>' +
+    '<div id="' + modelKey + '-raw" class="raw-box" style="display:none; margin-top:4px;">' +
+    escapeHtml(raw) +
+    '</div>';
+
+  if (parsed._parse_error) {
+    html = '<div class="error-box"><b>JSON parse error:</b> ' + parsed._parse_error + '</div>' + html;
+  }
+
+  document.getElementById(modelKey + '-body').innerHTML = html;
+}
+
+function toggleRaw(modelKey) {
+  var el = document.getElementById(modelKey + '-raw');
+  el.style.display = el.style.display === 'none' ? '' : 'none';
+}
+
+// Highlight fields where values differ between models
+function highlightDiffs() {
+  var models = ['gemini', 'haiku', 'sonnet', 'opus'];
+  Object.keys(FIELD_LABELS).forEach(function(key) {
+    var vals = models.map(function(m) {
+      var el = document.querySelector('[data-model="' + m + '"][data-field="' + key + '"] .value');
+      return el ? el.textContent.trim() : null;
+    }).filter(function(v) { return v != null && v !== '(ว่าง)'; });
+    var unique = [...new Set(vals)];
+    if (unique.length > 1) {
+      models.forEach(function(m) {
+        var el = document.querySelector('[data-model="' + m + '"][data-field="' + key + '"] .value');
+        if (el) el.classList.add('diff');
+      });
+    }
+  });
+}
+
+function escapeHtml(s) {
+  return String(s == null ? '' : s)
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+}
+
+// Boot
+loadKeys();
+</script>
+</body>
+</html>
