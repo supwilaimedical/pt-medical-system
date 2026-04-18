@@ -1,0 +1,1466 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<title>Admin Preview — PT Medical System</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="color-scheme" content="light">
+<link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+<style>
+  :root {
+    --bg: #fafafa;
+    --surface: #ffffff;
+    --surface-2: #f6f8fa;
+    --border: #e5e7eb;
+    --border-soft: #f1f3f5;
+    --text: #1f2328;
+    --text-2: #57606a;
+    --text-3: #8c959f;
+    --accent: #1e3a5f;
+    --accent-hover: #254970;
+    --success: #16a34a;
+    --warning: #d97706;
+    --danger: #dc2626;
+    --info: #0284c7;
+    --shadow-sm: 0 1px 2px rgba(16, 24, 40, 0.04);
+    --shadow-md: 0 2px 8px rgba(16, 24, 40, 0.06);
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    font-family: 'Sarabun', 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    font-size: 14px;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* ===== LAYOUT ===== */
+  .admin-shell { display: flex; min-height: 100vh; }
+
+  /* Top bar (mobile only) */
+  .admin-topbar {
+    display: none;
+    position: sticky; top: 0; z-index: 50;
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    padding: 10px 14px;
+    align-items: center;
+    gap: 10px;
+  }
+  .admin-topbar .burger {
+    background: transparent; border: 1px solid var(--border);
+    border-radius: 8px; padding: 6px 10px; cursor: pointer;
+    color: var(--text);
+  }
+  .admin-topbar .title { font-weight: 600; font-size: 15px; }
+
+  /* Sidebar */
+  .admin-sidebar {
+    width: 260px;
+    flex-shrink: 0;
+    background: var(--surface);
+    border-right: 1px solid var(--border);
+    padding: 20px 12px;
+    position: sticky; top: 0; height: 100vh;
+    overflow-y: auto;
+  }
+  .sidebar-brand {
+    display: flex; align-items: center; gap: 10px;
+    padding: 0 8px 18px 8px;
+    border-bottom: 1px solid var(--border-soft);
+    margin-bottom: 14px;
+  }
+  .sidebar-brand .brand-icon {
+    width: 32px; height: 32px; border-radius: 8px;
+    background: linear-gradient(135deg, #1e3a5f, #2563eb);
+    display: flex; align-items: center; justify-content: center;
+    color: white; font-size: 16px;
+  }
+  .sidebar-brand .brand-name { font-weight: 700; font-size: 14px; }
+  .sidebar-brand .brand-sub { font-size: 11px; color: var(--text-3); }
+
+  .sidebar-group { margin-bottom: 16px; }
+  .sidebar-group-title {
+    font-size: 10.5px; font-weight: 600;
+    color: var(--text-3);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    padding: 0 10px;
+    margin-bottom: 4px;
+  }
+  .sidebar-item {
+    display: flex; align-items: center; gap: 10px;
+    padding: 7px 10px;
+    border-radius: 6px;
+    color: var(--text-2);
+    font-size: 13.5px;
+    cursor: pointer;
+    transition: background 0.12s, color 0.12s;
+    text-decoration: none;
+    position: relative;
+  }
+  .sidebar-item:hover { background: var(--surface-2); color: var(--text); }
+  .sidebar-item.active {
+    background: var(--surface-2);
+    color: var(--text);
+    font-weight: 500;
+  }
+  .sidebar-item.active::before {
+    content: ''; position: absolute; left: 0; top: 6px; bottom: 6px;
+    width: 3px; background: var(--accent); border-radius: 0 3px 3px 0;
+  }
+  .sidebar-item i { font-size: 15px; width: 18px; color: var(--text-3); }
+  .sidebar-item.active i { color: var(--accent); }
+
+  .sidebar-footer {
+    position: sticky; bottom: 0;
+    padding: 12px 8px 0;
+    border-top: 1px solid var(--border-soft);
+    margin-top: 20px;
+    background: var(--surface);
+  }
+  .sidebar-back {
+    display: flex; align-items: center; gap: 8px;
+    padding: 8px 10px;
+    border-radius: 6px;
+    color: var(--text-2);
+    font-size: 13px;
+    text-decoration: none;
+  }
+  .sidebar-back:hover { background: var(--surface-2); color: var(--text); }
+
+  /* Main content */
+  .admin-main { flex: 1; min-width: 0; }
+  .admin-content {
+    max-width: 860px;
+    margin: 0 auto;
+    padding: 28px 32px 60px;
+  }
+
+  /* Page header */
+  .page-header { margin-bottom: 28px; }
+  .page-header h1 {
+    font-size: 22px; font-weight: 700;
+    margin: 0 0 4px; color: var(--text);
+  }
+  .page-header p {
+    font-size: 13.5px; color: var(--text-2);
+    margin: 0;
+  }
+
+  /* Section */
+  .settings-section {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    margin-bottom: 20px;
+    overflow: hidden;
+  }
+  .section-header {
+    padding: 18px 22px 14px;
+    border-bottom: 1px solid var(--border-soft);
+  }
+  .section-header h2 {
+    font-size: 15px; font-weight: 600;
+    margin: 0 0 3px; color: var(--text);
+    display: flex; align-items: center; gap: 8px;
+  }
+  .section-header h2 i { color: var(--accent); font-size: 16px; }
+  .section-header p {
+    font-size: 12.5px; color: var(--text-2);
+    margin: 0;
+  }
+  .section-body { padding: 20px 22px; }
+  .section-body.compact { padding: 16px 22px; }
+
+  /* Form row (Supabase-style grid: label+desc left, input right) */
+  .form-row {
+    display: grid;
+    grid-template-columns: 1fr 1.5fr;
+    gap: 24px;
+    padding: 16px 0;
+    border-bottom: 1px solid var(--border-soft);
+    align-items: start;
+  }
+  .form-row:last-child { border-bottom: none; padding-bottom: 0; }
+  .form-row:first-child { padding-top: 0; }
+  .form-row-label { font-size: 13.5px; font-weight: 500; color: var(--text); margin-bottom: 4px; }
+  .form-row-desc { font-size: 12.5px; color: var(--text-2); line-height: 1.5; }
+  .form-row-input { min-width: 0; }
+
+  /* Inputs */
+  .input, .select {
+    width: 100%;
+    padding: 7px 11px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    font-family: inherit;
+    font-size: 13.5px;
+    color: var(--text);
+    transition: border-color 0.12s, box-shadow 0.12s;
+  }
+  .input:focus, .select:focus {
+    outline: none;
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(30, 58, 95, 0.1);
+  }
+  .input[readonly] { background: var(--surface-2); color: var(--text-2); cursor: not-allowed; }
+  .input-help { font-size: 11.5px; color: var(--text-3); margin-top: 5px; }
+  .input-group-inline { display: flex; gap: 8px; }
+  .input-group-inline .input { flex: 1; }
+
+  /* Buttons */
+  .btn {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 6px 14px;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    border-radius: 6px;
+    font-family: inherit;
+    font-size: 13px; font-weight: 500;
+    color: var(--text);
+    cursor: pointer;
+    transition: all 0.12s;
+  }
+  .btn:hover { background: var(--surface-2); }
+  .btn-primary { background: var(--accent); color: white; border-color: var(--accent); }
+  .btn-primary:hover { background: var(--accent-hover); border-color: var(--accent-hover); }
+  .btn-danger { background: var(--danger); color: white; border-color: var(--danger); }
+  .btn-danger:hover { background: #b91c1c; border-color: #b91c1c; }
+  .btn-sm { padding: 4px 10px; font-size: 12px; }
+  .btn-icon { padding: 6px 8px; }
+
+  /* Toggle */
+  .toggle { display: inline-flex; align-items: center; cursor: pointer; }
+  .toggle input { display: none; }
+  .toggle-track {
+    width: 36px; height: 20px;
+    background: #d1d5db;
+    border-radius: 20px; position: relative;
+    transition: background 0.15s;
+  }
+  .toggle-track::after {
+    content: ''; position: absolute; top: 2px; left: 2px;
+    width: 16px; height: 16px;
+    background: white; border-radius: 50%;
+    transition: transform 0.15s;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+  }
+  .toggle input:checked + .toggle-track { background: var(--accent); }
+  .toggle input:checked + .toggle-track::after { transform: translateX(16px); }
+
+  /* Badge */
+  .badge {
+    display: inline-flex; align-items: center; gap: 4px;
+    padding: 2px 8px;
+    font-size: 11px; font-weight: 500;
+    border-radius: 10px;
+    border: 1px solid transparent;
+  }
+  .badge-success { background: #ecfdf5; color: #047857; border-color: #a7f3d0; }
+  .badge-warning { background: #fffbeb; color: #b45309; border-color: #fcd34d; }
+  .badge-danger  { background: #fef2f2; color: #b91c1c; border-color: #fecaca; }
+  .badge-info    { background: #eff6ff; color: #0369a1; border-color: #bae6fd; }
+  .badge-muted   { background: var(--surface-2); color: var(--text-2); border-color: var(--border); }
+
+  /* Status row */
+  .status-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 10px;
+  }
+  .status-card {
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 10px 12px;
+    display: flex; align-items: center; gap: 10px;
+    background: var(--surface);
+  }
+  .status-dot {
+    width: 8px; height: 8px; border-radius: 50%;
+    background: #94a3b8;
+    flex-shrink: 0;
+  }
+  .status-dot.ok { background: var(--success); }
+  .status-dot.fail { background: var(--danger); }
+  .status-card .s-name { font-size: 12.5px; font-weight: 600; color: var(--text); }
+  .status-card .s-detail { font-size: 11px; color: var(--text-3); }
+
+  /* Alert */
+  .alert-box {
+    border: 1px solid; border-radius: 8px;
+    padding: 12px 14px;
+    font-size: 12.5px;
+    display: flex; gap: 10px;
+  }
+  .alert-warning { background: #fffbeb; border-color: #fcd34d; color: #92400e; }
+  .alert-danger  { background: #fef2f2; border-color: #fecaca; color: #991b1b; }
+  .alert-info    { background: #eff6ff; border-color: #bae6fd; color: #075985; }
+
+  /* Overview — Hero banner */
+  .ov-hero {
+    position: relative;
+    background: linear-gradient(135deg, #1e3a5f 0%, #2563eb 100%);
+    color: white;
+    border-radius: 10px;
+    overflow: hidden;
+    margin-bottom: 18px;
+  }
+  .ov-hero-accent {
+    position: absolute; top: 0; right: 0; bottom: 0; width: 4px;
+    background: linear-gradient(180deg, #dc2626, #ef4444);
+  }
+  .ov-hero-body { padding: 22px 24px; }
+  .ov-hero-head {
+    display: flex; justify-content: space-between; align-items: center;
+    flex-wrap: wrap; gap: 10px; margin-bottom: 6px;
+  }
+  .ov-hero-head h2 { font-size: 19px; font-weight: 700; margin: 0; }
+  .ov-hero-head h2 i { margin-right: 6px; }
+  .ov-version {
+    background: white; color: var(--accent);
+    font-size: 12.5px; font-weight: 600;
+    padding: 5px 12px; border-radius: 20px;
+    box-shadow: var(--shadow-sm);
+  }
+  .ov-hero-sub { font-size: 13px; opacity: 0.88; margin: 0 0 14px; }
+  .ov-hero-tags { display: flex; flex-wrap: wrap; gap: 6px; }
+  .ov-tag {
+    background: rgba(255,255,255,0.95); color: var(--text);
+    padding: 4px 10px; border-radius: 14px;
+    font-size: 11.5px; font-weight: 500;
+    display: inline-flex; align-items: center; gap: 5px;
+  }
+
+  /* Overview — Stats */
+  .ov-stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 12px;
+    margin-bottom: 20px;
+  }
+  .ov-stat {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 14px 16px;
+  }
+  .ov-stat-head {
+    display: flex; justify-content: space-between; align-items: center;
+    font-size: 12px; color: var(--text-2); font-weight: 600;
+    margin-bottom: 6px;
+  }
+  .ov-stat-num {
+    font-size: 26px; font-weight: 700; color: var(--accent);
+    font-variant-numeric: tabular-nums;
+  }
+  .ov-stat-sub { font-size: 11.5px; color: var(--text-3); margin-top: 2px; }
+
+  /* Overview — Modules */
+  .ov-modules {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 10px;
+  }
+  .ov-module {
+    background: var(--mod-bg);
+    border-left: 3px solid var(--mod-c);
+    border-radius: 8px;
+    padding: 12px 14px;
+    display: flex; gap: 12px; align-items: flex-start;
+  }
+  .ov-module i { color: var(--mod-c); font-size: 22px; flex-shrink: 0; margin-top: 1px; }
+  .ov-m-name { font-weight: 600; font-size: 13.5px; margin-bottom: 3px; }
+  .ov-m-desc { font-size: 12px; color: var(--text-2); line-height: 1.55; }
+
+  /* Overview — Stack / Features */
+  .ov-stack {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 24px;
+  }
+  .ov-stack-title {
+    font-size: 10.5px; font-weight: 600; letter-spacing: 0.08em;
+    text-transform: uppercase; color: var(--text-3);
+    margin-bottom: 8px;
+  }
+  .ov-stack-list {
+    list-style: none; padding: 0; margin: 0;
+    font-size: 12.5px; color: var(--text);
+  }
+  .ov-stack-list li { padding: 4px 0; display: flex; align-items: start; gap: 8px; }
+  .ov-stack-list li i { flex-shrink: 0; font-size: 14px; margin-top: 2px; }
+
+  /* Overview — Documentation */
+  .ov-docs {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 10px;
+  }
+  .ov-doc {
+    display: flex; align-items: center; gap: 12px;
+    padding: 12px 14px;
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--doc-c);
+    border-radius: 8px;
+    text-decoration: none;
+    color: var(--text);
+    background: var(--surface);
+    transition: background 0.12s, transform 0.1s;
+  }
+  .ov-doc:hover { background: var(--surface-2); transform: translateX(2px); }
+  .ov-doc i { color: var(--doc-c); font-size: 20px; flex-shrink: 0; }
+  .ov-doc-title { font-weight: 600; font-size: 13px; }
+  .ov-doc-sub { font-size: 11.5px; color: var(--text-3); margin-top: 1px; }
+
+  /* Documentation cards */
+  .docs-list { display: flex; flex-direction: column; gap: 10px; }
+  .doc-card {
+    display: flex; align-items: flex-start; gap: 14px;
+    padding: 14px 16px;
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--doc-c);
+    border-radius: 8px;
+    text-decoration: none;
+    color: var(--text);
+    background: var(--surface);
+    transition: all 0.15s;
+    position: relative;
+  }
+  .doc-card:hover {
+    background: var(--surface-2);
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-md);
+  }
+  .doc-card-icon {
+    width: 40px; height: 40px;
+    border-radius: 8px;
+    background: color-mix(in srgb, var(--doc-c) 10%, white);
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+  }
+  .doc-card-icon i { color: var(--doc-c); font-size: 20px; }
+  .doc-card-body { flex: 1; min-width: 0; }
+  .doc-card-head {
+    display: flex; align-items: center; gap: 8px;
+    margin-bottom: 4px;
+    flex-wrap: wrap;
+  }
+  .doc-card-title { font-weight: 600; font-size: 13.5px; }
+  .doc-card-desc { font-size: 12.5px; color: var(--text-2); line-height: 1.5; margin-bottom: 6px; }
+  .doc-card-meta {
+    display: flex; gap: 12px; flex-wrap: wrap;
+    font-size: 11.5px; color: var(--text-3);
+  }
+  .doc-card-meta span { display: inline-flex; align-items: center; gap: 4px; }
+  .doc-card-arrow { color: var(--text-3); font-size: 14px; align-self: center; flex-shrink: 0; }
+  .doc-card:hover .doc-card-arrow { color: var(--doc-c); }
+
+  /* Proxy card */
+  .proxy-card {
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 14px 16px;
+    margin-bottom: 10px;
+    background: var(--surface);
+  }
+  .proxy-card-head {
+    display: flex; justify-content: space-between; align-items: center;
+    gap: 12px;
+  }
+  .proxy-card-title {
+    display: flex; align-items: center; gap: 8px;
+    font-weight: 600; font-size: 14px;
+  }
+
+  /* Logo zone */
+  .logo-zone {
+    border: 2px dashed var(--border);
+    border-radius: 8px;
+    padding: 20px;
+    text-align: center;
+    background: var(--surface-2);
+    transition: border-color 0.12s;
+    cursor: pointer;
+  }
+  .logo-zone:hover { border-color: var(--accent); }
+  .logo-zone i { font-size: 24px; color: var(--text-3); display: block; margin-bottom: 4px; }
+  .logo-zone .lz-text { font-size: 12px; color: var(--text-2); }
+
+  /* Responsive */
+  @media (max-width: 1024px) {
+    .form-row { grid-template-columns: 1fr; gap: 8px; }
+  }
+  @media (max-width: 768px) {
+    .admin-topbar { display: flex; }
+    .admin-sidebar {
+      position: fixed; top: 0; left: 0; bottom: 0;
+      width: 280px; z-index: 100;
+      transform: translateX(-100%);
+      transition: transform 0.22s ease;
+      box-shadow: 2px 0 16px rgba(0,0,0,0.08);
+    }
+    .admin-sidebar.open { transform: translateX(0); }
+    .sidebar-backdrop {
+      display: none;
+      position: fixed; inset: 0;
+      background: rgba(0,0,0,0.35); z-index: 99;
+    }
+    .sidebar-backdrop.open { display: block; }
+    .admin-content { padding: 20px 18px 60px; }
+    .page-header h1 { font-size: 19px; }
+    .section-body, .section-header { padding-left: 16px; padding-right: 16px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="admin-shell">
+
+  <!-- Sidebar backdrop (mobile) -->
+  <div class="sidebar-backdrop" id="backdrop" onclick="closeSidebar()"></div>
+
+  <!-- ========== SIDEBAR ========== -->
+  <aside class="admin-sidebar" id="sidebar">
+    <div class="sidebar-brand">
+      <div class="brand-icon"><i class="bi bi-gear-fill"></i></div>
+      <div>
+        <div class="brand-name">Admin Settings</div>
+        <div class="brand-sub">Supwilai Medical Co.,Ltd.</div>
+      </div>
+    </div>
+
+    <nav>
+      <div class="sidebar-group">
+        <div class="sidebar-group-title">General</div>
+        <a class="sidebar-item active" onclick="showSection('organization', this)"><i class="bi bi-building"></i> Organization</a>
+        <a class="sidebar-item" onclick="showSection('branding', this)"><i class="bi bi-palette"></i> Branding</a>
+      </div>
+
+      <div class="sidebar-group">
+        <div class="sidebar-group-title">Services</div>
+        <a class="sidebar-item" onclick="showSection('gps', this)"><i class="bi bi-broadcast"></i> GPS Tracking</a>
+        <a class="sidebar-item" onclick="showSection('ocr', this)"><i class="bi bi-file-text"></i> OCR</a>
+        <a class="sidebar-item" onclick="showSection('integrations', this)"><i class="bi bi-plug"></i> Integrations</a>
+      </div>
+
+      <div class="sidebar-group">
+        <div class="sidebar-group-title">Security</div>
+        <a class="sidebar-item" onclick="showSection('sessions', this)"><i class="bi bi-shield-lock"></i> Sessions</a>
+      </div>
+
+      <div class="sidebar-group">
+        <div class="sidebar-group-title">Analytics</div>
+        <a class="sidebar-item" onclick="showSection('stats', this)"><i class="bi bi-bar-chart"></i> Statistics</a>
+        <a class="sidebar-item" onclick="showSection('activity', this)"><i class="bi bi-clock-history"></i> Activity Log</a>
+        <a class="sidebar-item" onclick="showSection('overview', this)"><i class="bi bi-grid-1x2"></i> Overview</a>
+      </div>
+
+      <div class="sidebar-group">
+        <div class="sidebar-group-title">Help</div>
+        <a class="sidebar-item" onclick="showSection('docs', this)"><i class="bi bi-journals"></i> Documentation</a>
+      </div>
+    </nav>
+
+    <div class="sidebar-footer">
+      <a class="sidebar-back" href="#"><i class="bi bi-arrow-left"></i> กลับหน้าเลือกระบบ</a>
+    </div>
+  </aside>
+
+  <!-- ========== MAIN ========== -->
+  <main class="admin-main">
+    <div class="admin-topbar">
+      <button class="burger" onclick="openSidebar()"><i class="bi bi-list"></i></button>
+      <div class="title" id="topbar-title">Organization</div>
+    </div>
+
+    <div class="admin-content">
+
+      <!-- ===== ORGANIZATION ===== -->
+      <div class="admin-section" id="sec-organization">
+        <div class="page-header">
+          <h1>Organization</h1>
+          <p>ข้อมูลบริษัท/หน่วยงาน แสดงที่ landing page และเอกสารพิมพ์</p>
+        </div>
+
+        <div class="settings-section">
+          <div class="section-header">
+            <h2><i class="bi bi-building"></i> ข้อมูลองค์กร</h2>
+            <p>ใช้แสดงที่หน้า Landing, เอกสารพิมพ์, และ header ของทุก module</p>
+          </div>
+          <div class="section-body">
+            <div class="form-row">
+              <div>
+                <div class="form-row-label">ชื่อบริษัท</div>
+                <div class="form-row-desc">แสดงที่ landing page และเอกสารพิมพ์</div>
+              </div>
+              <div class="form-row-input">
+                <input class="input" value="Supwilai Medical Co.,Ltd." placeholder="ชื่อบริษัท / หน่วยงาน">
+              </div>
+            </div>
+            <div class="form-row">
+              <div>
+                <div class="form-row-label">ข้อมูลติดต่อ</div>
+                <div class="form-row-desc">เบอร์โทร / ที่อยู่ / อีเมล — แสดงที่ footer</div>
+              </div>
+              <div class="form-row-input">
+                <input class="input" value="" placeholder="02-xxx-xxxx / contact@example.com">
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="settings-section">
+          <div class="section-header">
+            <h2><i class="bi bi-printer"></i> การพิมพ์เอกสาร</h2>
+            <p>หัวกระดาษที่แสดงด้านบนของเอกสาร Patient Transport เมื่อสั่งพิมพ์</p>
+          </div>
+          <div class="section-body">
+            <div class="form-row">
+              <div>
+                <div class="form-row-label">หัวกระดาษ</div>
+                <div class="form-row-desc">ข้อความบรรทัดบนสุดของเอกสารพิมพ์</div>
+              </div>
+              <div class="form-row-input">
+                <input class="input" value="บริษัท ทรัพย์วิไลเมดิคอล จำกัด" placeholder="หัวกระดาษ...">
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ===== BRANDING ===== -->
+      <div class="admin-section" id="sec-branding" style="display:none;">
+        <div class="page-header">
+          <h1>Branding</h1>
+          <p>โลโก้และการตั้งค่าการอัปโหลดรูปภาพ</p>
+        </div>
+
+        <div class="settings-section">
+          <div class="section-header">
+            <h2><i class="bi bi-image"></i> โลโก้แอป</h2>
+            <p>ใช้ที่ landing, navbar, และเอกสารพิมพ์</p>
+          </div>
+          <div class="section-body">
+            <div class="form-row">
+              <div>
+                <div class="form-row-label">URL โลโก้</div>
+                <div class="form-row-desc">ใส่ลิงก์ตรง หรืออัปโหลดไฟล์ด้านล่าง</div>
+              </div>
+              <div class="form-row-input">
+                <input class="input" value="https://res.cloudinary.com/deimrg3xs/image/upload/v1/pt-medical/logo.png">
+                <div class="input-help">ขนาดแนะนำ ≤ 150KB · จะบีบอัดอัตโนมัติเมื่ออัปโหลด</div>
+              </div>
+            </div>
+            <div class="form-row">
+              <div>
+                <div class="form-row-label">อัปโหลดไฟล์</div>
+                <div class="form-row-desc">PNG / JPG — จะบีบอัดก่อน upload</div>
+              </div>
+              <div class="form-row-input">
+                <div class="logo-zone">
+                  <i class="bi bi-cloud-arrow-up"></i>
+                  <div class="lz-text">คลิกหรือลากไฟล์มาวาง</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="settings-section">
+          <div class="section-header">
+            <h2><i class="bi bi-cloud-fill"></i> Cloudinary (Image CDN)</h2>
+            <p>ที่เก็บรูป consent, refer docs, และโลโก้ — เปลี่ยนได้ตามบริษัท</p>
+          </div>
+          <div class="section-body">
+            <div class="form-row">
+              <div>
+                <div class="form-row-label">Cloud Name</div>
+                <div class="form-row-desc">พบได้ใน Cloudinary Dashboard</div>
+              </div>
+              <div class="form-row-input">
+                <input class="input" value="deimrg3xs">
+              </div>
+            </div>
+            <div class="form-row">
+              <div>
+                <div class="form-row-label">Upload Preset</div>
+                <div class="form-row-desc">ต้องเป็น <strong>Unsigned preset</strong> ที่เปิดใน Settings → Upload</div>
+              </div>
+              <div class="form-row-input">
+                <input class="input" value="pt-medical">
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ===== GPS ===== -->
+      <div class="admin-section" id="sec-gps" style="display:none;">
+        <div class="page-header">
+          <h1>GPS Tracking</h1>
+          <p>ระบบติดตามรถ — รองรับหลาย provider + fallback chain</p>
+        </div>
+
+        <div class="settings-section">
+          <div class="section-header">
+            <h2><i class="bi bi-power"></i> เปิดใช้งาน</h2>
+            <p>เปิดเมื่อพร้อมใช้ — user จะเห็น GPS card ใน landing page</p>
+          </div>
+          <div class="section-body">
+            <div class="form-row">
+              <div>
+                <div class="form-row-label">สถานะ GPS Tracking</div>
+                <div class="form-row-desc">เปิด = module GPS แสดงในทุกระบบ</div>
+              </div>
+              <div class="form-row-input">
+                <label class="toggle"><input type="checkbox" checked><span class="toggle-track"></span></label>
+                <span style="margin-left:10px; font-size:13px; color:var(--text-2);">เปิดใช้งานแล้ว</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="settings-section">
+          <div class="section-header">
+            <h2><i class="bi bi-shield-check"></i> Proxy Chain</h2>
+            <p>ลำดับการเรียก GPS API (1° → 3°) — แต่ละตัวเปิด/ปิดได้อิสระ ถ้าตัวที่เปิดอยู่ fail จะข้ามไปตัวถัดไปอัตโนมัติ</p>
+          </div>
+          <div class="section-body">
+
+            <!-- Proxy Card: Synology -->
+            <div class="proxy-card">
+              <div class="proxy-card-head">
+                <div class="proxy-card-title">
+                  <i class="bi bi-hdd-rack" style="color:var(--accent);"></i>
+                  <span>Synology</span>
+                  <span class="badge badge-info">1° Primary</span>
+                </div>
+                <label class="toggle"><input type="checkbox" checked><span class="toggle-track"></span></label>
+              </div>
+              <div class="form-row-desc" style="margin:2px 0 8px;">Reverse proxy บน NAS — เร็วสุดเมื่อเปิดใช้</div>
+              <input class="input" value="https://staff.supwilai.com:8443" placeholder="https://...">
+              <div class="input-help">ปิด toggle = ข้าม Synology, ไปใช้ Render ก่อนเลย</div>
+            </div>
+
+            <!-- Proxy Card: Render -->
+            <div class="proxy-card">
+              <div class="proxy-card-head">
+                <div class="proxy-card-title">
+                  <i class="bi bi-cloud" style="color:var(--accent);"></i>
+                  <span>Render</span>
+                  <span class="badge badge-muted">2° Fallback</span>
+                </div>
+                <label class="toggle"><input type="checkbox" checked><span class="toggle-track"></span></label>
+              </div>
+              <div class="form-row-desc" style="margin:2px 0 8px;">Cloud proxy — ใช้เมื่อ Synology ไม่ตอบ</div>
+              <input class="input" value="https://gps-proxy-lpdq.onrender.com">
+              <div class="input-help"><i class="bi bi-info-circle"></i> ค่าเริ่มต้นจาก factory — เปลี่ยนได้ถ้ามี proxy ของตัวเอง</div>
+            </div>
+
+            <!-- Proxy Card: GAS -->
+            <div class="proxy-card">
+              <div class="proxy-card-head">
+                <div class="proxy-card-title">
+                  <i class="bi bi-google" style="color:var(--accent);"></i>
+                  <span>GAS</span>
+                  <span class="badge badge-muted">3° Last Resort</span>
+                </div>
+                <label class="toggle"><input type="checkbox"><span class="toggle-track"></span></label>
+              </div>
+              <div class="form-row-desc" style="margin:2px 0 8px;">Google Apps Script proxy — ช้าสุด แต่ฟรี 100%</div>
+              <input class="input" value="https://script.google.com/macros/s/.../exec">
+              <div class="input-help">ตัวอย่างนี้ปิดอยู่ — ไม่ว่า Synology+Render fail ก็จะ error ไม่ fallback ไป GAS</div>
+            </div>
+
+            <!-- Live Status -->
+            <div style="margin-top:18px; padding-top:16px; border-top:1px solid var(--border-soft);">
+              <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+                <div>
+                  <div class="form-row-label">Live Status</div>
+                  <div class="form-row-desc">latency ล่าสุดของทุก endpoint</div>
+                </div>
+                <button class="btn btn-sm"><i class="bi bi-arrow-clockwise"></i> ทดสอบใหม่</button>
+              </div>
+              <div class="status-grid">
+                <div class="status-card"><span class="status-dot ok"></span><div><div class="s-name">Synology</div><div class="s-detail">142 ms · OK</div></div></div>
+                <div class="status-card"><span class="status-dot ok"></span><div><div class="s-name">Render</div><div class="s-detail">388 ms · OK</div></div></div>
+                <div class="status-card"><span class="status-dot" style="background:#94a3b8;"></span><div><div class="s-name">GAS</div><div class="s-detail" style="color:var(--text-3);">ปิดอยู่</div></div></div>
+                <div class="status-card"><span class="status-dot ok"></span><div><div class="s-name">OCR (Gemini)</div><div class="s-detail">265 ms · OK</div></div></div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+        <div class="settings-section">
+          <div class="section-header">
+            <h2><i class="bi bi-hdd-network"></i> Providers</h2>
+            <p>Software + credentials สำหรับเชื่อมต่อ GPS server</p>
+          </div>
+          <div class="section-body">
+            <div style="display:flex; flex-direction:column; gap:8px;">
+              <div style="border:1px solid var(--border); border-radius:8px; padding:12px 14px; display:flex; align-items:center; gap:12px;">
+                <i class="bi bi-hdd" style="font-size:18px; color:var(--accent);"></i>
+                <div style="flex:1; min-width:0;">
+                  <div style="font-weight:600; font-size:13.5px;">CMSV6 ทรัพย์วิไล</div>
+                  <div style="font-size:12px; color:var(--text-3);">http://203.170.193.90 · 12 vehicles · synced 3 นาทีที่แล้ว</div>
+                </div>
+                <span class="badge badge-success">Connected</span>
+                <button class="btn btn-sm btn-icon"><i class="bi bi-pencil"></i></button>
+                <button class="btn btn-sm btn-icon"><i class="bi bi-trash" style="color:var(--danger);"></i></button>
+              </div>
+            </div>
+            <div style="margin-top:12px;">
+              <button class="btn btn-primary btn-sm"><i class="bi bi-plus-lg"></i> เพิ่ม Provider</button>
+              <button class="btn btn-sm" style="margin-left:6px;"><i class="bi bi-arrow-repeat"></i> Sync ทุก Provider</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="settings-section">
+          <div class="section-header">
+            <h2><i class="bi bi-map"></i> Map Provider</h2>
+            <p>แผนที่สำหรับหน้า GPS / Location / Monitor</p>
+          </div>
+          <div class="section-body">
+            <div class="form-row">
+              <div>
+                <div class="form-row-label">Provider</div>
+                <div class="form-row-desc">Leaflet = ฟรี · Google = ต้องมี API Key</div>
+              </div>
+              <div class="form-row-input">
+                <select class="select">
+                  <option>Leaflet (OpenStreetMap) — ฟรี</option>
+                  <option selected>Google Maps</option>
+                </select>
+              </div>
+            </div>
+            <div class="form-row">
+              <div>
+                <div class="form-row-label">Google Maps API Key</div>
+                <div class="form-row-desc">เปิด Maps JS / Places / Directions / Geocoding ใน GCP Console</div>
+              </div>
+              <div class="form-row-input">
+                <div class="input-group-inline">
+                  <input class="input" type="password" value="AIzaSy...">
+                  <button class="btn btn-sm btn-icon"><i class="bi bi-eye"></i></button>
+                  <button class="btn btn-sm">ทดสอบ</button>
+                </div>
+                <div class="input-help">
+                  <a href="#" style="color:var(--accent);">console.cloud.google.com</a> · จำกัด HTTP referrer ให้โดเมนของคุณ
+                </div>
+              </div>
+            </div>
+            <div class="form-row">
+              <div>
+                <div class="form-row-label">Map Type</div>
+                <div class="form-row-desc">โหมดแผนที่เริ่มต้น</div>
+              </div>
+              <div class="form-row-input">
+                <select class="select" style="max-width:300px;">
+                  <option>Roadmap (ถนน)</option>
+                  <option>Satellite</option>
+                  <option>Hybrid</option>
+                  <option>Terrain</option>
+                </select>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ===== OCR ===== -->
+      <div class="admin-section" id="sec-ocr" style="display:none;">
+        <div class="page-header">
+          <h1>OCR</h1>
+          <p>บริการ Optical Character Recognition สำหรับอ่านเอกสาร refer</p>
+        </div>
+        <div class="settings-section">
+          <div class="section-header">
+            <h2><i class="bi bi-file-text"></i> OCR Proxy</h2>
+            <p>Cloudflare Worker ที่ซ่อน Gemini API key จาก browser</p>
+          </div>
+          <div class="section-body">
+            <div class="form-row">
+              <div>
+                <div class="form-row-label">Proxy URL</div>
+                <div class="form-row-desc">ปล่อยว่าง = fallback ใช้ API key ใน localStorage ต่อเครื่อง</div>
+              </div>
+              <div class="form-row-input">
+                <input class="input" value="https://gps-proxy.supwilai-ambulance.workers.dev">
+                <div class="input-help">Deploy ดูที่ <code>cloudflare/README.md</code></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ===== INTEGRATIONS ===== -->
+      <div class="admin-section" id="sec-integrations" style="display:none;">
+        <div class="page-header">
+          <h1>Integrations</h1>
+          <p>บริการภายนอกที่ระบบเชื่อมต่ออยู่ (read-only) + ค่า factory defaults</p>
+        </div>
+
+        <div class="alert-box alert-info" style="margin-bottom:20px;">
+          <i class="bi bi-info-circle-fill" style="font-size:16px;"></i>
+          <div>
+            <strong>Factory Defaults:</strong> ทุก setting ในหน้า Branding / GPS / OCR ที่ว่างไว้จะ fallback ไปใช้ค่าเริ่มต้นที่ฝังไว้ใน <code>shared/config.js</code> โดยอัตโนมัติ — ระบบทำงานได้ทันทีตั้งแต่ deploy แรก ไม่ fail เมื่อยังไม่ได้ตั้งค่า
+          </div>
+        </div>
+        <div class="settings-section">
+          <div class="section-header">
+            <h2><i class="bi bi-database"></i> Supabase</h2>
+            <p>Backend database + auth — ตั้งใน <code>shared/config.js</code> (ต้องมีก่อน bootstrap)</p>
+          </div>
+          <div class="section-body">
+            <div class="form-row">
+              <div>
+                <div class="form-row-label">Project URL</div>
+                <div class="form-row-desc">Endpoint ของ Supabase project</div>
+              </div>
+              <div class="form-row-input">
+                <input class="input" readonly value="https://rwxaalgvkzlsyfzdebcj.supabase.co">
+              </div>
+            </div>
+            <div class="form-row">
+              <div>
+                <div class="form-row-label">Project ID</div>
+                <div class="form-row-desc">Reference used in APIs and URLs</div>
+              </div>
+              <div class="form-row-input">
+                <input class="input" readonly value="rwxaalgvkzlsyfzdebcj">
+              </div>
+            </div>
+            <div class="form-row">
+              <div>
+                <div class="form-row-label">Connection</div>
+                <div class="form-row-desc">Realtime + RLS + Auth</div>
+              </div>
+              <div class="form-row-input">
+                <span class="badge badge-success"><i class="bi bi-check-circle-fill"></i> Connected</span>
+                <span style="margin-left:8px; font-size:12px; color:var(--text-3);">latency 45 ms</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="settings-section">
+          <div class="section-header">
+            <h2><i class="bi bi-app-indicator"></i> App Version</h2>
+            <p>ข้อมูล deploy ของ build ปัจจุบัน</p>
+          </div>
+          <div class="section-body">
+            <div class="form-row">
+              <div>
+                <div class="form-row-label">Version</div>
+                <div class="form-row-desc">Bump ทุกครั้งที่ deploy — อยู่ใน <code>shared/config.js</code></div>
+              </div>
+              <div class="form-row-input">
+                <span class="badge badge-info">v5.7.0</span>
+                <span style="margin-left:8px; font-size:12px; color:var(--text-3);">deployed 2026-04-17</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ===== SESSIONS ===== -->
+      <div class="admin-section" id="sec-sessions" style="display:none;">
+        <div class="page-header">
+          <h1>Sessions &amp; Security</h1>
+          <p>การจัดการ session และ security controls</p>
+        </div>
+
+        <div class="settings-section">
+          <div class="section-header">
+            <h2><i class="bi bi-clock-history"></i> Auto Logout</h2>
+            <p>กำหนดเวลา logout อัตโนมัติของทุก user</p>
+          </div>
+          <div class="section-body">
+            <div class="form-row">
+              <div>
+                <div class="form-row-label">Session Timeout</div>
+                <div class="form-row-desc">ค่า hard-coded ใน <code>shared/auth.js</code></div>
+              </div>
+              <div class="form-row-input">
+                <span class="badge badge-info">8 ชั่วโมง</span>
+                <span style="margin-left:8px; font-size:12px; color:var(--text-3);">28,800,000 ms</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="settings-section" style="border-color:#fcd34d;">
+          <div class="section-header" style="background:#fffbeb; border-bottom-color:#fcd34d;">
+            <h2 style="color:#92400e;"><i class="bi bi-exclamation-triangle-fill" style="color:#d97706;"></i> Force Logout All Users</h2>
+            <p style="color:#92400e;">บังคับให้ทุก user login ใหม่ภายใน 5 นาที</p>
+          </div>
+          <div class="section-body">
+            <div class="alert-box alert-warning" style="margin-bottom:14px;">
+              <i class="bi bi-info-circle-fill" style="font-size:16px;"></i>
+              <div>
+                <strong>ใช้เมื่อ:</strong> สงสัยว่ามี account ถูก compromise · user ลืม logout แล้วเครื่องหาย · ต้องการ reset session ทั้งระบบ
+              </div>
+            </div>
+            <button class="btn btn-danger"><i class="bi bi-power"></i> Force Logout All</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ===== STATS (placeholder) ===== -->
+      <div class="admin-section" id="sec-stats" style="display:none;">
+        <div class="page-header">
+          <h1>Statistics</h1>
+          <p>สถิติการใช้งานระบบ</p>
+        </div>
+        <div class="settings-section">
+          <div class="section-header">
+            <h2><i class="bi bi-funnel"></i> Filter</h2>
+          </div>
+          <div class="section-body">
+            <div class="form-row">
+              <div>
+                <div class="form-row-label">ช่วงเวลา</div>
+                <div class="form-row-desc">เลือกเดือนที่ต้องการดูสถิติ</div>
+              </div>
+              <div class="form-row-input">
+                <select class="select" style="max-width:300px;">
+                  <option>ทั้งหมด (All Time)</option>
+                  <option>เมษายน 2569</option>
+                </select>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="settings-section">
+          <div class="section-header">
+            <h2><i class="bi bi-pie-chart"></i> Triage Distribution</h2>
+          </div>
+          <div class="section-body">
+            <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(120px, 1fr)); gap:10px;">
+              <div style="border:1px solid var(--border); border-radius:8px; padding:12px; border-left:4px solid #dc2626;">
+                <div style="font-size:11px; color:var(--text-3); text-transform:uppercase;">วิกฤต</div>
+                <div style="font-size:22px; font-weight:700;">24</div>
+              </div>
+              <div style="border:1px solid var(--border); border-radius:8px; padding:12px; border-left:4px solid #ec4899;">
+                <div style="font-size:11px; color:var(--text-3); text-transform:uppercase;">ฉุกเฉิน</div>
+                <div style="font-size:22px; font-weight:700;">58</div>
+              </div>
+              <div style="border:1px solid var(--border); border-radius:8px; padding:12px; border-left:4px solid #f59e0b;">
+                <div style="font-size:11px; color:var(--text-3); text-transform:uppercase;">เร่งด่วน</div>
+                <div style="font-size:22px; font-weight:700;">102</div>
+              </div>
+              <div style="border:1px solid var(--border); border-radius:8px; padding:12px; border-left:4px solid #16a34a;">
+                <div style="font-size:11px; color:var(--text-3); text-transform:uppercase;">ไม่เร่งด่วน</div>
+                <div style="font-size:22px; font-weight:700;">187</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ===== ACTIVITY (placeholder) ===== -->
+      <div class="admin-section" id="sec-activity" style="display:none;">
+        <div class="page-header">
+          <h1>Activity Log</h1>
+          <p>บันทึกการใช้งานระบบล่าสุด</p>
+        </div>
+        <div class="settings-section">
+          <div class="section-body compact">
+            <div style="display:flex; flex-direction:column; gap:0;">
+              <div style="display:grid; grid-template-columns:140px 120px 1fr; gap:12px; padding:10px 0; border-bottom:1px solid var(--border-soft); font-size:12.5px;">
+                <span style="color:var(--text-3);">01:03 · 17 เม.ย.</span>
+                <span class="badge badge-info" style="width:fit-content;">Admin</span>
+                <span>เข้าถึงหน้า Admin Settings</span>
+              </div>
+              <div style="display:grid; grid-template-columns:140px 120px 1fr; gap:12px; padding:10px 0; border-bottom:1px solid var(--border-soft); font-size:12.5px;">
+                <span style="color:var(--text-3);">00:48 · 17 เม.ย.</span>
+                <span class="badge badge-success" style="width:fit-content;">ปิดเคส</span>
+                <span>เคส #20260416-189 · นายประยงค์ ทับทิมทอง</span>
+              </div>
+              <div style="display:grid; grid-template-columns:140px 120px 1fr; gap:12px; padding:10px 0; font-size:12.5px;">
+                <span style="color:var(--text-3);">23:12 · 16 เม.ย.</span>
+                <span class="badge badge-warning" style="width:fit-content;">แก้ไข</span>
+                <span>เคส #20260416-188 · ปรับ triage Yellow → Red</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ===== DOCUMENTATION ===== -->
+      <div class="admin-section" id="sec-docs" style="display:none;">
+        <div class="page-header">
+          <h1>Documentation</h1>
+          <p>คู่มือและเอกสารทางเทคนิคของระบบ — สำหรับ IT, Admin, และผู้ดูแล</p>
+        </div>
+
+        <!-- Setup & Deployment -->
+        <div class="settings-section">
+          <div class="section-header">
+            <h2><i class="bi bi-gear-wide-connected"></i> Setup &amp; Deployment</h2>
+            <p>การติดตั้งและ deploy ระบบสำหรับบริษัทใหม่</p>
+          </div>
+          <div class="section-body">
+            <div class="docs-list">
+              <a class="doc-card" href="docs/README-ITSupport.html" target="_blank" style="--doc-c:#2563eb;">
+                <div class="doc-card-icon"><i class="bi bi-file-earmark-text"></i></div>
+                <div class="doc-card-body">
+                  <div class="doc-card-head">
+                    <div class="doc-card-title">คู่มือ IT Support</div>
+                    <span class="badge badge-info">PDF-ready</span>
+                  </div>
+                  <div class="doc-card-desc">คู่มือสำหรับทีม IT/Support ครอบคลุม setup, deployment, troubleshooting, FAQ</div>
+                  <div class="doc-card-meta">
+                    <span><i class="bi bi-tag"></i> IT Ops</span>
+                    <span><i class="bi bi-file-earmark"></i> HTML</span>
+                  </div>
+                </div>
+                <i class="bi bi-arrow-up-right doc-card-arrow"></i>
+              </a>
+              <a class="doc-card" href="docs/SYNOLOGY_PROXY_SETUP.html" target="_blank" style="--doc-c:#0284c7;">
+                <div class="doc-card-icon"><i class="bi bi-hdd-rack"></i></div>
+                <div class="doc-card-body">
+                  <div class="doc-card-head">
+                    <div class="doc-card-title">Synology Proxy Setup</div>
+                    <span class="badge badge-muted">Optional</span>
+                  </div>
+                  <div class="doc-card-desc">ติดตั้ง Reverse Proxy บน NAS เพื่อเร่งความเร็ว GPS proxy (ใช้ร่วมกับ Render/GAS fallback)</div>
+                  <div class="doc-card-meta">
+                    <span><i class="bi bi-tag"></i> Infrastructure</span>
+                    <span><i class="bi bi-broadcast"></i> GPS</span>
+                  </div>
+                </div>
+                <i class="bi bi-arrow-up-right doc-card-arrow"></i>
+              </a>
+            </div>
+          </div>
+        </div>
+
+        <!-- Operations -->
+        <div class="settings-section">
+          <div class="section-header">
+            <h2><i class="bi bi-clipboard-data"></i> Operations</h2>
+            <p>การใช้งานจริงและ workflow ของผู้ใช้</p>
+          </div>
+          <div class="section-body">
+            <div class="docs-list">
+              <a class="doc-card" href="docs/MULTI_DEVICE_WORKFLOW.html" target="_blank" style="--doc-c:#475569;">
+                <div class="doc-card-icon"><i class="bi bi-phone-flip"></i></div>
+                <div class="doc-card-body">
+                  <div class="doc-card-head">
+                    <div class="doc-card-title">Multi-Device Workflow</div>
+                    <span class="badge badge-success">Active</span>
+                  </div>
+                  <div class="doc-card-desc">การใช้งานหลายเครื่องพร้อมกัน (มือถือ + tablet + PC) + realtime sync + conflict resolution</div>
+                  <div class="doc-card-meta">
+                    <span><i class="bi bi-tag"></i> User Guide</span>
+                    <span><i class="bi bi-broadcast"></i> Realtime</span>
+                  </div>
+                </div>
+                <i class="bi bi-arrow-up-right doc-card-arrow"></i>
+              </a>
+            </div>
+          </div>
+        </div>
+
+        <!-- Planning -->
+        <div class="settings-section">
+          <div class="section-header">
+            <h2><i class="bi bi-lightbulb"></i> Planning &amp; Roadmap</h2>
+            <p>แผนพัฒนาและสิ่งที่กำลังจะมาในอนาคต</p>
+          </div>
+          <div class="section-body">
+            <div class="docs-list">
+              <a class="doc-card" href="docs/IMPROVEMENT_PLAN.html" target="_blank" style="--doc-c:#dc2626;">
+                <div class="doc-card-icon"><i class="bi bi-clipboard-check"></i></div>
+                <div class="doc-card-body">
+                  <div class="doc-card-head">
+                    <div class="doc-card-title">Improvement Plan</div>
+                    <span class="badge badge-warning">Living Doc</span>
+                  </div>
+                  <div class="doc-card-desc">Roadmap, known issues, และ feature requests — อัปเดตเรื่อยๆ ตาม feedback</div>
+                  <div class="doc-card-meta">
+                    <span><i class="bi bi-tag"></i> Roadmap</span>
+                    <span><i class="bi bi-calendar"></i> Updated continuously</span>
+                  </div>
+                </div>
+                <i class="bi bi-arrow-up-right doc-card-arrow"></i>
+              </a>
+            </div>
+          </div>
+        </div>
+
+        <!-- External Resources -->
+        <div class="settings-section">
+          <div class="section-header">
+            <h2><i class="bi bi-box-arrow-up-right"></i> External Resources</h2>
+            <p>เอกสารจากบริการภายนอกที่ระบบใช้</p>
+          </div>
+          <div class="section-body">
+            <div class="docs-list">
+              <a class="doc-card" href="https://supabase.com/docs" target="_blank" style="--doc-c:#3ecf8e;">
+                <div class="doc-card-icon"><i class="bi bi-database"></i></div>
+                <div class="doc-card-body">
+                  <div class="doc-card-head">
+                    <div class="doc-card-title">Supabase Docs</div>
+                    <span class="badge badge-muted">External</span>
+                  </div>
+                  <div class="doc-card-desc">Database, Realtime, Auth, Storage — ของ backend หลัก</div>
+                </div>
+                <i class="bi bi-arrow-up-right doc-card-arrow"></i>
+              </a>
+              <a class="doc-card" href="https://cloudinary.com/documentation" target="_blank" style="--doc-c:#3448c5;">
+                <div class="doc-card-icon"><i class="bi bi-cloud-upload"></i></div>
+                <div class="doc-card-body">
+                  <div class="doc-card-head">
+                    <div class="doc-card-title">Cloudinary Docs</div>
+                    <span class="badge badge-muted">External</span>
+                  </div>
+                  <div class="doc-card-desc">Upload preset, image optimization, PDF — สำหรับตั้งค่า CDN รูป</div>
+                </div>
+                <i class="bi bi-arrow-up-right doc-card-arrow"></i>
+              </a>
+              <a class="doc-card" href="https://developers.google.com/maps/documentation" target="_blank" style="--doc-c:#4285f4;">
+                <div class="doc-card-icon"><i class="bi bi-google"></i></div>
+                <div class="doc-card-body">
+                  <div class="doc-card-head">
+                    <div class="doc-card-title">Google Maps Platform</div>
+                    <span class="badge badge-muted">External</span>
+                  </div>
+                  <div class="doc-card-desc">Maps JS / Places / Directions / Geocoding — เอกสาร Google Maps APIs</div>
+                </div>
+                <i class="bi bi-arrow-up-right doc-card-arrow"></i>
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ===== OVERVIEW ===== -->
+      <div class="admin-section" id="sec-overview" style="display:none;">
+        <div class="page-header">
+          <h1>System Overview</h1>
+          <p>ภาพรวมทั้งระบบ — modules, stack, features, health และเอกสาร</p>
+        </div>
+
+        <!-- Hero banner -->
+        <div class="ov-hero">
+          <div class="ov-hero-accent"></div>
+          <div class="ov-hero-body">
+            <div class="ov-hero-head">
+              <h2><i class="bi bi-info-circle-fill"></i> PT Medical System</h2>
+              <span class="ov-version"><i class="bi bi-tag-fill"></i> Version 5.7.0</span>
+            </div>
+            <p class="ov-hero-sub">ระบบจัดการผู้ป่วยฉุกเฉิน + ปฐมพยาบาล + ติดตามรถ — Web-based, Real-time, Multi-device</p>
+            <div class="ov-hero-tags">
+              <span class="ov-tag"><i class="bi bi-broadcast" style="color:var(--success);"></i> Real-time Sync</span>
+              <span class="ov-tag"><i class="bi bi-phone"></i> Responsive</span>
+              <span class="ov-tag"><i class="bi bi-shield-lock"></i> RLS Security</span>
+              <span class="ov-tag"><i class="bi bi-cloud-check"></i> Cloud-hosted</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Quick Stats -->
+        <div class="ov-stats">
+          <div class="ov-stat">
+            <div class="ov-stat-head"><span>เคสทั้งหมด</span><i class="bi bi-truck" style="color:var(--info);"></i></div>
+            <div class="ov-stat-num">5</div>
+            <div class="ov-stat-sub"><span style="color:var(--success); font-weight:600;">0</span> Active</div>
+          </div>
+          <div class="ov-stat">
+            <div class="ov-stat-head"><span>ปฐมพยาบาล</span><i class="bi bi-bandaid" style="color:var(--danger);"></i></div>
+            <div class="ov-stat-num">2</div>
+            <div class="ov-stat-sub"><span style="color:var(--success); font-weight:600;">0</span> กำลังทำ</div>
+          </div>
+          <div class="ov-stat">
+            <div class="ov-stat-head"><span>สถานที่</span><i class="bi bi-geo-alt" style="color:var(--warning);"></i></div>
+            <div class="ov-stat-num">26</div>
+            <div class="ov-stat-sub">ลูกค้า / โรงพยาบาล</div>
+          </div>
+          <div class="ov-stat">
+            <div class="ov-stat-head"><span>รถ GPS</span><i class="bi bi-broadcast-pin" style="color:var(--danger);"></i></div>
+            <div class="ov-stat-num">3</div>
+            <div class="ov-stat-sub"><span style="font-weight:600;">1</span> Provider</div>
+          </div>
+        </div>
+
+        <!-- Modules -->
+        <div class="settings-section">
+          <div class="section-header">
+            <h2><i class="bi bi-boxes"></i> Modules ทั้งหมด</h2>
+            <p>6 modules ที่ประกอบกันเป็นระบบ</p>
+          </div>
+          <div class="section-body">
+            <div class="ov-modules">
+              <div class="ov-module" style="--mod-c:#2563eb; --mod-bg:#eff6ff;">
+                <i class="bi bi-truck"></i>
+                <div>
+                  <div class="ov-m-name">Transport</div>
+                  <div class="ov-m-desc">บันทึกนำส่งผู้ป่วย, V/S (ต้นทาง/ระหว่างทาง/ปลายทาง), IV, Consent + DNR (ยืนยัน 2 ขั้น + บัตร ปชช./พยาน), พิมพ์ใบส่งตัว, อัปโหลด PDF + OCR</div>
+                </div>
+              </div>
+              <div class="ov-module" style="--mod-c:#dc2626; --mod-bg:#fef2f2;">
+                <i class="bi bi-bandaid"></i>
+                <div>
+                  <div class="ov-m-name">First Aid</div>
+                  <div class="ov-m-desc">อีเวนท์ปฐมพยาบาล ลงทะเบียนผู้บาดเจ็บ, triage 4 ระดับ, V/S, บันทึกการรักษา, Quick Dispense ยา, รายงานสรุป</div>
+                </div>
+              </div>
+              <div class="ov-module" style="--mod-c:#16a34a; --mod-bg:#f0fdf4;">
+                <i class="bi bi-broadcast-pin"></i>
+                <div>
+                  <div class="ov-m-name">GPS Tracking</div>
+                  <div class="ov-m-desc">ตามรถ real-time, แชร์ลิงก์สาธารณะ (expire ได้), ดูกล้อง, หลาย Provider + ค้นหาสถานที่ใกล้สุด (โรงพยาบาล/คลินิก/ปั๊ม/ตำรวจ) + เส้นทาง/ETA + เตือนเร็วเกิน 120 km/h</div>
+                </div>
+              </div>
+              <div class="ov-module" style="--mod-c:#f59e0b; --mod-bg:#fffbeb;">
+                <i class="bi bi-geo-alt"></i>
+                <div>
+                  <div class="ov-m-name">Location</div>
+                  <div class="ov-m-desc">ฐานข้อมูลตำแหน่ง (โรงพยาบาล/ลูกค้า), แผนที่ + marker cluster, mini-map ซ้อนใน modal, แชร์ลิงก์สาธารณะ (admin ลบได้แม้ expired)</div>
+                </div>
+              </div>
+              <div class="ov-module" style="--mod-c:#475569; --mod-bg:#f1f5f9;">
+                <i class="bi bi-display"></i>
+                <div>
+                  <div class="ov-m-name">Monitor</div>
+                  <div class="ov-m-desc">Dashboard รวมสถานะ — เคส Active, อีเวนท์, GPS, กระพริบเตือนผู้ป่วยวิกฤต + ค้นหาสถานที่ใกล้สุดในแผนที่รถ</div>
+                </div>
+              </div>
+              <div class="ov-module" style="--mod-c:#1e3a5f; --mod-bg:#eff6ff;">
+                <i class="bi bi-gear-fill"></i>
+                <div>
+                  <div class="ov-m-name">Admin Panel</div>
+                  <div class="ov-m-desc">จัดการตั้งค่า, Provider GPS, Map Provider (Leaflet/Google), เช็ค API, สถิติ, Activity Log, ภาพรวมระบบ</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Architecture & Stack -->
+        <div class="settings-section">
+          <div class="section-header">
+            <h2><i class="bi bi-stack"></i> Architecture &amp; Stack</h2>
+            <p>เทคโนโลยีที่ใช้ในระบบ</p>
+          </div>
+          <div class="section-body">
+            <div class="ov-stack">
+              <div>
+                <div class="ov-stack-title">Frontend</div>
+                <ul class="ov-stack-list">
+                  <li><i class="bi bi-check2" style="color:var(--success);"></i> Bootstrap 5.3.3 + Sarabun Font</li>
+                  <li><i class="bi bi-check2" style="color:var(--success);"></i> Leaflet 1.9.4 + MarkerCluster (แผนที่ + OSM)</li>
+                  <li><i class="bi bi-check2" style="color:var(--success);"></i> Leaflet GoogleMutant (Google Tiles ใน Leaflet)</li>
+                  <li><i class="bi bi-check2" style="color:var(--success);"></i> PDF.js 2.16.105 (อ่าน PDF)</li>
+                  <li><i class="bi bi-check2" style="color:var(--success);"></i> Chart.js 4 (กราฟสถิติ)</li>
+                  <li><i class="bi bi-check2" style="color:var(--success);"></i> SweetAlert2 (popup)</li>
+                </ul>
+              </div>
+              <div>
+                <div class="ov-stack-title">Backend &amp; Services</div>
+                <ul class="ov-stack-list">
+                  <li><i class="bi bi-database" style="color:var(--accent);"></i> Supabase (PostgreSQL + RLS + Realtime)</li>
+                  <li><i class="bi bi-cloud-upload" style="color:var(--info);"></i> Cloudinary (รูป + PDF)</li>
+                  <li><i class="bi bi-key" style="color:var(--warning);"></i> Google Apps Script (Auth HR)</li>
+                  <li><i class="bi bi-broadcast" style="color:var(--danger);"></i> CMSV6 / 808gps (GPS API)</li>
+                  <li><i class="bi bi-google" style="color:var(--accent);"></i> Google Maps Platform (Maps JS / Places / Directions / Geocoding)</li>
+                  <li><i class="bi bi-shield-check" style="color:var(--success);"></i> Cloudflare Worker (OCR Proxy)</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Feature Highlights -->
+        <div class="settings-section">
+          <div class="section-header">
+            <h2><i class="bi bi-stars" style="color:#f59e0b;"></i> ฟีเจอร์เด่น</h2>
+            <p>ฟีเจอร์สำคัญที่พัฒนามาถึง Phase 4</p>
+          </div>
+          <div class="section-body">
+            <div class="ov-stack">
+              <ul class="ov-stack-list">
+                <li><i class="bi bi-search" style="color:var(--accent);"></i> ค้นหาสถานที่ใกล้สุด — โรงพยาบาล / คลินิก / ร้านยา / ปั๊ม / ตำรวจ / ดับเพลิง (Places API)</li>
+                <li><i class="bi bi-signpost-split" style="color:var(--success);"></i> นำทางจริงบนถนน + ETA (Directions API)</li>
+                <li><i class="bi bi-lightning-charge" style="color:var(--warning);"></i> จัดอันดับตามเวลาจริง (Distance Matrix) — badge "⚡ เร็วสุด"</li>
+                <li><i class="bi bi-speedometer2" style="color:var(--danger);"></i> เตือนรถเร็วเกิน 120 km/h (border แดง + pulse)</li>
+              </ul>
+              <ul class="ov-stack-list">
+                <li><i class="bi bi-share" style="color:var(--info);"></i> Share Link (GPS / Location) + admin ลบ token หมดอายุได้</li>
+                <li><i class="bi bi-file-earmark-medical" style="color:var(--danger);"></i> DNR workflow + ภาพบัตร ปชช./Passport/ใบราชการ + ลายเซ็นพยาน</li>
+                <li><i class="bi bi-map" style="color:var(--warning);"></i> Mini-map modal (Location) — ดูแผนที่ในหน้าเดียว</li>
+                <li><i class="bi bi-globe" style="color:var(--text-2);"></i> Fallback อัตโนมัติ — ไม่มี Google key → ใช้ Leaflet + ซ่อนฟีเจอร์ที่ต้องใช้ Google</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+
+        <!-- Health Check -->
+        <div class="settings-section">
+          <div class="section-header">
+            <h2><i class="bi bi-heart-pulse" style="color:var(--danger);"></i> System Health</h2>
+            <p>สถานะ real-time ของแต่ละ component</p>
+          </div>
+          <div class="section-body">
+            <div class="status-grid">
+              <div class="status-card"><span class="status-dot ok"></span><div><div class="s-name">Database (Supabase)</div><div class="s-detail">Connected · 45 ms</div></div></div>
+              <div class="status-card"><span class="status-dot ok"></span><div><div class="s-name">Realtime Sync</div><div class="s-detail">Subscribed</div></div></div>
+              <div class="status-card"><span class="status-dot ok"></span><div><div class="s-name">Cloudinary</div><div class="s-detail">Reachable</div></div></div>
+              <div class="status-card"><span class="status-dot ok"></span><div><div class="s-name">GPS Proxy</div><div class="s-detail">Synology OK</div></div></div>
+              <div class="status-card"><span class="status-dot ok"></span><div><div class="s-name">OCR (Cloudflare)</div><div class="s-detail">265 ms · OK</div></div></div>
+              <div class="status-card"><span class="status-dot ok"></span><div><div class="s-name">Google Maps</div><div class="s-detail">All APIs OK</div></div></div>
+              <div class="status-card"><span class="status-dot ok"></span><div><div class="s-name">PWA</div><div class="s-detail">SW v6 active</div></div></div>
+              <div class="status-card"><span class="status-dot ok"></span><div><div class="s-name">Auth (GAS HR)</div><div class="s-detail">Reachable</div></div></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Build Info -->
+        <div style="text-align:center; color:var(--text-3); font-size:12px; padding:20px 0 10px;">
+          PT Medical System · Built with <i class="bi bi-heart-fill" style="color:var(--danger);"></i> for healthcare
+        </div>
+      </div>
+
+    </div>
+  </main>
+</div>
+
+<script>
+  const titleMap = {
+    organization: 'Organization', branding: 'Branding',
+    gps: 'GPS Tracking', ocr: 'OCR', integrations: 'Integrations',
+    sessions: 'Sessions', stats: 'Statistics',
+    activity: 'Activity Log', overview: 'Overview',
+    docs: 'Documentation'
+  };
+  function showSection(name, elClicked) {
+    document.querySelectorAll('.admin-section').forEach(s => s.style.display = 'none');
+    const sec = document.getElementById('sec-' + name);
+    if (sec) sec.style.display = '';
+    document.querySelectorAll('.sidebar-item').forEach(i => i.classList.remove('active'));
+    if (elClicked) elClicked.classList.add('active');
+    document.getElementById('topbar-title').textContent = titleMap[name] || '';
+    window.scrollTo({top:0, behavior:'instant'});
+    closeSidebar();
+  }
+  function openSidebar() {
+    document.getElementById('sidebar').classList.add('open');
+    document.getElementById('backdrop').classList.add('open');
+  }
+  function closeSidebar() {
+    document.getElementById('sidebar').classList.remove('open');
+    document.getElementById('backdrop').classList.remove('open');
+  }
+</script>
+
+</body>
+</html>
