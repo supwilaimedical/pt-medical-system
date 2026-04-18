@@ -45,8 +45,11 @@
   .admin-sidebar {
     width:260px; flex-shrink:0;
     background:var(--asurface); border-right:1px solid var(--aborder);
-    padding:20px 12px; position:sticky; top:0; height:100vh; overflow-y:auto;
+    padding:20px 12px; position:sticky; top:0;
+    height:100vh; height:100dvh; overflow-y:auto;
+    display:flex; flex-direction:column;
   }
+  .admin-sidebar nav { flex:1; }
   .sidebar-brand {
     display:flex; align-items:center; gap:10px;
     padding:0 8px 18px; border-bottom:1px solid var(--aborder-soft); margin-bottom:14px;
@@ -81,7 +84,15 @@
   .sidebar-footer {
     padding:12px 8px 0; border-top:1px solid var(--aborder-soft);
     margin-top:20px; background:var(--asurface);
+    padding-bottom:max(12px, env(safe-area-inset-bottom));
   }
+  .topbar-back {
+    background:transparent; border:1px solid var(--aborder);
+    border-radius:8px; padding:6px 10px; cursor:pointer; color:var(--atext);
+    font-size:12.5px; text-decoration:none; display:inline-flex; align-items:center; gap:6px;
+    margin-left:auto;
+  }
+  .topbar-back:hover { background:var(--asurface-2); color:var(--atext); }
   .sidebar-back {
     display:flex; align-items:center; gap:8px; padding:8px 10px;
     border-radius:6px; color:var(--atext-2); font-size:13px; text-decoration:none;
@@ -311,6 +322,7 @@
     .admin-topbar { display:flex; }
     .admin-sidebar {
       position:fixed; top:0; left:0; bottom:0; width:280px; z-index:100;
+      height:100vh; height:100dvh;
       transform:translateX(-100%); transition:transform 0.22s ease;
       box-shadow:2px 0 16px rgba(0,0,0,0.08);
     }
@@ -386,6 +398,7 @@
     <div class="admin-topbar">
       <button class="burger" onclick="adm_openSidebar()"><i class="bi bi-list"></i></button>
       <div class="title" id="topbar-title">Organization</div>
+      <a class="topbar-back" href="index.html" onclick="return adm_back(event);"><i class="bi bi-arrow-left"></i> <span id="topbar-back-label">กลับ</span></a>
     </div>
 
     <div class="admin-content">
@@ -1194,12 +1207,17 @@
     try { ret = sessionStorage.getItem('pt_admin_return') || ''; } catch(_){}
     if (!ret) return;
     var label = document.getElementById('sb-back-label');
-    if (!label) return;
-    if (/\/transport\//.test(ret))      label.textContent = 'กลับ Transport';
-    else if (/\/firstaid\//.test(ret))  label.textContent = 'กลับ First Aid';
-    else if (/\/location\//.test(ret))  label.textContent = 'กลับ Location';
-    else if (/\/monitor\//.test(ret))   label.textContent = 'กลับ Monitor';
-    else if (/\/gps\//.test(ret))       label.textContent = 'กลับ GPS Tracking';
+    var tlabel = document.getElementById('topbar-back-label');
+    var txt = '';
+    if (/\/transport\//.test(ret))      txt = 'กลับ Transport';
+    else if (/\/firstaid\//.test(ret))  txt = 'กลับ First Aid';
+    else if (/\/location\//.test(ret))  txt = 'กลับ Location';
+    else if (/\/monitor\//.test(ret))   txt = 'กลับ Monitor';
+    else if (/\/gps\//.test(ret))       txt = 'กลับ GPS Tracking';
+    if (txt) {
+      if (label)  label.textContent = txt;
+      if (tlabel) tlabel.textContent = txt;
+    }
   })();
   function adm_closeSidebar() {
     document.getElementById('sb-sidebar').classList.remove('open');
