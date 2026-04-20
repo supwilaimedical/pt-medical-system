@@ -17,6 +17,17 @@ export default {
       return new Response(null, { headers: corsHeaders(request, env) });
     }
 
+    // Health check — admin latency panel pings GET /; return 200 instead of 405
+    // so Chrome DevTools doesn't spam red errors. Real OCR still requires POST below.
+    if (request.method === 'GET') {
+      return jsonResponse({
+        ok: true,
+        service: 'ocr-proxy',
+        hasKey: !!env.GEMINI_API_KEY,
+        note: 'POST with {image, prompt} for OCR'
+      }, 200, request, env);
+    }
+
     if (request.method !== 'POST') {
       return jsonResponse({ error: 'Method not allowed. Use POST.' }, 405, request, env);
     }
