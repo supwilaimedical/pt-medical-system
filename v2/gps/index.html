@@ -936,18 +936,19 @@
     .v2-gps-rightcol .filter-tab{ padding:5px 10px !important; font-size:12px !important; }
     .v2-gps-rightcol .v-card{ padding:8px 10px !important; margin-bottom:4px !important; }
 
-    /* Drag handle at top of sheet */
+    /* Drag handle at top of sheet — larger touch target + visible affordance */
     .v2-gps-sheet-handle{
       display:flex !important; position:relative;
-      padding:10px 0 6px; cursor:grab;
+      padding:12px 0 10px; cursor:grab;
       align-items:center; justify-content:center;
       background:#fff; border-top-left-radius:20px; border-top-right-radius:20px;
       flex-shrink:0; touch-action:none;
     }
     .v2-gps-sheet-handle:active{ cursor:grabbing; }
     .v2-gps-sheet-handle::before{
-      content:''; width:40px; height:4px; border-radius:2px; background:#cbd5e1;
+      content:''; width:48px; height:5px; border-radius:3px; background:#94a3b8;
     }
+    .v2-gps-sheet-handle:active::before{ background:#0ea5e9; }
     .v2-gps-rightcol.sheet-peek .v2-stats-card{ display:none; }
     .v2-gps-rightcol.sheet-peek .vehicle-panel .panel-search,
     .v2-gps-rightcol.sheet-peek .vehicle-panel .filter-tabs,
@@ -1159,7 +1160,8 @@
 
     var rightCol = document.createElement('div');
     // Mobile default = sheet-full so user sees full list immediately; can drag down to reveal map
-    var _initSheet = (window.innerWidth <= 991) ? 'sheet-full' : 'sheet-half';
+    // Mobile default = sheet-half so user sees map + list (drag up for full, down for peek)
+    var _initSheet = (window.innerWidth <= 991) ? 'sheet-half' : 'sheet-half';
     rightCol.className = 'v2-gps-rightcol ' + _initSheet;
     rightCol.id = 'v2-gps-rightcol';
 
