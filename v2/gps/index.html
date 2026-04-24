@@ -949,11 +949,18 @@
       content:''; width:48px; height:5px; border-radius:3px; background:#94a3b8;
     }
     .v2-gps-sheet-handle:active::before{ background:#0ea5e9; }
-    .v2-gps-rightcol.sheet-peek .v2-stats-card{ display:none; }
+    /* Maximize list space: hide non-essential chrome in sheet-half + sheet-peek */
+    .v2-gps-rightcol.sheet-peek .v2-stats-card,
+    .v2-gps-rightcol.sheet-half .v2-stats-card{ display:none !important; }
+    .v2-gps-rightcol.sheet-peek .v2-gps-statusfooter,
+    .v2-gps-rightcol.sheet-half .v2-gps-statusfooter{ display:none !important; }
+    /* Peek: also hide search/filter/tabs (just show handle + header) */
     .v2-gps-rightcol.sheet-peek .vehicle-panel .panel-search,
     .v2-gps-rightcol.sheet-peek .vehicle-panel .filter-tabs,
     .v2-gps-rightcol.sheet-peek .vehicle-panel .panel-view-tabs{ display:none !important; }
-    .v2-gps-rightcol.sheet-peek .v2-gps-statusfooter{ display:none; }
+    /* Extra compact panel header in sheet-half (save more space) */
+    .v2-gps-rightcol.sheet-half .panel-section-header{ padding:4px 12px 6px !important; }
+    .v2-gps-rightcol.sheet-half .panel-view-tabs{ margin-top:4px !important; }
 
     /* Backdrop when sheet-full (dim map behind) */
     .v2-gps-sheet-backdrop{
