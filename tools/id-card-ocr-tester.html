@@ -1,0 +1,447 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Thai ID Card OCR Tester — Gemini Vision</title>
+<style>
+  * { box-sizing: border-box; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Sarabun', sans-serif;
+    background: linear-gradient(135deg, #f0f4ff 0%, #fef9ff 100%);
+    margin: 0; padding: 20px; min-height: 100vh; color: #1e293b;
+  }
+  .container { max-width: 720px; margin: 0 auto; }
+  h1 { font-size: 22px; margin: 0 0 4px; }
+  .subtitle { color: #64748b; font-size: 14px; margin-bottom: 24px; }
+  .card {
+    background: #fff; border-radius: 14px; padding: 20px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05), 0 10px 30px rgba(0,0,0,0.04);
+    margin-bottom: 16px;
+  }
+  .card-title {
+    font-size: 13px; font-weight: 700; color: #475569;
+    text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 10px;
+    display: flex; align-items: center; gap: 6px;
+  }
+  label { font-size: 13px; color: #475569; display: block; margin-bottom: 4px; }
+  input[type="text"], input[type="password"] {
+    width: 100%; padding: 10px 12px; border: 1px solid #cbd5e1;
+    border-radius: 8px; font-size: 14px; font-family: inherit;
+  }
+  input:focus { outline: none; border-color: #6366f1; box-shadow: 0 0 0 3px rgba(99,102,241,0.15); }
+  .btn {
+    display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+    padding: 10px 18px; font-size: 14px; font-weight: 600; font-family: inherit;
+    border: none; border-radius: 8px; cursor: pointer; transition: all 0.15s;
+  }
+  .btn-primary { background: #6366f1; color: #fff; }
+  .btn-primary:hover { background: #4f46e5; }
+  .btn-primary:disabled { background: #cbd5e1; cursor: not-allowed; }
+  .btn-outline { background: #fff; color: #475569; border: 1px solid #cbd5e1; }
+  .btn-outline:hover { background: #f8fafc; }
+  .btn-success { background: #10b981; color: #fff; }
+  .btn-success:hover { background: #059669; }
+  .btn-danger { background: #ef4444; color: #fff; }
+  .hint { font-size: 12px; color: #94a3b8; margin-top: 6px; }
+  .upload-zone {
+    border: 2px dashed #cbd5e1; border-radius: 12px; padding: 30px;
+    text-align: center; cursor: pointer; transition: all 0.2s;
+    background: #fafbff;
+  }
+  .upload-zone:hover { border-color: #6366f1; background: #f5f6ff; }
+  .upload-zone.dragging { border-color: #6366f1; background: #eef2ff; }
+  .upload-icon { font-size: 40px; margin-bottom: 8px; }
+  .preview-wrap { position: relative; margin-top: 12px; }
+  .preview-wrap img { width: 100%; max-height: 280px; object-fit: contain; border-radius: 10px; background: #f1f5f9; }
+  .btn-remove {
+    position: absolute; top: 8px; right: 8px;
+    background: rgba(0,0,0,0.6); color: #fff; border: none;
+    width: 32px; height: 32px; border-radius: 50%; cursor: pointer; font-size: 16px;
+  }
+  .status { padding: 10px 14px; border-radius: 8px; font-size: 13px; margin-top: 12px; display: none; }
+  .status.info { background: #dbeafe; color: #1e40af; display: block; }
+  .status.success { background: #d1fae5; color: #065f46; display: block; }
+  .status.error { background: #fee2e2; color: #991b1b; display: block; }
+  .loader {
+    display: inline-block; width: 14px; height: 14px;
+    border: 2px solid #e2e8f0; border-top-color: #6366f1;
+    border-radius: 50%; animation: spin 0.8s linear infinite; margin-right: 6px;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .result-grid { display: grid; grid-template-columns: 140px 1fr; gap: 10px 14px; font-size: 14px; }
+  .result-grid .k { color: #64748b; text-align: right; }
+  .result-grid .v { font-weight: 600; color: #1e293b; word-break: break-all; }
+  .badge { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 600; }
+  .badge-ok { background: #d1fae5; color: #065f46; }
+  .badge-warn { background: #fef3c7; color: #92400e; }
+  .form-mini {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 16px;
+    padding-top: 16px; border-top: 1px solid #e2e8f0;
+  }
+  .form-mini label { margin-bottom: 2px; font-weight: 600; }
+  .form-mini .full { grid-column: span 2; }
+  .warning {
+    background: #fef3c7; color: #92400e; padding: 10px 14px; border-radius: 8px;
+    font-size: 12px; line-height: 1.5; margin-bottom: 16px;
+  }
+  .row { display: flex; gap: 8px; flex-wrap: wrap; }
+  .row > * { flex: 1; min-width: 0; }
+  details { margin-top: 12px; }
+  summary { cursor: pointer; font-size: 12px; color: #64748b; }
+  pre { background: #0f172a; color: #f1f5f9; padding: 12px; border-radius: 8px; overflow-x: auto; font-size: 11px; max-height: 300px; }
+  @media (max-width: 480px) {
+    .result-grid { grid-template-columns: 110px 1fr; }
+    .form-mini { grid-template-columns: 1fr; }
+    .form-mini .full { grid-column: span 1; }
+  }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <h1>🪪 Thai ID Card OCR Tester</h1>
+  <p class="subtitle">ทดสอบการอ่านบัตรประชาชนไทยด้วย Gemini Vision</p>
+
+  <div class="warning">
+    ⚠️ <b>หน้านี้สำหรับทดสอบเท่านั้น</b> — API key เก็บใน browser localStorage, ไม่ถูก upload ที่ไหน ภาพถูกส่งตรงไป Google Gemini ไม่ผ่าน server อื่น ห้ามใช้ในระบบ production จริงโดยตรง (ต้องมี Worker คั่น)
+  </div>
+
+  <!-- API Key -->
+  <div class="card">
+    <div class="card-title">🔑 Gemini API Key</div>
+    <div class="row">
+      <input type="password" id="apiKey" placeholder="AIzaSy..." autocomplete="off">
+      <button class="btn btn-outline" onclick="toggleKey()" id="toggleBtn" style="flex:0 0 auto;">👁</button>
+      <button class="btn btn-outline" onclick="saveKey()" style="flex:0 0 auto;">💾 Save</button>
+    </div>
+    <p class="hint">
+      สมัครฟรีที่ <a href="https://aistudio.google.com/apikey" target="_blank">aistudio.google.com/apikey</a>
+    </p>
+
+    <div style="margin-top:12px;">
+      <label style="font-weight:600;">Model</label>
+      <select id="modelSelect" onchange="saveModel()" style="width:100%; padding:10px 12px; border:1px solid #cbd5e1; border-radius:8px; font-size:14px; font-family:inherit;">
+        <option value="gemini-2.5-pro">⭐ Gemini 2.5 Pro (แนะนำ — ไทยแม่นสุด, ฟรี 100/วัน)</option>
+        <option value="gemini-2.5-flash">Gemini 2.5 Flash (เร็วกว่า แต่ไทยเพี้ยนบ่อย)</option>
+        <option value="gemini-2.5-flash-lite">Gemini 2.5 Flash Lite (เร็วสุด, ไทยเพี้ยนมาก)</option>
+        <option value="gemini-2.0-flash-exp">Gemini 2.0 Flash Experimental</option>
+        <option value="gemini-1.5-flash">Gemini 1.5 Flash (legacy)</option>
+      </select>
+      <p class="hint">✅ <b>Pro แม่นสุดสำหรับไทย</b> — Flash รุ่นต่างๆ อ่านตัวอักษรไทยพลาดบ่อย (ฐ ↔ รู้, ฑ ↔ ฌ ฯลฯ)</p>
+    </div>
+  </div>
+
+  <!-- Upload -->
+  <div class="card">
+    <div class="card-title">📷 เลือกรูปบัตรประชาชน</div>
+    <div class="upload-zone" id="dropzone" onclick="document.getElementById('fileInput').click()">
+      <div class="upload-icon">📸</div>
+      <div><b>คลิกเพื่อเลือกรูป หรือลากรูปมาวาง</b></div>
+      <div class="hint" style="margin-top:4px;">รองรับ JPG / PNG / WebP — แนะนำถ่ายตรงๆ แสงดี ไม่มีเงา</div>
+    </div>
+    <input type="file" id="fileInput" accept="image/*" capture="environment" style="display:none" onchange="handleFile(event.target.files[0])">
+
+    <div id="previewWrap" class="preview-wrap" style="display:none;">
+      <img id="preview" alt="preview">
+      <button class="btn-remove" onclick="clearImage()">✕</button>
+    </div>
+
+    <div style="margin-top:14px; text-align:center;">
+      <button class="btn btn-primary" id="extractBtn" onclick="extractData()" disabled>
+        🔍 อ่านข้อมูลจากบัตร
+      </button>
+    </div>
+
+    <div id="status" class="status"></div>
+  </div>
+
+  <!-- Result -->
+  <div class="card" id="resultCard" style="display:none;">
+    <div class="card-title">✅ ข้อมูลที่อ่านได้</div>
+    <div class="result-grid" id="resultGrid"></div>
+
+    <div class="form-mini">
+      <div class="full"><label>ชื่อ-นามสกุล (สำหรับฟอร์มผู้ป่วย)</label>
+        <input type="text" id="ff_name" readonly></div>
+      <div><label>เลขบัตร 13 หลัก</label>
+        <input type="text" id="ff_idcard" readonly></div>
+      <div><label>อายุ (ปี)</label>
+        <input type="text" id="ff_age" readonly></div>
+      <div><label>เพศ</label>
+        <input type="text" id="ff_gender" readonly></div>
+    </div>
+
+    <details>
+      <summary>Raw JSON response</summary>
+      <pre id="rawJson"></pre>
+    </details>
+  </div>
+
+</div>
+
+<script>
+function getApiUrl() {
+  const model = document.getElementById('modelSelect').value || 'gemini-2.5-pro';
+  return 'https://generativelanguage.googleapis.com/v1beta/models/' + model + ':generateContent?key=';
+}
+
+let currentImageBase64 = '';
+let currentMimeType = '';
+
+// ────── API Key + Model Storage ──────
+const apiKeyInput = document.getElementById('apiKey');
+apiKeyInput.value = localStorage.getItem('gemini_api_key') || '';
+const savedModel = localStorage.getItem('gemini_model') || 'gemini-2.5-pro';
+document.getElementById('modelSelect').value = savedModel;
+
+function saveModel() {
+  localStorage.setItem('gemini_model', document.getElementById('modelSelect').value);
+}
+
+function saveKey() {
+  const v = apiKeyInput.value.trim();
+  if (!v) { alert('กรุณาใส่ API key'); return; }
+  localStorage.setItem('gemini_api_key', v);
+  setStatus('บันทึก API key เรียบร้อย (เก็บใน browser เท่านั้น)', 'success');
+}
+
+function toggleKey() {
+  const t = apiKeyInput.type === 'password' ? 'text' : 'password';
+  apiKeyInput.type = t;
+  document.getElementById('toggleBtn').textContent = t === 'text' ? '🙈' : '👁';
+}
+
+// ────── File Handling ──────
+const dropzone = document.getElementById('dropzone');
+['dragover', 'dragenter'].forEach(e => dropzone.addEventListener(e, ev => {
+  ev.preventDefault(); dropzone.classList.add('dragging');
+}));
+['dragleave', 'drop'].forEach(e => dropzone.addEventListener(e, ev => {
+  ev.preventDefault(); dropzone.classList.remove('dragging');
+}));
+dropzone.addEventListener('drop', ev => {
+  const f = ev.dataTransfer.files[0];
+  if (f) handleFile(f);
+});
+
+async function handleFile(file) {
+  if (!file || !file.type.startsWith('image/')) {
+    setStatus('ไฟล์ไม่ใช่รูปภาพ', 'error'); return;
+  }
+  setStatus('กำลังประมวลผลรูป...', 'info');
+
+  try {
+    const { base64, mimeType, dataUrl } = await compressImage(file, 2400);
+    currentImageBase64 = base64;
+    currentMimeType = mimeType;
+    document.getElementById('preview').src = dataUrl;
+    document.getElementById('previewWrap').style.display = 'block';
+    document.getElementById('extractBtn').disabled = false;
+    setStatus('พร้อมส่งเข้า Gemini แล้ว กด "อ่านข้อมูลจากบัตร"', 'success');
+  } catch (e) {
+    setStatus('ประมวลผลรูปผิดพลาด: ' + e.message, 'error');
+  }
+}
+
+function compressImage(file, maxWidth) {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.onload = () => {
+      const scale = Math.min(1, maxWidth / img.width);
+      const canvas = document.createElement('canvas');
+      canvas.width = Math.round(img.width * scale);
+      canvas.height = Math.round(img.height * scale);
+      canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
+      const dataUrl = canvas.toDataURL('image/jpeg', 0.95);
+      resolve({
+        base64: dataUrl.split(',')[1],
+        mimeType: 'image/jpeg',
+        dataUrl
+      });
+    };
+    img.onerror = () => reject(new Error('โหลดรูปไม่สำเร็จ'));
+    img.src = URL.createObjectURL(file);
+  });
+}
+
+function clearImage() {
+  currentImageBase64 = '';
+  document.getElementById('previewWrap').style.display = 'none';
+  document.getElementById('extractBtn').disabled = true;
+  document.getElementById('resultCard').style.display = 'none';
+  document.getElementById('fileInput').value = '';
+  setStatus('', '');
+}
+
+// ────── Extract via Gemini ──────
+async function extractData() {
+  const apiKey = apiKeyInput.value.trim();
+  if (!apiKey) { setStatus('กรุณาใส่ API key ก่อน', 'error'); return; }
+  if (!currentImageBase64) { setStatus('กรุณาเลือกรูปก่อน', 'error'); return; }
+
+  const btn = document.getElementById('extractBtn');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="loader"></span> กำลังอ่าน...';
+  const selectedModel = document.getElementById('modelSelect').value;
+  setStatus('กำลังส่งเข้า ' + selectedModel + '...', 'info');
+
+  const prompt = `You are a highly accurate OCR assistant for Thai National ID cards.
+
+CRITICAL RULES for Thai name extraction:
+1. Thai ID cards show BOTH Thai and English versions of the name. USE THE ENGLISH VERSION AS A CROSS-CHECK for the Thai reading.
+2. Thai characters that are easily confused in OCR: ฐ/รู้, ฑ/ฌ, ธ/ท/พ, ฆ/ม, ฉ/ณ, ษ/ห, ฎ/ฏ/ฏิ. When in doubt, match the English transliteration (RTGS).
+3. If the English says "Dhitivara", the Thai MUST start with ฐ, ฑ, ธ, or ฒ (Dh sound) — NOT รู้.
+4. If the English says "Sittakom", the Thai MUST match "สิทธาคม" or "สิทคม" etc. — verify character by character.
+5. Double-check each Thai character against the English equivalent. If inconsistent, re-examine the image.
+
+OTHER RULES:
+- Return ONLY valid JSON matching the schema.
+- If a field is unreadable, return empty string "".
+- Do NOT hallucinate or add fields not in schema.
+- For birthDate/issueDate/expiryDate: convert Thai Buddhist Era (พ.ศ.) to Gregorian (ค.ศ.) by subtracting 543. Example: 2527 -> 1984, 2564 -> 2021.
+- idCard: 13 digits only, strip dashes and spaces.
+
+Think carefully before answering. Accuracy is critical — this data goes into medical records.`;
+
+  const body = {
+    contents: [{
+      parts: [
+        { text: prompt },
+        { inline_data: { mime_type: currentMimeType, data: currentImageBase64 } }
+      ]
+    }],
+    generationConfig: {
+      responseMimeType: 'application/json',
+      responseSchema: {
+        type: 'object',
+        properties: {
+          idCard: { type: 'string', description: '13-digit Thai ID, digits only, no dashes' },
+          prefixTh: { type: 'string', description: 'นาย/นาง/น.ส./เด็กชาย/เด็กหญิง' },
+          firstNameTh: { type: 'string' },
+          lastNameTh: { type: 'string' },
+          firstNameEn: { type: 'string' },
+          lastNameEn: { type: 'string' },
+          birthDate: { type: 'string', description: 'YYYY-MM-DD in Gregorian calendar' },
+          gender: { type: 'string', description: 'Male or Female' },
+          issueDate: { type: 'string', description: 'YYYY-MM-DD' },
+          expiryDate: { type: 'string', description: 'YYYY-MM-DD' }
+        },
+        required: ['idCard', 'firstNameTh', 'lastNameTh']
+      },
+      temperature: 0.1
+    }
+  };
+
+  try {
+    const resp = await fetch(getApiUrl() + apiKey, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body)
+    });
+
+    if (!resp.ok) {
+      const errText = await resp.text();
+      // Parse for friendlier message
+      let friendly = '';
+      if (resp.status === 429) {
+        if (errText.includes('limit: 0')) {
+          friendly = '❌ API key นี้ไม่มีสิทธิ์ใช้ free tier ของ model นี้\n' +
+                     '💡 ลอง:\n' +
+                     '  1. เปลี่ยน Model เป็น "Gemini 1.5 Flash" ด้านบน\n' +
+                     '  2. หรือสร้าง API key ใหม่จาก Gmail ส่วนตัว (ไม่ใช่ Workspace)\n' +
+                     '  3. ตรวจสอบว่า Google Cloud project ของ key ไม่ได้ผูก billing';
+        } else {
+          friendly = '❌ เกินโควตา/quota — รอสักครู่หรือเปลี่ยน model ที่โควตาเหลือ';
+        }
+      } else if (resp.status === 403) {
+        friendly = '❌ API key ไม่ถูกต้อง หรือไม่มีสิทธิ์เข้าถึง API นี้';
+      } else if (resp.status === 400) {
+        friendly = '❌ คำขอผิดพลาด — model อาจไม่รองรับ vision หรือ schema';
+      }
+      throw new Error(friendly || ('HTTP ' + resp.status + ': ' + errText));
+    }
+
+    const data = await resp.json();
+    const text = data.candidates?.[0]?.content?.parts?.[0]?.text || '{}';
+    const parsed = JSON.parse(text);
+    const enriched = enrichData(parsed);
+
+    showResult(enriched, data);
+    setStatus('อ่านสำเร็จ ✓', 'success');
+  } catch (e) {
+    setStatus('ผิดพลาด: ' + e.message, 'error');
+    console.error(e);
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = '🔍 อ่านข้อมูลจากบัตร';
+  }
+}
+
+function enrichData(d) {
+  // อายุจากวันเกิด
+  let age = '';
+  if (d.birthDate && /^\d{4}-\d{2}-\d{2}$/.test(d.birthDate)) {
+    const bd = new Date(d.birthDate);
+    if (!isNaN(bd)) {
+      const diff = Date.now() - bd.getTime();
+      age = Math.floor(diff / (1000 * 60 * 60 * 24 * 365.25));
+    }
+  }
+
+  // Thai ID checksum
+  let idValid = false;
+  const id = (d.idCard || '').replace(/\D/g, '');
+  if (id.length === 13) {
+    let sum = 0;
+    for (let i = 0; i < 12; i++) sum += parseInt(id[i]) * (13 - i);
+    idValid = ((11 - sum % 11) % 10) === parseInt(id[12]);
+  }
+
+  return { ...d, idCard: id, age, idCardValid: idValid };
+}
+
+// ────── Display Result ──────
+function showResult(d, rawData) {
+  const fullName = `${d.prefixTh || ''}${d.firstNameTh || ''} ${d.lastNameTh || ''}`.replace(/\s+/g, ' ').trim();
+  const idDisplay = d.idCard
+    ? d.idCard.replace(/(\d)(\d{4})(\d{5})(\d{2})(\d)/, '$1-$2-$3-$4-$5')
+    : '-';
+  const idBadge = d.idCard
+    ? (d.idCardValid
+      ? '<span class="badge badge-ok">✓ Checksum ถูกต้อง</span>'
+      : '<span class="badge badge-warn">⚠ Checksum ผิด</span>')
+    : '';
+
+  const grid = document.getElementById('resultGrid');
+  grid.innerHTML = `
+    <div class="k">เลขบัตร:</div>     <div class="v">${idDisplay} ${idBadge}</div>
+    <div class="k">คำนำหน้า:</div>    <div class="v">${d.prefixTh || '-'}</div>
+    <div class="k">ชื่อ (ไทย):</div>  <div class="v">${d.firstNameTh || '-'} ${d.lastNameTh || ''}</div>
+    <div class="k">ชื่อ (อังกฤษ):</div><div class="v">${d.firstNameEn || '-'} ${d.lastNameEn || ''}</div>
+    <div class="k">วันเกิด:</div>     <div class="v">${d.birthDate || '-'} ${d.age ? `(อายุ ${d.age} ปี)` : ''}</div>
+    <div class="k">เพศ:</div>         <div class="v">${d.gender || '-'}</div>
+    <div class="k">วันออกบัตร:</div>  <div class="v">${d.issueDate || '-'}</div>
+    <div class="k">วันหมดอายุ:</div>  <div class="v">${d.expiryDate || '-'}</div>
+  `;
+
+  // Form Mini (สำหรับคัดลอกไปฟอร์มคนไข้)
+  document.getElementById('ff_name').value = fullName;
+  document.getElementById('ff_idcard').value = d.idCard || '';
+  document.getElementById('ff_age').value = d.age || '';
+  document.getElementById('ff_gender').value = (d.gender || '').toLowerCase().startsWith('m') ? 'ชาย' : ((d.gender || '').toLowerCase().startsWith('f') ? 'หญิง' : d.gender || '');
+
+  document.getElementById('rawJson').textContent = JSON.stringify(rawData, null, 2);
+  document.getElementById('resultCard').style.display = 'block';
+  document.getElementById('resultCard').scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+function setStatus(msg, type) {
+  const el = document.getElementById('status');
+  if (!msg) { el.style.display = 'none'; return; }
+  el.className = 'status ' + (type || 'info');
+  el.textContent = msg;
+}
+</script>
+</body>
+</html>
