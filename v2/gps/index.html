@@ -1215,10 +1215,11 @@
         setTimeout(function(){ try { window._map && window._map.invalidateSize(); } catch(e){} }, 300);
       };
       function isMobile(){ return window.innerWidth <= 991; }
-      var dragging = false, startY = 0, startH = 0;
+      var dragging = false, startY = 0, startH = 0, moved = false;
       function onStart(e){
         if(!isMobile()) return;
         dragging = true;
+        moved = false;
         var touch = e.touches ? e.touches[0] : e;
         startY = touch.clientY;
         startH = rightCol.getBoundingClientRect().height;
@@ -1229,12 +1230,23 @@
         if(!dragging) return;
         var touch = e.touches ? e.touches[0] : e;
         var dy = startY - touch.clientY;
+        if(Math.abs(dy) > 4) moved = true;
         var newH = Math.max(80, Math.min(window.innerHeight * 0.95, startH + dy));
         rightCol.style.height = newH + 'px';
+        e.preventDefault();
       }
       function onEnd(){
         if(!dragging) return;
         dragging = false;
+        // Tap (no drag) → cycle peek → half → full → peek
+        if(!moved){
+          rightCol.classList.remove('sheet-dragging');
+          rightCol.style.height = '';
+          if(rightCol.classList.contains('sheet-peek')) v2GpsSheetSnap('half');
+          else if(rightCol.classList.contains('sheet-half')) v2GpsSheetSnap('full');
+          else v2GpsSheetSnap('peek');
+          return;
+        }
         var h = rightCol.getBoundingClientRect().height;
         var peek = getH('peek'), half = getH('half'), full = getH('full');
         // Snap to nearest state
@@ -1242,21 +1254,15 @@
         var nearest = dPeek < dHalf ? (dPeek < dFull ? 'peek' : 'full') : (dHalf < dFull ? 'half' : 'full');
         v2GpsSheetSnap(nearest);
       }
+      // Attach touchmove/end to DOCUMENT so drag continues even when finger leaves handle
       sheetHandle.addEventListener('touchstart', onStart, { passive:false });
-      sheetHandle.addEventListener('touchmove', onMove, { passive:false });
-      sheetHandle.addEventListener('touchend', onEnd);
+      document.addEventListener('touchmove', onMove, { passive:false });
+      document.addEventListener('touchend', onEnd);
+      document.addEventListener('touchcancel', onEnd);
       sheetHandle.addEventListener('mousedown', onStart);
       document.addEventListener('mousemove', onMove);
       document.addEventListener('mouseup', onEnd);
-      // Tap handle to cycle peek → half → full → peek
-      var lastTap = 0;
-      sheetHandle.addEventListener('click', function(e){
-        if(Math.abs(Date.now() - lastTap) < 250) return; // dedupe touch+click
-        lastTap = Date.now();
-        if(rightCol.classList.contains('sheet-peek')) v2GpsSheetSnap('half');
-        else if(rightCol.classList.contains('sheet-half')) v2GpsSheetSnap('full');
-        else v2GpsSheetSnap('peek');
-      });
+      // Tap-to-cycle handled inside onEnd (moved=false → cycle); redundant click handler removed
       // On desktop, remove sheet classes (CSS ignores them ≥992 anyway, but cleaner)
       window.addEventListener('resize', function(){
         if(!isMobile()){
