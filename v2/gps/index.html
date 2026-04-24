@@ -917,8 +917,8 @@
     }
     /* Sheet states — override .v2-gps-rightcol height */
     .v2-gps-rightcol.sheet-peek{ height:140px !important; }
-    .v2-gps-rightcol.sheet-half{ height:62vh !important; }
-    .v2-gps-rightcol.sheet-full{ height:92vh !important; }
+    .v2-gps-rightcol.sheet-half{ height:55vh !important; }
+    .v2-gps-rightcol.sheet-full{ height:85vh !important; }
     .v2-gps-rightcol.sheet-dragging{ transition:none !important; }
 
     /* Compact panel header on mobile to give list more room */
@@ -1200,7 +1200,7 @@
 
     // === V2 Bottom Sheet (mobile only) — snap to peek/half/full via drag ===
     (function initV2GpsSheet(){
-      var SHEET_STATES = { peek:140, half:0.55, full:0.90 };
+      var SHEET_STATES = { peek:140, half:0.55, full:0.85 };
       function getH(name){
         var h = window.innerHeight;
         var v = SHEET_STATES[name];
@@ -1238,13 +1238,12 @@
       function onEnd(){
         if(!dragging) return;
         dragging = false;
-        // Tap (no drag) → cycle peek → half → full → peek
+        // Tap (no drag) → simple toggle half ↔ peek (full is drag-only)
         if(!moved){
           rightCol.classList.remove('sheet-dragging');
           rightCol.style.height = '';
-          if(rightCol.classList.contains('sheet-peek')) v2GpsSheetSnap('half');
-          else if(rightCol.classList.contains('sheet-half')) v2GpsSheetSnap('full');
-          else v2GpsSheetSnap('peek');
+          if(rightCol.classList.contains('sheet-half')) v2GpsSheetSnap('peek');
+          else v2GpsSheetSnap('half'); // from peek or full → back to half
           return;
         }
         var h = rightCol.getBoundingClientRect().height;
