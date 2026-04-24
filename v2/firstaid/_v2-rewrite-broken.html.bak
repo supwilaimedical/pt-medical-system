@@ -1,0 +1,1735 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>PT Medical V2 — ปฐมพยาบาล</title>
+<meta name="theme-color" content="#0ea5e9">
+<link rel="manifest" href="../manifest.json">
+<link rel="stylesheet" href="../shared.css">
+<style>
+  /* ===== FirstAid V2 specific ===== */
+  .view{ display:none; }
+  .view.active{ display:flex; flex-direction:column; flex:1; min-height:0; }
+  .col-content > .view.active{ flex:1; min-height:0; }
+
+  /* Event card grid */
+  .ev-grid{ display:grid; grid-template-columns:repeat(auto-fill,minmax(260px,1fr)); gap:14px; padding:14px; }
+  .ev-card{ background:#fff; border:1px solid var(--c-border); border-radius:12px; overflow:hidden; cursor:pointer; transition:transform .15s, box-shadow .15s; }
+  .ev-card:hover{ transform:translateY(-2px); box-shadow:var(--shadow-md); }
+  .ev-banner{ height:100px; display:flex; align-items:center; justify-content:center; color:#fff; font-size:36px; }
+  .ev-banner.sports{ background:linear-gradient(135deg,#fb923c,#f97316); }
+  .ev-banner.concert{ background:linear-gradient(135deg,#a855f7,#7c3aed); }
+  .ev-banner.general{ background:linear-gradient(135deg,#22c55e,#15803d); }
+  .ev-card .body{ padding:12px; }
+  .ev-card .name{ font-weight:700; font-size:14px; line-height:1.3; }
+  .ev-card .meta{ font-size:12px; color:var(--c-muted); margin-top:4px; }
+
+  /* Quick dispense */
+  .qd-grid{ display:grid; grid-template-columns:repeat(4,1fr); gap:8px; }
+  @media (max-width:640px){ .qd-grid{ grid-template-columns:repeat(2,1fr); } }
+  .qd-cell{ background:#fff; border:1px solid var(--c-border); border-radius:10px; padding:10px; text-align:center; }
+  .qd-cell .lbl{ font-size:11px; color:var(--c-muted); }
+  .qd-cell .num{ font-size:22px; font-weight:800; margin:4px 0; }
+  .qd-btns{ display:flex; gap:4px; justify-content:center; }
+  .qd-btn{ width:30px; height:30px; border:1px solid var(--c-border); border-radius:6px; background:#fff; cursor:pointer; font-size:14px; font-weight:700; }
+  .qd-btn.plus{ background:var(--c-primary); color:#fff; border-color:var(--c-primary-dark); }
+
+  /* Triage circle */
+  .triage-circle{ width:30px; height:30px; border-radius:50%; display:flex; align-items:center; justify-content:center; color:#fff; font-weight:700; font-size:13px; flex-shrink:0; }
+  .triage-circle.A{ background:#16a34a; } .triage-circle.V{ background:#eab308; }
+  .triage-circle.P{ background:#ea580c; } .triage-circle.U{ background:#dc2626; }
+
+  /* Reg modal (full-screen overlay form) */
+  .reg-overlay{ position:fixed; inset:0; background:#f8fafc; z-index:80; display:none; flex-direction:column; }
+  .reg-overlay.open{ display:flex; }
+  .reg-overlay .reg-topbar{ background:#fff; border-bottom:1px solid var(--c-border); padding:10px 14px; display:flex; align-items:center; gap:10px; flex-shrink:0; }
+  .reg-overlay .reg-body{ flex:1; overflow-y:auto; padding:12px; max-width:880px; width:100%; margin:0 auto; }
+  .reg-overlay .reg-footer{ background:#fff; border-top:1px solid var(--c-border); padding:10px 14px; display:flex; gap:8px; justify-content:flex-end; flex-shrink:0; }
+
+  .toggle-row{ display:flex; gap:6px; flex-wrap:wrap; }
+  .toggle-btn{ min-width:40px; height:36px; padding:0 10px; border:2px solid #cbd5e1; background:#fff; border-radius:8px; font-weight:700; cursor:pointer; color:#64748b; font-family:inherit; }
+  .toggle-btn.active{ color:#fff; }
+  .toggle-btn[data-tri="A"]{ --tc:#16a34a; }
+  .toggle-btn[data-tri="V"]{ --tc:#eab308; }
+  .toggle-btn[data-tri="P"]{ --tc:#ea580c; }
+  .toggle-btn[data-tri="U"]{ --tc:#dc2626; }
+  .toggle-btn[data-tri].active{ background:var(--tc); border-color:var(--tc); }
+  .toggle-btn[data-gen]{ --tc:#0ea5e9; }
+  .toggle-btn[data-gen].active{ background:var(--tc); border-color:var(--tc); }
+  .toggle-btn[data-eti="Med"]{ --tc:#3b82f6; border-color:#bfdbfe; color:#3b82f6; }
+  .toggle-btn[data-eti="Med"].active{ background:#3b82f6; border-color:#2563eb; color:#fff; }
+  .toggle-btn[data-eti="Trauma"]{ --tc:#dc2626; border-color:#fecaca; color:#dc2626; }
+  .toggle-btn[data-eti="Trauma"].active{ background:#dc2626; border-color:#b91c1c; color:#fff; }
+
+  .tx-grid{ display:flex; flex-wrap:wrap; gap:6px; }
+  .tx-grouplabel{ width:100%; margin-top:8px; }
+  .tx-grouplabel:first-child{ margin-top:0; }
+  .tx-grouplabel .badge{ display:inline-block; padding:3px 10px; border-radius:999px; font-size:11px; font-weight:700; color:#fff; letter-spacing:.05em; }
+  .tx-btn{ padding:5px 12px; border:1.5px solid #cbd5e1; border-radius:999px; background:#fff; cursor:pointer; font-size:12px; color:#475569; font-family:inherit; transition:all .15s; }
+  .tx-btn:hover{ border-color:var(--c-primary); color:var(--c-primary); background:#e0f2fe; }
+  .tx-btn.active{ background:var(--c-primary); border-color:var(--c-primary-dark); color:#fff; font-weight:600; }
+
+  /* Dashboard reusable */
+  .stat-mini{ background:#fff; border:1px solid var(--c-border); border-radius:10px; padding:14px; text-align:center; }
+  .stat-mini .num{ font-size:32px; font-weight:800; line-height:1; }
+  .stat-mini .label{ font-size:11px; color:var(--c-muted); text-transform:uppercase; letter-spacing:.05em; margin-top:4px; }
+  .triage-bar{ display:flex; align-items:center; gap:8px; margin-bottom:6px; font-size:12px; }
+  .triage-bar .lbl{ width:80px; color:#334155; }
+  .triage-bar .pct-pill{ padding:2px 8px; border-radius:5px; font-weight:700; font-size:11px; color:#fff; min-width:42px; text-align:center; }
+  .triage-bar .num{ font-weight:700; min-width:24px; text-align:right; }
+  .donut-card{ background:#fff; border:1px solid var(--c-border); border-radius:10px; padding:14px; display:flex; flex-direction:column; }
+  .donut-card h4{ margin:0 0 10px; font-size:13px; font-weight:700; }
+  .donut-svg{ width:100%; height:120px; display:flex; align-items:center; justify-content:center; }
+  .donut-legend{ font-size:10px; color:var(--c-muted); margin-top:6px; display:flex; flex-wrap:wrap; gap:4px 8px; justify-content:center; }
+  .donut-legend span::before{ content:'●'; margin-right:3px; }
+  .list-card{ background:#fff; border:1px solid var(--c-border); border-radius:10px; padding:14px; }
+  .list-card h4{ margin:0 0 10px; font-size:13px; font-weight:700; }
+  .list-card h4::before{ content:'●'; margin-right:6px; }
+  .list-row{ display:flex; align-items:center; padding:5px 0; font-size:12px; border-bottom:1px solid #f1f5f9; }
+  .list-row:last-child{ border-bottom:none; }
+  .list-row .num{ width:18px; color:var(--c-muted); font-weight:600; }
+  .list-row .item{ flex:1; padding:1px 8px; border-radius:4px; }
+  .list-row .cnt{ width:30px; text-align:right; font-weight:700; }
+  .list-row .pct{ width:50px; text-align:right; font-weight:700; }
+
+  /* Fullscreen mode */
+  body.fs-mode .col-nav, body.fs-mode .col-subnav, body.fs-mode .topbar, body.fs-mode #mobileTopbar{ display:none !important; }
+  body.fs-mode .col-content{ background:linear-gradient(180deg,#f8fafc,#e0f2fe); }
+  body.fs-mode .layout-3col{ display:block; }
+  #fsBar{ display:none; position:fixed; top:0; left:0; right:0; z-index:9999;
+    background:linear-gradient(135deg,#0ea5e9,#0284c7); color:#fff;
+    padding:10px 20px; align-items:center; justify-content:space-between;
+    font-weight:600; box-shadow:0 2px 8px rgba(0,0,0,0.15); }
+  body.fs-mode #fsBar{ display:flex; }
+  body.fs-mode .col-content{ padding-top:60px; }
+  #fsBar .fs-title{ font-size:18px; }
+  #fsBar .fs-clock{ font-size:22px; font-variant-numeric:tabular-nums; letter-spacing:1px; }
+  #fsBar .fs-date{ font-size:13px; opacity:0.9; }
+  #fsBar .fs-exit{ background:rgba(255,255,255,0.2); border:none; color:#fff;
+    padding:6px 12px; border-radius:6px; cursor:pointer; font-weight:600; }
+  #fsBar .fs-exit:hover{ background:rgba(255,255,255,0.3); }
+</style>
+</head>
+<body>
+
+<!-- ============ FULLSCREEN TV BAR ============ -->
+<div id="fsBar">
+  <div>
+    <div class="fs-title" id="fsTitle">—</div>
+    <div class="fs-date" id="fsDate">—</div>
+  </div>
+  <div class="fs-clock" id="fsClock">--:--:--</div>
+  <button class="fs-exit" onclick="exitFullscreenMode()">✕ Exit</button>
+</div>
+
+<!-- ============ MOBILE TOPBAR ============ -->
+<div class="topbar" style="display:none;" id="mobileTopbar">
+  <button class="icon-btn" onclick="toggleDrawer()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12h18M3 6h18M3 18h18"/></svg></button>
+  <div style="flex:1; min-width:0;">
+    <div style="font-weight:600; font-size:14px;" id="mobTitle">ปฐมพยาบาล</div>
+    <div style="font-size:11px; color:var(--c-muted);" id="mobSub">FirstAid Events</div>
+  </div>
+  <button class="icon-btn" onclick="navigateView('events')" title="Events"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12l9-9 9 9M5 10v10h14V10"/></svg></button>
+</div>
+
+<div class="drawer-backdrop" id="drawer-backdrop" onclick="closeDrawer()"></div>
+<div class="drawer" id="drawer">
+  <div style="padding:18px 14px; border-bottom:1px solid var(--c-border); display:flex; align-items:center; gap:10px;">
+    <div class="avatar" id="userAvatar">PT</div>
+    <div><div style="font-weight:600; font-size:14px;" id="userName">User</div><div style="font-size:11px; color:var(--c-muted);" id="userRole">role</div></div>
+  </div>
+  <nav style="padding:8px 0;">
+    <a class="nav-item" href="../transport/"><span class="nav-icon">🚑</span><span>นำส่งผู้ป่วย</span></a>
+    <a class="nav-item active"><span class="nav-icon">🩹</span><span>ปฐมพยาบาล</span></a>
+    <a class="nav-item" href="../location/"><span class="nav-icon">🗺️</span><span>พิกัดสถานที่</span></a>
+    <a class="nav-item" href="../gps/"><span class="nav-icon">🛰️</span><span>GPS Tracking</span></a>
+    <a class="nav-item" href="../monitor/"><span class="nav-icon">📡</span><span>Monitor</span></a>
+  </nav>
+  <div style="padding:14px; border-top:1px solid var(--c-border);">
+    <button class="btn-ghost" style="width:100%;" onclick="handleLogout()">ออกจากระบบ</button>
+  </div>
+</div>
+
+<!-- ============ DESKTOP 3-COL ============ -->
+<div class="layout-3col">
+
+  <!-- COL 1: Modules -->
+  <aside class="col-nav" id="colNav">
+    <div style="padding:12px 0; justify-content:center; border-bottom:1px solid var(--c-border); display:flex; flex-shrink:0;">
+      <div style="width:32px; height:32px; border-radius:8px; background:linear-gradient(135deg,#0ea5e9,#0284c7); color:#fff; display:flex; align-items:center; justify-content:center; font-weight:700; font-size:13px; cursor:pointer;" onclick="toggleNav()">PT</div>
+    </div>
+    <nav style="flex:1; padding:8px 0;">
+      <a class="nav-item" href="../transport/" title="Transport"><span class="nav-icon">🚑</span><span class="nav-label">Transport</span></a>
+      <a class="nav-item active" title="FirstAid"><span class="nav-icon">🩹</span><span class="nav-label">FirstAid</span></a>
+      <a class="nav-item" href="../location/" title="Location"><span class="nav-icon">🗺️</span><span class="nav-label">Location</span></a>
+      <a class="nav-item" href="../gps/" id="rail-gps" title="GPS" style="display:none;"><span class="nav-icon">🛰️</span><span class="nav-label">GPS</span></a>
+      <a class="nav-item" href="../monitor/" id="rail-monitor" title="Monitor" style="display:none;"><span class="nav-icon">📡</span><span class="nav-label">Monitor</span></a>
+      <a class="nav-item" href="../admin.html" id="rail-admin" title="Admin Settings" style="display:none;"><span class="nav-icon">⚙️</span><span class="nav-label">Admin</span></a>
+    </nav>
+    <div style="padding:8px; border-top:1px solid var(--c-border); flex-shrink:0;">
+      <a class="nav-item" href="../" title="หน้าหลัก" style="justify-content:center;"><span class="nav-icon">🏠</span><span class="nav-label">หน้าหลัก</span></a>
+      <button class="icon-btn" onclick="handleLogout()" title="ออกจากระบบ" style="width:100%;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4M16 17l5-5-5-5M21 12H9"/></svg></button>
+    </div>
+  </aside>
+
+  <!-- COL 2: Subnav (changes per view) -->
+  <aside class="col-subnav" id="colSubnav">
+    <!-- Subnav for EVENTS list -->
+    <div id="subnavEvents">
+      <div style="padding:12px 14px; border-bottom:1px solid var(--c-border); display:flex; align-items:center; justify-content:space-between;">
+        <div><div style="font-weight:700; font-size:14px;">ปฐมพยาบาล</div><div style="font-size:11px; color:var(--c-muted);">FirstAid Events</div></div>
+        <button class="btn-primary" style="padding:6px 10px; font-size:12px;" onclick="openEventModal()" id="btnNewEvent">+ งาน</button>
+      </div>
+      <div style="flex:1; overflow-y:auto;">
+        <div class="subnav-section">งานทั้งหมด</div>
+        <div class="subnav-item active" onclick="setEventTab('Active', this)"><span>🟢 Active</span><span class="badge" id="badgeActive">0</span></div>
+        <div class="subnav-item" onclick="setEventTab('Complete', this)"><span>📋 Complete</span><span class="badge" id="badgeComplete">0</span></div>
+        <div class="subnav-section">ตามประเภท</div>
+        <div class="subnav-item" onclick="setEventTypeFilter('sports', this)"><span>🏃 Sports</span><span class="badge" id="badgeSports">0</span></div>
+        <div class="subnav-item" onclick="setEventTypeFilter('concert', this)"><span>🎤 Concert</span><span class="badge" id="badgeConcert">0</span></div>
+        <div class="subnav-item" onclick="setEventTypeFilter('general', this)"><span>🎪 General</span><span class="badge" id="badgeGeneral">0</span></div>
+      </div>
+    </div>
+
+    <!-- Subnav for EVENT DETAIL -->
+    <div id="subnavDetail" style="display:none; flex-direction:column; flex:1; overflow:hidden;">
+      <div style="padding:8px 14px; border-bottom:1px solid var(--c-border); background:#f1f5f9;">
+        <a href="#" onclick="navigateView('events'); return false;" style="font-size:12px; color:#0369a1; font-weight:600;">← Events ทั้งหมด</a>
+      </div>
+      <div style="padding:10px 14px; border-bottom:1px solid var(--c-border);">
+        <div style="font-weight:700; font-size:13px; line-height:1.3;" id="snDetailName">—</div>
+        <div style="font-size:11px; color:var(--c-muted);" id="snDetailMeta">—</div>
+        <div style="display:flex; gap:4px; margin-top:6px;" id="snDetailChips"></div>
+      </div>
+      <div style="flex:1; overflow-y:auto;">
+        <div class="subnav-section">มุมมอง</div>
+        <div class="subnav-item active" data-detail-view="overview" onclick="setDetailView('overview', this)"><span>📋 Overview</span></div>
+        <div class="subnav-item" data-detail-view="dashboard" onclick="setDetailView('dashboard', this)"><span>📊 Dashboard (Stats)</span></div>
+
+        <div class="subnav-section">Triage Filter</div>
+        <div class="subnav-item" data-tri="A" onclick="setTriageFilter('A', this)"><span>🟢 A · Alert</span><span class="badge" id="snTriA">0</span></div>
+        <div class="subnav-item" data-tri="V" onclick="setTriageFilter('V', this)"><span>🟡 V · Verbal</span><span class="badge" id="snTriV">0</span></div>
+        <div class="subnav-item" data-tri="P" onclick="setTriageFilter('P', this)"><span>🟠 P · Pain</span><span class="badge" id="snTriP">0</span></div>
+        <div class="subnav-item" data-tri="U" onclick="setTriageFilter('U', this)"><span>🔴 U · Unresp.</span><span class="badge danger" id="snTriU">0</span></div>
+
+        <div class="subnav-section">Result</div>
+        <div class="subnav-item" data-result="dc" onclick="setResultFilter('dc', this)"><span>✓ D/C</span><span class="badge" id="snResDC">0</span></div>
+        <div class="subnav-item" data-result="transfer" onclick="setResultFilter('transfer', this)"><span>🚑 Transfer</span><span class="badge" id="snResTr">0</span></div>
+
+        <div class="subnav-section">Quick Dispense</div>
+        <div class="subnav-item"><span>💧 Ammonia</span><span class="badge" id="snQA">0</span></div>
+        <div class="subnav-item"><span>🩹 Plaster</span><span class="badge" id="snQP">0</span></div>
+        <div class="subnav-item"><span>💨 Spray</span><span class="badge" id="snQS">0</span></div>
+        <div class="subnav-item"><span>🩸 Wound</span><span class="badge" id="snQW">0</span></div>
+
+        <div class="subnav-section">Action</div>
+        <div class="subnav-item" onclick="printReport()"><span>🖨️ Print Report</span></div>
+        <div class="subnav-item" onclick="exportExcel()"><span>📤 Export Excel</span></div>
+        <div class="subnav-item" onclick="enterFullscreenMode()"><span>📺 Fullscreen TV</span></div>
+        <div class="subnav-item" id="snEditEvent" onclick="openEventModal(currentEventId)"><span>✏️ แก้ข้อมูลงาน</span></div>
+        <div class="subnav-item" id="snToggleEvent" onclick="toggleEventStatus()"><span>🔒 ปิดงาน</span></div>
+        <div class="subnav-item" id="snDeleteEvent" onclick="deleteCurrentEvent()" style="color:#dc2626;"><span>🗑️ ลบงาน</span></div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- COL 3: Content -->
+  <section class="col-content">
+
+    <!-- =================== VIEW: EVENTS DASHBOARD =================== -->
+    <div class="view active" id="viewEvents">
+      <div class="col-header">
+        <div>
+          <div style="font-weight:700; font-size:15px;" id="evListTitle">Active Events</div>
+          <div style="font-size:11px; color:var(--c-muted);" id="evListSub">เรียงวันที่ใหม่สุด</div>
+        </div>
+        <div style="display:flex; gap:6px;">
+          <input id="evSearch" oninput="renderEventGrid()" placeholder="🔍 ค้นชื่องาน / สถานที่" style="padding:6px 10px; border:1px solid var(--c-border); border-radius:8px; font-size:13px; width:200px;">
+          <button class="btn-ghost" onclick="loadEvents()">↻</button>
+        </div>
+      </div>
+      <div class="col-body">
+        <div id="evGrid" class="ev-grid">
+          <div style="grid-column:1/-1; text-align:center; padding:40px; color:var(--c-muted);">กำลังโหลด...</div>
+        </div>
+      </div>
+      <button class="fab" onclick="openEventModal()" title="สร้างงาน">+</button>
+    </div>
+
+    <!-- =================== VIEW: EVENT DETAIL =================== -->
+    <div class="view" id="viewDetail">
+      <!-- Hero banner -->
+      <div id="detailBanner" style="background:linear-gradient(135deg,#0ea5e9,#0284c7); color:#fff; padding:14px 18px; flex-shrink:0;">
+        <div style="display:flex; justify-content:space-between; align-items:center; gap:10px;">
+          <div style="min-width:0;">
+            <div style="font-weight:800; font-size:18px;" id="detailName">—</div>
+            <div style="font-size:12px; opacity:.9; margin-top:2px;" id="detailLoc">—</div>
+            <div style="font-size:12px; opacity:.9;" id="detailDate">—</div>
+          </div>
+          <div style="display:flex; gap:6px; flex-shrink:0;">
+            <span class="flag-chip" id="detailType" style="background:rgba(255,255,255,.25); color:#fff;">—</span>
+            <span class="flag-chip" id="detailStatus" style="background:rgba(255,255,255,.25); color:#fff;">—</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Sub-view: Overview -->
+      <div class="col-body" id="detailViewOverview">
+
+        <!-- Quick Dispense -->
+        <div style="padding:12px;">
+          <div class="subsection-title">Quick Dispense (จ่ายเร็ว)</div>
+          <div class="qd-grid">
+            <div class="qd-cell"><div class="lbl">💧 Ammonia</div><div class="num" id="qdAmmonia">0</div><div class="qd-btns"><button class="qd-btn" onclick="qdAdjust('Ammonia',-1)">−</button><button class="qd-btn plus" onclick="qdAdjust('Ammonia',1)">+</button></div></div>
+            <div class="qd-cell"><div class="lbl">🩹 Plaster</div><div class="num" id="qdPlaster">0</div><div class="qd-btns"><button class="qd-btn" onclick="qdAdjust('Plaster',-1)">−</button><button class="qd-btn plus" onclick="qdAdjust('Plaster',1)">+</button></div></div>
+            <div class="qd-cell"><div class="lbl">💨 Spray</div><div class="num" id="qdSpray">0</div><div class="qd-btns"><button class="qd-btn" onclick="qdAdjust('Spray',-1)">−</button><button class="qd-btn plus" onclick="qdAdjust('Spray',1)">+</button></div></div>
+            <div class="qd-cell"><div class="lbl">🩸 Wound</div><div class="num" id="qdWound">0</div><div class="qd-btns"><button class="qd-btn" onclick="qdAdjust('Wound',-1)">−</button><button class="qd-btn plus" onclick="qdAdjust('Wound',1)">+</button></div></div>
+          </div>
+        </div>
+
+        <!-- Triage Stat Bar -->
+        <div style="padding:0 12px 12px;">
+          <div class="subsection-title">Triage Summary</div>
+          <div style="background:#fff; border:1px solid var(--c-border); border-radius:10px; padding:12px; display:flex; gap:14px; flex-wrap:wrap; justify-content:space-around;">
+            <div style="text-align:center;"><div style="font-size:11px; color:var(--c-muted);">A · Alert</div><div style="font-size:22px; font-weight:800; color:#16a34a;" id="cntA">0</div></div>
+            <div style="text-align:center;"><div style="font-size:11px; color:var(--c-muted);">V · Verbal</div><div style="font-size:22px; font-weight:800; color:#eab308;" id="cntV">0</div></div>
+            <div style="text-align:center;"><div style="font-size:11px; color:var(--c-muted);">P · Pain</div><div style="font-size:22px; font-weight:800; color:#ea580c;" id="cntP">0</div></div>
+            <div style="text-align:center;"><div style="font-size:11px; color:var(--c-muted);">U · Unresp.</div><div style="font-size:22px; font-weight:800; color:#dc2626;" id="cntU">0</div></div>
+            <div style="text-align:center; border-left:1px solid var(--c-border); padding-left:14px;"><div style="font-size:11px; color:var(--c-muted);">Total</div><div style="font-size:22px; font-weight:800;" id="cntTotal">0</div></div>
+          </div>
+        </div>
+
+        <!-- Patient Registry list -->
+        <div style="padding:0 12px 12px;">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+            <div class="subsection-title" style="margin:0;">Patient Registry · <span id="regCount">0</span></div>
+            <button class="btn-primary" style="padding:5px 12px; font-size:12px;" onclick="openRegistryForm()">+ บันทึก</button>
+          </div>
+          <div id="regList" class="case-list" style="border:1px solid var(--c-border); border-radius:10px; overflow:hidden;">
+            <div style="padding:30px; text-align:center; color:var(--c-muted);">กำลังโหลด...</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Sub-view: Dashboard (charts) -->
+      <div class="col-body" id="detailViewDashboard" style="display:none; padding:14px;">
+        <!-- Row 1: stats + triage + time chart -->
+        <div style="display:grid; grid-template-columns:120px 240px 1fr; gap:10px; margin-bottom:10px;" class="dash-row1">
+          <div class="stat-mini" style="display:flex; flex-direction:column; justify-content:center;">
+            <div class="label">Total Case</div><div class="num" style="color:#0ea5e9;" id="dashTotal">0</div>
+          </div>
+          <div style="background:#fff; border:1px solid var(--c-border); border-radius:10px; padding:12px;">
+            <div style="font-size:11px; font-weight:700; color:var(--c-muted); margin-bottom:8px;">Scene Triage</div>
+            <div class="triage-bar"><span class="lbl">Alert</span><span class="pct-pill" style="background:#16a34a;" id="dashPctA">0%</span><span class="num" id="dashCntA">0</span></div>
+            <div class="triage-bar"><span class="lbl">Verbal</span><span class="pct-pill" style="background:#eab308;" id="dashPctV">0%</span><span class="num" id="dashCntV">0</span></div>
+            <div class="triage-bar"><span class="lbl">Pain</span><span class="pct-pill" style="background:#ea580c;" id="dashPctP">0%</span><span class="num" id="dashCntP">0</span></div>
+            <div class="triage-bar"><span class="lbl">Unresp.</span><span class="pct-pill" style="background:#dc2626;" id="dashPctU">0%</span><span class="num" id="dashCntU">0</span></div>
+          </div>
+          <div style="background:#fff; border:1px solid var(--c-border); border-radius:10px; padding:12px;">
+            <strong style="font-size:13px;">⏱ Time of Incident</strong>
+            <canvas id="chartTime" height="100" style="width:100%; max-height:140px; margin-top:6px;"></canvas>
+          </div>
+        </div>
+
+        <!-- Row 2: 5 donuts -->
+        <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(160px,1fr)); gap:10px; margin-bottom:10px;">
+          <div class="donut-card"><h4>Gender</h4><div class="donut-svg"><canvas id="chartGender"></canvas></div></div>
+          <div class="donut-card"><h4>Category</h4><div class="donut-svg"><canvas id="chartCategory"></canvas></div></div>
+          <div class="donut-card"><h4>Location Tx.</h4><div class="donut-svg"><canvas id="chartLocation"></canvas></div></div>
+          <div class="donut-card"><h4>Etiology</h4><div class="donut-svg"><canvas id="chartEtiology"></canvas></div></div>
+          <div class="donut-card"><h4>Treatment</h4><div class="donut-svg"><canvas id="chartTreatment"></canvas></div></div>
+        </div>
+
+        <!-- Row 3: 4 lists -->
+        <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); gap:10px;">
+          <div class="list-card"><h4 style="color:#3b82f6;">CC (Med)</h4><div id="listCCMed"></div></div>
+          <div class="list-card"><h4 style="color:#dc2626;">CC (Trauma)</h4><div id="listCCTrauma"></div></div>
+          <div class="list-card"><h4 style="color:#7c3aed;">Problem</h4><div id="listProblem"></div></div>
+          <div class="list-card"><h4 style="color:#16a34a;">Result</h4><div id="listResult"></div></div>
+        </div>
+      </div>
+
+    </div>
+
+  </section>
+</div>
+
+<!-- ============ EVENT MODAL ============ -->
+<div class="modal-backdrop" id="eventModal">
+  <div class="modal" style="max-width:640px; max-height:90vh; display:flex; flex-direction:column;">
+    <div class="modal-header" id="evModalTitle">สร้างงานใหม่</div>
+    <div class="modal-body" style="overflow-y:auto;">
+      <input type="hidden" id="evFormId">
+      <div class="field field-required" style="margin-bottom:10px;"><label>ชื่องาน</label><input id="evName" required></div>
+      <div class="field field-required" style="margin-bottom:10px;"><label>สถานที่</label><input id="evLoc" required></div>
+      <div class="field" style="margin-bottom:10px;">
+        <label>ประเภทงาน</label>
+        <div class="toggle-row" data-chip-radio>
+          <button type="button" class="chip selected" data-value="general" onclick="selectEvType(this,'general')">🎪 General</button>
+          <button type="button" class="chip" data-value="sports" onclick="selectEvType(this,'sports')">🏃 Sports</button>
+          <button type="button" class="chip" data-value="concert" onclick="selectEvType(this,'concert')">🎤 Concert</button>
+        </div>
+        <input type="hidden" id="evType" value="general">
+      </div>
+      <div class="field-row-2" style="margin-bottom:10px;">
+        <div class="field"><label>วันเริ่ม</label><input type="date" id="evStartDate" required></div>
+        <div class="field"><label>เวลาเริ่ม</label><input type="time" id="evStartTime"></div>
+      </div>
+      <div class="field-row-2" style="margin-bottom:10px;">
+        <div class="field"><label>วันสิ้นสุด</label><input type="date" id="evEndDate"></div>
+        <div class="field"><label>เวลาสิ้นสุด</label><input type="time" id="evEndTime"></div>
+      </div>
+      <div class="field" style="margin-bottom:10px;"><label>Bib/ID Label (เช่น "BIB", "Ticket #")</label><input id="evIdLabel" placeholder="(ถ้ามี)"></div>
+      <div class="field" style="margin-bottom:10px;"><label>หมวดหมู่ผู้เข้าร่วม (คั่นด้วย comma)</label><input id="evCategories" placeholder="เช่น 5K, 10K, 21K"></div>
+      <div class="field" style="margin-bottom:10px;"><label>จุดรักษา (คั่นด้วย comma)</label><input id="evLocations" placeholder="เช่น Med Tent, Finish, Section 1"></div>
+      <div class="field" style="margin-bottom:10px;"><label>รูปงาน (อัปโหลด)</label><input type="file" id="evImage" accept="image/*"><input type="hidden" id="evExistingImage"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-ghost" onclick="closeModal('eventModal')">ยกเลิก</button>
+      <button class="btn-primary" onclick="submitEventForm()">บันทึก</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============ REGISTRY MODAL (full overlay) ============ -->
+<div class="reg-overlay" id="regOverlay">
+  <div class="reg-topbar">
+    <button class="icon-btn" onclick="closeRegistryForm()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg></button>
+    <div style="flex:1;">
+      <div style="font-weight:700; font-size:15px;" id="regModalTitle">บันทึก Medical Registry</div>
+      <div style="font-size:11px; color:var(--c-muted);" id="regModalEv">—</div>
+    </div>
+    <button class="btn-primary" onclick="submitRegistryForm()">💾 บันทึก</button>
+  </div>
+  <div class="reg-body">
+    <input type="hidden" id="regId">
+    <input type="hidden" id="regEventId">
+    <input type="hidden" id="regExistingImage">
+
+    <!-- Section 1: Triage + Gender -->
+    <div class="section-card">
+      <div class="section-header"><div class="section-num">1</div><div class="section-title">Triage / เพศ / ข้อมูลทั่วไป</div></div>
+      <div class="section-body">
+        <div class="field-row-2" style="margin-bottom:10px;">
+          <div class="field field-required"><label>Triage (AVPU)</label>
+            <div class="toggle-row" id="regTriageGroup">
+              <button type="button" class="toggle-btn" data-tri="A" onclick="setTriage('A')">A</button>
+              <button type="button" class="toggle-btn" data-tri="V" onclick="setTriage('V')">V</button>
+              <button type="button" class="toggle-btn" data-tri="P" onclick="setTriage('P')">P</button>
+              <button type="button" class="toggle-btn" data-tri="U" onclick="setTriage('U')">U</button>
+            </div>
+            <input type="hidden" id="regTriage" value="A">
+          </div>
+          <div class="field field-required"><label>เพศ</label>
+            <div class="toggle-row" id="regGenderGroup">
+              <button type="button" class="toggle-btn" data-gen="M" onclick="setGender('M')">♂ M</button>
+              <button type="button" class="toggle-btn" data-gen="F" onclick="setGender('F')">♀ F</button>
+              <button type="button" class="toggle-btn" data-gen="U" onclick="setGender('U')">U</button>
+            </div>
+            <input type="hidden" id="regGender" value="">
+          </div>
+        </div>
+        <div class="field-row-3" style="margin-bottom:10px;">
+          <div class="field"><label>ชื่อ-สกุล</label><input id="regName"></div>
+          <div class="field"><label>อายุ</label><input type="number" min="1" max="120" id="regAge"></div>
+          <div class="field"><label>เบอร์โทร</label><input type="tel" id="regPhone"></div>
+        </div>
+        <div class="field-row-2" style="margin-bottom:10px;">
+          <div class="field" id="regCategoryWrap" style="display:none;"><label>หมวดหมู่</label><select id="regCategory"></select></div>
+          <div class="field field-required"><label>จุดรักษา</label><select id="regLocationTx" required></select></div>
+        </div>
+        <div class="field-row-2">
+          <div class="field field-required"><label>เวลาแรกรับ (Time In)</label><input type="time" id="regTimeIn" required></div>
+          <div class="field"><label>เวลาจำหน่าย (Time Out)</label><input type="time" id="regTimeOut"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Section 2: Etiology + CC + Problem -->
+    <div class="section-card">
+      <div class="section-header"><div class="section-num">2</div><div class="section-title">สาเหตุ · CC · Problem</div></div>
+      <div class="section-body">
+        <div class="field field-required" style="margin-bottom:10px;">
+          <label>สาเหตุ (Etiology)</label>
+          <div class="toggle-row">
+            <button type="button" class="toggle-btn active" data-eti="Med" onclick="setEtiology('Med')">💊 Medical</button>
+            <button type="button" class="toggle-btn" data-eti="Trauma" onclick="setEtiology('Trauma')">🩸 Trauma</button>
+          </div>
+          <input type="hidden" id="regEtiology" value="Med">
+        </div>
+        <div class="field" style="margin-bottom:10px;">
+          <label>Chief Complaint (CC)</label>
+          <select id="regCC" onchange="onCCChange()"></select>
+        </div>
+        <div class="field" id="regCCOtherWrap" style="display:none; margin-bottom:10px;">
+          <label>ระบุ CC</label><input id="regCCOther">
+        </div>
+        <div class="field" style="margin-bottom:10px;">
+          <label>Problem / Diagnosis</label>
+          <select id="regProblem" onchange="onProblemChange()"></select>
+        </div>
+        <div class="field" id="regProblemOtherWrap" style="display:none;">
+          <label>ระบุ Problem</label><input id="regProblemOther">
+        </div>
+      </div>
+    </div>
+
+    <!-- Section 3: Treatment -->
+    <div class="section-card">
+      <div class="section-header"><div class="section-num">3</div><div class="section-title">Treatment / การรักษา</div></div>
+      <div class="section-body">
+        <div class="tx-grid" id="regTxGrid"></div>
+        <div style="margin-top:10px; padding-top:10px; border-top:1px solid var(--c-border);">
+          <button type="button" class="tx-btn" id="regTxMed" data-value="จ่ายยา" onclick="toggleMedDetail()">💊 จ่ายยา</button>
+          <input id="regTxMedDetail" placeholder="ชื่อยา / ขนาด" style="display:none; margin-top:6px; width:100%; padding:6px 10px; border:1px solid var(--c-border); border-radius:6px; font-family:inherit; font-size:13px;">
+        </div>
+        <div style="margin-top:8px;">
+          <input id="regTxOther" placeholder="อื่นๆ ระบุ..." style="width:100%; padding:6px 10px; border:1px solid var(--c-border); border-radius:6px; font-family:inherit; font-size:13px;">
+        </div>
+      </div>
+    </div>
+
+    <!-- Section 4: Allergy + Vitals -->
+    <div class="section-card">
+      <div class="section-header"><div class="section-num">4</div><div class="section-title">แพ้ยา · Vital Signs</div></div>
+      <div class="section-body">
+        <div class="field-row-2" style="margin-bottom:10px;">
+          <div class="field"><label>แพ้ยา / สาร</label>
+            <select id="regAllergy" onchange="toggleAllergy()"><option value="ไม่มี">ไม่มี</option><option value="มี">มี</option></select>
+          </div>
+          <div class="field" id="regAllergyDetailWrap" style="display:none;">
+            <label>ระบุที่แพ้</label><input id="regAllergyDetail">
+          </div>
+        </div>
+        <button type="button" class="btn-ghost" onclick="toggleVitals()" style="width:100%; text-align:left;">
+          <span id="regVitalsToggleLabel">▼ Vital Signs (คลิกเพื่อกรอก)</span>
+        </button>
+        <div id="regVitalsBody" style="display:none; margin-top:10px;">
+          <div class="field-row-4" style="margin-bottom:8px;">
+            <div class="field"><label>BP (e.g. 120/80)</label><input id="regVBP"></div>
+            <div class="field"><label>HR /min</label><input type="number" id="regVHR"></div>
+            <div class="field"><label>RR /min</label><input type="number" id="regVRR"></div>
+            <div class="field"><label>SpO2 %</label><input type="number" id="regVSPO2"></div>
+          </div>
+          <div class="field-row-4">
+            <div class="field"><label>Temp °C</label><input type="number" step="0.1" id="regVTemp"></div>
+            <div class="field"><label>GCS (3-15)</label><input type="number" min="3" max="15" id="regVGCS"></div>
+            <div class="field"><label>Glucose mg/dL</label><input type="number" id="regVGlucose"></div>
+            <div class="field"><label>Pain (0-10)</label><input type="number" min="0" max="10" id="regVPain"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Section 5: Result -->
+    <div class="section-card">
+      <div class="section-header"><div class="section-num">5</div><div class="section-title">Result / ผลการรักษา</div></div>
+      <div class="section-body">
+        <div class="toggle-row" style="margin-bottom:10px;">
+          <button type="button" class="toggle-btn active" data-result="dc" id="regResDCBtn" onclick="setResult('dc')" style="border-color:#86efac; color:#16a34a;">✓ D/C จำหน่าย</button>
+          <button type="button" class="toggle-btn" data-result="transfer" id="regResTrBtn" onclick="setResult('transfer')" style="border-color:#fde68a; color:#ea580c;">🚑 Transfer รพ.</button>
+        </div>
+        <input type="hidden" id="regResultType" value="dc">
+        <div id="regResultDCSub">
+          <div class="field"><label>ประเภท D/C</label>
+            <select id="regDCSub">
+              <option value="finished">finished — เสร็จสิ้น</option>
+              <option value="rtp">rtp — Return to Play</option>
+              <option value="dnf">dnf — Did Not Finish</option>
+            </select>
+          </div>
+        </div>
+        <div id="regResultTransferSub" style="display:none;">
+          <div class="field-row-2" style="margin-bottom:10px;">
+            <div class="field"><label>วิธีนำส่ง</label>
+              <select id="regTransferMethod">
+                <option value="team">ทีมไปส่ง</option>
+                <option value="self">ไปเอง</option>
+              </select>
+            </div>
+            <div class="field"><label>โรงพยาบาล</label><input id="regTransferHospital"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Section 6: Note + Image + GPS -->
+    <div class="section-card">
+      <div class="section-header"><div class="section-num">6</div><div class="section-title">หมายเหตุ · รูปภาพ · GPS</div></div>
+      <div class="section-body">
+        <div class="field" style="margin-bottom:10px;"><label>หมายเหตุ</label><textarea id="regNote" rows="2"></textarea></div>
+        <div class="field" style="margin-bottom:10px;"><label>รูปภาพ</label><input type="file" id="regImage" accept="image/*"></div>
+        <div class="field"><label>GPS</label>
+          <div style="display:flex; gap:6px;">
+            <input id="regGPS" readonly style="flex:1;">
+            <button type="button" class="btn-ghost" onclick="getRegGPS()">📍 ดึงพิกัด</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- View Registry detail (sub-overlay) -->
+<div class="reg-overlay" id="regViewOverlay">
+  <div class="reg-topbar">
+    <button class="icon-btn" onclick="closeViewRegistry()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg></button>
+    <div style="flex:1; font-weight:700;">รายละเอียด Registry</div>
+    <button class="btn-ghost" id="regViewEditBtn" onclick="editFromView()">✏️ แก้ไข</button>
+  </div>
+  <div class="reg-body" id="regViewBody"></div>
+</div>
+
+<!-- ============ DEPENDENCIES ============ -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script src="../../shared/config.js"></script>
+<script src="../../shared/auth.js"></script>
+<script src="../../shared/realtime.js"></script>
+<script src="../../shared/cloudinary.js"></script>
+<script src="../shared.js"></script>
+
+<script>
+/* ====================================================================
+   PT Medical V2 — FirstAid Module (production)
+   Schema: fa_events / fa_registry (+ fa_patients legacy read)
+   Views: events | detail (overview + dashboard) | fullscreen
+==================================================================== */
+
+// --------- Constants (port from V1) ---------
+var REG_CC_MED = [
+  'Muscle cramp/ตะคริว','Musculoskeletal (lower limb)/ปวดขาส่วนล่าง','Musculoskeletal (upper limb)/ปวดแขนส่วนบน',
+  'Skin (blister/chafing)/ตุ่มน้ำ เสียดสี','Skin (laceration/abrasion)/แผลฉีก ถลอก',
+  'Collapse (pre-finish)/หมดสติก่อนเข้าเส้นชัย','Collapse (post-finish)/หมดสติหลังเข้าเส้นชัย',
+  'Chest pain/เจ็บหน้าอก','Dyspnea/หายใจลำบาก','Nausea & Vomiting/คลื่นไส้ อาเจียน',
+  'Headache/ปวดศีรษะ','Dizziness & Syncope/เวียนศีรษะ หน้ามืด','Abdominal pain/ปวดท้อง',
+  'Heat-related/อาการจากความร้อน','Hypothermia/อาการจากความเย็น','Allergic reaction/อาการแพ้',
+  'Eye problem/ปัญหาทางตา','Insect bite & sting/แมลงกัดต่อย','Dehydration/ขาดน้ำ',
+  'Seizure/ชัก','Cardiac arrest/หัวใจหยุดเต้น','Anxiety & Panic attack/วิตกกังวล แพนิค',
+  'Other (ระบุ)'
+];
+var REG_CC_TRAUMA = [
+  'Fall/ล้ม สะดุด','Collision/ชนกัน','Abrasion & Road rash/ถลอก','Laceration/แผลฉีก',
+  'Contusion/ฟกช้ำ','Sprain & Strain/เคล็ด กล้ามเนื้อตึง','Dislocation/ข้อเคลื่อน',
+  'Suspected fracture/สงสัยกระดูกหัก','Head injury/บาดเจ็บศีรษะ','Burn and Scalds/แผลไฟไหม้น้ำร้อนลวก',
+  'Other (ระบุ)'
+];
+var REG_PROBLEMS = [
+  'EAMC — ตะคริวจากออกกำลังกาย','EAC — หมดแรง/ล้มขณะวิ่ง','EAH — ภาวะโซเดียมต่ำ',
+  'Exertional Heat Stroke — ลมแดด/ฮีทสโตรก','Heat Exhaustion — เพลียแดด','Hypothermia — อุณหภูมิร่างกายต่ำ',
+  'Trauma/Musculoskeletal — บาดเจ็บกล้ามเนื้อ/กระดูก','Skin/Soft tissue — ผิวหนัง/เนื้อเยื่ออ่อน',
+  'Respiratory Distress — หายใจลำบาก','Emergency Cardiac Care — หัวใจฉุกเฉิน','Cardiac Arrest — หัวใจหยุดเต้น',
+  'Allergy/Anaphylaxis — แพ้/แอนาฟิแล็กซิส','Hydration Guidance — แนะนำการดื่มน้ำ',
+  'GI Distress — ระบบทางเดินอาหาร','Neurological — ระบบประสาท','Syncope/Collapse — หมดสติ/เป็นลม',
+  'Intoxication — มึนเมา/สารเสพติด','Anxiety/Panic Attack — วิตกกังวล/แพนิค',
+  'Crowd Crush Injury — บาดเจ็บจากฝูงชนเบียด','Seizure — ชัก','Assault Injury — บาดเจ็บจากทำร้ายร่างกาย',
+  'Wound/Laceration — แผล/ฉีกขาด','Hypo/Hyperglycemia — น้ำตาลในเลือดผิดปกติ',
+  'Fever/Infection — ไข้/ติดเชื้อ','Other (ระบุ)'
+];
+var REG_TREATMENTS = [
+  { group:'ทั่วไป', color:'#16a34a', items:['แอมโมเนีย','พลาสเตอร์ยา','ยานวด/สเปรย์','Cold pack'] },
+  { group:'Trauma/แผล', color:'#dc2626', items:['ทำแผล/Wound dressing','ห้ามเลือด/Pressure','Splint/ดาม','Eye wash','Stretching/ยืดกล้ามเนื้อ'] },
+  { group:'Medical', color:'#3b82f6', items:['Oxygen/O2','Nebulization','IV Fluid','CPR/AED'] },
+  { group:'Environment', color:'#f59e0b', items:['Hot pack','Cool down','Keep warm'] }
+];
+
+// --------- App state ---------
+var allEvents = [];
+var currentEvents = [];        // filtered list shown in events grid
+var eventTab = 'Active';
+var eventTypeFilter = '';      // '' | 'sports' | 'concert' | 'general'
+var currentEventId = null;
+var currentEvent = null;
+var currentEventConfig = null;
+var registry = [];
+var triageFilter = '';
+var resultFilter = '';
+var detailView = 'overview';
+var charts = {};
+
+// --------- Auth bootstrap ---------
+function initUser(){
+  var name = (typeof getUserName === 'function' && getUserName()) || 'User';
+  var role = (typeof getUserRole === 'function' && getUserRole()) || '';
+  document.getElementById('userName').textContent = name;
+  document.getElementById('userRole').textContent = role;
+  document.getElementById('userAvatar').textContent = (name.substr(0,2) || 'PT').toUpperCase();
+  var isAdmin = role.toLowerCase().indexOf('admin') !== -1;
+  // Hide create-event for non-admin
+  if(!isAdmin){
+    var b = document.getElementById('btnNewEvent'); if(b) b.style.display='none';
+  }
+  // Show admin-only nav rail items
+  if(isAdmin){
+    ['rail-gps','rail-monitor','rail-admin'].forEach(function(id){
+      var el = document.getElementById(id); if(el) el.style.display = '';
+    });
+  }
+}
+
+// --------- Routing ---------
+function navigateView(v){
+  document.querySelectorAll('.view').forEach(function(el){ el.classList.remove('active'); });
+  if(v === 'events'){
+    document.getElementById('viewEvents').classList.add('active');
+    document.getElementById('subnavEvents').style.display='';
+    document.getElementById('subnavDetail').style.display='none';
+    document.getElementById('mobTitle').textContent='ปฐมพยาบาล';
+    document.getElementById('mobSub').textContent='FirstAid Events';
+    if(currentEventId){ RT.unsubscribe('fa-registry'); subscribeEvents(); }
+    currentEventId = null;
+    location.hash = '';
+  } else if(v === 'detail'){
+    document.getElementById('viewDetail').classList.add('active');
+    document.getElementById('subnavEvents').style.display='none';
+    document.getElementById('subnavDetail').style.display='flex';
+  }
+}
+
+window.addEventListener('hashchange', handleHash);
+function handleHash(){
+  var h = (location.hash || '').replace(/^#/, '');
+  if(h.indexOf('event/') === 0){
+    var id = h.substr('event/'.length);
+    openEventDetail(id);
+  } else {
+    navigateView('events');
+  }
+}
+
+// --------- Events: load + render ---------
+function subscribeEvents(){
+  if(typeof RT === 'undefined') return;
+  RT.subscribe('fa-events', 'fa_events', function(){ loadEvents(); });
+}
+
+async function loadEvents(){
+  if(typeof _supabase === 'undefined') return;
+  try{
+    var ev = await _supabase.from('fa_events').select('*');
+    if(ev.error) throw ev.error;
+    var rg = await _supabase.from('fa_registry').select('event_id, etiology, result, triage');
+    if(rg.error) throw rg.error;
+
+    var regsByEv = {};
+    (rg.data || []).forEach(function(r){
+      if(!regsByEv[r.event_id]) regsByEv[r.event_id] = [];
+      regsByEv[r.event_id].push(r);
+    });
+
+    allEvents = (ev.data || []).map(function(e){
+      var cfg = e.event_config;
+      if(typeof cfg === 'string'){ try{ cfg = JSON.parse(cfg); }catch(_){ cfg = null; } }
+      return {
+        id: e.event_id, name: e.event_name, location: e.location,
+        startDate: e.event_date, startTime: e.start_time,
+        endDate: e.end_date, endTime: e.end_time,
+        status: e.status || 'Active',
+        type: e.event_type || 'general',
+        config: cfg,
+        image: e.image_url || '',
+        qAmmonia: e.q_ammonia||0, qPlaster: e.q_plaster||0, qSpray: e.q_spray||0, qWound: e.q_wound||0,
+        regCount: (regsByEv[e.event_id] || []).length,
+        regs: regsByEv[e.event_id] || []
+      };
+    });
+    renderEventGrid();
+
+    // If we're on detail, refresh banner
+    if(currentEventId){
+      var found = allEvents.find(function(x){ return x.id === currentEventId; });
+      if(found){ currentEvent = found; renderDetailHeader(); }
+    }
+  }catch(err){
+    console.error('loadEvents error', err);
+    document.getElementById('evGrid').innerHTML = '<div style="grid-column:1/-1; text-align:center; padding:40px; color:#dc2626;">โหลดไม่สำเร็จ: '+(err.message||err)+'</div>';
+  }
+}
+
+function renderEventGrid(){
+  // Update badges
+  var nA = allEvents.filter(function(x){ return x.status==='Active'; }).length;
+  var nC = allEvents.filter(function(x){ return x.status!=='Active'; }).length;
+  document.getElementById('badgeActive').textContent = nA;
+  document.getElementById('badgeComplete').textContent = nC;
+  document.getElementById('badgeSports').textContent  = allEvents.filter(function(x){ return x.type==='sports'; }).length;
+  document.getElementById('badgeConcert').textContent = allEvents.filter(function(x){ return x.type==='concert'; }).length;
+  document.getElementById('badgeGeneral').textContent = allEvents.filter(function(x){ return x.type==='general'; }).length;
+
+  var search = (document.getElementById('evSearch').value || '').toLowerCase();
+  currentEvents = allEvents.filter(function(x){
+    if(eventTab === 'Active' && x.status !== 'Active') return false;
+    if(eventTab === 'Complete' && x.status === 'Active') return false;
+    if(eventTypeFilter && x.type !== eventTypeFilter) return false;
+    if(search && (x.name||'').toLowerCase().indexOf(search) < 0 && (x.location||'').toLowerCase().indexOf(search) < 0) return false;
+    return true;
+  }).sort(function(a,b){ return (b.startDate||'').localeCompare(a.startDate||''); });
+
+  document.getElementById('evListTitle').textContent = eventTab + ' Events · ' + currentEvents.length + ' งาน';
+
+  var grid = document.getElementById('evGrid');
+  if(!currentEvents.length){
+    grid.innerHTML = '<div style="grid-column:1/-1; text-align:center; padding:40px; color:var(--c-muted);">ไม่พบงาน</div>';
+    return;
+  }
+  var icons = { sports:'🏃', concert:'🎤', general:'🎪' };
+  grid.innerHTML = currentEvents.map(function(e){
+    var dateStr = (e.startDate||'') + (e.startTime ? ' '+e.startTime : '');
+    if(e.endDate && e.endDate !== e.startDate) dateStr += ' → ' + e.endDate;
+    return '<div class="ev-card" onclick="openEventDetail(\''+e.id+'\')">' +
+      '<div class="ev-banner '+e.type+'">'+ (icons[e.type]||'🎪') +'</div>' +
+      '<div class="body">' +
+        '<div class="name">'+ escapeHtml(e.name||'') +'</div>' +
+        '<div class="meta">📍 '+ escapeHtml(e.location||'') +'</div>' +
+        '<div class="meta">📅 '+ escapeHtml(dateStr) +'</div>' +
+        '<div style="display:flex; gap:6px; margin-top:8px; flex-wrap:wrap;">' +
+          '<span class="flag-chip">'+ (e.type||'general') +'</span>' +
+          '<span class="flag-chip '+(e.status==='Active'?'ok':'')+'">'+ e.status +'</span>' +
+          '<span class="flag-chip info">'+ e.regCount +' ผู้ป่วย</span>' +
+        '</div>' +
+        '<button class="btn-primary" style="width:100%; margin-top:10px; padding:7px; justify-content:center;" onclick="event.stopPropagation(); openEventDetail(\''+e.id+'\')">เข้าจัดการ →</button>' +
+      '</div>' +
+    '</div>';
+  }).join('');
+}
+
+function setEventTab(tab, el){
+  eventTab = tab;
+  document.querySelectorAll('#subnavEvents .subnav-item').forEach(function(x){ x.classList.remove('active'); });
+  if(el) el.classList.add('active');
+  renderEventGrid();
+}
+function setEventTypeFilter(t, el){
+  eventTypeFilter = (eventTypeFilter === t) ? '' : t;
+  document.querySelectorAll('#subnavEvents .subnav-item').forEach(function(x){ x.classList.remove('active'); });
+  if(eventTypeFilter && el) el.classList.add('active');
+  else { document.querySelectorAll('#subnavEvents .subnav-item').forEach(function(x){
+    if(x.textContent.indexOf(eventTab)>-1) x.classList.add('active');
+  }); }
+  renderEventGrid();
+}
+
+// --------- Event modal ---------
+function selectEvType(btn, val){
+  document.querySelectorAll('#eventModal .chip').forEach(function(c){ c.classList.remove('selected'); });
+  btn.classList.add('selected');
+  document.getElementById('evType').value = val;
+}
+function openEventModal(id){
+  document.getElementById('evFormId').value = id || '';
+  document.getElementById('evModalTitle').textContent = id ? 'แก้ไขงาน' : 'สร้างงานใหม่';
+  if(id){
+    var ev = allEvents.find(function(x){ return x.id===id; });
+    if(ev){
+      document.getElementById('evName').value = ev.name||'';
+      document.getElementById('evLoc').value  = ev.location||'';
+      document.getElementById('evStartDate').value = ev.startDate||'';
+      document.getElementById('evStartTime').value = ev.startTime||'';
+      document.getElementById('evEndDate').value = ev.endDate||'';
+      document.getElementById('evEndTime').value = ev.endTime||'';
+      document.getElementById('evType').value = ev.type||'general';
+      document.querySelectorAll('#eventModal .chip').forEach(function(c){
+        c.classList.toggle('selected', c.dataset.value === (ev.type||'general'));
+      });
+      var cfg = ev.config || {};
+      document.getElementById('evIdLabel').value = cfg.idLabel || '';
+      document.getElementById('evCategories').value = (cfg.categories||[]).join(', ');
+      document.getElementById('evLocations').value = (cfg.locations||[]).join(', ');
+      document.getElementById('evExistingImage').value = ev.image || '';
+    }
+  } else {
+    ['evName','evLoc','evStartDate','evStartTime','evEndDate','evEndTime','evIdLabel','evCategories','evLocations','evExistingImage'].forEach(function(k){
+      document.getElementById(k).value='';
+    });
+    document.getElementById('evType').value='general';
+    document.querySelectorAll('#eventModal .chip').forEach(function(c){
+      c.classList.toggle('selected', c.dataset.value === 'general');
+    });
+  }
+  document.getElementById('evImage').value = '';
+  openModal('eventModal');
+}
+
+async function submitEventForm(){
+  var name = document.getElementById('evName').value.trim();
+  var loc = document.getElementById('evLoc').value.trim();
+  var startDate = document.getElementById('evStartDate').value;
+  if(!name || !loc || !startDate){ Swal.fire('กรุณากรอก','ชื่อ / สถานที่ / วันเริ่ม','warning'); return; }
+  var id = document.getElementById('evFormId').value;
+  var type = document.getElementById('evType').value || 'general';
+  var cfg = {
+    idLabel: document.getElementById('evIdLabel').value.trim(),
+    categories: document.getElementById('evCategories').value.split(',').map(function(s){return s.trim();}).filter(Boolean),
+    locations: document.getElementById('evLocations').value.split(',').map(function(s){return s.trim();}).filter(Boolean)
+  };
+  Swal.fire({ title:'กำลังบันทึก...', didOpen:function(){Swal.showLoading();} });
+  try{
+    var imageUrl = document.getElementById('evExistingImage').value || '';
+    var imageFile = document.getElementById('evImage').files[0];
+    if(imageFile && typeof uploadToCloudinary === 'function'){
+      imageUrl = await uploadToCloudinary(imageFile, 'firstaid-events');
+    }
+    var payload = {
+      event_name: name, location: loc,
+      event_date: startDate, start_time: document.getElementById('evStartTime').value,
+      end_date: document.getElementById('evEndDate').value, end_time: document.getElementById('evEndTime').value,
+      image_url: imageUrl, event_type: type, event_config: cfg
+    };
+    if(id){
+      var r = await _supabase.from('fa_events').update(payload).eq('event_id', id);
+      if(r.error) throw r.error;
+    } else {
+      payload.event_id = 'EV-' + Date.now();
+      payload.status = 'Active';
+      payload.created_by = (typeof getUserName==='function' && getUserName()) || 'Unknown';
+      payload.q_ammonia = 0; payload.q_plaster = 0; payload.q_spray = 0; payload.q_wound = 0;
+      var r2 = await _supabase.from('fa_events').insert(payload);
+      if(r2.error) throw r2.error;
+    }
+    Swal.close();
+    closeModal('eventModal');
+    loadEvents();
+  } catch(err){
+    Swal.fire('Error', err.message || String(err), 'error');
+  }
+}
+
+// --------- Event detail (open + load registry) ---------
+async function openEventDetail(id){
+  currentEventId = id;
+  location.hash = 'event/' + id;
+  navigateView('detail');
+  if(typeof RT !== 'undefined'){
+    RT.unsubscribe('fa-events');
+    RT.subscribeMulti('fa-registry', ['fa_registry','fa_events'], function(){
+      loadRegistry();
+    });
+  }
+  // If allEvents not loaded yet
+  if(!allEvents.length) await loadEvents();
+  currentEvent = allEvents.find(function(x){ return x.id===id; });
+  if(!currentEvent){
+    var r = await _supabase.from('fa_events').select('*').eq('event_id', id).single();
+    if(r.data){
+      var cfg = r.data.event_config; if(typeof cfg==='string'){try{cfg=JSON.parse(cfg);}catch(_){}}
+      currentEvent = {
+        id:r.data.event_id, name:r.data.event_name, location:r.data.location,
+        startDate:r.data.event_date, startTime:r.data.start_time, endDate:r.data.end_date, endTime:r.data.end_time,
+        status:r.data.status, type:r.data.event_type||'general', config:cfg,
+        qAmmonia:r.data.q_ammonia||0, qPlaster:r.data.q_plaster||0, qSpray:r.data.q_spray||0, qWound:r.data.q_wound||0
+      };
+    }
+  }
+  currentEventConfig = currentEvent && currentEvent.config;
+  renderDetailHeader();
+  loadRegistry();
+}
+
+function renderDetailHeader(){
+  if(!currentEvent) return;
+  var e = currentEvent;
+  document.getElementById('detailName').textContent = e.name || '';
+  document.getElementById('detailLoc').textContent  = '📍 ' + (e.location||'');
+  document.getElementById('detailDate').textContent = '📅 ' + (e.startDate||'') + (e.startTime?' '+e.startTime:'') + (e.endDate && e.endDate!==e.startDate ? ' → '+e.endDate : '');
+  document.getElementById('detailType').textContent = e.type || 'general';
+  document.getElementById('detailStatus').textContent = e.status;
+  // banner color by type
+  var b = document.getElementById('detailBanner');
+  if(e.type==='sports') b.style.background='linear-gradient(135deg,#fb923c,#f97316)';
+  else if(e.type==='concert') b.style.background='linear-gradient(135deg,#a855f7,#7c3aed)';
+  else if(e.type==='general') b.style.background='linear-gradient(135deg,#22c55e,#15803d)';
+  else b.style.background='linear-gradient(135deg,#0ea5e9,#0284c7)';
+  // Subnav summary
+  document.getElementById('snDetailName').textContent = e.name || '';
+  document.getElementById('snDetailMeta').textContent = '📅 ' + (e.startDate||'') + ' · ' + (e.regCount||0) + ' ผู้ป่วย';
+  document.getElementById('snDetailChips').innerHTML =
+    '<span class="flag-chip">'+e.type+'</span>' +
+    '<span class="flag-chip '+(e.status==='Active'?'ok':'')+'">'+e.status+'</span>';
+  // Mobile title
+  document.getElementById('mobTitle').textContent = e.name || 'งาน';
+  document.getElementById('mobSub').textContent = (e.regCount||0) + ' ผู้ป่วย · ' + e.status;
+  // Quick dispense numbers
+  document.getElementById('qdAmmonia').textContent = e.qAmmonia||0;
+  document.getElementById('qdPlaster').textContent = e.qPlaster||0;
+  document.getElementById('qdSpray').textContent = e.qSpray||0;
+  document.getElementById('qdWound').textContent = e.qWound||0;
+  document.getElementById('snQA').textContent = e.qAmmonia||0;
+  document.getElementById('snQP').textContent = e.qPlaster||0;
+  document.getElementById('snQS').textContent = e.qSpray||0;
+  document.getElementById('snQW').textContent = e.qWound||0;
+  // Edit/Delete admin gate
+  var role = (typeof getUserRole==='function' && getUserRole()) || '';
+  if(role !== 'admin'){
+    document.getElementById('snDeleteEvent').style.display='none';
+  }
+  // Toggle event status label
+  document.getElementById('snToggleEvent').firstElementChild.textContent =
+    (e.status === 'Active') ? '🔒 ปิดงาน (Complete)' : '🔓 เปิดงานอีกครั้ง (Active)';
+}
+
+async function loadRegistry(){
+  if(!currentEventId) return;
+  try{
+    var r = await _supabase.from('fa_registry').select('*').eq('event_id', currentEventId);
+    if(r.error) throw r.error;
+    registry = (r.data || []).map(function(x){
+      var v = x.vitals_json;
+      if(typeof v === 'string'){ try{ v = JSON.parse(v); }catch(_){ v={}; } }
+      return {
+        id: x.reg_id, triage:x.triage, gender:x.gender, age:x.age, name:x.name,
+        phone: x.phone ? String(x.phone).replace(/^'/, '') : '',
+        category:x.category, locationTx:x.location_tx, timeIn:x.time_in, timeOut:x.time_out,
+        etiology:x.etiology, cc:x.cc, ccOther:x.cc_other, problem:x.problem, problemOther:x.problem_other,
+        treatment:x.treatment, allergy:x.allergy, vitals: v || {},
+        result:x.result, note:x.note, image:x.image_url, gps:x.gps,
+        recordedBy:x.recorded_by, createdAt:x.created_at
+      };
+    });
+    // Refresh event regCount
+    if(currentEvent) currentEvent.regCount = registry.length;
+    renderDetailHeader();
+    renderRegistryList();
+    renderTriageCounts();
+    if(detailView === 'dashboard') renderDashboard();
+  }catch(err){
+    document.getElementById('regList').innerHTML = '<div style="padding:20px; color:#dc2626; text-align:center;">โหลดล้มเหลว: '+(err.message||err)+'</div>';
+  }
+}
+
+function renderTriageCounts(){
+  var cnt = {A:0,V:0,P:0,U:0};
+  registry.forEach(function(r){ if(cnt[r.triage]!=null) cnt[r.triage]++; });
+  document.getElementById('cntA').textContent = cnt.A;
+  document.getElementById('cntV').textContent = cnt.V;
+  document.getElementById('cntP').textContent = cnt.P;
+  document.getElementById('cntU').textContent = cnt.U;
+  document.getElementById('cntTotal').textContent = registry.length;
+  document.getElementById('snTriA').textContent = cnt.A;
+  document.getElementById('snTriV').textContent = cnt.V;
+  document.getElementById('snTriP').textContent = cnt.P;
+  document.getElementById('snTriU').textContent = cnt.U;
+  // Result counts
+  var dc=0, tr=0;
+  registry.forEach(function(r){ if((r.result||'').indexOf('dc')===0) dc++; else if((r.result||'').indexOf('transfer')===0) tr++; });
+  document.getElementById('snResDC').textContent = dc;
+  document.getElementById('snResTr').textContent = tr;
+  document.getElementById('regCount').textContent = registry.length;
+}
+
+function renderRegistryList(){
+  var list = registry.filter(function(r){
+    if(triageFilter && r.triage !== triageFilter) return false;
+    if(resultFilter){
+      if(resultFilter === 'dc' && (r.result||'').indexOf('dc') !== 0) return false;
+      if(resultFilter === 'transfer' && (r.result||'').indexOf('transfer') !== 0) return false;
+    }
+    return true;
+  });
+  // newest first by time_in
+  list.sort(function(a,b){ return (b.timeIn||'').localeCompare(a.timeIn||''); });
+
+  var role = (typeof getUserRole==='function' && getUserRole()) || '';
+  var me = (typeof getUserName==='function' && getUserName()) || '';
+
+  if(!list.length){
+    document.getElementById('regList').innerHTML = '<div style="padding:30px; text-align:center; color:var(--c-muted);">ไม่มีรายการ — กด "+ บันทึก" เพื่อลงทะเบียนผู้ป่วยใหม่</div>';
+    return;
+  }
+  document.getElementById('regList').innerHTML = list.map(function(r){
+    var resStr = '-';
+    if(r.result){
+      var rp = r.result.split(':');
+      if(rp[0]==='dc'){
+        var sub = {finished:'จำหน่าย', rtp:'Return to Play', dnf:'DNF'}[rp[1]] || rp[1];
+        resStr = '<span class="flag-chip ok">D/C · '+sub+'</span>';
+      } else {
+        var meth = {team:'ทีมไปส่ง', self:'ไปเอง'}[rp[1]] || rp[1];
+        var hosp = rp.slice(2).join(':');
+        resStr = '<span class="flag-chip danger">Transfer · '+meth+(hosp?(' → '+escapeHtml(hosp)):'')+'</span>';
+      }
+    }
+    var canEdit = (role === 'admin') || (r.recordedBy === me);
+    var cc = (r.cc || '') + (r.ccOther ? ' ('+r.ccOther+')' : '');
+    return '<div class="case-row" onclick="viewRegistry(\''+r.id+'\')">' +
+      '<span class="triage-circle '+r.triage+'">'+r.triage+'</span>' +
+      '<div class="case-info">' +
+        '<div class="case-name">'+ escapeHtml(r.name||'(ไม่ระบุชื่อ)') +' · '+(r.gender||'-')+' '+(r.age||'-')+' ปี</div>' +
+        '<div class="case-meta"><strong>CC:</strong> '+escapeHtml(cc||'-')+' · <strong>'+(r.etiology==='Med'?'Med':'Trauma')+'</strong>'+
+          (r.locationTx?(' · 📍 '+escapeHtml(r.locationTx)):'') + (r.timeIn?(' · 🕐 '+r.timeIn):'') + '</div>' +
+      '</div>' + resStr +
+      (canEdit ? '<div class="kebab-wrap" onclick="event.stopPropagation()">' +
+        '<button class="kebab-btn" onclick="kebab(event,\'k_'+r.id+'\')"><svg viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="5" r="1.8"/><circle cx="12" cy="12" r="1.8"/><circle cx="12" cy="19" r="1.8"/></svg></button>' +
+        '<div class="kebab-menu" id="k_'+r.id+'">' +
+          '<button class="kebab-item" onclick="viewRegistry(\''+r.id+'\')">👁 ดู</button>' +
+          '<button class="kebab-item" onclick="openRegistryForm(\''+r.id+'\')">✏️ แก้ไข</button>' +
+          '<div class="kebab-divider"></div>' +
+          '<button class="kebab-item danger" onclick="deleteRegistry(\''+r.id+'\')">🗑 ลบ</button>' +
+        '</div></div>' : '') +
+    '</div>';
+  }).join('');
+}
+
+function setTriageFilter(t, el){
+  triageFilter = (triageFilter === t) ? '' : t;
+  document.querySelectorAll('#subnavDetail .subnav-item[data-tri]').forEach(function(x){ x.classList.remove('active'); });
+  if(triageFilter && el) el.classList.add('active');
+  renderRegistryList();
+}
+function setResultFilter(t, el){
+  resultFilter = (resultFilter === t) ? '' : t;
+  document.querySelectorAll('#subnavDetail .subnav-item[data-result]').forEach(function(x){ x.classList.remove('active'); });
+  if(resultFilter && el) el.classList.add('active');
+  renderRegistryList();
+}
+function setDetailView(v, el){
+  detailView = v;
+  document.querySelectorAll('#subnavDetail .subnav-item[data-detail-view]').forEach(function(x){ x.classList.remove('active'); });
+  if(el) el.classList.add('active');
+  document.getElementById('detailViewOverview').style.display = (v==='overview') ? '' : 'none';
+  document.getElementById('detailViewDashboard').style.display = (v==='dashboard') ? '' : 'none';
+  if(v === 'dashboard') renderDashboard();
+}
+
+// --------- Quick dispense ---------
+var qdSaveTimer = null;
+async function qdAdjust(field, delta){
+  if(!currentEvent) return;
+  var k = 'q' + field;  // qAmmonia ...
+  currentEvent[k] = Math.max(0, (currentEvent[k]||0) + delta);
+  document.getElementById('qd' + field).textContent = currentEvent[k];
+  document.getElementById('snQ' + field.charAt(0)).textContent = currentEvent[k];
+  // debounce save
+  if(qdSaveTimer) clearTimeout(qdSaveTimer);
+  qdSaveTimer = setTimeout(saveQuickDispense, 700);
+}
+async function saveQuickDispense(){
+  if(!currentEventId) return;
+  try{
+    await _supabase.from('fa_events').update({
+      q_ammonia: currentEvent.qAmmonia||0,
+      q_plaster: currentEvent.qPlaster||0,
+      q_spray:   currentEvent.qSpray||0,
+      q_wound:   currentEvent.qWound||0
+    }).eq('event_id', currentEventId);
+  }catch(err){ console.warn('saveQuickDispense', err); }
+}
+
+// --------- Registry form ---------
+function setTriage(v){
+  document.getElementById('regTriage').value = v;
+  document.querySelectorAll('#regTriageGroup .toggle-btn').forEach(function(b){
+    b.classList.toggle('active', b.dataset.tri === v);
+  });
+}
+function setGender(v){
+  document.getElementById('regGender').value = v;
+  document.querySelectorAll('#regGenderGroup .toggle-btn').forEach(function(b){
+    b.classList.toggle('active', b.dataset.gen === v);
+  });
+}
+function setEtiology(t){
+  document.getElementById('regEtiology').value = t;
+  document.querySelectorAll('[data-eti]').forEach(function(b){
+    b.classList.toggle('active', b.dataset.eti === t);
+  });
+  populateCC(t);
+}
+function populateCC(type){
+  var sel = document.getElementById('regCC');
+  var list = (type === 'Med') ? REG_CC_MED : REG_CC_TRAUMA;
+  sel.innerHTML = '<option value="">-- เลือก CC --</option>' + list.map(function(x){
+    return '<option value="'+escapeHtml(x)+'">'+escapeHtml(x)+'</option>';
+  }).join('');
+  document.getElementById('regCCOtherWrap').style.display='none';
+  document.getElementById('regCCOther').value='';
+}
+function onCCChange(){
+  var v = document.getElementById('regCC').value;
+  document.getElementById('regCCOtherWrap').style.display = (v && v.indexOf('Other')>-1) ? '' : 'none';
+}
+function populateProblems(){
+  var sel = document.getElementById('regProblem');
+  sel.innerHTML = '<option value="">-- เลือก Problem --</option>' + REG_PROBLEMS.map(function(x){
+    return '<option value="'+escapeHtml(x)+'">'+escapeHtml(x)+'</option>';
+  }).join('');
+}
+function onProblemChange(){
+  var v = document.getElementById('regProblem').value;
+  document.getElementById('regProblemOtherWrap').style.display = (v && v.indexOf('Other')>-1) ? '' : 'none';
+}
+function buildTreatmentGrid(){
+  var grid = document.getElementById('regTxGrid');
+  grid.innerHTML = '';
+  REG_TREATMENTS.forEach(function(g){
+    var lbl = document.createElement('div');
+    lbl.className = 'tx-grouplabel';
+    lbl.innerHTML = '<span class="badge" style="background:'+g.color+';">'+g.group+'</span>';
+    grid.appendChild(lbl);
+    g.items.forEach(function(t){
+      var btn = document.createElement('button');
+      btn.type='button'; btn.className='tx-btn'; btn.dataset.value=t; btn.textContent=t;
+      btn.onclick = function(){ this.classList.toggle('active'); };
+      grid.appendChild(btn);
+    });
+  });
+}
+function toggleMedDetail(){
+  var btn = document.getElementById('regTxMed');
+  btn.classList.toggle('active');
+  document.getElementById('regTxMedDetail').style.display = btn.classList.contains('active') ? '' : 'none';
+}
+function toggleAllergy(){
+  var v = document.getElementById('regAllergy').value;
+  document.getElementById('regAllergyDetailWrap').style.display = (v === 'มี') ? '' : 'none';
+  if(v !== 'มี') document.getElementById('regAllergyDetail').value = '';
+}
+function toggleVitals(){
+  var b = document.getElementById('regVitalsBody');
+  b.style.display = (b.style.display === 'none' || !b.style.display) ? '' : 'none';
+  document.getElementById('regVitalsToggleLabel').textContent =
+    (b.style.display === '') ? '▲ Vital Signs (ซ่อน)' : '▼ Vital Signs (คลิกเพื่อกรอก)';
+}
+function setResult(t){
+  document.getElementById('regResultType').value = t;
+  document.getElementById('regResDCBtn').classList.toggle('active', t==='dc');
+  document.getElementById('regResTrBtn').classList.toggle('active', t==='transfer');
+  document.getElementById('regResultDCSub').style.display = (t==='dc') ? '' : 'none';
+  document.getElementById('regResultTransferSub').style.display = (t==='transfer') ? '' : 'none';
+}
+function getRegGPS(){
+  if(!navigator.geolocation){ Swal.fire('GPS ไม่พร้อม','เบราว์เซอร์ไม่รองรับ','warning'); return; }
+  document.getElementById('regGPS').value='กำลังค้นหา...';
+  navigator.geolocation.getCurrentPosition(
+    function(p){ document.getElementById('regGPS').value = p.coords.latitude+', '+p.coords.longitude; },
+    function(){ document.getElementById('regGPS').value=''; Swal.fire('GPS Error','ดึงพิกัดไม่สำเร็จ','warning'); },
+    { enableHighAccuracy:true, timeout:15000, maximumAge:0 }
+  );
+}
+
+function populateEventConfigDropdowns(){
+  var cfg = currentEventConfig || {};
+  var catWrap = document.getElementById('regCategoryWrap');
+  var catSel = document.getElementById('regCategory');
+  if(cfg.categories && cfg.categories.length){
+    catWrap.style.display='';
+    catSel.innerHTML = '<option value="">-- เลือก --</option>' + cfg.categories.map(function(c){
+      return '<option value="'+escapeHtml(c)+'">'+escapeHtml(c)+'</option>';
+    }).join('');
+  } else { catWrap.style.display='none'; }
+  var locSel = document.getElementById('regLocationTx');
+  locSel.innerHTML = '<option value="">-- เลือก --</option>';
+  if(cfg.locations && cfg.locations.length){
+    cfg.locations.forEach(function(l){ locSel.innerHTML += '<option value="'+escapeHtml(l)+'">'+escapeHtml(l)+'</option>'; });
+  }
+  if(cfg.idLabel){ document.getElementById('regName').placeholder = 'ชื่อ-สกุล / '+cfg.idLabel; }
+  else document.getElementById('regName').placeholder = 'ชื่อ-สกุล';
+}
+
+function openRegistryForm(regId){
+  if(!currentEventId){ Swal.fire('ไม่มี Event','กรุณาเปิด event ก่อน','warning'); return; }
+  // Reset
+  document.getElementById('regId').value = regId || '';
+  document.getElementById('regEventId').value = currentEventId;
+  document.getElementById('regExistingImage').value = '';
+  document.getElementById('regModalEv').textContent = currentEvent ? currentEvent.name : '';
+  setEtiology('Med');
+  populateProblems();
+  populateEventConfigDropdowns();
+  setResult('dc');
+  document.getElementById('regAllergy').value='ไม่มี'; toggleAllergy();
+  document.getElementById('regVitalsBody').style.display='none';
+  document.getElementById('regVitalsToggleLabel').textContent='▼ Vital Signs (คลิกเพื่อกรอก)';
+  document.getElementById('regCCOtherWrap').style.display='none';
+  document.getElementById('regProblemOtherWrap').style.display='none';
+  setTriage('A'); setGender('');
+  ['regName','regAge','regPhone','regCCOther','regProblemOther','regNote','regGPS','regTxOther','regTxMedDetail','regAllergyDetail','regTransferHospital'].forEach(function(k){ document.getElementById(k).value=''; });
+  ['regVBP','regVHR','regVRR','regVSPO2','regVTemp','regVGCS','regVGlucose','regVPain'].forEach(function(k){ document.getElementById(k).value=''; });
+  document.getElementById('regImage').value='';
+  document.getElementById('regTimeIn').value = nowTime();
+  document.getElementById('regTimeOut').value='';
+  document.getElementById('regDCSub').value='finished';
+  document.getElementById('regTransferMethod').value='team';
+  buildTreatmentGrid();
+  document.getElementById('regTxMed').classList.remove('active');
+  document.getElementById('regTxMedDetail').style.display='none';
+
+  if(regId){
+    document.getElementById('regModalTitle').textContent = 'แก้ไข Medical Registry';
+    var rec = registry.find(function(x){ return x.id===regId; });
+    if(rec){
+      setTriage(rec.triage || 'A');
+      setGender(rec.gender || '');
+      document.getElementById('regAge').value = rec.age || '';
+      document.getElementById('regName').value = rec.name || '';
+      document.getElementById('regPhone').value = rec.phone || '';
+      document.getElementById('regCategory').value = rec.category || '';
+      document.getElementById('regLocationTx').value = rec.locationTx || '';
+      document.getElementById('regTimeIn').value = rec.timeIn || '';
+      document.getElementById('regTimeOut').value = rec.timeOut || '';
+      document.getElementById('regExistingImage').value = rec.image || '';
+      if(rec.etiology) setEtiology(rec.etiology);
+      if(rec.cc){ document.getElementById('regCC').value = rec.cc; onCCChange(); document.getElementById('regCCOther').value = rec.ccOther || ''; }
+      if(rec.problem){ document.getElementById('regProblem').value = rec.problem; onProblemChange(); document.getElementById('regProblemOther').value = rec.problemOther || ''; }
+      // Treatments
+      var tx = rec.treatment ? rec.treatment.split(', ') : [];
+      tx.forEach(function(t){
+        if(t.indexOf('จ่ายยา')>-1){
+          document.getElementById('regTxMed').classList.add('active');
+          var m = t.match(/\((.*)\)/);
+          if(m){ document.getElementById('regTxMedDetail').value = m[1]; document.getElementById('regTxMedDetail').style.display=''; }
+        } else {
+          var b = document.querySelector('#regTxGrid .tx-btn[data-value="'+t.replace(/"/g,'\\"')+'"]');
+          if(b) b.classList.add('active');
+          else if(t){
+            var oth = document.getElementById('regTxOther');
+            oth.value = oth.value ? oth.value+', '+t : t;
+          }
+        }
+      });
+      // Allergy
+      if(rec.allergy && rec.allergy.indexOf('มี')>-1){
+        document.getElementById('regAllergy').value='มี';
+        document.getElementById('regAllergyDetail').value = rec.allergy.replace('มี','').replace(/[()]/g,'').trim();
+      }
+      toggleAllergy();
+      // Vitals
+      var v = rec.vitals || {};
+      if(v.bp||v.hr||v.rr||v.spo2||v.temp||v.gcs||v.glucose||v.pain){
+        document.getElementById('regVitalsBody').style.display='';
+        document.getElementById('regVitalsToggleLabel').textContent='▲ Vital Signs (ซ่อน)';
+      }
+      document.getElementById('regVBP').value=v.bp||''; document.getElementById('regVHR').value=v.hr||'';
+      document.getElementById('regVRR').value=v.rr||''; document.getElementById('regVSPO2').value=v.spo2||'';
+      document.getElementById('regVTemp').value=v.temp||''; document.getElementById('regVGCS').value=v.gcs||'';
+      document.getElementById('regVGlucose').value=v.glucose||''; document.getElementById('regVPain').value=v.pain||'';
+      // Result
+      if(rec.result){
+        var rp = rec.result.split(':');
+        if(rp[0]==='transfer'){
+          setResult('transfer');
+          document.getElementById('regTransferMethod').value = (rp[1]==='self')?'self':'team';
+          document.getElementById('regTransferHospital').value = rp.slice(2).join(':') || '';
+        } else {
+          setResult('dc');
+          document.getElementById('regDCSub').value = rp[1] || 'finished';
+        }
+      }
+      document.getElementById('regNote').value = rec.note || '';
+      document.getElementById('regGPS').value = rec.gps || '';
+    }
+  } else {
+    document.getElementById('regModalTitle').textContent = 'บันทึก Medical Registry';
+  }
+  document.getElementById('regOverlay').classList.add('open');
+}
+function closeRegistryForm(){
+  document.getElementById('regOverlay').classList.remove('open');
+}
+
+async function submitRegistryForm(){
+  // Required validation
+  var gender = document.getElementById('regGender').value;
+  if(!gender){ Swal.fire('กรุณาเลือกเพศ','','warning'); return; }
+  if(!document.getElementById('regLocationTx').value){ Swal.fire('กรุณาเลือกจุดรักษา','','warning'); return; }
+  if(!document.getElementById('regTimeIn').value){ Swal.fire('กรุณากรอกเวลาแรกรับ','','warning'); return; }
+
+  Swal.fire({ title:'กำลังบันทึก...', didOpen:function(){Swal.showLoading();} });
+
+  // Treatments
+  var treatments = [];
+  document.querySelectorAll('#regTxGrid .tx-btn.active').forEach(function(b){ treatments.push(b.dataset.value); });
+  var medBtn = document.getElementById('regTxMed');
+  if(medBtn.classList.contains('active')){
+    var d = document.getElementById('regTxMedDetail').value.trim();
+    treatments.push(d ? 'จ่ายยา ('+d+')' : 'จ่ายยา');
+  }
+  var oth = document.getElementById('regTxOther').value.trim();
+  if(oth) treatments.push(oth);
+
+  // Phone (preserve leading single-quote convention from V1)
+  var phone = document.getElementById('regPhone').value;
+  if(phone && phone.charAt(0) !== "'") phone = "'" + phone;
+
+  // Allergy
+  var allergy = document.getElementById('regAllergy').value;
+  if(allergy === 'มี'){
+    var d = document.getElementById('regAllergyDetail').value.trim();
+    allergy = d ? 'มี ('+d+')' : 'มี';
+  }
+
+  // Vitals
+  var vitals = {
+    bp:document.getElementById('regVBP').value.trim(), hr:document.getElementById('regVHR').value.trim(),
+    rr:document.getElementById('regVRR').value.trim(), spo2:document.getElementById('regVSPO2').value.trim(),
+    temp:document.getElementById('regVTemp').value.trim(), gcs:document.getElementById('regVGCS').value.trim(),
+    glucose:document.getElementById('regVGlucose').value.trim(), pain:document.getElementById('regVPain').value.trim()
+  };
+
+  // Result
+  var rt = document.getElementById('regResultType').value;
+  var resultStr = (rt==='dc')
+    ? 'dc:'+(document.getElementById('regDCSub').value||'finished')
+    : 'transfer:'+(document.getElementById('regTransferMethod').value||'team')+':'+(document.getElementById('regTransferHospital').value||'').trim();
+
+  // Image upload (optional)
+  var imageUrl = document.getElementById('regExistingImage').value || '';
+  var imgFile = document.getElementById('regImage').files[0];
+  if(imgFile && typeof uploadToCloudinary === 'function'){
+    try{ imageUrl = await uploadToCloudinary(imgFile, 'firstaid-registry'); } catch(e){}
+  }
+
+  var data = {
+    event_id: currentEventId,
+    triage: document.getElementById('regTriage').value,
+    gender: gender,
+    age: document.getElementById('regAge').value ? parseInt(document.getElementById('regAge').value, 10) : null,
+    name: document.getElementById('regName').value,
+    phone: phone,
+    category: document.getElementById('regCategory').value || null,
+    location_tx: document.getElementById('regLocationTx').value,
+    time_in: document.getElementById('regTimeIn').value,
+    time_out: document.getElementById('regTimeOut').value || null,
+    etiology: document.getElementById('regEtiology').value,
+    cc: document.getElementById('regCC').value,
+    cc_other: document.getElementById('regCCOther').value,
+    problem: document.getElementById('regProblem').value,
+    problem_other: document.getElementById('regProblemOther').value,
+    treatment: treatments.join(', '),
+    allergy: allergy,
+    vitals_json: vitals,
+    result: resultStr,
+    note: document.getElementById('regNote').value,
+    image_url: imageUrl,
+    gps: document.getElementById('regGPS').value,
+    recorded_by: (typeof getUserName==='function' && getUserName()) || 'Unknown'
+  };
+
+  try{
+    var regId = document.getElementById('regId').value;
+    if(regId){
+      var r = await _supabase.from('fa_registry').update(data).eq('reg_id', regId);
+      if(r.error) throw r.error;
+    } else {
+      data.reg_id = 'R-' + Date.now();
+      var r2 = await _supabase.from('fa_registry').insert(data);
+      if(r2.error) throw r2.error;
+    }
+    Swal.close();
+    closeRegistryForm();
+    loadRegistry();
+  }catch(err){
+    Swal.fire('Error', err.message || String(err), 'error');
+  }
+}
+
+async function deleteRegistry(regId){
+  var c = await Swal.fire({ title:'ลบรายการ?', text:'ข้อมูลจะถูกลบถาวร', icon:'warning',
+    showCancelButton:true, confirmButtonText:'ลบ', cancelButtonText:'ยกเลิก', confirmButtonColor:'#dc2626' });
+  if(!c.isConfirmed) return;
+  try{
+    var r = await _supabase.from('fa_registry').delete().eq('reg_id', regId);
+    if(r.error) throw r.error;
+    loadRegistry();
+  }catch(err){ Swal.fire('Error', err.message||String(err), 'error'); }
+}
+
+// --------- View registry detail ---------
+var viewingRegId = null;
+function viewRegistry(regId){
+  var r = registry.find(function(x){ return x.id===regId; });
+  if(!r) return;
+  viewingRegId = regId;
+  var v = r.vitals || {};
+  var vItems = [];
+  if(v.bp) vItems.push('BP: '+v.bp);
+  if(v.hr) vItems.push('HR: '+v.hr);
+  if(v.rr) vItems.push('RR: '+v.rr);
+  if(v.spo2) vItems.push('SpO2: '+v.spo2+'%');
+  if(v.temp) vItems.push('Temp: '+v.temp+'°C');
+  if(v.gcs) vItems.push('GCS: '+v.gcs);
+  if(v.glucose) vItems.push('Glucose: '+v.glucose);
+  if(v.pain) vItems.push('Pain: '+v.pain+'/10');
+
+  var resStr = '-';
+  if(r.result){
+    var rp = r.result.split(':');
+    if(rp[0]==='dc'){
+      var sub = {finished:'จำหน่าย',rtp:'Return to Play',dnf:'DNF'}[rp[1]]||rp[1];
+      resStr = '<span class="flag-chip ok">D/C · '+sub+'</span>';
+    } else {
+      var meth = {team:'ทีมไปส่ง',self:'ไปเอง'}[rp[1]]||rp[1];
+      resStr = '<span class="flag-chip danger">Transfer · '+meth+(rp.slice(2).join(':')?(' → '+escapeHtml(rp.slice(2).join(':'))):'')+'</span>';
+    }
+  }
+  var allergy = (r.allergy && r.allergy.indexOf('มี')>-1) ? '<span style="color:#dc2626; font-weight:700;">⚠ '+escapeHtml(r.allergy)+'</span>' : '<span style="color:#16a34a; font-weight:700;">ไม่มี</span>';
+  var html =
+    '<div class="section-card"><div class="section-header"><div class="section-title">'+ escapeHtml(r.name||'(ไม่ระบุ)') +' · '+(r.gender||'-')+' '+(r.age||'-')+' ปี <span class="triage-circle '+r.triage+'" style="margin-left:10px;">'+r.triage+'</span></div></div><div class="section-body">' +
+      '<div class="field-row-3" style="margin-bottom:10px;">'+
+        '<div><div class="subsection-title">เบอร์</div><div>'+escapeHtml(r.phone||'-')+'</div></div>'+
+        '<div><div class="subsection-title">เวลาแรกรับ</div><div style="color:#16a34a; font-weight:700;">'+escapeHtml(r.timeIn||'-')+'</div></div>'+
+        '<div><div class="subsection-title">เวลาจำหน่าย</div><div>'+escapeHtml(r.timeOut||'-')+'</div></div>'+
+      '</div>'+
+      (r.category?'<div><strong>หมวดหมู่:</strong> '+escapeHtml(r.category)+'</div>':'')+
+      '<div><strong>จุดรักษา:</strong> '+escapeHtml(r.locationTx||'-')+'</div>'+
+      '<div style="background:#f8fafc; border-radius:8px; padding:10px; margin:10px 0;">'+
+        '<div><strong>Etiology:</strong> '+(r.etiology==='Med'?'<span style="color:#3b82f6;">Med</span>':'<span style="color:#dc2626;">Trauma</span>')+'</div>'+
+        '<div><strong>CC:</strong> '+escapeHtml(r.cc||'-')+(r.ccOther?(' ('+escapeHtml(r.ccOther)+')'):'')+'</div>'+
+        '<div><strong>Problem:</strong> '+escapeHtml(r.problem||'-')+(r.problemOther?(' ('+escapeHtml(r.problemOther)+')'):'')+'</div>'+
+      '</div>'+
+      '<div><strong>Treatment:</strong> '+escapeHtml(r.treatment||'-')+'</div>'+
+      '<div style="margin-top:8px;"><strong>Vitals:</strong> '+(vItems.length?vItems.join(' · '):'<span style="color:var(--c-muted); font-style:italic;">ไม่ได้บันทึก</span>')+'</div>'+
+      '<div style="margin-top:8px;"><strong>Result:</strong> '+resStr+'</div>'+
+      '<div style="margin-top:8px;"><strong>แพ้ยา:</strong> '+allergy+'</div>'+
+      (r.gps?'<div style="margin-top:8px;"><strong>GPS:</strong> <a href="https://maps.google.com/?q='+encodeURIComponent(r.gps)+'" target="_blank">'+escapeHtml(r.gps)+'</a></div>':'')+
+      (r.note?'<div style="margin-top:8px;"><strong>หมายเหตุ:</strong> '+escapeHtml(r.note)+'</div>':'')+
+      (r.image?'<div style="margin-top:10px;"><img src="'+r.image+'" style="max-width:100%; max-height:300px; border-radius:8px;"></div>':'')+
+      '<div style="text-align:right; color:var(--c-muted); font-size:11px; margin-top:10px;">บันทึกโดย: '+escapeHtml(r.recordedBy||'-')+'</div>'+
+    '</div></div>';
+  document.getElementById('regViewBody').innerHTML = html;
+  // Permission edit
+  var role = (typeof getUserRole==='function' && getUserRole()) || '';
+  var me = (typeof getUserName==='function' && getUserName()) || '';
+  document.getElementById('regViewEditBtn').style.display = (role==='admin' || r.recordedBy===me) ? '' : 'none';
+  document.getElementById('regViewOverlay').classList.add('open');
+}
+function closeViewRegistry(){ document.getElementById('regViewOverlay').classList.remove('open'); viewingRegId = null; }
+function editFromView(){ var id = viewingRegId; closeViewRegistry(); if(id) openRegistryForm(id); }
+
+// --------- Event status / delete ---------
+async function toggleEventStatus(){
+  if(!currentEvent) return;
+  var newStatus = currentEvent.status === 'Active' ? 'Complete' : 'Active';
+  var c = await Swal.fire({ title: newStatus==='Complete'?'ปิดงาน?':'เปิดงานอีกครั้ง?', icon:'question', showCancelButton:true });
+  if(!c.isConfirmed) return;
+  try{
+    var r = await _supabase.from('fa_events').update({status:newStatus}).eq('event_id', currentEventId);
+    if(r.error) throw r.error;
+    currentEvent.status = newStatus;
+    renderDetailHeader();
+  }catch(err){ Swal.fire('Error', err.message||String(err), 'error'); }
+}
+async function deleteCurrentEvent(){
+  if(!currentEvent) return;
+  var c = await Swal.fire({ title:'ลบงาน?', text:'ข้อมูล Registry ทั้งหมดของงานนี้จะหายไป', icon:'warning', showCancelButton:true, confirmButtonColor:'#dc2626', confirmButtonText:'ลบทั้งหมด' });
+  if(!c.isConfirmed) return;
+  try{
+    await _supabase.from('fa_registry').delete().eq('event_id', currentEventId);
+    var r = await _supabase.from('fa_events').delete().eq('event_id', currentEventId);
+    if(r.error) throw r.error;
+    navigateView('events');
+    loadEvents();
+  }catch(err){ Swal.fire('Error', err.message||String(err), 'error'); }
+}
+
+// --------- Dashboard rendering (Chart.js) ---------
+function destroyChart(k){ if(charts[k]){ charts[k].destroy(); delete charts[k]; } }
+function renderDashboard(){
+  var total = registry.length;
+  document.getElementById('dashTotal').textContent = total;
+  var cnt = {A:0,V:0,P:0,U:0};
+  registry.forEach(function(r){ if(cnt[r.triage]!=null) cnt[r.triage]++; });
+  function pct(n){ return total ? Math.round(n/total*100) : 0; }
+  document.getElementById('dashCntA').textContent = cnt.A; document.getElementById('dashPctA').textContent = pct(cnt.A)+'%';
+  document.getElementById('dashCntV').textContent = cnt.V; document.getElementById('dashPctV').textContent = pct(cnt.V)+'%';
+  document.getElementById('dashCntP').textContent = cnt.P; document.getElementById('dashPctP').textContent = pct(cnt.P)+'%';
+  document.getElementById('dashCntU').textContent = cnt.U; document.getElementById('dashPctU').textContent = pct(cnt.U)+'%';
+
+  // Donuts (Chart.js)
+  function donut(canvasId, labels, data, colors){
+    destroyChart(canvasId);
+    var ctx = document.getElementById(canvasId);
+    if(!ctx) return;
+    charts[canvasId] = new Chart(ctx, {
+      type:'doughnut',
+      data:{ labels:labels, datasets:[{ data:data, backgroundColor:colors, borderWidth:0 }] },
+      options:{ responsive:true, maintainAspectRatio:false, plugins:{ legend:{ display:false } }, cutout:'62%' }
+    });
+  }
+
+  // Gender
+  var g = {M:0,F:0,U:0};
+  registry.forEach(function(r){ var k=r.gender||'U'; if(g[k]==null) g[k]=0; g[k]++; });
+  donut('chartGender', ['ชาย','หญิง','U'], [g.M,g.F,g.U], ['#3b82f6','#ec4899','#94a3b8']);
+
+  // Category
+  var cat = {};
+  registry.forEach(function(r){ if(r.category){ cat[r.category]=(cat[r.category]||0)+1; } });
+  donut('chartCategory', Object.keys(cat), Object.values(cat),
+    ['#7c3aed','#0ea5e9','#16a34a','#f59e0b','#ec4899','#14b8a6','#dc2626']);
+
+  // Location
+  var loc = {};
+  registry.forEach(function(r){ if(r.locationTx){ loc[r.locationTx]=(loc[r.locationTx]||0)+1; } });
+  donut('chartLocation', Object.keys(loc), Object.values(loc),
+    ['#dc2626','#eab308','#94a3b8','#3b82f6','#16a34a','#a855f7','#f97316']);
+
+  // Etiology
+  var et = {Med:0, Trauma:0};
+  registry.forEach(function(r){ if(et[r.etiology]!=null) et[r.etiology]++; });
+  donut('chartEtiology', ['Med','Trauma'], [et.Med, et.Trauma], ['#3b82f6','#dc2626']);
+
+  // Treatment (split CSV, count occurrences)
+  var tx = {};
+  registry.forEach(function(r){
+    (r.treatment||'').split(',').map(function(s){return s.trim();}).filter(Boolean).forEach(function(t){
+      // strip "(...)" from จ่ายยา
+      var key = t.replace(/\s*\(.+\)\s*/, '');
+      tx[key] = (tx[key]||0) + 1;
+    });
+  });
+  var txEntries = Object.entries(tx).sort(function(a,b){ return b[1]-a[1]; }).slice(0, 8);
+  donut('chartTreatment', txEntries.map(function(x){return x[0];}), txEntries.map(function(x){return x[1];}),
+    ['#06b6d4','#7c3aed','#16a34a','#ec4899','#dc2626','#eab308','#3b82f6','#f97316']);
+
+  // Time chart (incidents grouped by hour, separate Med vs Trauma)
+  destroyChart('chartTime');
+  var hours = {};
+  registry.forEach(function(r){
+    var h = (r.timeIn||'').split(':')[0]; if(!h) return;
+    if(!hours[h]) hours[h] = {Med:0, Trauma:0};
+    if(r.etiology==='Med') hours[h].Med++; else if(r.etiology==='Trauma') hours[h].Trauma++;
+  });
+  var hKeys = Object.keys(hours).sort();
+  var medSeries = hKeys.map(function(h){ return hours[h].Med; });
+  var trSeries  = hKeys.map(function(h){ return hours[h].Trauma; });
+  var ctxT = document.getElementById('chartTime');
+  if(ctxT){
+    charts.chartTime = new Chart(ctxT, {
+      type:'line',
+      data:{ labels:hKeys.map(function(h){return h+':00';}), datasets:[
+        { label:'Med', data:medSeries, borderColor:'#3b82f6', backgroundColor:'rgba(59,130,246,.15)', fill:true, tension:.3 },
+        { label:'Trauma', data:trSeries, borderColor:'#dc2626', backgroundColor:'rgba(220,38,38,.15)', fill:true, tension:.3 }
+      ]},
+      options:{ responsive:true, maintainAspectRatio:false,
+        plugins:{ legend:{ display:true, position:'top', labels:{boxWidth:10, font:{size:10}} } },
+        scales:{ y:{ beginAtZero:true, ticks:{ stepSize:1 } } }
+      }
+    });
+  }
+
+  // Lists
+  function renderListBox(divId, items, color, bg){
+    var arr = Object.entries(items).sort(function(a,b){ return b[1]-a[1]; }).slice(0, 8);
+    var totalN = arr.reduce(function(s,e){ return s+e[1]; }, 0);
+    var div = document.getElementById(divId);
+    if(!arr.length){ div.innerHTML = '<div style="color:var(--c-muted); font-style:italic; padding:5px;">ไม่มีข้อมูล</div>'; return; }
+    div.innerHTML = arr.map(function(e, i){
+      var p = totalN ? (e[1]/totalN*100).toFixed(1) : '0.0';
+      return '<div class="list-row"><span class="num">'+(i+1)+'.</span><span class="item" style="background:'+bg+';">'+escapeHtml(e[0])+'</span><span class="cnt">'+e[1]+'</span><span class="pct" style="color:'+color+';">'+p+'%</span></div>';
+    }).join('');
+  }
+  var ccMed={}, ccTr={}, prob={}, res={};
+  registry.forEach(function(r){
+    if(r.cc){
+      if(r.etiology==='Med') ccMed[r.cc]=(ccMed[r.cc]||0)+1;
+      else ccTr[r.cc]=(ccTr[r.cc]||0)+1;
+    }
+    if(r.problem) prob[r.problem]=(prob[r.problem]||0)+1;
+    if(r.result){
+      var rp = r.result.split(':')[0];
+      var key = rp==='dc'?'D/C': rp==='transfer'?'Transfer': rp;
+      res[key]=(res[key]||0)+1;
+    }
+  });
+  renderListBox('listCCMed', ccMed, '#3b82f6', '#dbeafe');
+  renderListBox('listCCTrauma', ccTr, '#dc2626', '#fee2e2');
+  renderListBox('listProblem', prob, '#7c3aed', '#ede9fe');
+  renderListBox('listResult', res, '#16a34a', '#dcfce7');
+}
+
+// --------- Print + Export + Fullscreen ---------
+function printReport(){
+  // Switch to dashboard view first
+  setDetailView('dashboard', document.querySelector('#subnavDetail .subnav-item[data-detail-view="dashboard"]'));
+  setTimeout(function(){
+    smartPrint({ title: (currentEvent ? currentEvent.name : 'Medical Registry'), element: document.getElementById('detailViewDashboard') });
+  }, 400);
+}
+
+function exportExcel(){
+  // CSV export (Excel-compatible, UTF-8 BOM, handles Thai/commas/quotes/newlines)
+  if(!registry.length){ Swal.fire('ไม่มีข้อมูล','','info'); return; }
+  var headers = ['reg_id','triage','gender','age','name','phone','category','location_tx','time_in','time_out','etiology','cc','cc_other','problem','problem_other','treatment','allergy','result','note','gps','recorded_by'];
+  var lines = [headers.join(',')];
+  registry.forEach(function(r){
+    var row = [r.id,r.triage,r.gender,r.age,r.name,r.phone,r.category,r.locationTx,r.timeIn,r.timeOut,r.etiology,r.cc,r.ccOther,r.problem,r.problemOther,r.treatment,r.allergy,r.result,r.note,r.gps,r.recordedBy];
+    lines.push(row.map(function(x){
+      var v = (x==null) ? '' : String(x);
+      if(v.indexOf(',')>-1 || v.indexOf('"')>-1 || v.indexOf('\n')>-1) v = '"' + v.replace(/"/g,'""') + '"';
+      return v;
+    }).join(','));
+  });
+  var blob = new Blob(['\uFEFF' + lines.join('\n')], { type:'text/csv;charset=utf-8;' });
+  var a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  var d = new Date();
+  var pad = function(n){ return n<10?'0'+n:''+n; };
+  var ts = d.getFullYear()+pad(d.getMonth()+1)+pad(d.getDate())+'_'+pad(d.getHours())+pad(d.getMinutes());
+  var base = currentEvent ? currentEvent.name.replace(/[^\w\u0E00-\u0E7F]+/g,'_') : 'firstaid';
+  a.download = base + '_registry_' + ts + '.csv';
+  a.click();
+  setTimeout(function(){ URL.revokeObjectURL(a.href); }, 1000);
+}
+
+var _fsClockTimer = null;
+var _fsRefreshTimer = null;
+function _fsTickClock(){
+  var d = new Date();
+  var pad = function(n){ return n<10?'0'+n:''+n; };
+  var clock = pad(d.getHours())+':'+pad(d.getMinutes())+':'+pad(d.getSeconds());
+  var thMonths = ['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
+  var dateStr = d.getDate()+' '+thMonths[d.getMonth()]+' '+(d.getFullYear()+543);
+  var elC = document.getElementById('fsClock'); if(elC) elC.textContent = clock;
+  var elD = document.getElementById('fsDate'); if(elD) elD.textContent = dateStr;
+  var elT = document.getElementById('fsTitle'); if(elT) elT.textContent = currentEvent ? currentEvent.name : 'FirstAid Dashboard';
+}
+function enterFullscreenMode(){
+  document.body.classList.add('fs-mode');
+  setDetailView('dashboard', document.querySelector('#subnavDetail .subnav-item[data-detail-view="dashboard"]'));
+  if(document.documentElement.requestFullscreen) document.documentElement.requestFullscreen().catch(function(){});
+  _fsTickClock();
+  if(_fsClockTimer) clearInterval(_fsClockTimer);
+  _fsClockTimer = setInterval(_fsTickClock, 1000);
+  if(_fsRefreshTimer) clearInterval(_fsRefreshTimer);
+  _fsRefreshTimer = setInterval(function(){
+    if(document.body.classList.contains('fs-mode') && currentEventId){
+      loadRegistry();
+    }
+  }, 120000); // 2 minutes
+  document.addEventListener('keydown', exitOnEsc);
+}
+function exitFullscreenMode(){
+  document.body.classList.remove('fs-mode');
+  document.removeEventListener('keydown', exitOnEsc);
+  if(_fsClockTimer){ clearInterval(_fsClockTimer); _fsClockTimer = null; }
+  if(_fsRefreshTimer){ clearInterval(_fsRefreshTimer); _fsRefreshTimer = null; }
+  if(document.fullscreenElement && document.exitFullscreen) document.exitFullscreen().catch(function(){});
+}
+function exitOnEsc(e){
+  if(e.key === 'Escape') exitFullscreenMode();
+}
+
+// --------- Boot ---------
+document.addEventListener('DOMContentLoaded', function(){
+  // Show mobile topbar only on mobile
+  function adjustMobile(){
+    document.getElementById('mobileTopbar').style.display = (window.innerWidth < 1024) ? '' : 'none';
+  }
+  adjustMobile();
+  window.addEventListener('resize', adjustMobile);
+
+  // Auth check
+  if(typeof requireAuth === 'function'){
+    if(!requireAuth()) return;
+  }
+  initUser();
+  subscribeEvents();
+  loadEvents();
+  handleHash();
+});
+</script>
+</body>
+</html>

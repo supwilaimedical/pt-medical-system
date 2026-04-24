@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>V2 — Transport List</title>
+<link rel="stylesheet" href="preview.css">
+</head>
+<body>
+
+<header class="preview-header">
+  <div class="preview-header-inner">
+    <div>
+      <h1 class="preview-title">🚑 Transport — List View</h1>
+      <p class="preview-sub"><a href="preview.html" style="color:#0369a1;">← Launcher</a> · Active + Closed cases · Kebab actions</p>
+    </div>
+    <span class="badge-pill warn">DESIGN ONLY</span>
+  </div>
+</header>
+
+<div class="preview-wrap">
+
+  <!-- MOBILE -->
+  <div>
+    <div class="preview-label">📱 Mobile</div>
+    <div class="device-frame">
+      <div class="device-screen">
+
+        <div class="topbar">
+          <button class="icon-btn" onclick="toggleDrawer()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12h18M3 6h18M3 18h18"/></svg>
+          </button>
+          <div style="flex:1; min-width:0;">
+            <div style="font-weight:600; font-size:14px; line-height:1.2;">นำส่งผู้ป่วย</div>
+            <div style="font-size:11px; color:var(--c-muted);">Active · 4 เคส</div>
+          </div>
+          <button class="icon-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4-4"/></svg></button>
+        </div>
+
+        <div class="drawer-backdrop" id="mDrawerBack" onclick="toggleDrawer()"></div>
+        <div class="drawer" id="mDrawer">
+          <div style="padding:18px 14px; border-bottom:1px solid var(--c-border); display:flex; align-items:center; gap:10px;">
+            <div class="avatar">นภ</div>
+            <div><div style="font-weight:600; font-size:14px;">นพ. ตั้นกล้วย</div><div style="font-size:11px; color:var(--c-muted);">supwilai · admin</div></div>
+          </div>
+          <nav style="padding:8px 0;">
+            <div class="subnav-section">โมดูล</div>
+            <a class="nav-item active"><span class="nav-icon">🚑</span><span>นำส่งผู้ป่วย</span></a>
+            <a class="nav-item"><span class="nav-icon">🩹</span><span>ปฐมพยาบาล</span></a>
+            <a class="nav-item"><span class="nav-icon">🗺️</span><span>พิกัดสถานที่</span></a>
+            <a class="nav-item"><span class="nav-icon">🛰️</span><span>GPS Tracking</span></a>
+            <div style="border-top:1px solid var(--c-border); margin:8px 12px;"></div>
+            <a class="nav-item"><span class="nav-icon">📡</span><span>Monitor</span></a>
+            <a class="nav-item"><span class="nav-icon">⚙️</span><span>Admin Settings</span></a>
+            <a class="nav-item" style="color:#dc2626;"><span class="nav-icon">🚪</span><span>ออกจากระบบ</span></a>
+          </nav>
+        </div>
+
+        <!-- Top tabs -->
+        <div style="background:#fff; border-bottom:1px solid var(--c-border); display:flex; overflow-x:auto; flex-shrink:0;">
+          <button style="padding:10px 14px; font-size:13px; font-weight:600; color:#0369a1; border-bottom:2px solid #0ea5e9; background:none; border-top:none; border-left:none; border-right:none; white-space:nowrap; cursor:pointer;">Active <span style="background:#0ea5e9; color:#fff; padding:1px 6px; border-radius:999px; font-size:10px; margin-left:4px;">4</span></button>
+          <button style="padding:10px 14px; font-size:13px; color:#64748b; background:none; border:none; white-space:nowrap; cursor:pointer;">Closed</button>
+          <button style="padding:10px 14px; font-size:13px; color:#64748b; background:none; border:none; white-space:nowrap; cursor:pointer;">ค้นหา</button>
+        </div>
+
+        <div class="case-list" style="flex:1; overflow-y:auto;">
+
+          <div class="case-row">
+            <div class="triage-strip triage-resus"></div>
+            <div class="case-info">
+              <div style="display:flex; align-items:center; gap:6px; flex-wrap:wrap;">
+                <span class="case-id">TR-047/2569</span>
+                <span class="ttype-pill">EMS</span>
+                <span class="ops-chip">ALS</span>
+              </div>
+              <div class="case-name">สมชาย ใจดี · 45 ปี · ชาย</div>
+              <div class="case-route">เกิดเหตุ ต.หนองชาก <span class="arrow">→</span> รพ. สมเด็จฯ</div>
+              <div class="case-meta">
+                <span class="triage-pill resus">Resus</span>
+                <span class="flag-chip warn">📝 รอเซ็น</span>
+                <span class="flag-chip">📎 2/5</span>
+                <span>14:32 · 3 น.</span>
+              </div>
+            </div>
+            <div class="kebab-wrap">
+              <button class="kebab-btn" onclick="kebab(event,'k1')"><svg viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="5" r="1.8"/><circle cx="12" cy="12" r="1.8"/><circle cx="12" cy="19" r="1.8"/></svg></button>
+              <div class="kebab-menu" id="k1">
+                <button class="kebab-item">📂 เปิดเคส</button>
+                <button class="kebab-item">✏️ แก้ข้อมูลผู้ป่วย</button>
+                <button class="kebab-item">🖨️ พิมพ์ใบนำส่ง</button>
+                <button class="kebab-item">🔗 แชร์ลิงก์ Public</button>
+                <div class="kebab-divider"></div>
+                <button class="kebab-item danger">🗑️ ลบเคส</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="case-row">
+            <div class="triage-strip triage-emerg"></div>
+            <div class="case-info">
+              <div style="display:flex; align-items:center; gap:6px; flex-wrap:wrap;"><span class="case-id">TR-046/2569</span><span class="ttype-pill">Refer</span><span class="ops-chip bls">BLS</span></div>
+              <div class="case-name">วิภา ศรีสุข · 32 ปี · หญิง</div>
+              <div class="case-route">รพ.สต. หนองชาก <span class="arrow">→</span> รพ. ชลบุรี</div>
+              <div class="case-meta"><span class="triage-pill emerg">Emerg</span><span class="flag-chip ok">✓ เซ็นแล้ว</span><span>13:15 · 1.20 ชม.</span></div>
+            </div>
+            <div class="kebab-wrap"><button class="kebab-btn"><svg viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="5" r="1.8"/><circle cx="12" cy="12" r="1.8"/><circle cx="12" cy="19" r="1.8"/></svg></button></div>
+          </div>
+
+          <div class="case-row">
+            <div class="triage-strip triage-urgent"></div>
+            <div class="case-info">
+              <div style="display:flex; align-items:center; gap:6px; flex-wrap:wrap;"><span class="case-id">TR-045/2569</span><span class="ttype-pill">EMS</span><span class="ops-chip">ALS</span></div>
+              <div class="case-name">มาลี ทองคำ · 67 ปี · หญิง</div>
+              <div class="case-route">บ้าน 100/23 ต.นาป่า <span class="arrow">→</span> รพ. พนัสฯ</div>
+              <div class="case-meta"><span class="triage-pill urgent">Urgent</span><span class="flag-chip danger">DNR</span><span class="flag-chip ok">✓</span><span>12:08 · 2.27 ชม.</span></div>
+            </div>
+            <div class="kebab-wrap"><button class="kebab-btn"><svg viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="5" r="1.8"/><circle cx="12" cy="12" r="1.8"/><circle cx="12" cy="19" r="1.8"/></svg></button></div>
+          </div>
+
+          <div class="case-row">
+            <div class="triage-strip triage-nonurg"></div>
+            <div class="case-info">
+              <div style="display:flex; align-items:center; gap:6px; flex-wrap:wrap;"><span class="case-id">TR-044/2569</span><span class="ttype-pill">Discharge</span><span class="ops-chip bls">BLS</span></div>
+              <div class="case-name">อาทิตย์ พันธ์ดี · 28 ปี · ชาย</div>
+              <div class="case-route">รพ. สมเด็จฯ <span class="arrow">→</span> บ้าน ต.พานทอง</div>
+              <div class="case-meta"><span class="triage-pill nonurg">Non-Urg</span><span class="flag-chip ok">✓</span><span>10:42 · 3.53 ชม.</span></div>
+            </div>
+            <div class="kebab-wrap"><button class="kebab-btn"><svg viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="5" r="1.8"/><circle cx="12" cy="12" r="1.8"/><circle cx="12" cy="19" r="1.8"/></svg></button></div>
+          </div>
+
+        </div>
+
+        <button title="openNewCase()" style="position:absolute; bottom:20px; right:20px; width:56px; height:56px; border-radius:50%; background:var(--c-primary); color:#fff; border:none; box-shadow:0 6px 16px rgba(14,165,233,.4); cursor:pointer; font-size:28px; line-height:1; z-index:30;">+</button>
+
+      </div>
+    </div>
+    <p class="preview-hint">กด ☰ ดู drawer · กด ⋮ ที่ TR-047 ดู kebab · ปุ่ม + = เคสใหม่</p>
+  </div>
+
+  <!-- DESKTOP 3-COLUMN -->
+  <div>
+    <div class="preview-label">🖥️ Desktop · Col 1 ย่อ icon-only</div>
+    <div class="desktop-frame">
+      <div class="desktop-screen">
+        <div class="desktop-3col">
+
+          <!-- COL 1 (collapsed) -->
+          <aside class="col-nav" id="dNav">
+            <div class="nav-brand-mini" style="padding:12px 0; justify-content:center; border-bottom:1px solid var(--c-border); display:flex;">
+              <div style="width:32px; height:32px; border-radius:8px; background:linear-gradient(135deg,#0ea5e9,#0284c7); color:#fff; display:flex; align-items:center; justify-content:center; font-weight:700; font-size:13px; cursor:pointer;" onclick="toggleNav()" title="ขยาย">PT</div>
+            </div>
+            <div class="nav-brand-text" style="padding:14px 12px 10px; border-bottom:1px solid var(--c-border);">
+              <div style="display:flex; justify-content:space-between; align-items:center;">
+                <div><div style="font-weight:700; font-size:14px;">PT Medical</div><div style="font-size:11px; color:var(--c-muted);">v2.0</div></div>
+                <button class="icon-btn" onclick="toggleNav()" style="width:28px; height:28px;" title="ย่อ"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 6l-6 6 6 6"/></svg></button>
+              </div>
+            </div>
+            <nav style="flex:1; padding:8px 0; overflow-y:auto;">
+              <a class="nav-item active" title="นำส่งผู้ป่วย"><span class="nav-icon">🚑</span><span class="nav-label">นำส่งผู้ป่วย</span></a>
+              <a class="nav-item" title="ปฐมพยาบาล"><span class="nav-icon">🩹</span><span class="nav-label">ปฐมพยาบาล</span></a>
+              <a class="nav-item" title="พิกัดสถานที่"><span class="nav-icon">🗺️</span><span class="nav-label">พิกัดสถานที่</span></a>
+              <a class="nav-item" title="GPS Tracking"><span class="nav-icon">🛰️</span><span class="nav-label">GPS Tracking</span></a>
+              <a class="nav-item" title="Monitor"><span class="nav-icon">📡</span><span class="nav-label">Monitor</span></a>
+            </nav>
+            <div style="padding:8px 0; border-top:1px solid var(--c-border);">
+              <a class="nav-item" title="Admin"><span class="nav-icon">⚙️</span><span class="nav-label">Admin</span></a>
+              <a class="nav-item" title="นพ. ตั้นกล้วย"><div class="avatar sm">นภ</div><span class="nav-label" style="font-size:13px;">นพ. ตั้น</span></a>
+            </div>
+          </aside>
+
+          <!-- COL 2 -->
+          <aside class="col-subnav">
+            <div style="padding:12px 14px; border-bottom:1px solid var(--c-border); display:flex; align-items:center; justify-content:space-between;">
+              <div><div style="font-weight:700; font-size:14px;">นำส่งผู้ป่วย</div><div style="font-size:11px; color:var(--c-muted);">Transport</div></div>
+              <button class="btn-primary" style="padding:6px 10px; font-size:12px;">+ ใหม่</button>
+            </div>
+            <div style="flex:1; overflow-y:auto;">
+              <div class="subnav-section">เคสที่เปิดอยู่</div>
+              <div class="subnav-item active"><span>🟢 Active ทั้งหมด</span><span class="badge">4</span></div>
+              <div class="subnav-section">เคสที่ปิดแล้ว</div>
+              <div class="subnav-item"><span>📋 ปิดวันนี้</span><span class="badge">7</span></div>
+              <div class="subnav-item"><span>📅 ปิดใน 7 วัน</span><span class="badge">52</span></div>
+              <div class="subnav-item"><span>📆 ปิดใน 30 วัน</span><span class="badge">142</span></div>
+              <div class="subnav-section">ค้นหา &amp; กรอง</div>
+              <div class="subnav-item"><span>🔍 ค้นหาชื่อ / รหัส</span></div>
+              <div class="subnav-item"><span>📅 กรองตามวันที่</span></div>
+              <div class="subnav-section">แชร์ Public</div>
+              <div class="subnav-item"><span>🔗 รายการที่แชร์</span><span class="badge">3</span></div>
+            </div>
+          </aside>
+
+          <!-- COL 3 -->
+          <section class="col-content">
+            <div class="col-header">
+              <div><div style="font-weight:700; font-size:15px;">Active Cases · 4 เคส</div><div style="font-size:11px; color:var(--c-muted);">Auto-save 2 นาที · อัปเดต 14:35</div></div>
+              <div style="display:flex; gap:6px; align-items:center;">
+                <input placeholder="🔍 ชื่อ / รหัสเคส" style="padding:6px 10px; border:1px solid var(--c-border); border-radius:8px; font-size:13px; width:200px;">
+                <input type="date" style="padding:6px 10px; border:1px solid var(--c-border); border-radius:8px; font-size:13px;">
+                <button class="btn-ghost">↻</button>
+              </div>
+            </div>
+            <div class="col-body">
+              <div class="case-list">
+
+                <div class="case-row">
+                  <div class="triage-strip triage-resus"></div>
+                  <div class="case-info">
+                    <div style="display:flex; align-items:center; gap:6px;"><span class="case-id">TR-047/2569</span><span class="ttype-pill">EMS</span><span class="ops-chip">ALS</span><span class="triage-pill resus">Resuscitation</span></div>
+                    <div class="case-name">สมชาย ใจดี · 45 ปี · ชาย · 1-2345-67890-12-3</div>
+                    <div class="case-route">เกิดเหตุ ต.หนองชาก ม.4 <span class="arrow">→</span> รพ. สมเด็จฯ ณ ชลบุรี</div>
+                    <div class="case-meta"><span><strong>CC:</strong> เจ็บแน่นหน้าอก ปวดร้าวแขนซ้าย</span><span><strong>Dx:</strong> Acute MI R/O</span></div>
+                    <div class="case-meta"><span class="flag-chip warn">📝 รอเซ็นยินยอม</span><span class="flag-chip">📎 Refer 2/5</span><span>รถ 1 · นพ.ตั้น, พยาบาลแหม่ม, EMT สมศักดิ์</span><span>เริ่ม 14:32 (3 นาที)</span></div>
+                  </div>
+                  <div class="kebab-wrap">
+                    <button class="kebab-btn" onclick="kebab(event,'kd1')"><svg viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="5" r="1.8"/><circle cx="12" cy="12" r="1.8"/><circle cx="12" cy="19" r="1.8"/></svg></button>
+                    <div class="kebab-menu" id="kd1">
+                      <button class="kebab-item">📂 เปิดเคส</button>
+                      <button class="kebab-item">✏️ แก้ข้อมูลผู้ป่วย (Edit Patient)</button>
+                      <button class="kebab-item">🖨️ พิมพ์ใบนำส่ง (Print)</button>
+                      <button class="kebab-item">🔗 แชร์ลิงก์ Public</button>
+                      <div class="kebab-divider"></div>
+                      <button class="kebab-item danger">🗑️ ลบเคส</button>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="case-row">
+                  <div class="triage-strip triage-emerg"></div>
+                  <div class="case-info">
+                    <div style="display:flex; align-items:center; gap:6px;"><span class="case-id">TR-046/2569</span><span class="ttype-pill">Refer</span><span class="ops-chip bls">BLS</span><span class="triage-pill emerg">Emergency</span></div>
+                    <div class="case-name">วิภา ศรีสุข · 32 ปี · หญิง · 3-1010-12345-67-8</div>
+                    <div class="case-route">รพ.สต. หนองชาก <span class="arrow">→</span> รพ. ชลบุรี</div>
+                    <div class="case-meta"><span><strong>CC:</strong> หายใจลำบาก SpO2 ต่ำ</span><span><strong>Dx:</strong> Acute Asthma</span></div>
+                    <div class="case-meta"><span class="flag-chip ok">✓ ยินยอม</span><span>รถ 2 · EMR สมพร, พขร. ก้อง</span><span>เริ่ม 13:15 (1.20 ชม.)</span></div>
+                  </div>
+                  <div class="kebab-wrap"><button class="kebab-btn"><svg viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="5" r="1.8"/><circle cx="12" cy="12" r="1.8"/><circle cx="12" cy="19" r="1.8"/></svg></button></div>
+                </div>
+
+                <div class="case-row">
+                  <div class="triage-strip triage-urgent"></div>
+                  <div class="case-info">
+                    <div style="display:flex; align-items:center; gap:6px;"><span class="case-id">TR-045/2569</span><span class="ttype-pill">EMS</span><span class="ops-chip">ALS</span><span class="triage-pill urgent">Urgent</span></div>
+                    <div class="case-name">มาลี ทองคำ · 67 ปี · หญิง · 1-2009-87654-32-1</div>
+                    <div class="case-route">บ้าน 100/23 ม.2 ต.นาป่า <span class="arrow">→</span> รพ. พนัสนิคม</div>
+                    <div class="case-meta"><span><strong>CC:</strong> เวียนศีรษะ อ่อนแรงครึ่งซีก</span><span><strong>Dx:</strong> CVA R/O</span><span><strong>UD:</strong> HT, DM, Cancer</span></div>
+                    <div class="case-meta"><span class="flag-chip danger">DNR · Palliative</span><span class="flag-chip ok">✓ ยินยอม</span><span>รถ 1 · นพ.ตั้น</span><span>เริ่ม 12:08 (2.27 ชม.)</span></div>
+                  </div>
+                  <div class="kebab-wrap"><button class="kebab-btn"><svg viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="5" r="1.8"/><circle cx="12" cy="12" r="1.8"/><circle cx="12" cy="19" r="1.8"/></svg></button></div>
+                </div>
+
+                <div class="case-row">
+                  <div class="triage-strip triage-nonurg"></div>
+                  <div class="case-info">
+                    <div style="display:flex; align-items:center; gap:6px;"><span class="case-id">TR-044/2569</span><span class="ttype-pill">Discharge</span><span class="ops-chip bls">BLS</span><span class="triage-pill nonurg">Non-Urgent</span></div>
+                    <div class="case-name">อาทิตย์ พันธ์ดี · 28 ปี · ชาย · 1-1010-54321-09-7</div>
+                    <div class="case-route">รพ. สมเด็จฯ <span class="arrow">→</span> บ้านเลขที่ 50 ม.7 ต.พานทอง</div>
+                    <div class="case-meta"><span><strong>CC:</strong> Discharge หลังผ่าตัดไส้ติ่ง</span><span><strong>NR:</strong> Full Support</span></div>
+                    <div class="case-meta"><span class="flag-chip ok">✓ ยินยอม</span><span>รถ 3 · EMT สมศักดิ์, พขร. แดง</span><span>เริ่ม 10:42 (3.53 ชม.)</span></div>
+                  </div>
+                  <div class="kebab-wrap"><button class="kebab-btn"><svg viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="5" r="1.8"/><circle cx="12" cy="12" r="1.8"/><circle cx="12" cy="19" r="1.8"/></svg></button></div>
+                </div>
+
+              </div>
+            </div>
+          </section>
+
+        </div>
+      </div>
+    </div>
+    <p class="preview-hint">กดโลโก้ <strong>PT</strong> ที่มุมซ้ายบนเพื่อย่อ/ขยาย Col 1 · กด ⋮ ที่ TR-047 ดู kebab</p>
+  </div>
+
+</div>
+
+<script src="preview.js"></script>
+</body>
+</html>

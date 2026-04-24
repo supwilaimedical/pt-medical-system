@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>V2 — Admin Settings</title>
+<link rel="stylesheet" href="preview.css">
+</head>
+<body>
+
+<header class="preview-header">
+  <div class="preview-header-inner">
+    <div>
+      <h1 class="preview-title">⚙️ Admin Settings</h1>
+      <p class="preview-sub"><a href="preview.html" style="color:#0369a1;">← Launcher</a> · 9 sections · Sidebar nav</p>
+    </div>
+    <span class="badge-pill warn">DESIGN ONLY</span>
+  </div>
+</header>
+
+<div class="preview-wrap">
+
+  <!-- MOBILE -->
+  <div>
+    <div class="preview-label">📱 Mobile · GPS Settings</div>
+    <div class="device-frame">
+      <div class="device-screen">
+
+        <div class="topbar">
+          <button class="icon-btn" onclick="toggleDrawer()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12h18M3 6h18M3 18h18"/></svg></button>
+          <div style="flex:1;"><div style="font-weight:600; font-size:14px;">⚙️ GPS Tracking</div><div style="font-size:11px; color:var(--c-muted);">Admin Settings</div></div>
+          <a href="#" style="font-size:12px; color:#0369a1;">← กลับ</a>
+        </div>
+
+        <div class="drawer-backdrop" id="mDrawerBack" onclick="toggleDrawer()"></div>
+        <div class="drawer" id="mDrawer">
+          <div style="padding:14px; border-bottom:1px solid var(--c-border); font-weight:700; font-size:14px;">Admin Settings</div>
+          <nav style="padding:8px 0;">
+            <div class="subnav-section">General</div>
+            <a class="nav-item"><span class="nav-icon">🏢</span>Organization</a>
+            <a class="nav-item"><span class="nav-icon">🎨</span>Branding</a>
+            <div class="subnav-section">Services</div>
+            <a class="nav-item active"><span class="nav-icon">🛰️</span>GPS Tracking</a>
+            <a class="nav-item"><span class="nav-icon">📷</span>OCR (Gemini AI)</a>
+            <a class="nav-item"><span class="nav-icon">🔔</span>Notifications</a>
+            <a class="nav-item"><span class="nav-icon">🔌</span>Integrations</a>
+            <div class="subnav-section">Security</div>
+            <a class="nav-item"><span class="nav-icon">🔐</span>Sessions</a>
+            <a class="nav-item"><span class="nav-icon">🔗</span>Public Share</a>
+            <div class="subnav-section">Analytics</div>
+            <a class="nav-item"><span class="nav-icon">📊</span>Statistics</a>
+            <a class="nav-item"><span class="nav-icon">📋</span>Activity Log</a>
+            <a class="nav-item"><span class="nav-icon">🌐</span>Overview</a>
+            <a class="nav-item"><span class="nav-icon">📚</span>Documentation</a>
+          </nav>
+        </div>
+
+        <div style="flex:1; overflow-y:auto; padding:14px; background:var(--c-bg);">
+
+          <div class="section-card">
+            <div class="section-header"><div class="section-num">⚡</div><div class="section-title">เปิด/ปิด GPS Module</div></div>
+            <div class="section-body">
+              <label style="display:flex; align-items:center; gap:10px; cursor:pointer;">
+                <span style="position:relative; display:inline-block; width:42px; height:24px; background:#16a34a; border-radius:999px;"><span style="position:absolute; top:2px; right:2px; width:20px; height:20px; background:#fff; border-radius:50%;"></span></span>
+                <span style="font-size:13px; font-weight:600;">เปิดใช้งาน GPS Tracking</span>
+              </label>
+              <p style="font-size:11px; color:var(--c-muted); margin:8px 0 0;">เมื่อปิด: ระบบจะซ่อนเมนู GPS ทั้งหมด</p>
+            </div>
+          </div>
+
+          <div class="section-card">
+            <div class="section-header"><div class="section-num">1°</div><div class="section-title">Synology Proxy (Primary)</div></div>
+            <div class="section-body">
+              <div style="display:flex; align-items:center; gap:8px; margin-bottom:8px;">
+                <span class="flag-chip ok">● ON</span>
+                <span class="flag-chip" style="background:#dcfce7; color:#166534;">12ms</span>
+              </div>
+              <div class="field"><label>Synology Endpoint</label><input value="https://syno.supwilai.local:8443/gps"></div>
+              <button class="btn-ghost" style="margin-top:8px; width:100%;">🧪 Test Status</button>
+            </div>
+          </div>
+
+          <div class="section-card">
+            <div class="section-header"><div class="section-num">2°</div><div class="section-title">Render Proxy (Fallback)</div></div>
+            <div class="section-body">
+              <div style="display:flex; gap:8px; margin-bottom:8px;"><span class="flag-chip ok">● ON</span><span class="flag-chip">200ms</span></div>
+              <div class="field"><label>Render URL</label><input value="https://gps-proxy.onrender.com"></div>
+            </div>
+          </div>
+
+          <div class="section-card">
+            <div class="section-header"><div class="section-num">3°</div><div class="section-title">GAS Proxy (Last Resort)</div></div>
+            <div class="section-body">
+              <div style="display:flex; gap:8px; margin-bottom:8px;"><span class="flag-chip warn">● ON</span><span class="flag-chip">500ms</span></div>
+              <div class="field"><label>Apps Script URL</label><input value="https://script.google.com/..."></div>
+            </div>
+          </div>
+
+          <button class="btn-primary" style="width:100%; padding:12px; justify-content:center; font-size:14px;">💾 บันทึกการตั้งค่า</button>
+
+        </div>
+
+      </div>
+    </div>
+    <p class="preview-hint">Section list ใน drawer · GPS settings เป็นตัวอย่าง · 9 sections ทั้งหมด</p>
+  </div>
+
+  <!-- DESKTOP -->
+  <div>
+    <div class="preview-label">🖥️ Desktop · 9 sections sidebar</div>
+    <div class="desktop-frame">
+      <div class="desktop-screen">
+        <div class="desktop-3col">
+
+          <aside class="col-nav" id="dNav">
+            <div style="padding:12px 0; justify-content:center; border-bottom:1px solid var(--c-border); display:flex;"><div style="width:32px; height:32px; border-radius:8px; background:linear-gradient(135deg,#0ea5e9,#0284c7); color:#fff; display:flex; align-items:center; justify-content:center; font-weight:700; font-size:13px; cursor:pointer;" onclick="toggleNav()">PT</div></div>
+            <nav style="flex:1; padding:8px 0;">
+              <a class="nav-item" title="Transport"><span class="nav-icon">🚑</span><span class="nav-label">Transport</span></a>
+              <a class="nav-item" title="FirstAid"><span class="nav-icon">🩹</span><span class="nav-label">FirstAid</span></a>
+              <a class="nav-item" title="Location"><span class="nav-icon">🗺️</span><span class="nav-label">Location</span></a>
+              <a class="nav-item" title="Monitor"><span class="nav-icon">📡</span><span class="nav-label">Monitor</span></a>
+              <a class="nav-item active" title="Admin"><span class="nav-icon">⚙️</span><span class="nav-label">Admin</span></a>
+            </nav>
+          </aside>
+
+          <aside class="col-subnav">
+            <div style="padding:12px 14px; border-bottom:1px solid var(--c-border);">
+              <div style="font-weight:700; font-size:14px;">⚙️ Admin Settings</div>
+              <div style="font-size:11px; color:var(--c-muted);">9 sections</div>
+            </div>
+            <div style="flex:1; overflow-y:auto;">
+              <div class="subnav-section">General</div>
+              <div class="subnav-item"><span>🏢 Organization</span></div>
+              <div class="subnav-item"><span>🎨 Branding</span></div>
+
+              <div class="subnav-section">Services</div>
+              <div class="subnav-item active"><span>🛰️ GPS Tracking</span></div>
+              <div class="subnav-item"><span>📷 OCR (Gemini)</span></div>
+              <div class="subnav-item"><span>🔔 Notifications</span></div>
+              <div class="subnav-item"><span>🔌 Integrations</span></div>
+
+              <div class="subnav-section">Security</div>
+              <div class="subnav-item"><span>🔐 Sessions</span></div>
+              <div class="subnav-item"><span>🔗 Public Share</span><span class="badge">5</span></div>
+
+              <div class="subnav-section">Analytics</div>
+              <div class="subnav-item"><span>📊 Statistics</span></div>
+              <div class="subnav-item"><span>📋 Activity Log</span></div>
+              <div class="subnav-item"><span>🌐 System Overview</span></div>
+
+              <div class="subnav-section">Help</div>
+              <div class="subnav-item"><span>📚 Documentation</span></div>
+            </div>
+          </aside>
+
+          <section class="col-content">
+            <div class="col-header">
+              <div><div style="font-weight:700; font-size:15px;">🛰️ GPS Tracking</div><div style="font-size:11px; color:var(--c-muted);">เปิด/ปิดระบบ + ตั้งค่า Proxy chain</div></div>
+              <div style="display:flex; gap:6px;"><button class="btn-ghost">↺ Reset</button><button class="btn-primary">💾 บันทึก</button></div>
+            </div>
+            <div class="col-body" style="padding:16px;">
+
+              <div class="section-card">
+                <div class="section-header"><div class="section-num">⚡</div><div class="section-title">เปิด/ปิด GPS Module</div></div>
+                <div class="section-body" style="display:flex; align-items:center; gap:14px;">
+                  <label style="display:flex; align-items:center; gap:10px; cursor:pointer;">
+                    <span style="position:relative; display:inline-block; width:42px; height:24px; background:#16a34a; border-radius:999px;"><span style="position:absolute; top:2px; right:2px; width:20px; height:20px; background:#fff; border-radius:50%;"></span></span>
+                    <span style="font-size:13px; font-weight:600;">เปิดใช้งาน</span>
+                  </label>
+                  <span style="font-size:12px; color:var(--c-muted);">ปิด = ซ่อนเมนู GPS ทั้งหมดในระบบ</span>
+                </div>
+              </div>
+
+              <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:10px; margin-bottom:10px;">
+                <div class="section-card" style="margin-bottom:0;">
+                  <div class="section-header"><div class="section-num" style="background:#16a34a;">1°</div><div class="section-title">Synology</div></div>
+                  <div class="section-body">
+                    <div style="display:flex; gap:6px; margin-bottom:8px;"><span class="flag-chip ok">ON</span><span class="flag-chip ok">12ms</span></div>
+                    <div class="field" style="margin-bottom:6px;"><label>URL</label><input value="https://syno.supwilai.local:8443/gps"></div>
+                    <button class="btn-ghost" style="width:100%; padding:5px; font-size:11px;">🧪 Test</button>
+                  </div>
+                </div>
+                <div class="section-card" style="margin-bottom:0;">
+                  <div class="section-header"><div class="section-num" style="background:#0ea5e9;">2°</div><div class="section-title">Render</div></div>
+                  <div class="section-body">
+                    <div style="display:flex; gap:6px; margin-bottom:8px;"><span class="flag-chip ok">ON</span><span class="flag-chip">200ms</span></div>
+                    <div class="field" style="margin-bottom:6px;"><label>URL</label><input value="https://gps-proxy.onrender.com"></div>
+                    <button class="btn-ghost" style="width:100%; padding:5px; font-size:11px;">🧪 Test</button>
+                  </div>
+                </div>
+                <div class="section-card" style="margin-bottom:0;">
+                  <div class="section-header"><div class="section-num" style="background:#eab308;">3°</div><div class="section-title">GAS</div></div>
+                  <div class="section-body">
+                    <div style="display:flex; gap:6px; margin-bottom:8px;"><span class="flag-chip warn">ON</span><span class="flag-chip">500ms</span></div>
+                    <div class="field" style="margin-bottom:6px;"><label>URL</label><input value="https://script.google.com/..."></div>
+                    <button class="btn-ghost" style="width:100%; padding:5px; font-size:11px;">🧪 Test</button>
+                  </div>
+                </div>
+              </div>
+
+              <div class="section-card">
+                <div class="section-header"><div class="section-num">📍</div><div class="section-title">GPS Providers (Vehicle Sources)</div><button class="btn-primary" style="margin-left:auto; padding:4px 10px; font-size:11px;">+ Add</button></div>
+                <div class="section-body" style="padding:0;">
+                  <div style="padding:10px 14px; border-bottom:1px solid var(--c-border); display:flex; justify-content:space-between; align-items:center;">
+                    <div><strong style="font-size:13px;">Cartrack Thailand</strong><div style="font-size:11px; color:var(--c-muted);">https://api.cartrack.co.th · 4 vehicles</div></div>
+                    <button class="kebab-btn"><svg viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="5" r="1.8"/><circle cx="12" cy="12" r="1.8"/><circle cx="12" cy="19" r="1.8"/></svg></button>
+                  </div>
+                  <div style="padding:10px 14px; display:flex; justify-content:space-between; align-items:center;">
+                    <div><strong style="font-size:13px;">Local Sim Tracker</strong><div style="font-size:11px; color:var(--c-muted);">192.168.1.50:5000 · 1 vehicle</div></div>
+                    <button class="kebab-btn"><svg viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="5" r="1.8"/><circle cx="12" cy="12" r="1.8"/><circle cx="12" cy="19" r="1.8"/></svg></button>
+                  </div>
+                </div>
+              </div>
+
+            </div>
+          </section>
+
+        </div>
+      </div>
+    </div>
+    <p class="preview-hint">9 sections ใน sub-nav · GPS section เป็นตัวอย่าง (มี proxy chain 3 ชั้น + providers list)</p>
+  </div>
+
+</div>
+
+<script src="preview.js"></script>
+</body>
+</html>

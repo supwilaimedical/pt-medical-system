@@ -1,0 +1,1788 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#0ea5e9">
+<title>นำส่งผู้ป่วย · PT Medical V2</title>
+<link rel="manifest" href="../manifest.json">
+<link rel="stylesheet" href="../shared.css">
+<link rel="icon" href="../../assets/icon.svg" type="image/svg+xml">
+<style>
+  /* Transport-specific overrides */
+  .view{ display:none; }
+  .view.active{ display:block; }
+
+  /* List view tabs */
+  .list-tabs{ background:#fff; border-bottom:1px solid var(--c-border); display:flex; overflow-x:auto; flex-shrink:0; }
+  .list-tab{ padding:10px 14px; font-size:13px; color:#64748b; background:none; border:none; white-space:nowrap; cursor:pointer; font-family:inherit; }
+  .list-tab.active{ color:#0369a1; font-weight:600; border-bottom:2px solid var(--c-primary); }
+  .list-tab .count{ background:#e2e8f0; color:#475569; padding:1px 7px; border-radius:999px; font-size:10px; margin-left:4px; font-weight:700; }
+  .list-tab.active .count{ background:var(--c-primary); color:#fff; }
+
+  /* Step jump tabs (mobile) */
+  .step-tabs{ background:#fff; border-bottom:1px solid var(--c-border); display:flex; flex-shrink:0; position:sticky; top:calc(var(--topbar-h) + 28px); z-index:24; }
+  .step-tab{ flex:1; padding:8px 4px; font-size:12px; color:#64748b; background:none; border:none; cursor:pointer; font-family:inherit; }
+  .step-tab.active{ color:#0369a1; font-weight:600; border-bottom:2px solid var(--c-primary); }
+
+  /* Closed cases table */
+  .closed-table{ width:100%; border-collapse:collapse; background:#fff; font-size:13px; }
+  .closed-table th{ text-align:left; padding:8px 10px; background:#f1f5f9; font-size:11px; color:var(--c-muted); text-transform:uppercase; border-bottom:1px solid var(--c-border); }
+  .closed-table td{ padding:8px 10px; border-bottom:1px solid var(--c-border); }
+  .closed-table tr:hover{ background:var(--c-subtle); }
+
+  /* Form */
+  .form-wrap{ padding:14px; padding-bottom:90px; max-width:1100px; margin:0 auto; }
+  .danger-field{ background:#fef2f2; padding:10px; border-radius:8px; border:1px solid #fecaca; }
+  .danger-field label{ color:#991b1b; font-weight:600; }
+  .danger-field input{ border-color:#fca5a5 !important; }
+  .consent-banner{ background:#fef3c7; border:1px dashed #f59e0b; border-radius:8px; padding:10px; display:flex; align-items:center; justify-content:space-between; gap:10px; }
+  .consent-banner.signed{ background:#dcfce7; border-color:#16a34a; }
+
+  /* Vitals dark */
+  .vitals-dark{ background:#0f172a; color:#fff; padding:10px; border-radius:8px; }
+  .vitals-dark table{ width:100%; font-size:12px; color:#fff; border-collapse:collapse; }
+  .vitals-dark th, .vitals-dark td{ padding:5px 6px; border-bottom:1px solid #1e293b; text-align:left; }
+  .vitals-dark th{ font-size:10px; opacity:.7; text-transform:uppercase; }
+
+  /* IV row */
+  .iv-row{ display:grid; grid-template-columns:1fr 1.4fr 1fr 1fr 1fr 32px; gap:6px; align-items:center; margin-bottom:6px; }
+  .iv-row input, .iv-row select{ padding:6px 8px; border:1px solid var(--c-border); border-radius:6px; font-size:12px; }
+
+  /* Refer docs grid */
+  .docs-grid{ display:grid; grid-template-columns:repeat(auto-fill, minmax(120px, 1fr)); gap:8px; margin-top:8px; }
+  .doc-thumb{ background:#f1f5f9; border:1px solid var(--c-border); border-radius:8px; aspect-ratio:1; display:flex; align-items:center; justify-content:center; font-size:11px; color:var(--c-muted); cursor:pointer; position:relative; overflow:hidden; }
+  .doc-thumb img{ width:100%; height:100%; object-fit:cover; }
+  .doc-thumb .del{ position:absolute; top:4px; right:4px; background:#dc2626; color:#fff; width:20px; height:20px; border-radius:50%; border:none; cursor:pointer; font-size:11px; line-height:1; }
+
+  /* Hidden helper */
+  .d-none{ display:none !important; }
+
+  @media (max-width: 1023px){
+    .form-wrap{ padding:10px; padding-bottom:90px; }
+    .field-row-4, .field-row-3{ grid-template-columns:1fr 1fr; }
+  }
+
+  /* Print */
+  @media print {
+    .step-tabs, .list-tabs, .bottom-bar, .fab, .topbar{ display:none !important; }
+    .form-wrap{ padding:0; max-width:none; padding-bottom:0; }
+    .section-card{ page-break-inside:avoid; break-inside:avoid; box-shadow:none; border-radius:0; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ============ MOBILE DRAWER ============ -->
+<div class="drawer-backdrop" id="drawer-backdrop" onclick="closeDrawer()"></div>
+<div class="drawer" id="drawer">
+  <div style="padding:18px 14px; border-bottom:1px solid var(--c-border); display:flex; align-items:center; gap:10px;">
+    <div class="avatar" id="m-avatar">PT</div>
+    <div><div style="font-weight:600; font-size:14px;" id="m-username">ผู้ใช้</div><div style="font-size:11px; color:var(--c-muted);" id="m-userrole">role</div></div>
+  </div>
+  <nav style="padding:8px 0;">
+    <div class="subnav-section">โมดูล</div>
+    <a class="nav-item active" href="./"><span class="nav-icon">🚑</span><span>นำส่งผู้ป่วย</span></a>
+    <a class="nav-item" href="../firstaid/"><span class="nav-icon">🩹</span><span>ปฐมพยาบาล</span></a>
+    <a class="nav-item" href="../location/"><span class="nav-icon">🗺️</span><span>พิกัดสถานที่</span></a>
+    <a class="nav-item" href="../gps/"><span class="nav-icon">🛰️</span><span>GPS Tracking</span></a>
+    <div style="border-top:1px solid var(--c-border); margin:8px 12px;"></div>
+    <a class="nav-item" href="../"><span class="nav-icon">🏠</span><span>กลับหน้าหลัก</span></a>
+    <a class="nav-item" style="color:#dc2626;" onclick="doLogout()"><span class="nav-icon">🚪</span><span>ออกจากระบบ</span></a>
+  </nav>
+</div>
+
+<!-- ============ DESKTOP 3-COL LAYOUT ============ -->
+<div class="layout-3col">
+
+  <!-- COL 1 NAV -->
+  <aside class="col-nav" id="dNav">
+    <div style="padding:12px 0; border-bottom:1px solid var(--c-border); display:flex; justify-content:center;">
+      <div style="width:32px; height:32px; border-radius:8px; background:linear-gradient(135deg,#0ea5e9,#0284c7); color:#fff; display:flex; align-items:center; justify-content:center; font-weight:700; font-size:13px; cursor:pointer;" onclick="toggleNav()" title="ขยาย/ย่อ">PT</div>
+    </div>
+    <nav style="flex:1; padding:8px 0; overflow-y:auto;">
+      <a class="nav-item active" href="./" title="นำส่งผู้ป่วย"><span class="nav-icon">🚑</span><span class="nav-label">นำส่งผู้ป่วย</span></a>
+      <a class="nav-item" href="../firstaid/" title="ปฐมพยาบาล"><span class="nav-icon">🩹</span><span class="nav-label">ปฐมพยาบาล</span></a>
+      <a class="nav-item" href="../location/" title="พิกัดสถานที่"><span class="nav-icon">🗺️</span><span class="nav-label">พิกัดสถานที่</span></a>
+      <a class="nav-item" href="../gps/" id="rail-gps" title="GPS" style="display:none;"><span class="nav-icon">🛰️</span><span class="nav-label">GPS</span></a>
+      <a class="nav-item" href="../monitor/" id="rail-monitor" title="Monitor" style="display:none;"><span class="nav-icon">📡</span><span class="nav-label">Monitor</span></a>
+      <a class="nav-item" href="../admin.html" id="rail-admin" title="Admin Settings" style="display:none;"><span class="nav-icon">⚙️</span><span class="nav-label">Admin</span></a>
+    </nav>
+    <div style="padding:8px 0; border-top:1px solid var(--c-border);">
+      <a class="nav-item" href="../" title="หน้าหลัก"><span class="nav-icon">🏠</span><span class="nav-label">หน้าหลัก</span></a>
+      <a class="nav-item" onclick="doLogout()" title="ออกจากระบบ" style="color:#dc2626;"><span class="nav-icon">🚪</span><span class="nav-label">ออก</span></a>
+    </div>
+  </aside>
+
+  <!-- COL 2 SUBNAV -->
+  <aside class="col-subnav" id="dSubnav">
+
+    <!-- LIST sub-nav -->
+    <div id="subnav-list">
+      <div style="padding:12px 14px; border-bottom:1px solid var(--c-border); display:flex; align-items:center; justify-content:space-between;">
+        <div><div style="font-weight:700; font-size:14px;">นำส่งผู้ป่วย</div><div style="font-size:11px; color:var(--c-muted);">Transport</div></div>
+        <button class="btn-primary" style="padding:6px 10px; font-size:12px;" onclick="openNewCase()">+ ใหม่</button>
+      </div>
+      <div style="flex:1; overflow-y:auto;">
+        <div class="subnav-section">เคสที่เปิดอยู่</div>
+        <div class="subnav-item active" onclick="setListTab('active')"><span>🟢 Active ทั้งหมด</span><span class="badge" id="sn-count-active">0</span></div>
+        <div class="subnav-section">เคสที่ปิดแล้ว</div>
+        <div class="subnav-item" onclick="setListTab('closed')"><span>📋 Closed</span><span class="badge" id="sn-count-closed">0</span></div>
+        <div class="subnav-section">ค้นหา &amp; กรอง</div>
+        <div class="subnav-item" onclick="document.getElementById('search-input').focus()"><span>🔍 ค้นหาชื่อ / รหัส</span></div>
+        <div class="subnav-item" onclick="document.getElementById('date-filter').focus()"><span>📅 กรองตามวันที่</span></div>
+      </div>
+    </div>
+
+    <!-- FORM sub-nav -->
+    <div id="subnav-form" class="d-none" style="display:flex; flex-direction:column; height:100%;">
+      <div style="padding:8px 14px; border-bottom:1px solid var(--c-border); background:#f1f5f9;">
+        <a onclick="showList()" style="font-size:12px; color:#0369a1; font-weight:600; cursor:pointer;">← เคสทั้งหมด</a>
+      </div>
+      <div style="padding:10px 14px; border-bottom:1px solid var(--c-border);">
+        <div style="font-weight:700; font-size:13px;" id="sn-case-id">TR-NEW</div>
+        <div style="font-size:11px; color:var(--c-muted);" id="sn-case-pt">เคสใหม่</div>
+        <div style="display:flex; gap:4px; margin-top:6px; flex-wrap:wrap;" id="sn-case-tags"></div>
+      </div>
+      <div style="flex:1; overflow-y:auto;">
+        <div class="subnav-section">Step (Jump to)</div>
+        <div class="subnav-item active" onclick="jumpStep(1)"><span>1️⃣ ข้อมูลทั่วไป</span></div>
+        <div class="subnav-item" onclick="jumpStep(2)"><span>2️⃣ ประเมินร่างกาย</span></div>
+        <div class="subnav-item" onclick="jumpStep(3)"><span>3️⃣ ขณะนำส่ง</span></div>
+
+        <div class="subnav-section">Sub-form</div>
+        <div class="subnav-item" onclick="openSubform('consent')"><span>📝 หนังสือยินยอม</span><span class="badge danger" id="sn-consent-badge">!</span></div>
+        <div class="subnav-item" onclick="openSubform('initVS')"><span>📊 V/S แรกรับ</span></div>
+        <div class="subnav-item" onclick="openSubform('ivPre')"><span>💉 IV Lines (Pre)</span></div>
+        <div class="subnav-item" onclick="openSubform('ivTrans')"><span>💉 IV Lines (Transport)</span></div>
+        <div class="subnav-item" onclick="openSubform('vitalsLog')"><span>📈 Vitals Log</span></div>
+        <div class="subnav-item" onclick="openSubform('docs')"><span>📎 เอกสาร Refer</span><span class="badge" id="sn-docs-badge">0/5</span></div>
+
+        <div class="subnav-section">Action</div>
+        <div class="subnav-item" onclick="doPrint()"><span>🖨️ พิมพ์ใบนำส่ง</span></div>
+        <div class="subnav-item" onclick="doShare()"><span>🔗 แชร์ Public</span></div>
+        <div class="subnav-item" onclick="doCloseCase()"><span style="color:#16a34a;">✓ ปิดเคส</span></div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- COL 3 CONTENT -->
+  <section class="col-content">
+    <!-- TOPBAR -->
+    <div class="topbar">
+      <button class="icon-btn" onclick="toggleDrawer()" title="เมนู"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12h18M3 6h18M3 18h18"/></svg></button>
+      <div style="flex:1; min-width:0;">
+        <div style="font-weight:600; font-size:14px; line-height:1.2;" id="tb-title">นำส่งผู้ป่วย</div>
+        <div style="font-size:11px; color:var(--c-muted);" id="tb-sub">Transport · Active</div>
+      </div>
+      <button class="icon-btn" id="tb-back" onclick="showList()" style="display:none;" title="กลับเคสทั้งหมด"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 6l-6 6 6 6"/></svg></button>
+      <button class="icon-btn" onclick="doPrint()" title="พิมพ์"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9V2h12v7M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2M6 14h12v8H6z"/></svg></button>
+    </div>
+
+    <!-- =================== LIST VIEW =================== -->
+    <div id="view-list" class="view active">
+      <div class="col-header">
+        <div><div style="font-weight:700; font-size:15px;" id="list-title">Active Cases</div><div style="font-size:11px; color:var(--c-muted);" id="list-sub">กำลังโหลด...</div></div>
+        <div style="display:flex; gap:6px; align-items:center;">
+          <input id="search-input" placeholder="🔍 ชื่อ / รหัสเคส" style="padding:6px 10px; border:1px solid var(--c-border); border-radius:8px; font-size:13px; width:200px;" oninput="filterList()">
+          <input type="date" id="date-filter" style="padding:6px 10px; border:1px solid var(--c-border); border-radius:8px; font-size:13px;" onchange="filterList()">
+          <button class="btn-ghost" onclick="reloadCases()" title="รีโหลด">↻</button>
+        </div>
+      </div>
+      <div class="list-tabs">
+        <button class="list-tab active" id="tab-active" onclick="setListTab('active')">Active <span class="count" id="ct-active">0</span></button>
+        <button class="list-tab" id="tab-closed" onclick="setListTab('closed')">Closed <span class="count" id="ct-closed">0</span></button>
+      </div>
+      <div class="col-body">
+        <!-- Active list (cards) -->
+        <div id="active-list" class="case-list"></div>
+        <!-- Closed list (table) -->
+        <div id="closed-list" class="d-none" style="overflow-x:auto;">
+          <table class="closed-table">
+            <thead><tr><th>รหัสเคส</th><th>ผู้ป่วย</th><th>ประเภท</th><th>Triage</th><th>เริ่ม</th><th>ปิด</th><th></th></tr></thead>
+            <tbody id="closed-tbody"></tbody>
+          </table>
+        </div>
+        <div id="empty-state" style="padding:40px; text-align:center; color:var(--c-muted); font-size:13px; display:none;">
+          ไม่มีเคส
+        </div>
+      </div>
+      <button class="fab" onclick="openNewCase()" title="เคสใหม่">+</button>
+    </div>
+
+    <!-- =================== FORM VIEW =================== -->
+    <div id="view-form" class="view">
+
+      <!-- Mobile step jump tabs -->
+      <div class="step-tabs" id="step-tabs">
+        <button class="step-tab active" onclick="jumpStep(1)">1. ข้อมูล</button>
+        <button class="step-tab" onclick="jumpStep(2)">2. ประเมิน</button>
+        <button class="step-tab" onclick="jumpStep(3)">3. นำส่ง</button>
+      </div>
+
+      <!-- Timeline thin bar (sticky) -->
+      <div class="tl-bar" id="tl-bar">
+        <span class="tl-icon">⏱</span>
+        <div class="tl-step" id="tl-step-disp" onclick="stampNow('tl_dispatch_dt')">
+          <span class="tl-dot pending"></span><span class="tl-label">Disp</span><span class="tl-pending-time" id="tl-disp-t">--:--</span>
+        </div>
+        <span class="tl-arrow">━</span>
+        <div class="tl-step" id="tl-step-arr-scene" onclick="stampNow('tl_arrive_scene_dt')">
+          <span class="tl-dot pending"></span><span class="tl-label">Scene</span><span class="tl-pending-time" id="tl-arr-scene-t">--:--</span>
+        </div>
+        <span class="tl-arrow">━</span>
+        <div class="tl-step" id="tl-step-dep-scene" onclick="stampNow('tl_depart_scene_dt')">
+          <span class="tl-dot pending"></span><span class="tl-label">Depart</span><span class="tl-pending-time" id="tl-dep-scene-t">--:--</span>
+        </div>
+        <span class="tl-arrow">━</span>
+        <div class="tl-step active" id="tl-step-arr-hosp" onclick="stampNow('tl_arrive_hospital_dt')">
+          <span class="tl-dot active"></span><span class="tl-label">Hosp</span><span class="tl-pending-time" id="tl-arr-hosp-t">--:--</span>
+        </div>
+      </div>
+
+      <div class="col-body">
+        <form id="caseForm" onsubmit="return false;">
+          <!-- Hidden fields (preserve V1) -->
+          <input type="hidden" name="caseId" id="caseId">
+          <input type="hidden" name="status" id="formStatus" value="Active">
+          <input type="hidden" name="timestamp" id="formTimestamp">
+          <input type="hidden" name="tl_dispatch_dt" id="tl_dispatch_dt">
+          <input type="hidden" name="tl_arrive_scene_dt" id="tl_arrive_scene_dt">
+          <input type="hidden" name="tl_depart_scene_dt" id="tl_depart_scene_dt">
+          <input type="hidden" name="tl_arrive_hospital_dt" id="tl_arrive_hospital_dt">
+          <input type="hidden" name="tl_depart_origin_dt" id="tl_depart_origin_dt">
+          <input type="hidden" name="tl_arrive_dest_dt" id="tl_arrive_dest_dt">
+
+          <div class="form-wrap">
+
+            <!-- =============== STEP 1 =============== -->
+            <div class="section-card" id="step-1" data-step="1">
+              <div class="section-header"><div class="section-num">1</div><div class="section-title">ข้อมูลทั่วไป</div></div>
+              <div class="section-body">
+
+                <!-- Op Level -->
+                <div class="subsection-title">ชุดปฏิบัติการ</div>
+                <div style="display:flex; gap:14px; margin-bottom:10px;">
+                  <label><input type="radio" name="op_level" id="op_bls" value="BLS" onchange="updateOpUnitLogic()"> BLS</label>
+                  <label><input type="radio" name="op_level" id="op_als" value="ALS" onchange="updateOpUnitLogic()" checked> ALS</label>
+                </div>
+
+                <div class="field-row-2" style="margin-bottom:10px;">
+                  <div class="field"><label>เลือกรถ (GPS)</label>
+                    <select id="vehicle-select" name="vehicle_id" onchange="onVehicleSelect()"><option value="">— เลือกรถ —</option></select>
+                  </div>
+                  <div class="field"><label>เบอร์รถ</label>
+                    <input type="text" name="op_unit_no" placeholder="เช่น 1">
+                  </div>
+                </div>
+
+                <!-- Staff: 1 row per staff (name + position pair) -->
+                <div class="field" style="margin-bottom:10px;"><label>Staff 1</label>
+                  <div style="display:grid; grid-template-columns:2fr 1fr; gap:6px;">
+                    <input type="text" name="staff_1_name" placeholder="ชื่อ-สกุล">
+                    <select name="staff_1_pos"><option value="">— ตำแหน่ง —</option><option value="EMT">EMT</option><option value="EMR">EMR</option><option value="Driver">Driver</option></select>
+                  </div>
+                </div>
+                <div class="field" style="margin-bottom:10px;"><label>Staff 2</label>
+                  <div style="display:grid; grid-template-columns:2fr 1fr; gap:6px;">
+                    <input type="text" name="staff_2_name" placeholder="ชื่อ-สกุล">
+                    <select name="staff_2_pos"><option value="">— ตำแหน่ง —</option><option value="EMT">EMT</option><option value="EMR">EMR</option><option value="Driver">Driver</option></select>
+                  </div>
+                </div>
+                <div class="field" style="margin-bottom:10px;"><label>Staff 3</label>
+                  <div style="display:grid; grid-template-columns:2fr 1fr; gap:6px;">
+                    <input type="text" name="staff_3_name" placeholder="ชื่อ-สกุล">
+                    <select name="staff_3_pos"><option value="">— ตำแหน่ง —</option><option value="EMT">EMT</option><option value="EMR">EMR</option><option value="Driver">Driver</option></select>
+                  </div>
+                </div>
+
+                <div id="als-staff-inputs" class="field-row-2" style="margin-bottom:10px;">
+                  <div class="field"><label>พยาบาล / พาราเมดิก</label><input type="text" name="staff_nurse"></div>
+                  <div class="field"><label>แพทย์ (ALS)</label><input type="text" name="staff_doctor"></div>
+                </div>
+
+                <!-- Scene (EMS only) -->
+                <div id="scene-section">
+                  <div class="subsection-title">จุดเกิดเหตุ (EMS)</div>
+                  <div style="display:flex; gap:14px; margin-bottom:10px;">
+                    <label><input type="radio" name="scene_pt_type" value="Trauma"> Trauma</label>
+                    <label><input type="radio" name="scene_pt_type" value="Non-Trauma"> Non-Trauma</label>
+                  </div>
+                  <div class="field" style="margin-bottom:10px;"><label>MOI / รายละเอียดที่เกิดเหตุ</label><textarea name="scene_detail" rows="2"></textarea></div>
+                </div>
+
+                <!-- Consent -->
+                <div class="subsection-title">หนังสือยินยอม</div>
+                <div class="consent-banner" id="consent-banner" style="margin-bottom:12px;">
+                  <div><div style="font-size:12px; font-weight:600; color:#92400e;" id="consent-status-text">📝 รอเซ็นยินยอม</div>
+                  <div style="font-size:10px; color:#78350f;">PDPA · ยินยอมรับบริการ</div></div>
+                  <button type="button" class="btn-ghost" onclick="openSubform('consent')">เปิดฟอร์ม</button>
+                </div>
+
+                <!-- Patient Info -->
+                <div class="subsection-title">ข้อมูลผู้ป่วย</div>
+                <div class="field field-required" style="margin-bottom:10px;"><label>ชื่อ-นามสกุล</label><input type="text" name="pt_name" id="pt_name" required></div>
+                <div class="field-row-3" style="margin-bottom:10px;">
+                  <div class="field"><label>อายุ</label><input type="text" name="pt_age"></div>
+                  <div class="field"><label>เพศ</label>
+                    <select name="pt_gender"><option value="">—</option><option value="ชาย">ชาย</option><option value="หญิง">หญิง</option><option value="อื่นๆ">อื่นๆ</option></select>
+                  </div>
+                  <div class="field"><label>ประเภทบัตร</label>
+                    <select name="id_type"><option value="ID">บัตรประชาชน</option><option value="Passport">Passport</option><option value="Other">อื่นๆ</option></select>
+                  </div>
+                </div>
+                <div class="field" style="margin-bottom:10px;">
+                  <label>เลขบัตร <button type="button" class="btn-ghost" style="padding:2px 8px; font-size:11px; margin-left:6px;" onclick="runOcr()">📷 OCR</button></label>
+                  <input type="text" name="pt_idcard" id="pt_idcard">
+                </div>
+
+                <!-- Triage -->
+                <div class="subsection-title">รายละเอียดผู้ป่วย</div>
+                <div style="margin-bottom:10px;">
+                  <label style="font-size:11px; color:var(--c-muted); font-weight:600;">Triage Level</label>
+                  <div style="display:flex; flex-wrap:wrap; gap:6px; margin-top:4px;" id="triage-group">
+                    <label class="chip"><input type="radio" name="triage_level" value="Resuscitation" style="display:none;" onchange="updateTriageStyle()"> Resuscitation</label>
+                    <label class="chip"><input type="radio" name="triage_level" value="Emergency" style="display:none;" onchange="updateTriageStyle()"> Emergency</label>
+                    <label class="chip"><input type="radio" name="triage_level" value="Urgent" style="display:none;" onchange="updateTriageStyle()"> Urgent</label>
+                    <label class="chip"><input type="radio" name="triage_level" value="Non-Urgent" style="display:none;" onchange="updateTriageStyle()"> Non-Urgent</label>
+                  </div>
+                </div>
+
+                <div class="field-row-3" style="margin-bottom:10px;">
+                  <div class="field"><label>ประเภทการนำส่ง</label>
+                    <select name="transport_type" id="transport_type" onchange="updateTransportType()">
+                      <option value="EMS">EMS</option><option value="Refer">Refer</option><option value="Discharge">Discharge</option><option value="Follow up">Follow up</option>
+                    </select>
+                  </div>
+                  <div class="field"><label>NR Status</label>
+                    <select name="nr_status" id="nr_status">
+                      <option value="Full Support">Full Support</option><option value="DNR">DNR</option><option value="Palliative">Palliative</option>
+                    </select>
+                  </div>
+                  <div class="field"><label>Op Level (display)</label><select disabled id="op_level_disp"><option>ALS</option><option>BLS</option></select></div>
+                </div>
+
+                <div class="field-row-2" style="margin-bottom:10px;">
+                  <div class="field"><label>รับจาก (ต้นทาง)</label><input type="text" name="origin"></div>
+                  <div class="field"><label>นำส่ง (ปลายทาง)</label><input type="text" name="destination"></div>
+                </div>
+                <div class="field-row-2" style="margin-bottom:10px;">
+                  <div class="field"><label>CC (Chief Complaint)</label><textarea name="pt_cc" rows="2"></textarea></div>
+                  <div class="field"><label>Dx (Diagnosis)</label><textarea name="pt_dx" rows="2"></textarea></div>
+                </div>
+
+                <div style="margin-bottom:10px;">
+                  <label style="font-size:11px; color:var(--c-muted); font-weight:600;">Underlying Disease</label>
+                  <div style="display:flex; flex-wrap:wrap; gap:4px; margin-top:4px;">
+                    <label class="chip"><input type="checkbox" name="ud_dm" style="display:none;"> DM</label>
+                    <label class="chip"><input type="checkbox" name="ud_ht" style="display:none;"> HT</label>
+                    <label class="chip"><input type="checkbox" name="ud_dlp" style="display:none;"> DLP</label>
+                    <label class="chip"><input type="checkbox" name="ud_ihd" style="display:none;"> IHD/CAD</label>
+                    <label class="chip"><input type="checkbox" name="ud_cva" style="display:none;"> CVA/Stroke</label>
+                    <label class="chip"><input type="checkbox" name="ud_ckd" style="display:none;"> CKD</label>
+                    <label class="chip"><input type="checkbox" name="ud_copd" style="display:none;"> COPD/Asthma</label>
+                    <label class="chip"><input type="checkbox" name="ud_cancer" style="display:none;"> Cancer</label>
+                    <label class="chip"><input type="checkbox" name="ud_epilepsy" style="display:none;"> Epilepsy</label>
+                  </div>
+                </div>
+
+                <div class="field-row-2" style="margin-bottom:10px;">
+                  <div class="field"><label>UD อื่นๆ</label><input type="text" name="ud_other"></div>
+                  <div class="field"><label>ยาประจำตัว</label><input type="text" name="pt_meds"></div>
+                </div>
+                <div class="field danger-field"><label>⚠ ประวัติแพ้ยา/อาหาร</label><input type="text" name="pt_allergies"></div>
+              </div>
+            </div>
+
+            <!-- =============== STEP 2 =============== -->
+            <div class="section-card" id="step-2" data-step="2">
+              <div class="section-header"><div class="section-num">2</div><div class="section-title">ประเมินร่างกาย</div></div>
+              <div class="section-body">
+
+                <!-- Initial Vitals -->
+                <div class="subsection-title">สัญญาณชีพแรกรับ <button type="button" class="btn-ghost" style="margin-left:8px; padding:2px 8px; font-size:10px;" onclick="openSubform('initVS')">บันทึกแบบเต็ม</button></div>
+                <div class="field-row-3" style="margin-bottom:8px;">
+                  <div class="field"><label>เวลา</label><input type="time" name="init_vitals_time"></div>
+                  <div class="field"><label>BP (mmHg)</label><input type="text" name="init_bp" placeholder="120/80"></div>
+                  <div class="field"><label>PR (bpm)</label><input type="text" name="init_pr"></div>
+                </div>
+                <div class="field-row-4" style="margin-bottom:12px;">
+                  <div class="field"><label>RR</label><input type="text" name="init_rr"></div>
+                  <div class="field"><label>Temp</label><input type="text" name="init_temp"></div>
+                  <div class="field"><label>SpO2</label><input type="text" name="init_spo2"></div>
+                  <div class="field"><label>DTX</label><input type="text" name="init_dtx"></div>
+                </div>
+
+                <!-- Airway -->
+                <div class="subsection-title">Airway</div>
+                <div style="display:flex; gap:10px; flex-wrap:wrap; margin-bottom:10px;">
+                  <label><input type="radio" name="airway_type" value="Open" onchange="updateAirwayLogic()" checked> Open</label>
+                  <label><input type="radio" name="airway_type" value="Management" onchange="updateAirwayLogic()"> Management</label>
+                  <label><input type="radio" name="airway_type" value="ET Tube" onchange="updateAirwayLogic()"> ET Tube</label>
+                  <label><input type="radio" name="airway_type" value="Tracheostomy" onchange="updateAirwayLogic()"> Tracheostomy</label>
+                </div>
+
+                <div id="panel-airway-mgt" class="d-none" style="margin-bottom:10px; padding:8px; background:#f8fafc; border-radius:8px;">
+                  <label style="font-size:11px; color:var(--c-muted); font-weight:600;">Airway Mgt Sub-type</label>
+                  <div style="display:flex; gap:10px; margin-top:4px;">
+                    <label><input type="radio" name="airway_mgt_sub" value="Oral" onchange="updateAirwayLogic()"> Oral</label>
+                    <label><input type="radio" name="airway_mgt_sub" value="Nasal" onchange="updateAirwayLogic()"> Nasal</label>
+                    <label><input type="radio" name="airway_mgt_sub" value="LMA/SGA" onchange="updateAirwayLogic()"> LMA/SGA</label>
+                  </div>
+                  <div id="input-lma-no" class="d-none field" style="margin-top:6px;"><label>LMA Size No.</label><input type="text" name="aw_lma_no"></div>
+                </div>
+
+                <div id="panel-et-trach" class="d-none" style="margin-bottom:10px; padding:8px; background:#f8fafc; border-radius:8px;">
+                  <div class="field-row-3">
+                    <div class="field"><label>Tube No</label><input type="text" name="tube_no"></div>
+                    <div class="field"><label>Mark (cm)</label><input type="text" name="tube_depth"></div>
+                    <div class="field"><label>Cuff</label>
+                      <select name="cuff_status"><option value="">—</option><option value="Inflated">Inflated</option><option value="Deflated">Deflated</option></select>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Breathing & O2 -->
+                <div class="subsection-title">Breathing &amp; Oxygen</div>
+                <label style="display:flex; align-items:center; gap:6px; margin-bottom:8px;"><input type="checkbox" id="chk-ventilator" name="on_ventilator" onchange="updateVentLogic()"> ใช้เครื่องช่วยหายใจ (Ventilator)</label>
+
+                <div id="panel-ventilator" class="d-none" style="margin-bottom:10px; padding:8px; background:#eff6ff; border-radius:8px;">
+                  <label style="font-size:11px; color:var(--c-muted); font-weight:600;">Mode</label>
+                  <div style="display:flex; gap:10px; flex-wrap:wrap; margin:4px 0 8px;">
+                    <label><input type="radio" name="vent_mode" value="PCV" onchange="updateVentLogic()"> PCV</label>
+                    <label><input type="radio" name="vent_mode" value="VCV" onchange="updateVentLogic()"> VCV</label>
+                    <label><input type="radio" name="vent_mode" value="CPAP" onchange="updateVentLogic()"> CPAP</label>
+                    <label><input type="radio" name="vent_mode" value="BiPAP" onchange="updateVentLogic()"> BiPAP</label>
+                  </div>
+                  <div id="sub-vent-mode" class="d-none field-row-2" style="margin-bottom:8px;">
+                    <div class="field"><label>Submode</label><input type="text" name="vent_submode" placeholder="A/C, SIMV..."></div>
+                    <div class="field"><label>Rate</label><input type="text" name="vent_rate"></div>
+                  </div>
+                  <div class="field-row-4">
+                    <div class="field"><label id="lbl-vol-pres">Pressure</label><input type="text" name="vent_vol_pres"></div>
+                    <div class="field"><label>PEEP</label><input type="text" name="vent_peep"></div>
+                    <div class="field"><label>FiO2</label><input type="text" name="vent_fio2"></div>
+                    <div class="field"><label>I:E</label><input type="text" name="vent_ie"></div>
+                  </div>
+                </div>
+
+                <div id="panel-oxygen" style="margin-bottom:10px;">
+                  <div class="field-row-2" style="margin-bottom:6px;">
+                    <div class="field"><label>O2 Device</label>
+                      <select id="sel-o2-device" name="o2_device" onchange="updateO2Detail()"></select>
+                    </div>
+                    <div class="field" id="grp-o2-flow"><label>Flow (LPM)</label><input type="text" name="o2_flow"></div>
+                  </div>
+                  <div id="o2-detail-panel" class="field-row-2 d-none">
+                    <div class="field d-none" id="grp-o2-fio2"><label>FiO2 (%)</label><input type="text" name="o2_conc"></div>
+                    <div class="field d-none" id="grp-o2-temp"><label>Temp (°C)</label><input type="text" name="o2_temp"></div>
+                  </div>
+                </div>
+
+                <!-- Circulation -->
+                <div class="subsection-title">Circulation</div>
+                <div style="display:flex; gap:14px; margin-bottom:8px;">
+                  <label><input type="radio" name="circ_status" value="Stable"> Stable</label>
+                  <label><input type="radio" name="circ_status" value="Shock"> Shock</label>
+                </div>
+                <div class="field-row-2" style="margin-bottom:8px;">
+                  <div class="field"><label>EKG Rhythm</label><input type="text" name="circ_ekg" placeholder="NSR"></div>
+                  <div class="field" style="justify-content:end;">
+                    <label style="display:flex; align-items:center; gap:6px; margin-top:18px;"><input type="checkbox" id="chk-central-line" onchange="toggleCentralLine()"> มี Central Line</label>
+                    <input type="text" id="central-line-loc" placeholder="ตำแหน่ง" class="d-none" style="margin-top:4px; padding:6px 10px; border:1px solid var(--c-border); border-radius:6px;">
+                  </div>
+                </div>
+
+                <!-- IV Lines (Pre) -->
+                <div class="subsection-title">IV Lines (ก่อนนำส่ง)</div>
+                <div id="iv-pre-list"></div>
+                <button type="button" class="btn-ghost" style="width:100%; margin-bottom:12px; padding:8px;" onclick="addIvLine(null, null, 'iv-pre-list', 'pre')">+ เพิ่ม IV Line</button>
+
+                <!-- Cardiac Arrest -->
+                <div class="subsection-title">Cardiac Arrest (ก่อนนำส่ง)</div>
+                <label style="display:flex; align-items:center; gap:6px; margin-bottom:8px;"><input type="checkbox" id="chk-arrest-pre" name="arrest_pre_arrest" onchange="toggleArrest('pre')"> ผู้ป่วยมี Cardiac Arrest</label>
+                <div id="arrest-pre-detail" class="d-none" style="padding:10px; background:#fef2f2; border-radius:8px; margin-bottom:10px;">
+                  <div class="field-row-3" style="margin-bottom:8px;">
+                    <div class="field"><label>Arrest Time <button type="button" class="btn-ghost" style="padding:1px 6px; font-size:10px;" onclick="stampArrestNow('arrest_pre_time')">Now</button></label><input type="time" name="arrest_pre_time" id="arrest_pre_time"></div>
+                    <div class="field"><label>CPR Time <button type="button" class="btn-ghost" style="padding:1px 6px; font-size:10px;" onclick="stampArrestNow('arrest_pre_cpr_time')">Now</button></label><input type="time" name="arrest_pre_cpr_time" id="arrest_pre_cpr_time" onchange="calcArrestCprDuration('pre')"></div>
+                    <div class="field"><label>&nbsp;</label><span id="arrest-pre-cpr-dur" style="padding:6px; background:#fff; border-radius:6px; font-size:12px;">CPR Duration: --</span></div>
+                  </div>
+                  <div class="field-row-2" style="margin-bottom:8px;">
+                    <div class="field"><label>Rhythm</label><input type="text" name="arrest_pre_rhythm" placeholder="VF/VT/Asystole/PEA"></div>
+                    <div class="field"><label>Outcome</label>
+                      <div style="display:flex; gap:10px; padding-top:6px;">
+                        <label><input type="radio" name="arrest_pre_outcome" value="ROSC" onchange="toggleArrestOutcome('pre')"> ROSC</label>
+                        <label><input type="radio" name="arrest_pre_outcome" value="Dead" onchange="toggleArrestOutcome('pre')"> Dead</label>
+                        <label><input type="radio" name="arrest_pre_outcome" value="Ongoing" onchange="toggleArrestOutcome('pre')"> Ongoing</label>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="field-row-2" style="margin-bottom:8px;">
+                    <div class="field d-none" id="arrest-pre-rosc-detail"><label>ROSC Time <button type="button" class="btn-ghost" style="padding:1px 6px; font-size:10px;" onclick="stampArrestNow('arrest_pre_rosc_time')">Now</button></label><input type="time" name="arrest_pre_rosc_time" id="arrest_pre_rosc_time" onchange="calcArrestCprDuration('pre')"></div>
+                    <div class="field d-none" id="arrest-pre-dead-detail"><label>Pronounced Time <button type="button" class="btn-ghost" style="padding:1px 6px; font-size:10px;" onclick="stampArrestNow('arrest_pre_dead_time')">Now</button></label><input type="time" name="arrest_pre_dead_time" id="arrest_pre_dead_time" onchange="calcArrestCprDuration('pre')"></div>
+                  </div>
+                  <div class="field"><label>Note</label><textarea name="arrest_pre_note" rows="2"></textarea></div>
+                </div>
+
+                <!-- Disability / GCS -->
+                <div class="subsection-title">Disability (GCS)</div>
+                <div class="field-row-3" style="margin-bottom:8px;">
+                  <div class="field"><label>E (1-4)</label>
+                    <select name="gcs_e" id="gcs_e" onchange="calcGcs()"><option>4</option><option>3</option><option>2</option><option>1</option></select>
+                  </div>
+                  <div class="field"><label>V (1-5, VT)</label>
+                    <select name="gcs_v" id="gcs_v" onchange="calcGcs()"><option>5</option><option>4</option><option>3</option><option>2</option><option>1</option><option>VT</option></select>
+                  </div>
+                  <div class="field"><label>M (1-6)</label>
+                    <select name="gcs_m" id="gcs_m" onchange="calcGcs()"><option>6</option><option>5</option><option>4</option><option>3</option><option>2</option><option>1</option></select>
+                  </div>
+                </div>
+                <div style="margin-bottom:10px; font-size:13px;">รวม GCS: <strong id="gcs-total">15</strong>/15</div>
+
+                <div class="field-row-3" style="margin-bottom:10px;">
+                  <div class="field"><label>Pupil Size</label><input type="text" name="pupil_size" placeholder="3/3"></div>
+                  <div class="field"><label>Pupil React</label>
+                    <select name="pupil_react"><option value="">—</option><option value="React">React</option><option value="Sluggish">Sluggish</option><option value="No React">No React</option></select>
+                  </div>
+                  <div class="field"><label>Pain Score</label>
+                    <select name="pain_score"><option value="">—</option><option>0</option><option>1</option><option>2</option><option>3</option><option>4</option><option>5</option><option>6</option><option>7</option><option>8</option><option>9</option><option>10</option></select>
+                  </div>
+                </div>
+
+                <!-- Motor Power -->
+                <div class="subsection-title">Motor Power (0-5)</div>
+                <div class="field-row-4" style="margin-bottom:10px;">
+                  <div class="field"><label>RA</label><select name="motor_ra"><option>5</option><option>4</option><option>3</option><option>2</option><option>1</option><option>0</option></select></div>
+                  <div class="field"><label>LA</label><select name="motor_la"><option>5</option><option>4</option><option>3</option><option>2</option><option>1</option><option>0</option></select></div>
+                  <div class="field"><label>RL</label><select name="motor_rl"><option>5</option><option>4</option><option>3</option><option>2</option><option>1</option><option>0</option></select></div>
+                  <div class="field"><label>LL</label><select name="motor_ll"><option>5</option><option>4</option><option>3</option><option>2</option><option>1</option><option>0</option></select></div>
+                </div>
+
+                <!-- Exposure -->
+                <div class="subsection-title">Exposure (รอยฟกช้ำ/บาดแผล)</div>
+                <div class="field-row-2" style="margin-bottom:6px;">
+                  <div class="field"><label>RA</label><input type="text" name="exp_ra"></div>
+                  <div class="field"><label>LA</label><input type="text" name="exp_la"></div>
+                </div>
+                <div class="field-row-2" style="margin-bottom:6px;">
+                  <div class="field"><label>RL</label><input type="text" name="exp_rl"></div>
+                  <div class="field"><label>LL</label><input type="text" name="exp_ll"></div>
+                </div>
+                <div class="field" style="margin-bottom:10px;"><label>อื่นๆ</label><input type="text" name="exp_other"></div>
+
+                <!-- Drainage -->
+                <div class="subsection-title">Drainage / Tubes</div>
+                <div style="display:flex; flex-direction:column; gap:6px;">
+                  <div style="display:flex; align-items:center; gap:8px;"><label style="display:flex; align-items:center; gap:6px; min-width:120px;"><input type="checkbox" name="dr_icd"> ICD</label><input type="text" name="dr_icd_note" placeholder="หมายเหตุ" style="flex:1; padding:6px 10px; border:1px solid var(--c-border); border-radius:6px; font-size:13px;"></div>
+                  <div style="display:flex; align-items:center; gap:8px;"><label style="display:flex; align-items:center; gap:6px; min-width:120px;"><input type="checkbox" name="dr_ng"> NG Tube</label><input type="text" name="dr_ng_note" placeholder="หมายเหตุ" style="flex:1; padding:6px 10px; border:1px solid var(--c-border); border-radius:6px; font-size:13px;"></div>
+                  <div style="display:flex; align-items:center; gap:8px;"><label style="display:flex; align-items:center; gap:6px; min-width:120px;"><input type="checkbox" name="dr_foley"> Foley Cath</label><input type="text" name="dr_foley_note" placeholder="หมายเหตุ" style="flex:1; padding:6px 10px; border:1px solid var(--c-border); border-radius:6px; font-size:13px;"></div>
+                  <div style="display:flex; align-items:center; gap:8px;"><label style="display:flex; align-items:center; gap:6px; min-width:120px;"><input type="checkbox" name="dr_other"> อื่นๆ</label><input type="text" name="dr_other_note" placeholder="หมายเหตุ" style="flex:1; padding:6px 10px; border:1px solid var(--c-border); border-radius:6px; font-size:13px;"></div>
+                </div>
+              </div>
+            </div>
+
+            <!-- =============== STEP 3 =============== -->
+            <div class="section-card" id="step-3" data-step="3">
+              <div class="section-header"><div class="section-num">3</div><div class="section-title">ขณะนำส่ง</div></div>
+              <div class="section-body">
+
+                <!-- Summary banner -->
+                <div style="background:#e0f2fe; border-radius:8px; padding:10px; margin-bottom:12px; font-size:12px; color:#075985;" id="step3-summary">
+                  ผู้ป่วย: <span id="sum-name">—</span> · Triage: <span id="sum-triage">—</span> · Type: <span id="sum-type">—</span>
+                </div>
+
+                <!-- Equipment -->
+                <div class="subsection-title">อุปกรณ์ที่ใช้</div>
+                <div style="display:flex; flex-direction:column; gap:6px; margin-bottom:12px;">
+                  <label><input type="checkbox" name="eq_spinal"> Spinal Board</label>
+                  <label><input type="checkbox" name="eq_scoop"> Scoop Stretcher</label>
+                  <label><input type="checkbox" name="eq_mattress"> Vacuum Mattress</label>
+                  <label><input type="checkbox" name="eq_monitor" checked> Monitor / Defib</label>
+                  <label><input type="checkbox" name="eq_ecmo"> ECMO</label>
+                  <div style="display:flex; align-items:center; gap:8px;"><label style="display:flex; align-items:center; gap:6px; min-width:90px;"><input type="checkbox" name="eq_other"> อื่นๆ</label><input type="text" name="eq_other_note" placeholder="ระบุ" style="flex:1; padding:6px 10px; border:1px solid var(--c-border); border-radius:6px; font-size:13px;"></div>
+                </div>
+
+                <!-- IV Lines (Transport) -->
+                <div class="subsection-title">สารน้ำ/ยา ระหว่างนำส่ง</div>
+                <div id="iv-trans-list"></div>
+                <button type="button" class="btn-ghost" style="width:100%; margin-bottom:12px; padding:8px;" onclick="addIvLine(null, null, 'iv-trans-list', 'trans')">+ เพิ่มรายการ</button>
+
+                <!-- Vitals Log -->
+                <div class="subsection-title">บันทึกสัญญาณชีพ</div>
+                <div class="vitals-dark" style="margin-bottom:12px;">
+                  <div style="display:flex; gap:6px; margin-bottom:8px;">
+                    <button type="button" class="btn-danger" style="flex:1; padding:6px; font-size:12px;" onclick="addVitalLog(true, {type:'arrest'})">+ Arrest</button>
+                    <button type="button" style="flex:1; padding:6px; background:#16a34a; color:#fff; border:none; border-radius:6px; font-size:12px; font-weight:500;" onclick="addVitalLog(true, {type:'vital'})">+ Vital</button>
+                  </div>
+                  <table id="vitals-log-table">
+                    <thead><tr><th>Time</th><th>BP</th><th>PR</th><th>RR</th><th>Temp</th><th>SpO2</th><th>DTX</th><th>Note</th><th></th></tr></thead>
+                    <tbody id="vitals-log-tbody"></tbody>
+                  </table>
+                  <div id="vitals-log-empty" style="font-size:11px; opacity:.7; text-align:center; padding:8px;">ยังไม่มีบันทึก</div>
+                </div>
+
+                <!-- Nurse Note -->
+                <div class="subsection-title">บันทึกอาการ/การพยาบาล</div>
+                <div class="field" style="margin-bottom:12px;"><textarea name="nurse_note" rows="5"></textarea></div>
+
+                <!-- Refer Docs -->
+                <div class="subsection-title">เอกสารแนบ Refer (max 5)</div>
+                <div style="display:flex; align-items:center; gap:6px; margin-bottom:8px;">
+                  <button type="button" class="btn-ghost" style="flex:1; padding:8px;" onclick="document.getElementById('docs-input').click()">📎 อัปโหลดไฟล์</button>
+                  <input type="file" id="docs-input" multiple accept="image/*,application/pdf" style="display:none;" onchange="onDocUpload(event)">
+                  <span class="flag-chip" id="docs-count">0/5</span>
+                </div>
+                <div class="docs-grid" id="docs-grid"></div>
+              </div>
+            </div>
+
+            <!-- =============== TIMELINE CARD =============== -->
+            <div class="section-card" id="step-timeline">
+              <div class="section-header"><div class="section-num" style="background:#7c3aed;">⏱</div><div class="section-title">Timeline</div></div>
+              <div class="section-body">
+                <div style="display:flex; flex-direction:column; gap:8px;" id="timeline-rows">
+                  <!-- Rendered by initTimelineRows() -->
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </form>
+      </div>
+
+      <!-- Bottom action bar (mobile) -->
+      <div class="bottom-bar">
+        <div class="save-indicator">⏳ พร้อมบันทึก</div>
+        <div class="actions">
+          <button type="button" class="btn-ghost" style="flex:none; padding:10px 12px;" onclick="prevStep()" title="ก่อน">←</button>
+          <button type="button" class="btn-primary success" style="flex:1.2; padding:10px;" onclick="saveCase()">💾 บันทึก</button>
+          <button type="button" class="btn-ghost" style="flex:none; padding:10px 12px;" onclick="doPrint()">🖨️</button>
+          <button type="button" class="btn-primary" style="flex:1; padding:10px;" onclick="nextStep()">ถัดไป →</button>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- =================== SUB-FORM VIEW (consent / IV / vitals / docs) =================== -->
+    <div id="view-subform" class="view">
+      <div class="col-header">
+        <div style="display:flex; align-items:center; gap:8px;">
+          <button class="icon-btn" onclick="closeSubform()" title="กลับ"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 6l-6 6 6 6"/></svg></button>
+          <div><div style="font-weight:700; font-size:14px;" id="sf-title">Sub-form</div><div style="font-size:11px; color:var(--c-muted);" id="sf-sub"></div></div>
+        </div>
+        <button class="btn-primary" onclick="closeSubform()">✓ เสร็จ</button>
+      </div>
+      <div class="col-body" id="sf-body" style="padding:0;">
+        <!-- Iframe for consent, or rendered HTML for other sub-forms -->
+      </div>
+    </div>
+
+  </section>
+</div>
+
+<!-- Confirm modal -->
+<div class="modal-backdrop" id="confirm-modal">
+  <div class="modal">
+    <div class="modal-header" id="confirm-title">ยืนยัน</div>
+    <div class="modal-body" id="confirm-body">คุณแน่ใจหรือไม่?</div>
+    <div class="modal-footer">
+      <button class="btn-ghost" onclick="closeModal('confirm-modal')">ยกเลิก</button>
+      <button class="btn-danger" id="confirm-ok" onclick="confirmOk()">ยืนยัน</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== SCRIPTS ===================== -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script src="../../shared/config.js"></script>
+<script src="../../shared/auth.js"></script>
+<script src="../../shared/settings.js"></script>
+<script src="../../shared/notify.js"></script>
+<script src="../../shared/realtime.js"></script>
+<script src="../../shared/cloudinary.js"></script>
+<script src="../shared.js"></script>
+
+<script>
+'use strict';
+// =====================================================================
+// PT Medical V2 — Transport Module
+// Preserves all V1 field names/IDs so existing Supabase queries work.
+// =====================================================================
+
+// _supabase = global const from shared/auth.js (do NOT redeclare)
+var currentUser = null;
+var activeCases = [];
+var closedCases = [];
+var currentTab = 'active';
+var currentCase = null;     // loaded case row
+var caseDirty = false;
+var autoSaveTimer = null;
+var pendingConfirm = null;
+var docs = [];              // refer docs [{url, publicId, name, type, size}]
+var vitalsLog = [];         // dynamic vitals entries
+var consentVersions = [];   // transport_consents rows
+var consentActiveVersion = null;
+var consentSigned = false;
+
+// ---------- INIT ----------
+async function init(){
+  try {
+    // V1 pattern: _supabase already initialized in shared/auth.js (top-level const)
+    // V1 pattern: isLoggedIn() + getUserMeta() from shared/auth.js
+    if(typeof isLoggedIn !== 'function' || !isLoggedIn()){
+      location.href = '../'; return;
+    }
+    var meta = (typeof getUserMeta === 'function') ? getUserMeta() : null;
+    if(!meta){ location.href = '../'; return; }
+    currentUser = meta;
+    setUserUi(currentUser);
+    initTimelineRows();
+    updateAirwayLogic();
+    updateOpUnitLogic();
+    await loadVehicles();
+    await reloadCases();
+    setupAutoSave();
+    setupRealtime();
+    setupConsentMessageBridge();
+    // Pick up ?case=<id> deeplink
+    var params = new URLSearchParams(location.search);
+    if(params.get('case')) openCase(params.get('case'));
+  } catch(e){
+    console.error('init failed', e);
+  }
+}
+
+function setUserUi(u){
+  var n = u.full_name || u.username || 'ผู้ใช้';
+  document.getElementById('m-username').textContent = n;
+  document.getElementById('m-userrole').textContent = (u.role||'user') + ' · ' + (u.org||'');
+  document.getElementById('m-avatar').textContent = (n[0]||'P').toUpperCase();
+  // Show admin-only nav items in rail (Col 1)
+  var isAdmin = (u.role||'').toLowerCase().indexOf('admin') !== -1;
+  if(isAdmin){
+    ['rail-gps','rail-monitor','rail-admin'].forEach(function(id){
+      var el = document.getElementById(id); if(el) el.style.display = '';
+    });
+  }
+}
+
+function doLogout(){
+  try { localStorage.removeItem('pt_user_meta'); } catch(e){}
+  location.href = '../';
+}
+
+// ---------- VEHICLES ----------
+async function loadVehicles(){
+  var sel = document.getElementById('vehicle-select');
+  if(!_supabase) return;
+  try {
+    var res = await _supabase.from('gps_vehicles').select('device_id, device_name, nickname, provider').order('device_name');
+    if(res.error) throw res.error;
+    (res.data||[]).forEach(function(v){
+      var opt = document.createElement('option');
+      opt.value = v.device_id;
+      opt.textContent = (v.nickname || v.device_name) + (v.provider ? ' (' + v.provider + ')' : '');
+      sel.appendChild(opt);
+    });
+  } catch(e){ console.warn('loadVehicles', e); }
+}
+
+function onVehicleSelect(){
+  // TODO: pre-fill op_unit_no from selected vehicle nickname numeric
+  var sel = document.getElementById('vehicle-select');
+  var label = sel.options[sel.selectedIndex] ? sel.options[sel.selectedIndex].textContent : '';
+  var m = label.match(/(\d+)/);
+  if(m){
+    var f = document.querySelector('[name="op_unit_no"]');
+    if(f && !f.value) f.value = m[1];
+  }
+}
+
+// ---------- VIEW SWITCHER ----------
+function showView(id){
+  ['view-list','view-form','view-subform'].forEach(function(v){
+    document.getElementById(v).classList.toggle('active', v === id);
+  });
+  if(id === 'view-list'){
+    document.getElementById('subnav-list').classList.remove('d-none');
+    document.getElementById('subnav-form').classList.add('d-none');
+    document.getElementById('tb-back').style.display = 'none';
+    document.getElementById('tb-title').textContent = 'นำส่งผู้ป่วย';
+    document.getElementById('tb-sub').textContent = 'Transport · ' + (currentTab === 'active' ? 'Active' : 'Closed');
+  } else {
+    document.getElementById('subnav-list').classList.add('d-none');
+    document.getElementById('subnav-form').classList.remove('d-none');
+    document.getElementById('tb-back').style.display = '';
+  }
+}
+
+function showList(){ showView('view-list'); }
+
+// ---------- LIST ----------
+function setListTab(t){
+  currentTab = t;
+  document.getElementById('tab-active').classList.toggle('active', t === 'active');
+  document.getElementById('tab-closed').classList.toggle('active', t === 'closed');
+  document.getElementById('active-list').classList.toggle('d-none', t !== 'active');
+  document.getElementById('closed-list').classList.toggle('d-none', t !== 'closed');
+  document.getElementById('list-title').textContent = (t === 'active' ? 'Active' : 'Closed') + ' Cases';
+  filterList();
+}
+
+async function reloadCases(){
+  if(!_supabase) return;
+  document.getElementById('list-sub').textContent = 'กำลังโหลด...';
+  try {
+    var [a, c] = await Promise.all([
+      _supabase.from('cases').select('*').eq('status','Active').order('created_at',{ascending:false}),
+      _supabase.from('cases').select('*').neq('status','Active').order('created_at',{ascending:false}).range(0,99)
+    ]);
+    activeCases = a.data || [];
+    closedCases = c.data || [];
+
+    // V1 logic: fetch consent status from transport_consents (case_id is FK string)
+    try {
+      var allCases = activeCases.concat(closedCases);
+      var caseIdList = allCases.map(function(x){ return x.case_id; }).filter(Boolean);
+      if(caseIdList.length){
+        var consentRes = await _supabase.from('transport_consents')
+          .select('case_id, version, status')
+          .in('case_id', caseIdList)
+          .neq('status', 'case_deleted');
+        var cMap = {};
+        (consentRes.data||[]).forEach(function(r){
+          if(!cMap[r.case_id]) cMap[r.case_id] = { hasActive:false, count:0 };
+          cMap[r.case_id].count++;
+          if(r.status === 'active') cMap[r.case_id].hasActive = true;
+        });
+        allCases.forEach(function(rec){
+          var m = cMap[rec.case_id];
+          rec.consent_signed = m ? m.hasActive : false;
+          rec.consent_count = m ? m.count : 0;
+        });
+      }
+    } catch(ce){ console.warn('Consent status load failed:', ce); }
+
+    document.getElementById('ct-active').textContent = activeCases.length;
+    document.getElementById('ct-closed').textContent = closedCases.length;
+    document.getElementById('sn-count-active').textContent = activeCases.length;
+    document.getElementById('sn-count-closed').textContent = closedCases.length;
+    document.getElementById('list-sub').textContent = 'อัปเดต ' + fmtTime();
+    renderActiveList();
+    renderClosedList();
+  } catch(e){
+    console.error('reloadCases', e);
+    document.getElementById('list-sub').textContent = 'โหลดล้มเหลว';
+  }
+}
+
+function triageClass(t){
+  return ({'Resuscitation':'resus','Emergency':'emerg','Urgent':'urgent','Non-Urgent':'nonurg'})[t] || 'nonurg';
+}
+
+function renderActiveList(){
+  var box = document.getElementById('active-list');
+  var q = (document.getElementById('search-input').value||'').toLowerCase();
+  var dF = document.getElementById('date-filter').value;
+  var rows = activeCases.filter(function(c){
+    if(dF && (c.created_at||'').slice(0,10) !== dF) return false;
+    if(!q) return true;
+    var pi = c.patient_info||{};
+    return (c.case_id||'').toLowerCase().indexOf(q) >= 0
+        || (pi.name||'').toLowerCase().indexOf(q) >= 0;
+  });
+  box.innerHTML = '';
+  if(!rows.length){ document.getElementById('empty-state').style.display = currentTab === 'active' ? '' : 'none'; return; }
+  document.getElementById('empty-state').style.display = 'none';
+  rows.forEach(function(c, i){
+    // V1 schema: triage_level = column · patient_info = {name, age, gender, idCard, origin, destination} · op_info = {level, unitNo} · raw_data.rawSnapshot = JSON string with form fields
+    var pi = c.patient_info || {};
+    var oi = c.op_info || {};
+    var rd = c.raw_data || {};
+    var snap = {};
+    try { snap = typeof rd.rawSnapshot === 'string' ? JSON.parse(rd.rawSnapshot) : (rd.rawSnapshot || {}); } catch(_){ snap = {}; }
+    var ivList = []; try { ivList = typeof rd.ivJson === 'string' ? JSON.parse(rd.ivJson) : (rd.ivJson||[]); } catch(_){}
+    var vitalsList = []; try { vitalsList = typeof rd.vitalsJson === 'string' ? JSON.parse(rd.vitalsJson) : (rd.vitalsJson||[]); } catch(_){}
+    var referList = []; try { referList = typeof rd.referDocsJson === 'string' ? JSON.parse(rd.referDocsJson) : (rd.referDocsJson||[]); } catch(_){}
+
+    var trClass = triageClass(c.triage_level);
+    var ttype = snap.transport_type || 'EMS';
+    var op = oi.level || snap.op_level || 'ALS';
+    var unitNo = oi.unitNo || snap.op_unit_no || '';
+    var nrStatus = snap.nr_status || '';
+    var nrFlag = '';
+    if(nrStatus && nrStatus !== 'Full Support')
+      nrFlag = '<span class="flag-chip danger">'+esc(nrStatus)+'</span>';
+    var consentFlag = c.consent_signed ? '<span class="flag-chip ok">✓ Consent</span>' : '<span class="flag-chip warn">📝 รอเซ็น</span>';
+    var vsFlag = vitalsList.length ? '<span class="flag-chip ok">V/S</span>' : '';
+    var ivFlag = ivList.length ? '<span class="flag-chip ok">IV</span>' : '';
+    var docsFlag = referList.length ? '<span class="flag-chip">📎 Refer ('+referList.length+')</span>' : '';
+    var startT = c.opened_at || c.created_at;
+    var startStr = startT ? fmtTime(startT) : '--:--';
+    var dur = startT ? fmtDuration(startT, new Date().toISOString()) : '';
+
+    var div = document.createElement('div');
+    div.className = 'case-row';
+    div.onclick = function(){ openCase(c.case_id); };
+    div.innerHTML =
+      '<div class="triage-strip triage-'+trClass+'"></div>'+
+      '<div class="case-info">'+
+        '<div style="display:flex; align-items:center; gap:6px; flex-wrap:wrap;">'+
+          '<span class="case-id">'+esc(c.case_id||'')+'</span>'+
+          '<span class="ttype-pill">'+esc(ttype)+'</span>'+
+          '<span class="ops-chip '+(op==='BLS'?'bls':'')+'">'+op+(unitNo?' '+esc(unitNo):'')+'</span>'+
+          '<span class="triage-pill '+trClass+'">'+esc(c.triage_level||'—')+'</span>'+
+        '</div>'+
+        '<div class="case-name">'+esc(pi.name||'(ไม่ระบุชื่อ)')+(pi.age?' · '+esc(pi.age)+' ปี':'')+(pi.gender?' · '+esc(pi.gender):'')+'</div>'+
+        '<div class="case-route">'+esc(pi.origin||'—')+' <span class="arrow">→</span> '+esc(pi.destination||'—')+'</div>'+
+        '<div class="case-meta">'+consentFlag+vsFlag+ivFlag+nrFlag+docsFlag+'<span>'+startStr+(dur?' · '+dur:'')+'</span></div>'+
+      '</div>'+
+      '<div class="kebab-wrap">'+
+        '<button class="kebab-btn" onclick="event.stopPropagation();kebab(event,\'k-a-'+i+'\')"><svg viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="5" r="1.8"/><circle cx="12" cy="12" r="1.8"/><circle cx="12" cy="19" r="1.8"/></svg></button>'+
+        '<div class="kebab-menu" id="k-a-'+i+'">'+
+          '<button class="kebab-item" onclick="event.stopPropagation();openCase(\''+c.case_id+'\')">📂 เปิดเคส</button>'+
+          '<button class="kebab-item" onclick="event.stopPropagation();editPatient(\''+c.case_id+'\')">✏️ แก้ข้อมูลผู้ป่วย</button>'+
+          '<button class="kebab-item" onclick="event.stopPropagation();printCase(\''+c.case_id+'\')">🖨️ พิมพ์ใบนำส่ง</button>'+
+          '<button class="kebab-item" onclick="event.stopPropagation();shareCase(\''+c.case_id+'\')">🔗 แชร์ลิงก์ Public</button>'+
+          '<div class="kebab-divider"></div>'+
+          '<button class="kebab-item danger" onclick="event.stopPropagation();confirmDelete(\''+c.case_id+'\')">🗑️ ลบเคส</button>'+
+        '</div>'+
+      '</div>';
+    box.appendChild(div);
+  });
+}
+
+function renderClosedList(){
+  var tb = document.getElementById('closed-tbody');
+  var q = (document.getElementById('search-input').value||'').toLowerCase();
+  var dF = document.getElementById('date-filter').value;
+  var rows = closedCases.filter(function(c){
+    if(dF && (c.created_at||'').slice(0,10) !== dF) return false;
+    if(!q) return true;
+    var pi = c.patient_info||{};
+    return (c.case_id||'').toLowerCase().indexOf(q) >= 0 || (pi.name||'').toLowerCase().indexOf(q) >= 0;
+  });
+  tb.innerHTML = '';
+  rows.forEach(function(c,i){
+    var pi = c.patient_info||{};
+    var rd = c.raw_data||{};
+    var snap = {};
+    try { snap = typeof rd.rawSnapshot === 'string' ? JSON.parse(rd.rawSnapshot) : (rd.rawSnapshot||{}); } catch(_){}
+    var tr = document.createElement('tr');
+    tr.innerHTML =
+      '<td><span class="case-id">'+esc(c.case_id||'')+'</span></td>'+
+      '<td>'+esc(pi.name||'—')+(pi.age?' · '+esc(pi.age)+' ปี':'')+'</td>'+
+      '<td><span class="ttype-pill">'+esc(snap.transport_type||'EMS')+'</span></td>'+
+      '<td><span class="triage-pill '+triageClass(c.triage_level)+'">'+esc(c.triage_level||'')+'</span></td>'+
+      '<td>'+(c.created_at? new Date(c.created_at).toLocaleString('th-TH') : '—')+'</td>'+
+      '<td>'+(c.closed_at? new Date(c.closed_at).toLocaleString('th-TH') : '—')+'</td>'+
+      '<td>'+
+        '<div class="kebab-wrap">'+
+          '<button class="kebab-btn" onclick="kebab(event,\'k-c-'+i+'\')"><svg viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="5" r="1.8"/><circle cx="12" cy="12" r="1.8"/><circle cx="12" cy="19" r="1.8"/></svg></button>'+
+          '<div class="kebab-menu" id="k-c-'+i+'">'+
+            '<button class="kebab-item" onclick="previewConsent(\''+c.case_id+'\')">📝 Preview Consent</button>'+
+            '<button class="kebab-item" onclick="printCase(\''+c.case_id+'\')">🖨️ พิมพ์</button>'+
+            '<button class="kebab-item" onclick="shareCase(\''+c.case_id+'\')">🔗 แชร์</button>'+
+            '<button class="kebab-item" onclick="reopenCase(\''+c.case_id+'\')">↩ Reopen</button>'+
+            '<div class="kebab-divider"></div>'+
+            '<button class="kebab-item danger" onclick="confirmDelete(\''+c.case_id+'\')">🗑️ ลบ</button>'+
+          '</div>'+
+        '</div>'+
+      '</td>';
+    tb.appendChild(tr);
+  });
+}
+
+function filterList(){ renderActiveList(); renderClosedList(); }
+
+// ---------- OPEN / NEW CASE ----------
+async function openNewCase(){
+  resetForm();
+  // Generate temp case_id (final assigned by RPC on save)
+  var year = (new Date().getFullYear() + 543);
+  document.getElementById('caseId').value = '';
+  document.getElementById('formStatus').value = 'Active';
+  document.getElementById('formTimestamp').value = new Date().toISOString();
+  // Stamp dispatch as now by default
+  var dispEl = document.getElementById('tl_dispatch_dt');
+  if(!dispEl.value){ dispEl.value = new Date().toISOString(); refreshTimelineUi(); }
+  currentCase = null;
+  document.getElementById('sn-case-id').textContent = 'TR-NEW/' + year;
+  document.getElementById('sn-case-pt').textContent = 'เคสใหม่';
+  document.getElementById('tb-title').textContent = 'เคสใหม่';
+  showView('view-form');
+  history.replaceState(null,'','./?new=1');
+}
+
+async function openCase(caseId){
+  if(!_supabase) return;
+  try {
+    var res = await _supabase.from('cases').select('*').eq('case_id', caseId).single();
+    if(res.error) throw res.error;
+    currentCase = res.data;
+    populateForm(currentCase);
+    document.getElementById('sn-case-id').textContent = caseId;
+    document.getElementById('sn-case-pt').textContent = (currentCase.patient_info||{}).name || '—';
+    document.getElementById('tb-title').textContent = caseId;
+    document.getElementById('tb-sub').textContent = (currentCase.patient_info||{}).name || '';
+    showView('view-form');
+    history.replaceState(null,'','./?case='+encodeURIComponent(caseId));
+  } catch(e){
+    alert('โหลดเคสล้มเหลว: ' + (e.message||e));
+  }
+}
+
+function resetForm(){
+  var f = document.getElementById('caseForm');
+  f.reset();
+  document.getElementById('iv-pre-list').innerHTML = '';
+  document.getElementById('iv-trans-list').innerHTML = '';
+  document.getElementById('vitals-log-tbody').innerHTML = '';
+  document.getElementById('docs-grid').innerHTML = '';
+  vitalsLog = []; docs = [];
+  updateOpUnitLogic(); updateAirwayLogic(); updateVentLogic();
+  document.querySelectorAll('input[type=hidden]').forEach(function(h){ if(h.name && h.name.indexOf('tl_') === 0) h.value = ''; });
+  refreshTimelineUi();
+}
+
+function populateForm(c){
+  // V1 schema:
+  //   c.case_id (string), c.status, c.triage_level (column)
+  //   c.op_info = {level, unitNo}
+  //   c.patient_info = {name, age, gender, idCard, origin, destination}
+  //   c.raw_data = {rawSnapshot:JSONstr, vitalsJson:JSONstr, ivJson:JSONstr, referDocsJson:JSONstr}
+  resetForm();
+  var pi = c.patient_info || {};
+  var oi = c.op_info || {};
+  var rd = c.raw_data || {};
+
+  document.getElementById('caseId').value = c.case_id || '';
+  document.getElementById('formStatus').value = c.status || 'Active';
+
+  // Apply rawSnapshot — restores ALL form fields (form names match V1)
+  var snap = {};
+  if(rd.rawSnapshot){
+    try { snap = typeof rd.rawSnapshot === 'string' ? JSON.parse(rd.rawSnapshot) : rd.rawSnapshot; } catch(e){ console.warn('rawSnapshot parse:', e); }
+  }
+  Object.keys(snap).forEach(function(k){ if(k !== 'caseId') setField(k, snap[k]); });
+
+  // Override from canonical columns/jsonb (in case rawSnapshot lacks them)
+  setField('triage_level', c.triage_level);
+  if(pi.name) setField('pt_name', pi.name);
+  if(pi.age) setField('pt_age', pi.age);
+  if(pi.gender) setField('pt_gender', pi.gender);
+  if(pi.idCard) setField('pt_idcard', pi.idCard);
+  if(pi.origin) setField('origin', pi.origin);
+  if(pi.destination) setField('destination', pi.destination);
+  if(oi.level) setField('op_level', oi.level);
+  if(oi.unitNo) setField('op_unit_no', oi.unitNo);
+
+  // Refer documents (V1 stores as referDocsJson string)
+  try {
+    var refs = rd.referDocsJson ? (typeof rd.referDocsJson === 'string' ? JSON.parse(rd.referDocsJson) : rd.referDocsJson) : [];
+    docs = Array.isArray(refs) ? refs.slice() : [];
+    if(typeof renderDocs === 'function') renderDocs();
+  } catch(e){ console.warn('referDocsJson parse:', e); docs = []; }
+
+  // Vitals log (V1 stores as vitalsJson string — single array; entries can have type='arrest')
+  try {
+    var vits = rd.vitalsJson ? (typeof rd.vitalsJson === 'string' ? JSON.parse(rd.vitalsJson) : rd.vitalsJson) : [];
+    vitalsLog = Array.isArray(vits) ? vits.slice() : [];
+    if(typeof renderVitalsLog === 'function') renderVitalsLog();
+  } catch(e){ console.warn('vitalsJson parse:', e); vitalsLog = []; }
+
+  // IV lines (V1 stores as ivJson string — single array; item.context = 'Initial' or 'Transport')
+  try {
+    var ivs = rd.ivJson ? (typeof rd.ivJson === 'string' ? JSON.parse(rd.ivJson) : rd.ivJson) : [];
+    if(Array.isArray(ivs)){
+      ivs.forEach(function(iv){
+        var target = (iv.context === 'Initial') ? 'iv-pre-list' : 'iv-trans-list';
+        addIvLine(iv, null, target, iv.context || 'Transport');
+      });
+    }
+  } catch(e){ console.warn('ivJson parse:', e); }
+
+  if(typeof updateOpUnitLogic==='function') updateOpUnitLogic();
+  if(typeof updateAirwayLogic==='function') updateAirwayLogic();
+  if(typeof updateVentLogic==='function') updateVentLogic();
+  if(typeof toggleCentralLine==='function') toggleCentralLine();
+  if(typeof calcGcs==='function') calcGcs();
+  if(typeof updateTriageStyle==='function') updateTriageStyle();
+  if(typeof refreshTimelineUi==='function') refreshTimelineUi();
+  if(typeof updateConsentBanner==='function') updateConsentBanner();
+}
+
+function setField(name, val){
+  if(val === undefined || val === null) return;
+  var els = document.querySelectorAll('[name="'+name+'"]');
+  els.forEach(function(el){
+    if(el.type === 'checkbox') el.checked = !!val;
+    else if(el.type === 'radio') el.checked = (el.value == val);
+    else el.value = val;
+  });
+}
+
+// ---------- SAVE ----------
+// Build payload matching V1 schema exactly so V2 read/write is interoperable with V1
+function collectForm(){
+  var f = document.getElementById('caseForm');
+  var fd = new FormData(f);
+  var rd = {};
+  fd.forEach(function(v,k){ rd[k] = v; });
+  // checkboxes (FormData skips unchecked) — record as boolean
+  f.querySelectorAll('input[type=checkbox]').forEach(function(c){
+    if(c.name) rd[c.name] = c.checked;
+  });
+  // central line location
+  var cl = document.getElementById('central-line-loc');
+  if(cl && document.getElementById('chk-central-line') && document.getElementById('chk-central-line').checked) rd.central_line_loc = cl.value;
+
+  // V1 schema: rawSnapshot = stringified form state (everything except large arrays)
+  // Strip out arrays before snapshot to keep it lean
+  var snap = {};
+  Object.keys(rd).forEach(function(k){ snap[k] = rd[k]; });
+
+  // V1 schema: ivJson = single array, each item.context = 'Initial' or 'Transport'
+  var ivPre = collectIv('iv-pre-list').map(function(iv){ iv.context='Initial'; return iv; });
+  var ivTrans = collectIv('iv-trans-list').map(function(iv){ iv.context='Transport'; return iv; });
+  var ivAll = ivPre.concat(ivTrans);
+
+  return {
+    case_id: rd.caseId,
+    status: rd.status || 'Active',
+    triage_level: rd.triage_level || '',
+    op_info: {
+      level: rd.op_level || '',
+      unitNo: rd.op_unit_no || ''
+    },
+    patient_info: {
+      name: rd.pt_name || '',
+      age: rd.pt_age || '',
+      gender: rd.pt_gender || '',
+      idCard: rd.pt_idcard || '',
+      origin: rd.origin || '',
+      destination: rd.destination || ''
+    },
+    raw_data: {
+      rawSnapshot: JSON.stringify(snap),
+      vitalsJson: JSON.stringify(vitalsLog || []),
+      ivJson: JSON.stringify(ivAll),
+      referDocsJson: JSON.stringify(docs || [])
+    }
+  };
+}
+
+function collectIv(containerId){
+  var rows = document.querySelectorAll('#'+containerId+' .iv-row');
+  var arr = [];
+  rows.forEach(function(r){
+    var inputs = r.querySelectorAll('input,select');
+    arr.push({
+      time: inputs[0].value, fluid: inputs[1].value, route: inputs[2].value,
+      rate: inputs[3].value, note: inputs[4].value
+    });
+  });
+  return arr;
+}
+
+async function generateCaseId(){
+  // V1 used Supabase RPC `get_next_case_id`; fall back to local timestamp prefix.
+  try {
+    var r = await _supabase.rpc('get_next_case_id');
+    if(!r.error && r.data) return String(r.data);
+  } catch(e){ /* fall through */ }
+  var now = new Date();
+  var p = now.toISOString().slice(0,10).replace(/-/g,'');
+  var rnd = Math.floor(Math.random()*1000).toString().padStart(3,'0');
+  return 'CASE-' + p + '-' + rnd;
+}
+
+async function saveCase(silent){
+  if(!_supabase){ if(!silent) alert('ระบบยังไม่พร้อม'); return; }
+  var payload = collectForm();
+  if(!payload.patient_info.name){ if(!silent) alert('กรุณากรอกชื่อผู้ป่วย'); return; }
+  if(typeof autoSaveIndicator !== 'undefined') autoSaveIndicator.update('saving');
+  try {
+    var isNew = !payload.case_id;
+    if(isNew){
+      payload.case_id = await generateCaseId();
+      document.getElementById('caseId').value = payload.case_id;
+      payload.opened_by = (currentUser && (currentUser.full_name || currentUser.username)) || 'Unknown';
+      payload.opened_at = new Date().toISOString();
+    }
+    var resp = await _supabase.from('cases').upsert(payload, { onConflict: 'case_id' });
+    if(resp.error) throw resp.error;
+    if(typeof autoSaveIndicator !== 'undefined') autoSaveIndicator.update('saved');
+    caseDirty = false;
+    // Re-fetch row to keep currentCase in sync (consent_signed etc.)
+    try { var rr = await _supabase.from('cases').select('*').eq('case_id', payload.case_id).single(); if(rr.data) currentCase = rr.data; } catch(_){}
+    document.getElementById('sn-case-id').textContent = payload.case_id;
+    document.getElementById('tb-title').textContent = payload.case_id;
+    if(isNew && typeof logActivity === 'function') logActivity('CREATE_CASE', payload.case_id, 'สร้างเคสใหม่');
+    else if(typeof logActivity === 'function') logActivity('SAVE_CASE', payload.case_id, 'บันทึก');
+  } catch(e){
+    console.error('save', e);
+    if(typeof autoSaveIndicator !== 'undefined') autoSaveIndicator.update('error');
+    if(!silent) alert('บันทึกล้มเหลว: ' + (e.message||e));
+  }
+}
+
+function setupAutoSave(){
+  document.addEventListener('input', function(e){
+    if(e.target.closest('#caseForm')) caseDirty = true;
+  });
+  if(autoSaveTimer) clearInterval(autoSaveTimer);
+  autoSaveTimer = setInterval(function(){
+    if(caseDirty && document.getElementById('view-form').classList.contains('active')) saveCase();
+  }, 120000);
+}
+
+// ---------- KEBAB ACTIONS ----------
+function editPatient(id){ openCase(id); jumpStep(1); }
+function printCase(id){ openCase(id).then(function(){ setTimeout(doPrint, 500); }); }
+function shareCase(id){ var url = location.origin + location.pathname.replace(/\/$/,'') + '/?case=' + id; navigator.clipboard.writeText(url).then(function(){ alert('คัดลอกลิงก์แล้ว: ' + url); }); }
+function previewConsent(id){ openCase(id).then(function(){ openSubform('consent'); }); }
+async function reopenCase(id){
+  if(!confirm('Reopen เคส '+id+' ?')) return;
+  await _supabase.from('cases').update({ status:'Active' }).eq('case_id', id);
+  reloadCases();
+}
+function confirmDelete(id){
+  pendingConfirm = function(){ doDelete(id); };
+  document.getElementById('confirm-title').textContent = 'ลบเคส?';
+  document.getElementById('confirm-body').textContent = 'ลบเคส ' + id + ' ถาวร — ยืนยัน?';
+  openModal('confirm-modal');
+}
+function confirmOk(){ if(pendingConfirm){ pendingConfirm(); } pendingConfirm = null; closeModal('confirm-modal'); }
+async function doDelete(id){
+  await _supabase.from('cases').delete().eq('case_id', id);
+  reloadCases();
+}
+
+async function doCloseCase(){
+  if(!currentCase) return alert('ยังไม่ได้บันทึก');
+  if(!confirm('ปิดเคสนี้?')) return;
+  await _supabase.from('cases').update({ status:'Closed', closed_at:new Date().toISOString() }).eq('case_id', currentCase.case_id);
+  showList(); reloadCases();
+}
+
+// ---------- SUB-FORMS ----------
+function openSubform(kind){
+  var body = document.getElementById('sf-body');
+  document.getElementById('sf-sub').textContent = '';
+  if(kind === 'consent'){
+    document.getElementById('sf-title').textContent = '📝 หนังสือยินยอม';
+    var cid = document.getElementById('caseId').value || '';
+    // V1 consent params: embed=1 + case_id + patient info
+    var pn = document.querySelector('[name=pt_name]'); pn = pn ? pn.value : '';
+    var pi = document.querySelector('[name=pt_idcard]'); pi = pi ? pi.value : '';
+    var pa = document.querySelector('[name=pt_age]'); pa = pa ? pa.value : '';
+    var or = document.querySelector('[name=origin]'); or = or ? or.value : '';
+    var de = document.querySelector('[name=destination]'); de = de ? de.value : '';
+    var src = '../../transport/consent-prototype.html?embed=1';
+    if(cid) src += '&case_id=' + encodeURIComponent(cid);
+    if(pn)  src += '&pt_name=' + encodeURIComponent(pn);
+    if(pi)  src += '&pt_id='   + encodeURIComponent(pi);
+    if(pa)  src += '&pt_age='  + encodeURIComponent(pa);
+    if(or)  src += '&route_from=' + encodeURIComponent(or);
+    if(de)  src += '&route_to='   + encodeURIComponent(de);
+    body.innerHTML = '<iframe src="'+src+'" style="width:100%; height:calc(100vh - 110px); border:none;"></iframe>';
+  } else if(kind === 'initVS'){
+    document.getElementById('sf-title').textContent = '📊 V/S แรกรับ';
+    body.innerHTML = renderInitVsForm();
+  } else if(kind === 'ivPre' || kind === 'ivTrans'){
+    var which = kind === 'ivPre' ? 'pre' : 'trans';
+    document.getElementById('sf-title').textContent = (which==='pre'?'💉 IV Lines (ก่อนนำส่ง)':'💉 IV Lines (ระหว่างนำส่ง)');
+    body.innerHTML = '<div style="padding:14px;"><div id="sub-iv-list"></div><button class="btn-ghost" style="width:100%; padding:8px;" onclick="addIvLine(null,null,\'sub-iv-list\',\''+which+'\')">+ เพิ่ม IV Line</button></div>';
+    // Mirror existing rows
+    var src = which==='pre' ? 'iv-pre-list' : 'iv-trans-list';
+    document.querySelectorAll('#'+src+' .iv-row').forEach(function(r){
+      document.getElementById('sub-iv-list').appendChild(r.cloneNode(true));
+    });
+  } else if(kind === 'vitalsLog'){
+    document.getElementById('sf-title').textContent = '📈 Vitals Log';
+    body.innerHTML = '<div style="padding:14px;">' + document.querySelector('.vitals-dark').outerHTML + '</div>';
+  } else if(kind === 'docs'){
+    document.getElementById('sf-title').textContent = '📎 เอกสาร Refer';
+    body.innerHTML = '<div style="padding:14px;"><button class="btn-ghost" style="width:100%; padding:10px; margin-bottom:10px;" onclick="document.getElementById(\'docs-input\').click()">📎 อัปโหลด</button><div class="docs-grid">'+document.getElementById('docs-grid').innerHTML+'</div></div>';
+  }
+  showView('view-subform');
+}
+
+function closeSubform(){ showView('view-form'); }
+
+function renderInitVsForm(){
+  return '<div style="padding:14px; max-width:600px; margin:0 auto;">'+
+    '<div class="field-row-3" style="margin-bottom:8px;">'+
+      '<div class="field"><label>เวลา</label><input type="time" onchange="document.querySelector(\'[name=init_vitals_time]\').value=this.value"></div>'+
+      '<div class="field"><label>BP</label><input onchange="document.querySelector(\'[name=init_bp]\').value=this.value"></div>'+
+      '<div class="field"><label>PR</label><input onchange="document.querySelector(\'[name=init_pr]\').value=this.value"></div>'+
+    '</div>'+
+    '<div class="field-row-4">'+
+      '<div class="field"><label>RR</label><input onchange="document.querySelector(\'[name=init_rr]\').value=this.value"></div>'+
+      '<div class="field"><label>Temp</label><input onchange="document.querySelector(\'[name=init_temp]\').value=this.value"></div>'+
+      '<div class="field"><label>SpO2</label><input onchange="document.querySelector(\'[name=init_spo2]\').value=this.value"></div>'+
+      '<div class="field"><label>DTX</label><input onchange="document.querySelector(\'[name=init_dtx]\').value=this.value"></div>'+
+    '</div></div>';
+}
+
+// ---------- IV LINE (ported from V1, simplified) ----------
+function addIvLine(data, defaultTime, containerId, context){
+  var box = document.getElementById(containerId);
+  if(!box) return;
+  data = data || {};
+  var row = document.createElement('div');
+  row.className = 'iv-row';
+  row.dataset.context = context || '';
+  var routeOpts = '<option>IV</option><option>IO</option><option>SC</option><option>IM</option><option value="Central Line"'+(document.getElementById('chk-central-line') && document.getElementById('chk-central-line').checked?'':' hidden')+'>Central Line</option>';
+  row.innerHTML =
+    '<input type="time" value="'+(data.time||defaultTime||nowTime())+'" placeholder="เวลา">'+
+    '<input value="'+esc(data.fluid||'')+'" placeholder="ชื่อ Fluid/ยา">'+
+    '<select class="iv-route-select">'+routeOpts+'</select>'+
+    '<input value="'+esc(data.rate||'')+'" placeholder="Rate (ml/hr)">'+
+    '<input value="'+esc(data.note||'')+'" placeholder="Note">'+
+    '<button type="button" class="btn-danger" style="padding:4px;" onclick="this.parentNode.remove()">🗑</button>';
+  box.appendChild(row);
+  if(data.route){ row.querySelector('select').value = data.route; }
+}
+
+// ---------- VITALS LOG ----------
+function addVitalLog(isNew, data){
+  data = data || {};
+  if(isNew){
+    var entry = {
+      time: nowTime(), bp:'', pr:'', rr:'', temp:'', spo2:'', dtx:'', note:'',
+      type: data.type || 'vital'
+    };
+    vitalsLog.push(entry);
+    renderVitalsLog();
+    caseDirty = true;
+  } else {
+    renderVitalsLog();
+  }
+}
+
+function renderVitalsLog(){
+  var tb = document.getElementById('vitals-log-tbody');
+  tb.innerHTML = '';
+  document.getElementById('vitals-log-empty').style.display = vitalsLog.length ? 'none' : '';
+  vitalsLog.forEach(function(v, i){
+    var tr = document.createElement('tr');
+    var clr = (v.type === 'arrest') ? 'background:#7f1d1d;' : '';
+    tr.style.cssText = clr;
+    function cell(field, w){
+      return '<td><input value="'+esc(v[field]||'')+'" data-i="'+i+'" data-f="'+field+'" oninput="updateVital(this)" style="background:transparent; color:#fff; border:none; width:'+(w||'50px')+'; font-size:11px;"></td>';
+    }
+    tr.innerHTML =
+      cell('time','55px') + cell('bp','60px') + cell('pr') + cell('rr') + cell('temp') + cell('spo2') + cell('dtx') +
+      cell('note','90px') +
+      '<td><button type="button" onclick="vitalsLog.splice('+i+',1);renderVitalsLog();" style="background:none; border:none; color:#fff; cursor:pointer;">✖</button></td>';
+    tb.appendChild(tr);
+  });
+}
+
+function updateVital(input){
+  var i = +input.dataset.i, f = input.dataset.f;
+  if(vitalsLog[i]){ vitalsLog[i][f] = input.value; caseDirty = true; }
+}
+
+// ---------- DOC UPLOAD ----------
+async function onDocUpload(e){
+  var files = Array.from(e.target.files||[]);
+  if(docs.length + files.length > 5){ alert('สูงสุด 5 ไฟล์'); return; }
+  for(var i=0; i<files.length; i++){
+    if(typeof uploadToCloudinary === 'function'){
+      try {
+        var r = await uploadToCloudinary(files[i]);
+        docs.push({ url:r.secure_url, public_id:r.public_id, name:files[i].name });
+      } catch(err){ console.warn('upload', err); }
+    } else {
+      // local preview only (TODO: hook Cloudinary)
+      var url = URL.createObjectURL(files[i]);
+      docs.push({ url:url, name:files[i].name, _local:true });
+    }
+  }
+  renderDocs(); caseDirty = true;
+  e.target.value = '';
+}
+
+function renderDocs(){
+  var g = document.getElementById('docs-grid');
+  g.innerHTML = '';
+  docs.forEach(function(d, i){
+    var div = document.createElement('div');
+    div.className = 'doc-thumb';
+    var inner = /\.(pdf)$/i.test(d.url||d.name||'') ? '📄 ' + esc(d.name||'PDF') : '<img src="'+d.url+'" alt="">';
+    div.innerHTML = inner + '<button class="del" onclick="docs.splice('+i+',1);renderDocs();caseDirty=true;">×</button>';
+    g.appendChild(div);
+  });
+  document.getElementById('docs-count').textContent = docs.length + '/5';
+  document.getElementById('sn-docs-badge').textContent = docs.length + '/5';
+}
+
+// ---------- CONDITIONAL LOGIC (ported from V1) ----------
+function updateOpUnitLogic(){
+  var level = document.querySelector('input[name="op_level"]:checked');
+  var val = level ? level.value : null;
+  var alsDiv = document.getElementById('als-staff-inputs');
+  if(val === 'ALS') alsDiv.classList.remove('d-none'); else alsDiv.classList.add('d-none');
+  var disp = document.getElementById('op_level_disp'); if(disp) disp.value = val;
+}
+
+function updateAirwayLogic(){
+  var t = document.querySelector('input[name="airway_type"]:checked');
+  if(!t) return;
+  var type = t.value;
+  var panMgt = document.getElementById('panel-airway-mgt');
+  var panTube = document.getElementById('panel-et-trach');
+  var o2Sel = document.getElementById('sel-o2-device');
+  var gcsV = document.getElementById('gcs_v');
+  var subTypeEl = document.querySelector('input[name="airway_mgt_sub"]:checked');
+  var subType = subTypeEl ? subTypeEl.value : null;
+  var isLma = (subType === 'LMA/SGA');
+  toggleEl('input-lma-no', isLma);
+
+  panMgt.classList.add('d-none'); panTube.classList.add('d-none');
+  var opts = []; var artificial = false;
+  if(type === 'Open'){ opts = ['Room Air','Cannula','Mask c Bag','HFNC','BVM']; }
+  else if(type === 'Management'){ panMgt.classList.remove('d-none'); opts = isLma ? ['BVM'] : ['Room Air','Cannula','Mask c Bag','HFNC','BVM']; if(isLma) artificial = true; }
+  else if(type === 'ET Tube'){ panTube.classList.remove('d-none'); opts = ['BVM']; artificial = true; }
+  else if(type === 'Tracheostomy'){ panTube.classList.remove('d-none'); opts = ['Collar Mask','T-Piece','BVM','Personal Vent','Room Air']; artificial = true; }
+  if(artificial && gcsV) gcsV.value = 'VT';
+
+  var cur = o2Sel.value;
+  o2Sel.innerHTML = '';
+  opts.forEach(function(o){ var op = document.createElement('option'); op.value = o; op.textContent = o; o2Sel.appendChild(op); });
+  if(opts.indexOf(cur) >= 0) o2Sel.value = cur;
+  updateO2Detail();
+}
+
+function updateVentLogic(){
+  var onVent = document.getElementById('chk-ventilator').checked;
+  var panVent = document.getElementById('panel-ventilator');
+  var panO2 = document.getElementById('panel-oxygen');
+  if(onVent){
+    panVent.classList.remove('d-none'); panO2.classList.add('d-none');
+    var modeEl = document.querySelector('input[name="vent_mode"]:checked');
+    var mode = modeEl ? modeEl.value : '';
+    var subDiv = document.getElementById('sub-vent-mode');
+    var lblVol = document.getElementById('lbl-vol-pres');
+    if(mode === 'PCV' || mode === 'VCV'){
+      subDiv.classList.remove('d-none');
+      lblVol.textContent = (mode === 'VCV') ? 'Tidal Vol' : 'PIP / Peak';
+    } else {
+      subDiv.classList.add('d-none'); lblVol.textContent = 'Pressure';
+    }
+  } else {
+    panVent.classList.add('d-none'); panO2.classList.remove('d-none');
+  }
+}
+
+function updateO2Detail(){
+  var devEl = document.getElementById('sel-o2-device');
+  var dev = devEl ? devEl.value : '';
+  var mainPanel = document.getElementById('o2-detail-panel');
+  var grpFlow = document.getElementById('grp-o2-flow');
+  var grpFiO2 = document.getElementById('grp-o2-fio2');
+  var grpTemp = document.getElementById('grp-o2-temp');
+  var showFlow = ['Cannula','Mask c Bag','Collar Mask','HFNC','BVM','T-Piece'];
+  var showFiO2 = ['HFNC']; var showTemp = ['HFNC'];
+  var hasFlow = showFlow.some(function(s){ return dev.indexOf(s) >= 0; });
+  var hasFiO2 = showFiO2.some(function(s){ return dev.indexOf(s) >= 0; });
+  var hasTemp = showTemp.some(function(s){ return dev.indexOf(s) >= 0; });
+  if(hasFlow){
+    mainPanel.classList.remove('d-none');
+    grpFlow.classList.remove('d-none');
+    grpFiO2.classList.toggle('d-none', !hasFiO2);
+    grpTemp.classList.toggle('d-none', !hasTemp);
+  } else {
+    mainPanel.classList.add('d-none');
+  }
+}
+
+function toggleCentralLine(){
+  var has = document.getElementById('chk-central-line').checked;
+  document.getElementById('central-line-loc').classList.toggle('d-none', !has);
+  document.querySelectorAll('.iv-route-select').forEach(function(sel){
+    var opt = sel.querySelector('option[value="Central Line"]');
+    if(opt){ opt.hidden = !has; if(!has && sel.value === 'Central Line') sel.value = 'IV'; }
+  });
+}
+
+function toggleArrest(ctx){
+  var chk = document.getElementById('chk-arrest-' + ctx);
+  document.getElementById('arrest-' + ctx + '-detail').classList.toggle('d-none', !chk.checked);
+}
+
+function toggleArrestOutcome(ctx){
+  var outEl = document.querySelector('input[name="arrest_'+ctx+'_outcome"]:checked');
+  var outcome = outEl ? outEl.value : '';
+  document.getElementById('arrest-'+ctx+'-rosc-detail').classList.toggle('d-none', outcome !== 'ROSC');
+  document.getElementById('arrest-'+ctx+'-dead-detail').classList.toggle('d-none', outcome !== 'Dead');
+  calcArrestCprDuration(ctx);
+}
+
+function stampArrestNow(id){ document.getElementById(id).value = nowTime(); calcArrestCprDuration('pre'); }
+
+function calcArrestCprDuration(ctx){
+  var start = document.getElementById('arrest_'+ctx+'_cpr_time').value;
+  var badge = document.getElementById('arrest-'+ctx+'-cpr-dur');
+  if(!start){ badge.textContent = 'CPR Duration: --'; return; }
+  var outEl = document.querySelector('input[name="arrest_'+ctx+'_outcome"]:checked');
+  var outcome = outEl ? outEl.value : '';
+  var end = '';
+  if(outcome === 'ROSC') end = document.getElementById('arrest_'+ctx+'_rosc_time').value;
+  else if(outcome === 'Dead') end = document.getElementById('arrest_'+ctx+'_dead_time').value;
+  if(!end){ badge.textContent = 'CPR Duration: --'; return; }
+  var sP = start.split(':'), eP = end.split(':');
+  var s = +sP[0]*60 + +sP[1], e = +eP[0]*60 + +eP[1];
+  if(e < s) e += 1440;
+  badge.textContent = 'CPR Duration: ' + (e - s) + ' min';
+}
+
+function calcGcs(){
+  var e = +document.getElementById('gcs_e').value || 0;
+  var v = document.getElementById('gcs_v').value;
+  var m = +document.getElementById('gcs_m').value || 0;
+  var vNum = (v === 'VT' ? 1 : (+v||0));
+  document.getElementById('gcs-total').textContent = (e + vNum + m) + (v === 'VT' ? 'T' : '');
+}
+
+function updateTriageStyle(){
+  document.querySelectorAll('#triage-group .chip').forEach(function(c){
+    var inp = c.querySelector('input');
+    c.classList.toggle('selected', inp && inp.checked);
+    if(inp && inp.checked){
+      var v = inp.value;
+      var col = ({'Resuscitation':'#dc2626','Emergency':'#ea580c','Urgent':'#eab308','Non-Urgent':'#16a34a'})[v];
+      c.style.background = col; c.style.color = '#fff';
+    } else {
+      c.style.background = ''; c.style.color = '';
+    }
+  });
+}
+
+function updateTransportType(){
+  var v = document.getElementById('transport_type').value;
+  document.getElementById('scene-section').classList.toggle('d-none', v !== 'EMS');
+}
+
+function updateConsentBanner(){
+  var signed = currentCase && currentCase.consent_signed;
+  var b = document.getElementById('consent-banner');
+  b.classList.toggle('signed', !!signed);
+  document.getElementById('consent-status-text').textContent = signed ? '✓ เซ็นยินยอมแล้ว' : '📝 รอเซ็นยินยอม';
+  document.getElementById('sn-consent-badge').classList.toggle('danger', !signed);
+  document.getElementById('sn-consent-badge').textContent = signed ? '✓' : '!';
+  // DNR auto-set
+  if(currentCase && (currentCase.raw_data||{}).consent_dnr){
+    document.getElementById('nr_status').value = 'DNR';
+  }
+}
+
+// ---------- TIMELINE ----------
+function initTimelineRows(){
+  var defs = [
+    { key:'tl_dispatch_dt', label:'Dispatch' },
+    { key:'tl_arrive_scene_dt', label:'Arrive Scene' },
+    { key:'tl_depart_scene_dt', label:'Depart Scene' },
+    { key:'tl_arrive_hospital_dt', label:'Arrive Hospital' }
+  ];
+  var html = defs.map(function(d){
+    return '<div style="display:flex; align-items:center; gap:8px;">'+
+      '<span style="font-size:12px; flex:1;">'+d.label+'</span>'+
+      '<input type="time" id="ti-'+d.key+'" onchange="setTimelineFromInput(\''+d.key+'\', this.value)" style="font-size:12px; padding:4px 8px;">'+
+      '<button type="button" class="btn-ghost" style="padding:4px 8px; font-size:11px;" onclick="stampNow(\''+d.key+'\')">Now</button>'+
+    '</div>';
+  }).join('');
+  document.getElementById('timeline-rows').innerHTML = html;
+}
+
+function stampNow(field){
+  document.getElementById(field).value = new Date().toISOString();
+  refreshTimelineUi();
+  caseDirty = true;
+}
+
+function setTimelineFromInput(field, hhmm){
+  if(!hhmm) return;
+  var d = new Date(); var p = hhmm.split(':');
+  d.setHours(+p[0], +p[1], 0, 0);
+  document.getElementById(field).value = d.toISOString();
+  refreshTimelineUi();
+  caseDirty = true;
+}
+
+function refreshTimelineUi(){
+  var get = function(id){ var v = document.getElementById(id).value; return v ? new Date(v) : null; };
+  var disp = get('tl_dispatch_dt'), arrS = get('tl_arrive_scene_dt'), depS = get('tl_depart_scene_dt'), arrH = get('tl_arrive_hospital_dt');
+  function set(id, label, val){
+    var el = document.getElementById(id);
+    if(val){ el.textContent = fmtTime(val); el.classList.remove('tl-pending-time'); el.classList.add('tl-time'); }
+    else { el.textContent = '--:--'; el.classList.add('tl-pending-time'); el.classList.remove('tl-time'); }
+  }
+  set('tl-disp-t', 'Disp', disp);
+  set('tl-arr-scene-t', 'Scene', arrS);
+  set('tl-dep-scene-t', 'Depart', depS);
+  set('tl-arr-hosp-t', 'Hosp', arrH);
+  // dot states
+  function dot(stepId, val){ var s = document.getElementById(stepId).querySelector('.tl-dot'); s.className = 'tl-dot ' + (val ? 'done' : 'pending'); }
+  dot('tl-step-disp', disp); dot('tl-step-arr-scene', arrS); dot('tl-step-dep-scene', depS); dot('tl-step-arr-hosp', arrH);
+  // also fill the time-input UI
+  ['tl_dispatch_dt','tl_arrive_scene_dt','tl_depart_scene_dt','tl_arrive_hospital_dt'].forEach(function(k){
+    var v = document.getElementById(k).value;
+    var ti = document.getElementById('ti-'+k);
+    if(ti && v){ var d = new Date(v); ti.value = String(d.getHours()).padStart(2,'0') + ':' + String(d.getMinutes()).padStart(2,'0'); }
+  });
+}
+
+// ---------- STEP NAV ----------
+var currentStep = 1;
+function jumpStep(n){
+  currentStep = n;
+  var tgt = document.getElementById('step-' + n);
+  if(tgt) tgt.scrollIntoView({behavior:'smooth', block:'start'});
+  document.querySelectorAll('.step-tab').forEach(function(t,i){ t.classList.toggle('active', i+1 === n); });
+}
+function nextStep(){ if(currentStep < 3) jumpStep(currentStep + 1); }
+function prevStep(){ if(currentStep > 1) jumpStep(currentStep - 1); }
+
+// ---------- PRINT / SHARE / OCR ----------
+function doPrint(){
+  if(typeof smartPrint === 'function') smartPrint({ title: document.getElementById('caseId').value || 'transport-case', element: document.getElementById('view-form') });
+  else window.print();
+}
+function doShare(){ if(currentCase) shareCase(currentCase.case_id); }
+
+async function runOcr(){
+  // Wire Gemini OCR via Cloudflare Worker proxy (CONFIG.OCR_PROXY_URL)
+  var proxy = (window.CONFIG && CONFIG.OCR_PROXY_URL) ? CONFIG.OCR_PROXY_URL.replace(/\/+$/,'') : '';
+  if(!proxy){ alert('OCR proxy ไม่ได้ตั้งค่า — เปิด /tools/id-card-ocr-tester.html แทน'); return; }
+  var inp = document.createElement('input');
+  inp.type = 'file'; inp.accept = 'image/*'; inp.capture = 'environment';
+  inp.onchange = async function(){
+    var f = inp.files && inp.files[0]; if(!f) return;
+    var btn = document.querySelector('button[onclick="runOcr()"]');
+    var oldHtml = btn ? btn.innerHTML : '';
+    if(btn){ btn.disabled = true; btn.innerHTML = '⏳ OCR...'; }
+    try {
+      var b64 = await new Promise(function(res,rej){
+        var r = new FileReader();
+        r.onload = function(){ res(String(r.result).split(',')[1]); };
+        r.onerror = rej; r.readAsDataURL(f);
+      });
+      var prompt = 'You are an OCR assistant for Thai National ID cards. Return ONLY JSON. Convert พ.ศ. dates to ค.ศ. (subtract 543). idCard = 13 digits no dashes.';
+      var body = {
+        contents:[{ parts:[ {text:prompt}, {inline_data:{mime_type:f.type||'image/jpeg', data:b64}} ]}],
+        generationConfig: {
+          responseMimeType:'application/json',
+          responseSchema:{
+            type:'object',
+            properties:{
+              idCard:{type:'string'}, prefixTh:{type:'string'},
+              firstNameTh:{type:'string'}, lastNameTh:{type:'string'},
+              birthDate:{type:'string'}, gender:{type:'string'}
+            },
+            required:['idCard','firstNameTh','lastNameTh']
+          },
+          temperature:0.1
+        }
+      };
+      var resp = await fetch(proxy + '/?model=gemini-2.5-flash', {
+        method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(body)
+      });
+      if(!resp.ok) throw new Error('HTTP ' + resp.status);
+      var data = await resp.json();
+      var parts = (((data.candidates||[])[0]||{}).content||{}).parts || [];
+      var parsed = JSON.parse((parts[0]||{}).text || '{}');
+      // Map → fields
+      var nm = [parsed.prefixTh, parsed.firstNameTh, parsed.lastNameTh].filter(Boolean).join(' ').trim();
+      if(nm){ var nEl = document.querySelector('[name=pt_name]'); if(nEl){ nEl.value = nm; } }
+      var idEl = document.querySelector('[name=pt_idcard]');
+      if(idEl && parsed.idCard) idEl.value = String(parsed.idCard).replace(/\D/g,'');
+      var gEl = document.querySelector('[name=pt_gender]');
+      if(gEl && parsed.gender){
+        var g = parsed.gender.toLowerCase();
+        gEl.value = (g.indexOf('f')===0 || g.indexOf('ห')===0) ? 'หญิง' : 'ชาย';
+      }
+      var ageEl = document.querySelector('[name=pt_age]');
+      if(ageEl && parsed.birthDate && /^\d{4}-\d{2}-\d{2}$/.test(parsed.birthDate)){
+        var bd = new Date(parsed.birthDate);
+        if(!isNaN(bd)) ageEl.value = Math.floor((Date.now() - bd.getTime()) / (1000*60*60*24*365.25));
+      }
+      caseDirty = true;
+    } catch(e){
+      console.error('OCR', e);
+      alert('OCR ล้มเหลว: ' + (e.message||e));
+    } finally {
+      if(btn){ btn.disabled = false; btn.innerHTML = oldHtml; }
+    }
+  };
+  inp.click();
+}
+
+function setupRealtime(){
+  if(typeof RT === 'undefined' || !RT.subscribe) return;
+  try { if(RT.initStatusDot) RT.initStatusDot(); } catch(_){}
+  RT.subscribe('cases-list', 'cases', function(){
+    var listView = document.getElementById('view-list');
+    if(listView && listView.classList.contains('active')) reloadCases();
+  });
+  RT.subscribe('consents-list', 'transport_consents', function(){
+    var listView = document.getElementById('view-list');
+    if(listView && listView.classList.contains('active')) reloadCases();
+    // Refresh open-case consent badge
+    var cid = document.getElementById('caseId') ? document.getElementById('caseId').value : '';
+    if(cid){
+      _supabase.from('cases').select('*').eq('case_id', cid).single().then(function(r){
+        if(r && r.data){ currentCase = r.data; updateConsentBanner(); }
+      });
+    }
+  });
+}
+
+function setupConsentMessageBridge(){
+  // DNR auto-flip: consent iframe posts {type:'CONSENT_DNR'} → set NR Status to DNR
+  window.addEventListener('message', function(e){
+    var d = e.data || {};
+    if(d.type === 'CONSENT_DNR'){
+      var nr = document.getElementById('nr_status');
+      if(nr){ nr.value = 'DNR'; caseDirty = true; }
+    }
+    if(d.type === 'CONSENT_SIGNED'){
+      // Refresh banner from DB
+      var cid = document.getElementById('caseId') ? document.getElementById('caseId').value : '';
+      if(cid && _supabase){
+        _supabase.from('cases').select('*').eq('case_id', cid).single().then(function(r){
+          if(r && r.data){ currentCase = r.data; updateConsentBanner(); }
+        });
+      }
+    }
+  });
+}
+
+// ---------- HELPERS ----------
+function esc(s){ return String(s==null?'':s).replace(/[&<>"']/g, function(c){ return ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]; }); }
+function toggleEl(id, show){ var el = document.getElementById(id); if(el) el.classList.toggle('d-none', !show); }
+
+function logActivity(action, refId){
+  if(!_supabase || !currentUser) return;
+  _supabase.from('activity_log').insert({
+    action: action, ref_id: refId, user_id: currentUser.id, module:'transport',
+    created_at: new Date().toISOString()
+  }).then(function(){}).catch(function(){});
+}
+
+// chip-as-radio + chip-as-checkbox via labels (override default chip handler from shared.js)
+document.addEventListener('change', function(e){
+  if(e.target.matches('#triage-group input')) updateTriageStyle();
+  if(e.target.matches('label.chip input[type=checkbox]')){
+    e.target.parentNode.classList.toggle('selected', e.target.checked);
+  }
+});
+
+document.addEventListener('DOMContentLoaded', init);
+</script>
+
+</body>
+</html>

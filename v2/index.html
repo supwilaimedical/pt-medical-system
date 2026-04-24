@@ -1,0 +1,621 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#0ea5e9">
+<title>PT Medical V2</title>
+<link rel="manifest" href="manifest.json">
+<link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+<link rel="stylesheet" href="shared.css">
+<link rel="icon" href="../assets/icon.svg" type="image/svg+xml">
+<style>
+  :root{
+    --c-primary:#0ea5e9; --c-primary-dark:#0284c7; --c-primary-light:#e0f2fe;
+    --c-text:#0f172a; --c-text-2:#475569; --c-text-3:#94a3b8;
+    --c-bg:#f8fafc; --c-surface:#ffffff;
+    --c-border:#e2e8f0; --c-border-soft:#f1f5f9;
+  }
+  *{ box-sizing:border-box; }
+  html,body{ margin:0; padding:0; }
+  body{
+    font-family:'Sarabun',system-ui,-apple-system,sans-serif;
+    background:var(--c-bg); color:var(--c-text);
+    font-size:14px; line-height:1.5;
+    -webkit-font-smoothing:antialiased;
+  }
+
+  /* ============ SPLASH ============ */
+  .splash{
+    min-height:100vh; display:flex; align-items:center; justify-content:center;
+    background:var(--c-bg); flex-direction:column; gap:16px;
+  }
+  .splash-logo{
+    width:56px; height:56px; border-radius:14px;
+    background:linear-gradient(135deg,#0ea5e9,#0284c7);
+    display:flex; align-items:center; justify-content:center;
+    color:#fff; font-size:22px; font-weight:800; letter-spacing:.5px;
+    box-shadow:0 8px 20px rgba(14,165,233,.25);
+  }
+  .splash-spinner{
+    width:28px; height:28px; border-radius:50%;
+    border:3px solid var(--c-border); border-top-color:var(--c-primary);
+    animation:spin 1s linear infinite;
+  }
+  @keyframes spin{ to{ transform:rotate(360deg); } }
+
+  /* ============ LOGIN ============ */
+  .login-view{
+    min-height:100vh; background:var(--c-bg);
+    display:flex; align-items:center; justify-content:center; padding:24px;
+  }
+  .login-wrap{ max-width:380px; width:100%; display:flex; flex-direction:column; align-items:center; gap:18px; }
+  .login-card{
+    background:#fff; border-radius:14px; padding:24px;
+    width:100%; border:1px solid var(--c-border);
+    box-shadow:0 4px 16px rgba(15,23,42,.04);
+  }
+  .login-card .field{ margin-bottom:14px; }
+  .login-card label{ display:block; font-size:12.5px; font-weight:500; color:var(--c-text-2); margin-bottom:6px; }
+  .login-card input[type=text], .login-card input[type=password]{
+    width:100%; padding:10px 12px; border:1px solid var(--c-border);
+    border-radius:8px; font-family:inherit; font-size:14px;
+    transition:border-color .12s, box-shadow .12s;
+  }
+  .login-card input:focus{
+    outline:none; border-color:var(--c-primary);
+    box-shadow:0 0 0 3px rgba(14,165,233,.12);
+  }
+  .btn-login{
+    width:100%; padding:11px; background:var(--c-primary); color:#fff;
+    border:none; border-radius:8px; font-family:inherit; font-size:14px;
+    font-weight:600; cursor:pointer; transition:background .12s;
+  }
+  .btn-login:hover:not(:disabled){ background:var(--c-primary-dark); }
+  .btn-login:disabled{ opacity:.6; cursor:not-allowed; }
+  .alert-danger{
+    margin-top:12px; padding:10px 12px; border-radius:8px;
+    background:#fef2f2; color:#991b1b; font-size:12.5px;
+    border:1px solid #fecaca;
+  }
+
+  /* ============ LANDING ============ */
+  .landing{ min-height:100vh; background:var(--c-bg); display:flex; flex-direction:column; }
+
+  /* Compact top bar — ไม่มี gradient ฟ้าใหญ่แล้ว */
+  .l-topbar{
+    background:#fff; border-bottom:1px solid var(--c-border);
+    padding:0 24px; height:64px;
+    display:flex; align-items:center; gap:14px;
+    position:sticky; top:0; z-index:10;
+  }
+  .l-brand{
+    width:40px; height:40px; border-radius:10px;
+    background:linear-gradient(135deg,#0ea5e9,#0284c7);
+    color:#fff; font-weight:800; font-size:14px; letter-spacing:.3px;
+    display:flex; align-items:center; justify-content:center;
+    flex-shrink:0;
+  }
+  .l-title{ flex:1; min-width:0; }
+  .l-title .t1{ font-size:15px; font-weight:700; color:var(--c-text); line-height:1.2; }
+  .l-title .t2{ font-size:12px; color:var(--c-text-2); margin-top:2px; }
+  .l-title .t2 .sep{ color:var(--c-text-3); margin:0 6px; }
+  .l-logout{
+    width:38px; height:38px; border-radius:8px;
+    background:transparent; border:1px solid var(--c-border);
+    color:var(--c-text-2); cursor:pointer;
+    display:flex; align-items:center; justify-content:center;
+    font-size:16px; transition:all .12s;
+  }
+  .l-logout:hover{ background:#fef2f2; color:#dc2626; border-color:#fecaca; }
+
+  /* Content */
+  .l-content{
+    flex:1; padding:24px 24px 60px;
+    max-width:1100px; width:100%; margin:0 auto;
+  }
+  .l-section-title{
+    font-size:11px; font-weight:700; color:var(--c-text-3);
+    text-transform:uppercase; letter-spacing:.08em;
+    margin:0 0 10px; padding:0 4px;
+    display:flex; align-items:center; gap:8px;
+  }
+  .l-section-title .count{
+    background:var(--c-border-soft); color:var(--c-text-2);
+    padding:1px 8px; border-radius:10px; font-size:10.5px;
+    font-weight:600; letter-spacing:0;
+  }
+  .l-section-title .more{
+    margin-left:auto; text-transform:none; letter-spacing:0;
+    font-weight:500; color:var(--c-primary); text-decoration:none;
+    font-size:12px;
+  }
+  .l-section-title .more:hover{ text-decoration:underline; }
+  .l-section-title + *{ margin-bottom:24px; }
+
+  /* KPI strip */
+  .l-kpi{
+    display:grid; grid-template-columns:repeat(4,1fr); gap:10px;
+    margin-bottom:24px;
+  }
+  .l-kpi-card{
+    background:#fff; border:1px solid var(--c-border);
+    border-radius:12px; padding:14px 16px;
+    display:flex; gap:12px; align-items:center;
+  }
+  .l-kpi-icon{
+    width:38px; height:38px; border-radius:10px;
+    display:flex; align-items:center; justify-content:center;
+    font-size:18px; flex-shrink:0;
+  }
+  .l-kpi-icon.blue{ background:#e0f2fe; color:#0369a1; }
+  .l-kpi-icon.green{ background:#dcfce7; color:#15803d; }
+  .l-kpi-icon.amber{ background:#fef3c7; color:#a16207; }
+  .l-kpi-icon.rose{ background:#fee2e2; color:#b91c1c; }
+  .l-kpi-body{ flex:1; min-width:0; }
+  .l-kpi-num{
+    font-size:22px; font-weight:700; color:var(--c-text);
+    line-height:1.1; font-variant-numeric:tabular-nums;
+  }
+  .l-kpi-num .sub{ font-size:13px; color:var(--c-text-3); font-weight:500; }
+  .l-kpi-label{ font-size:11.5px; color:var(--c-text-2); margin-top:2px; }
+
+  /* Active cases mini-list */
+  .l-list{
+    background:#fff; border:1px solid var(--c-border);
+    border-radius:12px; overflow:hidden;
+  }
+  .l-list-row{
+    display:flex; align-items:center; gap:12px;
+    padding:12px 16px; border-bottom:1px solid var(--c-border-soft);
+    text-decoration:none; color:var(--c-text);
+    transition:background .12s;
+  }
+  .l-list-row:last-child{ border-bottom:none; }
+  .l-list-row:hover{ background:var(--c-bg); color:var(--c-text); }
+  .l-list-dot{
+    width:8px; height:8px; border-radius:50%;
+    background:#16a34a; flex-shrink:0;
+    box-shadow:0 0 0 3px rgba(22,163,74,.15);
+  }
+  .l-list-main{ flex:1; min-width:0; }
+  .l-list-name{
+    font-size:13.5px; font-weight:600; color:var(--c-text);
+    overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
+  }
+  .l-list-meta{ font-size:11.5px; color:var(--c-text-2); margin-top:2px; }
+  .l-list-time{
+    font-size:11.5px; color:var(--c-text-3);
+    font-variant-numeric:tabular-nums; flex-shrink:0;
+  }
+  .l-list-empty{
+    padding:28px 16px; text-align:center;
+    font-size:13px; color:var(--c-text-3);
+  }
+  .l-list-empty i{ font-size:22px; display:block; margin-bottom:6px; opacity:.5; }
+
+  /* Module grid */
+  .l-grid{
+    display:grid; grid-template-columns:repeat(4,1fr); gap:12px;
+  }
+  .l-grid.admin{ grid-template-columns:repeat(2,1fr); max-width:500px; }
+  .l-card{
+    background:#fff; border:1px solid var(--c-border);
+    border-radius:12px; padding:18px 18px;
+    text-decoration:none; color:var(--c-text);
+    display:flex; gap:14px; align-items:flex-start;
+    transition:all .15s;
+    cursor:pointer;
+  }
+  .l-card:hover{
+    border-color:var(--c-primary);
+    transform:translateY(-2px);
+    box-shadow:0 6px 16px rgba(14,165,233,.1);
+    color:var(--c-text);
+  }
+  .l-card-icon{
+    width:42px; height:42px; border-radius:10px;
+    background:var(--c-primary-light); color:var(--c-primary);
+    display:flex; align-items:center; justify-content:center;
+    font-size:22px; flex-shrink:0;
+  }
+  .l-card-body{ flex:1; min-width:0; }
+  .l-card-name{ font-size:14.5px; font-weight:600; color:var(--c-text); line-height:1.25; }
+  .l-card-desc{ font-size:12px; color:var(--c-text-2); margin-top:4px; line-height:1.4; }
+
+  /* Admin cards — smaller, neutral */
+  .l-card.admin{ padding:14px 16px; }
+  .l-card.admin .l-card-icon{
+    width:36px; height:36px; font-size:18px;
+    background:var(--c-border-soft); color:var(--c-text-2);
+  }
+  .l-card.admin:hover .l-card-icon{ background:var(--c-primary-light); color:var(--c-primary); }
+  .l-card.admin .l-card-name{ font-size:13.5px; }
+
+  /* Footer */
+  .l-footer{
+    text-align:center; font-size:11.5px; color:var(--c-text-3);
+    padding:20px 0 10px;
+  }
+  .l-footer .dot{ color:var(--c-border); margin:0 6px; }
+
+  /* Responsive */
+  @media (max-width:900px){
+    .l-grid{ grid-template-columns:repeat(2,1fr); }
+    .l-kpi{ grid-template-columns:repeat(2,1fr); }
+    .l-content{ padding:20px 16px 40px; }
+    .l-topbar{ padding:0 16px; }
+  }
+  @media (max-width:480px){
+    .l-grid{ grid-template-columns:1fr; }
+    .l-grid.admin{ grid-template-columns:1fr; }
+    .l-card{ padding:14px 16px; }
+    .l-title .t1{ font-size:14px; }
+    .l-title .t2{ font-size:11px; }
+    .l-kpi-num{ font-size:19px; }
+    .l-kpi-card{ padding:12px 14px; }
+    .l-kpi-icon{ width:34px; height:34px; font-size:16px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ============ SPLASH ============ -->
+<div id="view-splash" class="splash">
+  <div class="splash-logo">PT</div>
+  <div style="font-weight:700; font-size:15px;">PT Medical System</div>
+  <div class="splash-spinner"></div>
+  <div style="font-size:12px; color:var(--c-text-2);">กำลังเชื่อมต่อระบบ...</div>
+</div>
+
+<!-- ============ LOGIN ============ -->
+<div id="view-login" class="login-view" style="display:none;">
+  <div class="login-wrap">
+    <div class="splash-logo">PT</div>
+    <div style="text-align:center;">
+      <div style="font-size:19px; font-weight:700; color:var(--c-text);">PT Medical System</div>
+      <div style="font-size:12px; color:var(--c-text-2); margin-top:2px;" id="login-org">Supwilai Medical · v2.0</div>
+    </div>
+    <div class="login-card">
+      <form id="login-form" onsubmit="return doLogin(event)" autocomplete="off">
+        <div class="field">
+          <label>รหัสพนักงาน</label>
+          <input type="text" id="login-username" name="pt_login_username_v2" required autocomplete="off" autocorrect="off" autocapitalize="none" spellcheck="false">
+        </div>
+        <div class="field" style="margin-bottom:18px;">
+          <label>รหัสผ่าน</label>
+          <input type="password" id="login-password" name="pt_login_password_v2" required autocomplete="new-password">
+        </div>
+        <input type="text" name="fake_username" style="display:none" autocomplete="username">
+        <input type="password" name="fake_password" style="display:none" autocomplete="current-password">
+        <button class="btn-login" type="submit" id="login-btn">เข้าสู่ระบบ</button>
+        <div id="login-error" class="alert-danger" style="display:none;"></div>
+        <div style="margin-top:14px; font-size:11px; color:var(--c-text-3); text-align:center;">v2.0.0 · Powered by Supabase</div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- ============ LANDING ============ -->
+<div id="view-landing" class="landing" style="display:none;">
+
+  <!-- Compact topbar -->
+  <div class="l-topbar">
+    <div class="l-brand">PT</div>
+    <div class="l-title">
+      <div class="t1" id="user-name">ผู้ใช้</div>
+      <div class="t2">
+        <span id="user-role">User</span>
+        <span class="sep">·</span>
+        <span id="welcome-date">—</span>
+      </div>
+    </div>
+    <button class="l-logout" onclick="doLogout()" title="ออกจากระบบ">
+      <i class="bi bi-box-arrow-right"></i>
+    </button>
+  </div>
+
+  <div class="l-content">
+
+    <!-- KPI strip (live) -->
+    <div class="l-kpi">
+      <div class="l-kpi-card">
+        <div class="l-kpi-icon blue"><i class="bi bi-truck-flatbed"></i></div>
+        <div class="l-kpi-body">
+          <div class="l-kpi-num" id="kpi-cases-active">–</div>
+          <div class="l-kpi-label">เคสกำลังดำเนินการ</div>
+        </div>
+      </div>
+      <div class="l-kpi-card">
+        <div class="l-kpi-icon green"><i class="bi bi-bandaid"></i></div>
+        <div class="l-kpi-body">
+          <div class="l-kpi-num" id="kpi-fa-active">–</div>
+          <div class="l-kpi-label">เหตุการณ์ปฐมพยาบาล</div>
+        </div>
+      </div>
+      <div class="l-kpi-card">
+        <div class="l-kpi-icon amber"><i class="bi bi-geo-alt-fill"></i></div>
+        <div class="l-kpi-body">
+          <div class="l-kpi-num" id="kpi-loc-total">–</div>
+          <div class="l-kpi-label">พิกัดสถานที่ทั้งหมด</div>
+        </div>
+      </div>
+      <div class="l-kpi-card">
+        <div class="l-kpi-icon rose"><i class="bi bi-broadcast-pin"></i></div>
+        <div class="l-kpi-body">
+          <div class="l-kpi-num" id="kpi-gps-total">–</div>
+          <div class="l-kpi-label">รถในระบบ GPS</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Main modules -->
+    <div class="l-section-title">ระบบหลัก</div>
+    <div class="l-grid" id="module-grid">
+      <a class="l-card" href="transport/">
+        <div class="l-card-icon"><i class="bi bi-truck-flatbed"></i></div>
+        <div class="l-card-body">
+          <div class="l-card-name">นำส่งผู้ป่วย</div>
+          <div class="l-card-desc">บันทึกเคส, V/S, Consent, พิมพ์ใบส่งตัว</div>
+        </div>
+      </a>
+      <a class="l-card" href="firstaid/">
+        <div class="l-card-icon"><i class="bi bi-bandaid"></i></div>
+        <div class="l-card-body">
+          <div class="l-card-name">ปฐมพยาบาล</div>
+          <div class="l-card-desc">บันทึกเหตุการณ์, จุดเกิดเหตุ, รูปภาพ</div>
+        </div>
+      </a>
+      <a class="l-card" href="location/">
+        <div class="l-card-icon"><i class="bi bi-geo-alt-fill"></i></div>
+        <div class="l-card-body">
+          <div class="l-card-name">พิกัดสถานที่</div>
+          <div class="l-card-desc">ฐานข้อมูลลูกค้า, แผนที่, ค้นหา</div>
+        </div>
+      </a>
+      <a class="l-card" href="gps/" id="card-gps" style="display:none;">
+        <div class="l-card-icon"><i class="bi bi-broadcast-pin"></i></div>
+        <div class="l-card-body">
+          <div class="l-card-name">ติดตามรถ</div>
+          <div class="l-card-desc">GPS Live · ประวัติ · ดูกล้อง</div>
+        </div>
+      </a>
+    </div>
+
+    <!-- Active cases -->
+    <div class="l-section-title">
+      <span>เคสที่กำลังดำเนินการ</span>
+      <span class="count" id="active-count">0</span>
+      <a class="more" href="transport/">ดูทั้งหมด <i class="bi bi-arrow-right"></i></a>
+    </div>
+    <div class="l-list" id="active-list">
+      <div class="l-list-empty"><i class="bi bi-inbox"></i>กำลังโหลด...</div>
+    </div>
+
+    <!-- Admin tools -->
+    <div id="admin-tools" style="display:none;">
+      <div class="l-section-title">ผู้ดูแลระบบ</div>
+      <div class="l-grid admin">
+        <a class="l-card admin" href="monitor/">
+          <div class="l-card-icon"><i class="bi bi-activity"></i></div>
+          <div class="l-card-body">
+            <div class="l-card-name">Monitor</div>
+            <div class="l-card-desc">ศูนย์ควบคุมแบบเรียลไทม์</div>
+          </div>
+        </a>
+        <a class="l-card admin" href="admin.html">
+          <div class="l-card-icon"><i class="bi bi-gear"></i></div>
+          <div class="l-card-body">
+            <div class="l-card-name">ตั้งค่าระบบ</div>
+            <div class="l-card-desc">Organization, Services, Security</div>
+          </div>
+        </a>
+      </div>
+    </div>
+
+    <div class="l-footer">
+      <span>v2.0.0</span><span class="dot">·</span><span id="copyright"></span>
+    </div>
+  </div>
+</div>
+
+<!-- Shared scripts (use V1 shared/) -->
+<script src="../shared/config.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script src="../shared/auth.js"></script>
+<script src="shared.js"></script>
+<script>
+function showView(id){
+  ['view-splash','view-login','view-landing'].forEach(function(v){
+    var el = document.getElementById(v);
+    if(el) el.style.display = (v === id) ? '' : 'none';
+  });
+}
+
+function init(){
+  try {
+    if(typeof isLoggedIn === 'function' && isLoggedIn()){
+      var meta = (typeof getUserMeta === 'function') ? getUserMeta() : null;
+      if(meta){ showLanding(meta); return; }
+    }
+    showView('view-login');
+  } catch(e){
+    console.error('init failed', e);
+    showView('view-login');
+  }
+}
+
+async function doLogin(e){
+  e.preventDefault();
+  var username = document.getElementById('login-username').value.trim();
+  var password = document.getElementById('login-password').value;
+  var errEl = document.getElementById('login-error');
+  var btn = document.getElementById('login-btn');
+  errEl.style.display = 'none';
+
+  if(!username || !password){
+    errEl.textContent = 'กรุณากรอก Username และ Password';
+    errEl.style.display = '';
+    return false;
+  }
+
+  btn.disabled = true;
+  btn.textContent = 'กำลังเข้าสู่ระบบ...';
+  try {
+    if(typeof CONFIG === 'undefined' || !CONFIG.GAS_AUTH_API_URL){
+      throw new Error('CONFIG.GAS_AUTH_API_URL not set — check shared/config.js');
+    }
+    var res = await fetch(CONFIG.GAS_AUTH_API_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify({ username: username, password: password }),
+      redirect: 'follow'
+    });
+    var result = await res.json();
+    if(result.status === 'success'){
+      var meta = {
+        full_name: result.name || username,
+        role: result.role || 'User',
+        username: username,
+        loginAt: new Date().toISOString()
+      };
+      localStorage.setItem('pt_user_meta', JSON.stringify(meta));
+      resetLoginForm();
+      showLanding(meta);
+    } else {
+      throw new Error(result.message || 'รหัสผ่านไม่ถูกต้อง');
+    }
+  } catch(err){
+    errEl.textContent = 'เข้าสู่ระบบไม่สำเร็จ: ' + (err.message || 'ไม่สามารถเชื่อมต่อระบบได้');
+    errEl.style.display = '';
+    btn.disabled = false;
+    btn.textContent = 'เข้าสู่ระบบ';
+  }
+  return false;
+}
+
+function showLanding(user){
+  document.getElementById('user-name').textContent = user.full_name || user.username || 'ผู้ใช้';
+  var role = user.role || 'User';
+  var org = user.org || 'supwilai';
+  document.getElementById('user-role').textContent = role + ' · ' + org;
+  var d = new Date();
+  document.getElementById('welcome-date').textContent = d.toLocaleDateString('th-TH', {weekday:'short', day:'numeric', month:'short', year:'numeric'});
+  document.getElementById('copyright').textContent = (d.getFullYear() + 543) + ' Supwilai Medical';
+
+  var roleL = (user.role || '').toLowerCase();
+  var isAdmin = roleL.indexOf('admin') !== -1;
+  // Reset admin-only UI first (prevents leaking from previous admin session)
+  document.getElementById('card-gps').style.display = isAdmin ? '' : 'none';
+  document.getElementById('admin-tools').style.display = isAdmin ? '' : 'none';
+  showView('view-landing');
+  loadKPIs();
+  loadActiveCases();
+}
+
+// Live KPI counters
+async function loadKPIs(){
+  if(typeof _supabase === 'undefined') return;
+  try {
+    var r = await Promise.all([
+      _supabase.from('cases').select('case_id',{count:'exact',head:true}).eq('status','Active'),
+      _supabase.from('fa_events').select('event_id',{count:'exact',head:true}).eq('status','Active'),
+      _supabase.from('loc_customers').select('id',{count:'exact',head:true}),
+      _supabase.from('gps_vehicles').select('id',{count:'exact',head:true}).eq('is_active',true)
+    ]);
+    var setNum = function(id, val){
+      var el = document.getElementById(id);
+      if(el) el.textContent = (val != null) ? val.toLocaleString('th-TH') : '–';
+    };
+    setNum('kpi-cases-active', r[0].count);
+    setNum('kpi-fa-active', r[1].count);
+    setNum('kpi-loc-total', r[2].count);
+    setNum('kpi-gps-total', r[3].count);
+  } catch(e){ console.warn('KPI load failed:', e); }
+}
+
+// Active cases (top 3)
+async function loadActiveCases(){
+  var list = document.getElementById('active-list');
+  var countEl = document.getElementById('active-count');
+  if(typeof _supabase === 'undefined') return;
+  try {
+    var res = await _supabase.from('cases')
+      .select('case_id, patient_info, created_at, status')
+      .eq('status','Active')
+      .order('created_at',{ ascending:false })
+      .limit(3);
+    if(res.error) throw res.error;
+    var rows = res.data || [];
+    var cnt = await _supabase.from('cases').select('case_id',{count:'exact',head:true}).eq('status','Active');
+    if(countEl) countEl.textContent = (cnt.count != null) ? cnt.count : rows.length;
+
+    if(!rows.length){
+      list.innerHTML = '<div class="l-list-empty"><i class="bi bi-inbox"></i>ไม่มีเคสที่กำลังดำเนินการ</div>';
+      return;
+    }
+    var html = rows.map(function(r){
+      var pi = r.patient_info || {};
+      var name = pi.name || 'ไม่ระบุชื่อ';
+      var age = pi.age ? (' · ' + pi.age + ' ปี') : '';
+      var route = '';
+      if(pi.origin || pi.destination){
+        route = (pi.origin || '?') + ' → ' + (pi.destination || '?');
+      }
+      var dur = relativeTime(r.created_at);
+      return '<a class="l-list-row" href="transport/?case=' + encodeURIComponent(r.case_id) + '">' +
+             '<span class="l-list-dot"></span>' +
+             '<div class="l-list-main">' +
+               '<div class="l-list-name">' + escapeHtml(name) + escapeHtml(age) + '</div>' +
+               (route ? '<div class="l-list-meta">' + escapeHtml(route) + '</div>' : '') +
+             '</div>' +
+             '<div class="l-list-time">' + dur + '</div>' +
+             '</a>';
+    }).join('');
+    list.innerHTML = html;
+  } catch(e){
+    console.warn('active cases load failed:', e);
+    list.innerHTML = '<div class="l-list-empty"><i class="bi bi-exclamation-triangle"></i>ไม่สามารถโหลดข้อมูลได้</div>';
+  }
+}
+
+function escapeHtml(s){
+  return String(s || '').replace(/[&<>"']/g, function(c){
+    return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];
+  });
+}
+function relativeTime(iso){
+  if(!iso) return '';
+  var d = new Date(iso); var now = new Date();
+  var mins = Math.round((now - d) / 60000);
+  if(mins < 1) return 'เมื่อสักครู่';
+  if(mins < 60) return mins + ' นาที';
+  var hrs = Math.floor(mins/60);
+  if(hrs < 24) return hrs + ' ชม. ' + (mins%60) + ' น.';
+  var days = Math.floor(hrs/24);
+  return days + ' วัน';
+}
+
+function doLogout(){
+  try { localStorage.removeItem('pt_user_meta'); } catch(e){}
+  resetLoginForm();
+  showView('view-login');
+}
+
+function resetLoginForm(){
+  var u = document.getElementById('login-username');
+  var p = document.getElementById('login-password');
+  var btn = document.getElementById('login-btn');
+  var err = document.getElementById('login-error');
+  if(u) u.value = '';
+  if(p) p.value = '';
+  if(btn){ btn.disabled = false; btn.textContent = 'เข้าสู่ระบบ'; }
+  if(err){ err.style.display = 'none'; err.textContent = ''; }
+}
+
+document.addEventListener('DOMContentLoaded', init);
+</script>
+
+</body>
+</html>

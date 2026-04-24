@@ -1,0 +1,1655 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#0ea5e9">
+<title>GPS Tracking · PT Medical V2</title>
+<link rel="manifest" href="../manifest.json">
+<link rel="stylesheet" href="../shared.css">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<style>
+  /* ============ GPS-specific styles ============ */
+  html, body { height: 100%; }
+  body { display: flex; flex-direction: column; }
+
+  .layout-3col { flex: 1; min-height: 0; }
+  .col-content { min-height: 0; }
+  .col-body { display: flex; min-height: 0; overflow: hidden; }
+
+  /* Map container */
+  .map-wrap {
+    flex: 1; position: relative; min-width: 0; background: #e6eef5;
+  }
+  #map { position: absolute; inset: 0; }
+
+  /* Floating chips on map */
+  .chip-stack {
+    position: absolute; top: 10px; left: 10px;
+    display: flex; gap: 6px; flex-wrap: wrap; z-index: 400;
+  }
+  .map-chip {
+    background: rgba(255,255,255,.95); padding: 5px 10px;
+    border-radius: 999px; font-size: 11px; font-weight: 600;
+    box-shadow: 0 2px 8px rgba(0,0,0,.1);
+    display: inline-flex; align-items: center; gap: 4px;
+  }
+  .proxy-chip[data-tier="Synology"] { background: #dcfce7; color: #166534; }
+  .proxy-chip[data-tier="Render"]   { background: #dbeafe; color: #1e40af; }
+  .proxy-chip[data-tier="GAS"]      { background: #fef3c7; color: #854d0e; }
+  .proxy-chip[data-tier="Direct"]   { background: #f1f5f9; color: #475569; }
+
+  .last-update-chip.fresh { background: #dcfce7; color: #166534; }
+  .last-update-chip.stale { background: #fee2e2; color: #991b1b; }
+
+  /* Right floating buttons */
+  .map-actions {
+    position: absolute; right: 10px; top: 60px;
+    display: flex; flex-direction: column; gap: 6px; z-index: 400;
+  }
+  .map-actions .icon-btn {
+    background: #fff; box-shadow: 0 2px 8px rgba(0,0,0,.1);
+  }
+  .map-actions .icon-btn.primary { background: var(--c-primary); color: #fff; }
+
+  /* Follow chip */
+  .follow-chip {
+    position: absolute; bottom: 14px; left: 50%; transform: translateX(-50%);
+    background: var(--c-primary); color: #fff;
+    padding: 6px 14px; border-radius: 999px;
+    font-size: 12px; font-weight: 600; z-index: 400;
+    box-shadow: 0 4px 12px rgba(14,165,233,.4);
+    display: none; align-items: center; gap: 6px; cursor: pointer;
+  }
+
+  /* Right-side panel (vehicle list) */
+  .side-panel {
+    width: 300px; flex-shrink: 0;
+    background: #fff; border-left: 1px solid var(--c-border);
+    display: flex; flex-direction: column; min-height: 0;
+  }
+  .side-panel-header {
+    padding: 10px; border-bottom: 1px solid var(--c-border); flex-shrink: 0;
+  }
+  .side-panel-search {
+    width: 100%; padding: 7px 10px;
+    border: 1px solid var(--c-border); border-radius: 6px; font-size: 12px;
+  }
+  .filter-tabs {
+    display: flex; gap: 4px; margin-top: 8px;
+  }
+  .filter-tab {
+    flex: 1; padding: 5px 8px; font-size: 11px; font-weight: 600;
+    background: var(--c-subtle); color: #475569;
+    border: 1px solid transparent; border-radius: 6px; cursor: pointer;
+    text-align: center;
+  }
+  .filter-tab.active { background: var(--c-primary); color: #fff; border-color: var(--c-primary-dark); }
+
+  .vehicle-list { flex: 1; overflow-y: auto; }
+
+  .v-card {
+    padding: 10px 12px; border-bottom: 1px solid var(--c-border);
+    cursor: pointer; transition: background .12s; border-left: 3px solid transparent;
+  }
+  .v-card:hover { background: var(--c-subtle); }
+  .v-card.active { background: #f0f9ff; border-left-color: var(--c-primary); }
+  .v-card.online { border-left-color: var(--c-success); }
+  .v-card.idle   { border-left-color: var(--c-warn); }
+  .v-card.offline { border-left-color: #94a3b8; }
+  .v-card.overspeed { background: #fef2f2; border-left-color: var(--c-danger); border-left-width: 4px; }
+  .v-card.overspeed.active { background: #fee2e2; }
+
+  .v-top { display: flex; justify-content: space-between; gap: 6px; }
+  .v-plate { font-weight: 700; font-size: 13px; }
+  .v-sub { font-family: ui-monospace, monospace; font-size: 10px; color: var(--c-muted); margin-top: 1px; }
+  .v-metric { text-align: right; flex-shrink: 0; }
+  .v-speed-value { font-size: 16px; font-weight: 800; line-height: 1; }
+  .v-speed-unit { font-size: 9px; color: var(--c-muted); }
+  .v-card.overspeed .v-speed-value { color: var(--c-danger); }
+  .v-address {
+    font-size: 11px; color: var(--c-muted); margin-top: 6px;
+    display: flex; gap: 4px; align-items: flex-start;
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  }
+  .v-actions { display: flex; gap: 4px; margin-top: 8px; }
+  .v-action {
+    flex: 1; padding: 5px; font-size: 11px;
+    background: #fff; border: 1px solid var(--c-border); border-radius: 5px;
+    color: #475569; cursor: pointer; font-weight: 500;
+    display: inline-flex; align-items: center; justify-content: center; gap: 3px;
+    font-family: inherit;
+  }
+  .v-action:hover { background: var(--c-subtle); }
+  .v-action.cam { color: var(--c-danger); border-color: #fecaca; }
+  .v-action.cam:hover { background: #fef2f2; }
+  .v-action.share { color: var(--c-primary); border-color: #bae6fd; }
+  .v-action.share:hover { background: #e0f2fe; }
+
+  .v-status-label {
+    display: inline-block; font-size: 9px; font-weight: 700;
+    padding: 1px 5px; border-radius: 3px; margin-top: 2px;
+  }
+  .v-status-label.on { background: #dcfce7; color: #166534; }
+  .v-status-label.idle { background: #fef3c7; color: #854d0e; }
+  .v-status-label.over { background: #fee2e2; color: #991b1b; }
+  .v-status-label.off { background: #e2e8f0; color: #475569; }
+
+  .empty-state {
+    text-align: center; padding: 30px 14px; color: var(--c-muted);
+    font-size: 13px;
+  }
+  .empty-state .icon { font-size: 28px; margin-bottom: 6px; }
+
+  /* Token cards */
+  .token-list { padding: 10px; overflow-y: auto; }
+  .token-card {
+    background: #fff; border: 1px solid var(--c-border);
+    border-radius: var(--radius-lg); padding: 12px; margin-bottom: 8px;
+  }
+  .token-card.expired { opacity: .65; background: #f8fafc; }
+  .token-card.has-camera { border-left: 3px solid var(--c-danger); }
+  .token-header { display: flex; justify-content: space-between; align-items: center; gap: 8px; margin-bottom: 6px; }
+  .token-vehicle { font-weight: 700; font-size: 13px; display: inline-flex; align-items: center; gap: 6px; }
+  .token-status { font-size: 10px; font-weight: 700; padding: 2px 7px; border-radius: 4px; }
+  .token-status.active { background: #dcfce7; color: #166534; }
+  .token-status.expired { background: #f1f5f9; color: #475569; }
+  .token-meta { font-size: 11px; color: var(--c-muted); line-height: 1.5; }
+  .token-id-mono { font-family: ui-monospace, monospace; background: var(--c-subtle); padding: 1px 5px; border-radius: 3px; font-size: 10px; }
+  .token-actions { display: flex; gap: 5px; margin-top: 8px; }
+  .token-btn {
+    flex: 1; padding: 5px 8px; font-size: 11px; font-weight: 600;
+    background: #fff; border: 1px solid var(--c-border); border-radius: 5px;
+    cursor: pointer; color: #475569; font-family: inherit;
+    display: inline-flex; align-items: center; justify-content: center; gap: 3px;
+  }
+  .token-btn:hover { background: var(--c-subtle); }
+  .token-btn.btn-cam-on { background: #fef2f2; color: var(--c-danger); border-color: #fecaca; }
+  .token-btn.btn-revoke { color: var(--c-danger); border-color: #fecaca; }
+
+  /* Segmented buttons (modal) */
+  .seg-group { display: flex; flex-wrap: wrap; gap: 4px; }
+  .seg-btn {
+    padding: 6px 12px; font-size: 12px; font-weight: 600;
+    background: var(--c-subtle); color: #475569;
+    border: 1px solid transparent; border-radius: 6px; cursor: pointer;
+    font-family: inherit;
+  }
+  .seg-btn.active { background: var(--c-primary); color: #fff; border-color: var(--c-primary-dark); }
+  .seg-btn.emergency-police { background: #eff6ff; color: #1e40af; border-color: #bfdbfe; }
+  .seg-btn.emergency-police.active { background: #1e40af; color: #fff; }
+  .seg-btn.emergency-fire { background: #fef2f2; color: #b91c1c; border-color: #fecaca; }
+  .seg-btn.emergency-fire.active { background: #b91c1c; color: #fff; }
+
+  /* V2 modal extension — wider GPS modals */
+  .modal.modal-lg { max-width: 640px; }
+
+  /* Hospitals list */
+  .hosp-row {
+    padding: 12px; border: 1px solid var(--c-border); border-radius: 10px;
+    margin-bottom: 8px; background: #fff;
+  }
+  .hosp-row.fastest { border: 2px solid var(--c-success); background: #f0fdf4; }
+
+  /* Toast */
+  .toast {
+    position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%);
+    background: #1e293b; color: #fff; padding: 10px 16px; border-radius: 8px;
+    font-size: 13px; z-index: 200; opacity: 0;
+    transition: opacity .2s, bottom .2s;
+    box-shadow: 0 4px 16px rgba(0,0,0,.2); pointer-events: none;
+  }
+  .toast.show { opacity: 1; bottom: 100px; }
+  .toast.success { background: #16a34a; }
+  .toast.error { background: var(--c-danger); }
+
+  /* ============ MOBILE: Bottom sheet ============ */
+  @media (max-width: 1023px) {
+    .col-body { flex-direction: column; }
+    .map-wrap { flex: 1; min-height: 0; }
+    .side-panel {
+      width: 100%; border-left: none; border-top: 1px solid var(--c-border);
+      max-height: 50vh; transition: max-height .25s ease;
+    }
+    .side-panel.peek { max-height: 130px; }
+    .side-panel.full { max-height: 80vh; }
+    .sheet-handle {
+      text-align: center; padding: 6px 0; cursor: grab;
+      flex-shrink: 0;
+    }
+    .sheet-handle::before {
+      content: ''; display: inline-block;
+      width: 36px; height: 4px; background: #cbd5e1; border-radius: 2px;
+    }
+  }
+  @media (min-width: 1024px) {
+    .sheet-handle { display: none; }
+  }
+
+  /* HLS Modal video */
+  .hls-video { width: 100%; max-height: 60vh; background: #000; border-radius: 8px; }
+</style>
+</head>
+<body>
+
+<!-- ============ MOBILE TOPBAR ============ -->
+<div class="topbar" style="display:none;" id="mobileTopbar">
+  <button class="icon-btn" onclick="toggleDrawer('drawer')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12h18M3 6h18M3 18h18"/></svg>
+  </button>
+  <div style="flex:1; min-width:0;">
+    <div style="font-weight:600; font-size:14px;">GPS Tracking</div>
+    <div style="font-size:11px; color:var(--c-muted);">
+      <span class="status-dot live"></span><span id="mobileStatusText">Loading...</span>
+    </div>
+  </div>
+  <button class="icon-btn" onclick="manualRefresh()" title="Refresh">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12a9 9 0 1 1-3-6.7"/><path d="M21 4v5h-5"/></svg>
+  </button>
+</div>
+
+<!-- ============ MOBILE DRAWER ============ -->
+<div class="drawer-backdrop" id="drawer-backdrop" onclick="closeDrawer('drawer')"></div>
+<div class="drawer" id="drawer">
+  <div style="padding:16px; border-bottom:1px solid var(--c-border);">
+    <div style="font-weight:700; font-size:15px;">PT Medical V2</div>
+    <div style="font-size:11px; color:var(--c-muted);" id="drawer-user">user</div>
+  </div>
+  <nav style="padding:8px 0;">
+    <a class="nav-item" href="../transport/"><span class="nav-icon">🚑</span>Transport</a>
+    <a class="nav-item" href="../firstaid/"><span class="nav-icon">🩹</span>FirstAid</a>
+    <a class="nav-item" href="../location/"><span class="nav-icon">🗺️</span>Location</a>
+    <a class="nav-item active"><span class="nav-icon">🛰️</span>GPS Tracking</a>
+    <a class="nav-item" href="../"><span class="nav-icon">←</span>หน้าแรก</a>
+  </nav>
+</div>
+
+<!-- ============ DESKTOP 3-COLUMN ============ -->
+<div class="layout-3col">
+
+  <!-- Col 1: Nav -->
+  <aside class="col-nav" id="dNav">
+    <div style="padding:12px 0; justify-content:center; border-bottom:1px solid var(--c-border); display:flex;">
+      <div style="width:32px; height:32px; border-radius:8px; background:linear-gradient(135deg,#0ea5e9,#0284c7); color:#fff; display:flex; align-items:center; justify-content:center; font-weight:700; font-size:13px; cursor:pointer;" onclick="toggleNav()">PT</div>
+    </div>
+    <nav style="flex:1; padding:8px 0;">
+      <a class="nav-item" href="../transport/" title="Transport"><span class="nav-icon">🚑</span><span class="nav-label">Transport</span></a>
+      <a class="nav-item" href="../firstaid/" title="FirstAid"><span class="nav-icon">🩹</span><span class="nav-label">FirstAid</span></a>
+      <a class="nav-item" href="../location/" title="Location"><span class="nav-icon">🗺️</span><span class="nav-label">Location</span></a>
+      <a class="nav-item active" title="GPS"><span class="nav-icon">🛰️</span><span class="nav-label">GPS</span></a>
+      <a class="nav-item" href="../monitor/" id="rail-monitor" title="Monitor" style="display:none;"><span class="nav-icon">📡</span><span class="nav-label">Monitor</span></a>
+      <a class="nav-item" href="../admin.html" id="rail-admin" title="Admin Settings" style="display:none;"><span class="nav-icon">⚙️</span><span class="nav-label">Admin</span></a>
+    </nav>
+    <div style="padding:8px 0; border-top:1px solid var(--c-border);">
+      <a class="nav-item" href="../" title="หน้าหลัก"><span class="nav-icon">🏠</span><span class="nav-label">หน้าหลัก</span></a>
+    </div>
+  </aside>
+
+  <!-- Col 2: Sub-nav -->
+  <aside class="col-subnav">
+    <div style="padding:12px 14px; border-bottom:1px solid var(--c-border);">
+      <div style="font-weight:700; font-size:14px;">GPS Tracking</div>
+      <div style="font-size:11px; color:var(--c-muted);">
+        <span class="status-dot live"></span><span id="subnavStatus">Live · กำลังโหลด</span>
+      </div>
+    </div>
+    <div style="flex:1; overflow-y:auto;">
+      <div class="subnav-section">มุมมอง</div>
+      <div class="subnav-item active" data-view="fleet" onclick="switchPanelView('fleet')">
+        <span>🚗 Fleet</span><span class="badge" id="pv-fleet-count">0</span>
+      </div>
+      <div class="subnav-item" data-view="shared" id="pv-shared-tab" style="display:none;" onclick="switchPanelView('shared')">
+        <span>🔗 Share Tokens</span><span class="badge" id="pv-shared-count">0</span>
+      </div>
+
+      <div class="subnav-section">สถานะรถ</div>
+      <div class="subnav-item" onclick="setVehicleFilter('online')">
+        <span><span class="status-dot online"></span>Online</span>
+        <span class="badge" id="cnt-online">0</span>
+      </div>
+      <div class="subnav-item" onclick="setVehicleFilter('idle')">
+        <span><span class="status-dot idle"></span>Idle</span>
+        <span class="badge" id="cnt-idle">0</span>
+      </div>
+      <div class="subnav-item" onclick="setVehicleFilter('overspeed')">
+        <span style="color:var(--c-danger);">⚠ Overspeed</span>
+        <span class="badge danger" id="cnt-over">0</span>
+      </div>
+      <div class="subnav-item" onclick="setVehicleFilter('offline')">
+        <span><span class="status-dot offline"></span>Offline</span>
+        <span class="badge" id="cnt-off">0</span>
+      </div>
+      <div class="subnav-item" onclick="setVehicleFilter('all')">
+        <span>ทั้งหมด</span><span class="badge" id="cnt-all">0</span>
+      </div>
+
+      <div class="subnav-section">เครื่องมือ</div>
+      <div class="subnav-item" onclick="openNearestHospitalsModal()">
+        <span>🏥 หาที่ใกล้ๆ</span>
+      </div>
+      <div class="subnav-item" onclick="fitAllMarkers()">
+        <span>⤢ Fit all markers</span>
+      </div>
+      <div class="subnav-item" onclick="manualRefresh()">
+        <span>↻ Refresh ทันที</span>
+      </div>
+      <div class="subnav-item" onclick="toggleAutoRefresh()">
+        <span>⏱ Auto-refresh 10s</span>
+        <span class="badge" id="autoLabel">ON</span>
+      </div>
+
+      <div class="subnav-section">Proxy Chain</div>
+      <div class="subnav-item">
+        <span>Active</span>
+        <span class="badge" id="proxy-active-tier">--</span>
+      </div>
+      <div class="subnav-item">
+        <span>Latency</span>
+        <span class="badge" id="proxy-active-ms">-- ms</span>
+      </div>
+      <div class="subnav-item">
+        <span>อัปเดตล่าสุด</span>
+        <span class="badge" id="lastUpdateText">รอข้อมูล</span>
+      </div>
+    </div>
+  </aside>
+
+  <!-- Col 3: Content -->
+  <section class="col-content">
+    <div class="col-header">
+      <div>
+        <div style="font-weight:700; font-size:14px;" id="contentTitle">Fleet Map</div>
+        <div style="font-size:11px; color:var(--c-muted);" id="contentSub">เลือกรถเพื่อดูบนแผนที่</div>
+      </div>
+      <div style="display:flex; gap:6px;">
+        <button class="btn-ghost" onclick="fitAllMarkers()" title="Fit">⤢</button>
+        <button class="btn-ghost" onclick="manualRefresh()" title="Refresh">↻</button>
+      </div>
+    </div>
+
+    <div class="col-body">
+
+      <!-- Map -->
+      <div class="map-wrap" id="mapWrap">
+        <div id="map"></div>
+
+        <!-- Floating chips -->
+        <div class="chip-stack">
+          <div class="map-chip"><span class="status-dot live"></span>Live</div>
+          <div class="map-chip last-update-chip" id="lastUpdateChip" title="">
+            <span id="lastUpdateChipText">รอข้อมูล</span>
+          </div>
+          <div class="map-chip proxy-chip" id="proxyChip" data-tier="--">
+            📡 <span class="pc-label">Proxy: --</span> · <span class="pc-ms"></span>
+          </div>
+        </div>
+
+        <!-- Right floating buttons -->
+        <div class="map-actions">
+          <button class="icon-btn" onclick="manualRefresh()" title="Refresh">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12a9 9 0 1 1-3-6.7"/><path d="M21 4v5h-5"/></svg>
+          </button>
+          <button class="icon-btn" onclick="fitAllMarkers()" title="Fit all">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9V3h6M21 9V3h-6M3 15v6h6M21 15v6h-6"/></svg>
+          </button>
+          <button class="icon-btn primary" id="btnFindHospitals" onclick="openNearestHospitalsModal()" title="Hospitals nearby" style="display:none;">
+            <span style="font-size:14px;">🏥</span>
+          </button>
+        </div>
+
+        <!-- Follow chip -->
+        <div class="follow-chip" id="followChip" onclick="stopFollowing()">
+          🎯 ติดตาม: <span class="fc-name">--</span> · แตะเพื่อหยุด
+        </div>
+      </div>
+
+      <!-- Side panel (vehicle list / share tokens) -->
+      <aside class="side-panel" id="sidePanel">
+        <div class="sheet-handle" id="sheetHandle"></div>
+
+        <!-- Fleet view -->
+        <div id="fleetPanel">
+          <div class="side-panel-header">
+            <input class="side-panel-search" id="vehicleSearch" placeholder="🔍 ค้นทะเบียน/ชื่อรถ" oninput="filterVehicles()">
+            <div class="filter-tabs">
+              <div class="filter-tab active" data-filter="all" onclick="setVehicleFilter('all')">ทั้งหมด <span id="ft-all">0</span></div>
+              <div class="filter-tab" data-filter="online" onclick="setVehicleFilter('online')">Online <span id="ft-online">0</span></div>
+              <div class="filter-tab" data-filter="offline" onclick="setVehicleFilter('offline')">Offline <span id="ft-offline">0</span></div>
+            </div>
+          </div>
+          <div class="vehicle-list" id="vehicleList">
+            <div class="empty-state">
+              <div class="icon">🚛</div>
+              <div>กำลังโหลดข้อมูลรถ...</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Share Tokens view (admin) -->
+        <div id="sharedPanel" style="display:none; flex:1; overflow:hidden; flex-direction:column;">
+          <div style="padding:10px; border-bottom:1px solid var(--c-border); flex-shrink:0;">
+            <div style="font-weight:700; font-size:13px;">🔗 Share Tokens</div>
+            <div style="font-size:11px; color:var(--c-muted); margin-top:2px;">ลิงก์แชร์ตำแหน่งรถ (20 รายการล่าสุด)</div>
+          </div>
+          <div class="token-list" id="tokenList" style="flex:1;">
+            <div class="empty-state"><div>กำลังโหลด...</div></div>
+          </div>
+        </div>
+      </aside>
+
+    </div>
+  </section>
+
+</div>
+
+<!-- ============ SHARE MODAL ============ -->
+<div class="modal-backdrop" id="shareModal">
+  <div class="modal modal-lg">
+    <div class="modal-header">🔗 สร้างลิงก์แชร์ตำแหน่งรถ</div>
+    <div class="modal-body">
+      <div class="field" style="margin-bottom:12px;">
+        <label>รถ</label>
+        <input type="text" id="share-vehicle-name-display" readonly style="background:var(--c-subtle);">
+      </div>
+      <input type="hidden" id="share-device-id">
+      <input type="hidden" id="share-provider-id">
+      <input type="hidden" id="share-vehicle-name">
+      <input type="hidden" id="share-hours" value="6">
+
+      <div class="field" style="margin-bottom:12px;">
+        <label>ระยะเวลา</label>
+        <div class="seg-group" id="share-hours-group">
+          <button type="button" class="seg-btn" data-h="1">1 ชม.</button>
+          <button type="button" class="seg-btn" data-h="3">3 ชม.</button>
+          <button type="button" class="seg-btn active" data-h="6">6 ชม.</button>
+          <button type="button" class="seg-btn" data-h="12">12 ชม.</button>
+          <button type="button" class="seg-btn" data-h="24">24 ชม.</button>
+        </div>
+      </div>
+
+      <div class="field" style="margin-bottom:12px;">
+        <label>เหตุผล (จำเป็น)</label>
+        <input type="text" id="share-reason" placeholder="เช่น ส่งให้ญาติคนไข้ติดตาม">
+      </div>
+
+      <div style="margin-bottom:12px;">
+        <label style="display:flex; align-items:center; gap:8px; font-size:13px; cursor:pointer;">
+          <input type="checkbox" id="share-allow-camera">
+          <span>📹 อนุญาตให้ดูกล้องในรถได้ด้วย</span>
+        </label>
+      </div>
+
+      <div id="share-result" style="display:none; padding:12px; background:#f0fdf4; border:1px solid #86efac; border-radius:8px;">
+        <div style="font-size:12px; font-weight:700; color:#166534; margin-bottom:6px;">✓ สร้างลิงก์สำเร็จ</div>
+        <div style="display:flex; gap:6px;">
+          <input type="text" id="share-url" readonly style="flex:1; padding:6px 10px; border:1px solid var(--c-border); border-radius:6px; font-size:11px; font-family:ui-monospace,monospace;">
+          <button class="btn-primary" onclick="copyShareUrl()" style="padding:6px 12px;">📋 Copy</button>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-ghost" onclick="closeModal('shareModal')">ปิด</button>
+      <button class="btn-primary" id="btnCreateShare" onclick="createShareToken()">สร้างลิงก์</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============ HOSPITALS MODAL ============ -->
+<div class="modal-backdrop" id="hospitalsModal">
+  <div class="modal modal-lg" style="max-height:90vh; display:flex; flex-direction:column;">
+    <div class="modal-header">🏥 ค้นหาที่ใกล้รถ</div>
+    <div class="modal-body" style="overflow-y:auto;">
+      <div style="margin-bottom:10px; padding:8px 10px; background:var(--c-subtle); border-radius:6px; font-size:12px; color:var(--c-muted);">
+        จุดเริ่ม: <strong id="hospitals-origin-label">--</strong>
+      </div>
+
+      <div class="field" style="margin-bottom:10px;">
+        <label>ประเภท</label>
+        <div class="seg-group" id="hospitals-type-group">
+          <button type="button" class="seg-btn active" data-type="hospital" onclick="setSearchType('hospital')">รพ.</button>
+          <button type="button" class="seg-btn" data-type="clinic" onclick="setSearchType('clinic')">คลินิก</button>
+          <button type="button" class="seg-btn" data-type="pharmacy" onclick="setSearchType('pharmacy')">ร้านยา</button>
+          <button type="button" class="seg-btn" data-type="gas_station" onclick="setSearchType('gas_station')">ปั๊ม</button>
+          <button type="button" class="seg-btn" data-type="text" onclick="setSearchType('text')">Custom</button>
+        </div>
+        <div class="seg-group" id="hospitals-emergency-group" style="margin-top:6px;">
+          <button type="button" class="seg-btn emergency-police" data-type="police" onclick="setSearchType('police')">🚓 ตำรวจ</button>
+          <button type="button" class="seg-btn emergency-fire" data-type="fire_station" onclick="setSearchType('fire_station')">🚒 ดับเพลิง</button>
+        </div>
+        <input type="hidden" id="hospitals-type" value="hospital">
+      </div>
+
+      <div class="field" id="hospitals-text-wrap" style="display:none; margin-bottom:10px;">
+        <label>คำค้น</label>
+        <input type="text" id="hospitals-text-query" placeholder="เช่น โรงเรียน, ATM, ห้างฯ...">
+      </div>
+
+      <div class="field" style="margin-bottom:10px;">
+        <label>รัศมี</label>
+        <div class="seg-group" id="hospitals-radius-group">
+          <button type="button" class="seg-btn" data-r="2000">2 km</button>
+          <button type="button" class="seg-btn active" data-r="5000">5 km</button>
+          <button type="button" class="seg-btn" data-r="10000">10 km</button>
+          <button type="button" class="seg-btn" data-r="25000">25 km</button>
+        </div>
+        <input type="hidden" id="hospitals-radius" value="5000">
+      </div>
+
+      <div id="hospitals-loading" style="text-align:center; padding:20px; display:none;">
+        <div style="display:inline-block; width:24px; height:24px; border:3px solid #e0f2fe; border-top-color:var(--c-primary); border-radius:50%; animation:spin 1s linear infinite;"></div>
+        <div style="margin-top:8px; color:var(--c-muted); font-size:12px;">กำลังค้นหา...</div>
+      </div>
+      <div id="hospitals-error" style="display:none; padding:12px; background:#fee2e2; border-left:3px solid var(--c-danger); border-radius:6px; color:#991b1b; font-size:12px;"></div>
+      <div id="hospitals-list"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-ghost" onclick="closeModal('hospitalsModal')">ปิด</button>
+      <button class="btn-primary" id="btnRunSearch" onclick="runHospitalSearch()">🔍 ค้นหา</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============ HLS MODAL ============ -->
+<div class="modal-backdrop" id="hlsModal">
+  <div class="modal modal-lg">
+    <div class="modal-header" id="hls-title">📹 Live Stream</div>
+    <div class="modal-body" style="padding:0;">
+      <video id="hlsVideo" class="hls-video" controls autoplay muted playsinline></video>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-ghost" onclick="closeHls()">ปิด</button>
+    </div>
+  </div>
+</div>
+
+<style>@keyframes spin{to{transform:rotate(360deg);}}</style>
+
+<!-- ============ TOAST ============ -->
+<div class="toast" id="toast"></div>
+
+<!-- ============ SCRIPTS ============ -->
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/hls.js@1.5.13/dist/hls.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script src="../../shared/config.js"></script>
+<script src="../../shared/settings.js"></script>
+<script src="../../shared/auth.js"></script>
+<script src="../../shared/gps-providers.js"></script>
+<script src="../../shared/map-config.js"></script>
+<script src="../../shared/places-api.js"></script>
+<script src="../shared.js"></script>
+
+<script>
+'use strict';
+
+// ============ STATE ============
+var _providers = [];
+var _vehicles = [];
+var _statuses = {};      // key (deviceId_providerId) -> status
+var _markers = {};
+var _autoInterval = null;
+var _selectedKey = null;
+var _followMode = false;
+var _followSuppressUntil = 0;
+var _isAdmin = false;
+var _lastRefreshAt = null;
+var _lastUpdateTicker = null;
+var OVERSPEED_THRESHOLD = 120;
+
+var _vehicleFilter = 'all';
+var _vehicleSearch = '';
+var _hospitalMarkers = [];
+var _hospitalOrigin = null;
+var _hospitalAllResults = [];
+var _hospitalShowMoreAvailable = false;
+var _vehicleNameCache = {};
+var _hls = null;
+var _panelView = 'fleet'; // 'fleet' | 'shared'
+
+// ============ TOAST ============
+function toast(msg, type) {
+  var el = document.getElementById('toast');
+  el.textContent = msg;
+  el.className = 'toast ' + (type || '') + ' show';
+  setTimeout(function() { el.classList.remove('show'); }, 2200);
+}
+
+// ============ MOBILE DETECTION ============
+function isMobile() { return window.matchMedia('(max-width: 1023px)').matches; }
+if (isMobile()) document.getElementById('mobileTopbar').style.display = '';
+window.addEventListener('resize', function() {
+  document.getElementById('mobileTopbar').style.display = isMobile() ? '' : 'none';
+});
+
+// ============ ESC HTML ============
+function esc(str) {
+  if (str == null) return '';
+  return String(str).replace(/[&<>"']/g, function(c) {
+    return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+  });
+}
+
+// ============ MAP INIT ============
+var map = L.map('map', { maxZoom: 19 }).setView([15.87, 100.99], 6);
+
+// Wait for MapConfig (loaded from V1 shared/) to attach tile layer
+if (window.MapConfig && typeof MapConfig.load === 'function') {
+  MapConfig.load(_supabase).then(function() { return MapConfig.createTileLayer(map); })
+    .catch(function(e) {
+      console.warn('MapConfig fallback:', e);
+      L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png', {
+        maxZoom: 19, attribution: '© OpenStreetMap, © CartoDB'
+      }).addTo(map);
+    });
+} else {
+  L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png', {
+    maxZoom: 19, attribution: '© OpenStreetMap, © CartoDB'
+  }).addTo(map);
+}
+
+// Resize observer
+(function observeMapSize() {
+  var mc = document.getElementById('mapWrap');
+  if (!mc) return;
+  if ('ResizeObserver' in window) {
+    var ro = new ResizeObserver(function() {
+      if (map && map.invalidateSize) map.invalidateSize();
+    });
+    ro.observe(mc);
+  }
+  [100, 500, 1200].forEach(function(ms) {
+    setTimeout(function() { if (map.invalidateSize) map.invalidateSize(); }, ms);
+  });
+})();
+
+// Follow-mode disable on user drag
+function _userInteract() {
+  if (Date.now() < _followSuppressUntil) return;
+  if (_followMode) { _followMode = false; updateFollowChip(); }
+}
+map.on('dragstart', _userInteract);
+map.on('zoomstart', function() {
+  if (Date.now() < _followSuppressUntil) return;
+  _userInteract();
+});
+
+function stopFollowing() { _followMode = false; updateFollowChip(); }
+
+function updateFollowChip() {
+  var chip = document.getElementById('followChip');
+  if (!chip) return;
+  if (_followMode && _selectedKey) {
+    var v = _vehicles.find(function(x) { return (x.device_id + '_' + x.provider) === _selectedKey; });
+    var name = v ? (v.nickname || v.device_name || v.device_id || 'รถ') : 'รถ';
+    chip.querySelector('.fc-name').textContent = name;
+    chip.style.display = 'flex';
+  } else {
+    chip.style.display = 'none';
+  }
+}
+
+// Map pulse keyframe
+(function() {
+  if (!document.getElementById('map-pulse-keyframe')) {
+    var st = document.createElement('style');
+    st.id = 'map-pulse-keyframe';
+    st.textContent = '@keyframes mapPulse { 0%,100% { transform:scale(1); opacity:0.35; } 50% { transform:scale(1.25); opacity:0; } }';
+    document.head.appendChild(st);
+  }
+})();
+
+// ============ PROXY CHIP ============
+window.addEventListener('gps-proxy-change', function(ev) {
+  if (!ev.detail) return;
+  var t = ev.detail.tier || '--';
+  var ms = ev.detail.ms;
+  var chip = document.getElementById('proxyChip');
+  if (chip) {
+    chip.setAttribute('data-tier', t);
+    chip.querySelector('.pc-label').textContent = 'Proxy: ' + t;
+    var msEl = chip.querySelector('.pc-ms');
+    if (msEl) msEl.textContent = (ms != null) ? (ms + 'ms') : '';
+  }
+  var tierEl = document.getElementById('proxy-active-tier');
+  var msSubEl = document.getElementById('proxy-active-ms');
+  if (tierEl) tierEl.textContent = t;
+  if (msSubEl) msSubEl.textContent = (ms != null) ? (ms + ' ms') : '-- ms';
+});
+
+// ============ INIT ============
+async function init() {
+  try {
+    if (typeof requireAuth === 'function') requireAuth();
+  } catch(e) { console.warn('auth:', e); }
+
+  var meta = (typeof getUserMeta === 'function') ? getUserMeta() : null;
+  if (meta) {
+    var dUser = document.getElementById('drawer-user');
+    if (dUser) dUser.textContent = (meta.full_name || meta.name || meta.username || '');
+    _isAdmin = (meta.role||'').toLowerCase().indexOf('admin') !== -1;
+    if (_isAdmin) {
+      var sharedTab = document.getElementById('pv-shared-tab');
+      if (sharedTab) sharedTab.style.display = '';
+      ['rail-monitor','rail-admin'].forEach(function(id){
+        var el = document.getElementById(id); if(el) el.style.display = '';
+      });
+    }
+  }
+
+  // Bootstrap settings cache so Synology proxy tier activates
+  if (typeof gpsLoadProxyConfig === 'function') {
+    try { await gpsLoadProxyConfig(_supabase); }
+    catch(e) { console.warn('gpsLoadProxyConfig:', e.message || e); }
+  }
+
+  await loadData();
+  await fetchAllStatuses();
+
+  // Auto-refresh ON by default
+  if (!_autoInterval) {
+    _autoInterval = setInterval(fetchAllStatuses, 10000);
+    document.getElementById('autoLabel').textContent = 'ON';
+  }
+
+  if (_lastUpdateTicker) clearInterval(_lastUpdateTicker);
+  _lastUpdateTicker = setInterval(updateLastRefreshChip, 1000);
+
+  if (_isAdmin) loadSharedTokens();
+}
+
+// ============ DATA LOAD ============
+async function loadData() {
+  try {
+    var pRes = await _supabase.from('gps_providers').select('*').eq('is_active', true);
+    _providers = pRes.data || [];
+
+    var vRes = await _supabase.from('gps_vehicles')
+      .select('*, gps_providers(name, software, base_url, account, password)')
+      .eq('is_active', true).order('provider').order('nickname');
+    _vehicles = vRes.data || [];
+
+    var fc = document.getElementById('pv-fleet-count');
+    if (fc) fc.textContent = _vehicles.length;
+  } catch(e) { console.error('loadData:', e); }
+}
+
+async function fetchAllStatuses() {
+  for (var i = 0; i < _providers.length; i++) {
+    var p = _providers[i];
+    try {
+      var statuses = await gpsGetStatus(p);
+      statuses.forEach(function(s) {
+        _statuses[s.deviceId + '_' + p.id] = s;
+      });
+    } catch(e) {
+      console.warn('Status fetch failed for', p.name, e.message);
+    }
+  }
+  renderVehicleList();
+  updateMapMarkers();
+  updateStatusCounts();
+  enrichVehicleAddresses();
+
+  _lastRefreshAt = new Date();
+  updateLastRefreshChip();
+}
+
+function updateLastRefreshChip() {
+  var chipText = document.getElementById('lastUpdateChipText');
+  var chipEl = document.getElementById('lastUpdateChip');
+  var subText = document.getElementById('lastUpdateText');
+
+  if (!_lastRefreshAt) {
+    if (chipText) chipText.textContent = 'รอข้อมูล';
+    if (subText) subText.textContent = 'รอข้อมูล';
+    return;
+  }
+  var diffSec = Math.floor((Date.now() - _lastRefreshAt.getTime()) / 1000);
+  var timeStr = _lastRefreshAt.toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false });
+  var label;
+  if (diffSec < 5)        label = 'เพิ่งอัปเดต';
+  else if (diffSec < 60)  label = diffSec + ' วิ';
+  else if (diffSec < 3600) label = Math.floor(diffSec / 60) + ' นาที';
+  else                    label = timeStr;
+
+  if (chipText) chipText.textContent = label;
+  if (chipEl) {
+    chipEl.title = 'รีเฟรชล่าสุด: ' + timeStr;
+    chipEl.classList.toggle('fresh', diffSec < 15);
+    chipEl.classList.toggle('stale', diffSec > 60);
+  }
+  if (subText) subText.textContent = label;
+}
+
+function manualRefresh() { fetchAllStatuses(); }
+
+function toggleAutoRefresh() {
+  var label = document.getElementById('autoLabel');
+  if (_autoInterval) {
+    clearInterval(_autoInterval);
+    _autoInterval = null;
+    if (label) label.textContent = 'OFF';
+    toast('Auto-refresh OFF');
+  } else {
+    _autoInterval = setInterval(fetchAllStatuses, 10000);
+    if (label) label.textContent = 'ON';
+    toast('Auto-refresh ON', 'success');
+  }
+}
+
+// ============ STATUS COUNTS ============
+function updateStatusCounts() {
+  var c = { online: 0, idle: 0, over: 0, off: 0 };
+  _vehicles.forEach(function(v) {
+    var s = _statuses[v.device_id + '_' + v.provider];
+    if (!s || !s.online) c.off++;
+    else if (s.speed >= OVERSPEED_THRESHOLD) c.over++;
+    else if (s.speed < 1) c.idle++;
+    else c.online++;
+  });
+  var total = _vehicles.length;
+  var pairs = [
+    ['cnt-online', c.online], ['cnt-idle', c.idle], ['cnt-over', c.over],
+    ['cnt-off', c.off], ['cnt-all', total],
+    ['ft-all', total], ['ft-online', c.online], ['ft-offline', c.off]
+  ];
+  pairs.forEach(function(p) {
+    var el = document.getElementById(p[0]);
+    if (el) el.textContent = p[1];
+  });
+  // Subnav status text
+  var statusText = 'Live · ' + c.online + ' Online · ' + total + ' รถ';
+  var s1 = document.getElementById('subnavStatus');
+  var s2 = document.getElementById('mobileStatusText');
+  if (s1) s1.textContent = statusText;
+  if (s2) s2.textContent = statusText;
+}
+
+// ============ FILTER ============
+function setVehicleFilter(f) {
+  _vehicleFilter = f;
+  document.querySelectorAll('.filter-tab').forEach(function(t) {
+    t.classList.toggle('active', t.dataset.filter === f);
+  });
+  // Auto-switch to fleet panel if from sub-nav status filter
+  if (_panelView !== 'fleet') switchPanelView('fleet');
+  renderVehicleList();
+}
+
+function filterVehicles() {
+  _vehicleSearch = (document.getElementById('vehicleSearch').value || '').toLowerCase().trim();
+  renderVehicleList();
+}
+
+// ============ RENDER LIST ============
+function renderVehicleList() {
+  var el = document.getElementById('vehicleList');
+  if (!el) return;
+  if (_vehicles.length === 0) {
+    el.innerHTML = '<div class="empty-state"><div class="icon">🚛</div><div>ไม่พบรถ<br><small>ตรวจสอบ Admin → GPS Settings</small></div></div>';
+    return;
+  }
+
+  var filtered = _vehicles.filter(function(v) {
+    var s = _statuses[v.device_id + '_' + v.provider];
+    var online = s ? s.online : false;
+    var speed = s ? s.speed : 0;
+    var isOver = online && speed >= OVERSPEED_THRESHOLD;
+    var isIdle = online && speed < 1;
+    if (_vehicleFilter === 'online' && !online) return false;
+    if (_vehicleFilter === 'offline' && online) return false;
+    if (_vehicleFilter === 'idle' && !isIdle) return false;
+    if (_vehicleFilter === 'overspeed' && !isOver) return false;
+    if (_vehicleSearch) {
+      var hay = ((v.nickname || '') + ' ' + (v.device_name || '') + ' ' + v.device_id).toLowerCase();
+      if (hay.indexOf(_vehicleSearch) === -1) return false;
+    }
+    return true;
+  });
+
+  if (filtered.length === 0) {
+    el.innerHTML = '<div class="empty-state"><div class="icon">🔍</div><div>ไม่พบรถที่ตรงเงื่อนไข</div></div>';
+    return;
+  }
+
+  var html = '';
+  filtered.forEach(function(v) {
+    var key = v.device_id + '_' + v.provider;
+    var s = _statuses[key];
+    var online = s ? s.online : false;
+    var speedNum = s ? s.speed : 0;
+    var isIdle = online && speedNum < 1;
+    var isOver = online && speedNum >= OVERSPEED_THRESHOLD;
+    var speed = s ? speedNum.toFixed(1) : '--';
+    var addr = s ? (s.address || '—') : '—';
+    var displayName = v.nickname || v.device_name || v.device_id;
+
+    var statusClass = !s ? 'offline' : (online ? (isOver ? 'overspeed' : (isIdle ? 'idle' : 'online')) : 'offline');
+    var labelText = !s ? 'OFFLINE' : (online ? (isOver ? 'OVERSPEED' : (isIdle ? 'IDLE' : 'LIVE')) : 'OFFLINE');
+    var labelClass = !s ? 'off' : (online ? (isOver ? 'over' : (isIdle ? 'idle' : 'on')) : 'off');
+
+    var geoLabel = getCachedGeoLabel(s && s.lat, s && s.lng);
+    if (geoLabel) addr = geoLabel;
+
+    html += '<div class="v-card ' + statusClass + (_selectedKey === key ? ' active' : '') + '" onclick="focusVehicle(\'' + key + '\')">'
+      + '<div class="v-top">'
+        + '<div style="min-width:0; flex:1;">'
+          + '<div class="v-plate">' + esc(displayName) + '</div>'
+          + '<div class="v-sub">' + esc(v.device_id) + '</div>'
+        + '</div>'
+        + '<div class="v-metric">'
+          + '<div class="v-speed-value">' + speed + '</div>'
+          + '<div class="v-speed-unit">km/h</div>'
+          + '<div class="v-status-label ' + labelClass + '">' + labelText + '</div>'
+        + '</div>'
+      + '</div>'
+      + '<div class="v-address" title="' + esc(addr) + '" data-vkey="' + esc(key) + '">📍 <span>' + esc(addr) + '</span></div>'
+      + '<div class="v-actions">'
+        + '<button class="v-action cam" onclick="event.stopPropagation(); openCamera(\'' + v.provider + '\',\'' + v.device_id + '\')" title="กล้อง">📹 กล้อง</button>'
+        + '<button class="v-action" onclick="event.stopPropagation(); openHls(\'' + v.provider + '\',\'' + v.device_id + '\',\'' + esc(displayName) + '\')" title="Stream">▶ Stream</button>'
+        + (_isAdmin ? '<button class="v-action share" onclick="event.stopPropagation(); showShareModal(\'' + v.provider + '\',\'' + v.device_id + '\',\'' + esc(displayName) + '\')" title="แชร์">🔗 แชร์</button>' : '')
+      + '</div>'
+    + '</div>';
+  });
+  el.innerHTML = html;
+
+  var ct = document.getElementById('contentTitle');
+  if (ct) ct.textContent = 'Fleet Map · ' + filtered.length + (filtered.length !== _vehicles.length ? '/' + _vehicles.length : '') + ' รถ';
+}
+
+// ============ MAP MARKERS ============
+function updateMapMarkers() {
+  var bounds = [];
+
+  _vehicles.forEach(function(v) {
+    var key = v.device_id + '_' + v.provider;
+    var s = _statuses[key];
+    if (!s || (!s.lat && !s.lng) || (s.lat === 0 && s.lng === 0)) return;
+
+    var displayName = v.nickname || v.device_name || v.device_id;
+    var online = s.online;
+    var speed = s.speed;
+    var isIdle = online && speed < 1;
+    var isOver = online && speed >= OVERSPEED_THRESHOLD;
+    var color = !online ? '#94a3b8' : (isOver ? '#dc2626' : (isIdle ? '#f59e0b' : '#16a34a'));
+    var statusText = !online ? 'OFFLINE' : (isOver ? 'OVERSPEED' : (isIdle ? 'IDLE' : 'LIVE'));
+
+    var popupHtml = '<div style="min-width:220px;">'
+      + '<div style="padding:10px 12px; background:linear-gradient(135deg,#0ea5e9,#0284c7); color:#fff; border-radius:8px 8px 0 0; margin:-10px -10px 0;">'
+        + '<div style="font-weight:700; font-size:14px;"><span style="display:inline-block; width:8px; height:8px; border-radius:50%; background:' + color + '; margin-right:6px;"></span>' + esc(displayName) + '</div>'
+        + '<div style="font-size:10px; opacity:.8; font-family:ui-monospace,monospace; margin-top:2px;">' + esc(v.device_id) + '</div>'
+      + '</div>'
+      + '<div style="padding:8px 0 4px;">'
+        + '<div style="display:flex; justify-content:space-between; padding:3px 0; font-size:12px;"><span style="color:var(--c-muted); font-weight:600;">Speed</span><span style="font-weight:700;">' + speed.toFixed(1) + ' km/h</span></div>'
+        + '<div style="display:flex; justify-content:space-between; padding:3px 0; border-top:1px dashed #e2e8f0; font-size:12px;"><span style="color:var(--c-muted); font-weight:600;">Status</span><span style="font-weight:700; color:' + color + ';">' + statusText + '</span></div>'
+        + '<div style="font-size:11px; color:#475569; margin-top:6px; padding-top:6px; border-top:1px dashed #e2e8f0;">📍 ' + esc(s.address || '—') + '</div>'
+        + '<div style="font-size:10px; color:#94a3b8; margin-top:4px;">GPS: ' + esc(s.gpsTime || '--') + '</div>'
+        + '<div style="display:flex; gap:6px; margin-top:8px;">'
+          + '<button onclick="openCamera(\'' + v.provider + '\',\'' + v.device_id + '\')" style="flex:1; padding:6px; border:none; background:#dc2626; color:#fff; border-radius:6px; font-size:11px; font-weight:600; cursor:pointer;">📹 กล้อง</button>'
+          + '<button onclick="openHls(\'' + v.provider + '\',\'' + v.device_id + '\',\'' + esc(displayName) + '\')" style="flex:1; padding:6px; border:none; background:#0ea5e9; color:#fff; border-radius:6px; font-size:11px; font-weight:600; cursor:pointer;">▶ Stream</button>'
+        + '</div>'
+      + '</div>'
+    + '</div>';
+
+    if (_markers[key]) {
+      _markers[key].setLatLng([s.lat, s.lng]);
+      _markers[key].setPopupContent(popupHtml);
+      _markers[key].setIcon(makeIcon(online, speed));
+    } else {
+      _markers[key] = L.marker([s.lat, s.lng], { icon: makeIcon(online, speed) })
+        .addTo(map).bindPopup(popupHtml);
+    }
+    bounds.push([s.lat, s.lng]);
+  });
+
+  if (bounds.length > 0 && !_selectedKey) {
+    map.fitBounds(bounds, { padding: [40, 40], maxZoom: 14 });
+  }
+
+  if (_followMode && _selectedKey && _markers[_selectedKey]) {
+    var ll = _markers[_selectedKey].getLatLng();
+    _followSuppressUntil = Date.now() + 500;
+    map.panTo(ll, { animate: true, duration: 0.6 });
+  }
+}
+
+function makeIcon(online, speed) {
+  var isIdle = online && speed < 1;
+  var isOver = online && speed >= OVERSPEED_THRESHOLD;
+  var ring = !online ? '#94a3b8' : (isOver ? '#dc2626' : (isIdle ? '#f59e0b' : '#16a34a'));
+  var pulse = '';
+  if (online && !isIdle) {
+    var dur = isOver ? '0.9s' : '1.8s';
+    pulse = '<div style="position:absolute; inset:-6px; border-radius:50%; background:' + ring + '; opacity:' + (isOver ? '0.45' : '0.3') + '; animation: mapPulse ' + dur + ' infinite;"></div>';
+  }
+  var badge = isOver
+    ? '<div style="position:absolute; top:-4px; right:-4px; width:16px; height:16px; background:#dc2626; border:2px solid #fff; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:10px; color:#fff; font-weight:900; z-index:2;">!</div>'
+    : '';
+  return L.divIcon({
+    className: '',
+    html: '<div style="position:relative; width:36px; height:36px;">'
+      + pulse
+      + '<div style="position:absolute; inset:0; background:linear-gradient(135deg,#0ea5e9,#0284c7); border:3px solid ' + ring + '; border-radius:50%; display:flex; align-items:center; justify-content:center; box-shadow:0 4px 12px rgba(14,165,233,.35); color:#fff; font-size:14px;">🚑</div>'
+      + badge
+    + '</div>',
+    iconSize: [36, 36], iconAnchor: [18, 18], popupAnchor: [0, -22]
+  });
+}
+
+function fitAllMarkers() {
+  var bounds = [];
+  Object.keys(_markers).forEach(function(k) { bounds.push(_markers[k].getLatLng()); });
+  if (bounds.length === 0) return;
+  if (bounds.length === 1) { map.setView(bounds[0], 14); return; }
+  map.fitBounds(bounds, { padding: [40, 40], maxZoom: 14 });
+}
+
+function focusVehicle(key) {
+  if (_selectedKey && key !== _selectedKey && _hospitalMarkers && _hospitalMarkers.length) {
+    clearHospitalMarkers();
+  }
+  _selectedKey = key;
+  _followMode = true;
+  var m = _markers[key];
+  if (m) {
+    _followSuppressUntil = Date.now() + 600;
+    map.setView(m.getLatLng(), 16);
+    m.openPopup();
+  }
+  updateFollowChip();
+  document.querySelectorAll('.v-card').forEach(function(c) { c.classList.remove('active'); });
+  // Re-render to apply active state
+  renderVehicleList();
+  updateHospitalButtonVisibility();
+}
+
+// ============ CAMERA / HLS ============
+function getProviderObj(providerId) {
+  var v = _vehicles.find(function(x) { return x.provider === providerId; });
+  if (v && v.gps_providers) return v.gps_providers;
+  return _providers.find(function(p) { return p.id === providerId; });
+}
+
+function openCamera(providerId, deviceId) {
+  var p = getProviderObj(providerId);
+  if (!p) return;
+  var url = gpsGetCameraUrl(p, deviceId);
+  if (url) window.open(url, 'gps_camera_' + deviceId, 'width=1100,height=850,menubar=no,toolbar=no');
+}
+
+function openHls(providerId, deviceId, name) {
+  var p = getProviderObj(providerId);
+  if (!p) return;
+  var adapter = getGpsAdapter(p.software);
+  if (!adapter || !adapter.getHlsUrl) { toast('Stream ไม่รองรับ'); return; }
+  var url = adapter.getHlsUrl(p, deviceId);
+  document.getElementById('hls-title').textContent = '📹 ' + (name || deviceId);
+  var video = document.getElementById('hlsVideo');
+
+  // Cleanup previous
+  if (_hls) { try { _hls.destroy(); } catch(e){} _hls = null; }
+
+  if (window.Hls && Hls.isSupported()) {
+    _hls = new Hls({ lowLatencyMode: true });
+    _hls.loadSource(url);
+    _hls.attachMedia(video);
+    _hls.on(Hls.Events.ERROR, function(_e, data) {
+      if (data.fatal) {
+        toast('Stream error: ' + data.type, 'error');
+      }
+    });
+  } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
+    // Safari native HLS
+    video.src = url;
+  } else {
+    // Fallback: open in new window
+    window.open(url, 'gps_hls_' + deviceId, 'width=900,height=600');
+    return;
+  }
+  openModal('hlsModal');
+}
+
+function closeHls() {
+  closeModal('hlsModal');
+  if (_hls) { try { _hls.destroy(); } catch(e){} _hls = null; }
+  var video = document.getElementById('hlsVideo');
+  if (video) { video.pause(); video.removeAttribute('src'); video.load(); }
+}
+
+// ============ SHARE MODAL ============
+function showShareModal(providerId, deviceId, vehicleName) {
+  document.getElementById('share-device-id').value = deviceId;
+  document.getElementById('share-provider-id').value = providerId;
+  document.getElementById('share-vehicle-name').value = vehicleName;
+  document.getElementById('share-vehicle-name-display').value = vehicleName;
+  document.getElementById('share-result').style.display = 'none';
+  document.getElementById('share-reason').value = '';
+  document.getElementById('share-allow-camera').checked = false;
+  document.getElementById('share-hours').value = '6';
+  document.querySelectorAll('#share-hours-group .seg-btn').forEach(function(b) {
+    b.classList.toggle('active', b.dataset.h === '6');
+  });
+  document.getElementById('btnCreateShare').disabled = false;
+  openModal('shareModal');
+}
+
+// Wire segmented hour buttons
+document.addEventListener('click', function(e) {
+  var btn = e.target.closest('#share-hours-group .seg-btn');
+  if (btn) {
+    document.querySelectorAll('#share-hours-group .seg-btn').forEach(function(b) { b.classList.remove('active'); });
+    btn.classList.add('active');
+    document.getElementById('share-hours').value = btn.dataset.h;
+  }
+  var rBtn = e.target.closest('#hospitals-radius-group .seg-btn');
+  if (rBtn) {
+    document.querySelectorAll('#hospitals-radius-group .seg-btn').forEach(function(b) { b.classList.remove('active'); });
+    rBtn.classList.add('active');
+    document.getElementById('hospitals-radius').value = rBtn.dataset.r;
+  }
+});
+
+async function createShareToken() {
+  var deviceId = document.getElementById('share-device-id').value;
+  var providerId = document.getElementById('share-provider-id').value;
+  var hours = parseInt(document.getElementById('share-hours').value);
+  var reason = document.getElementById('share-reason').value.trim();
+  if (!reason) { toast('กรุณาระบุเหตุผล', 'error'); return; }
+
+  var btn = document.getElementById('btnCreateShare');
+  btn.disabled = true;
+
+  try {
+    var token = 'TK-' + crypto.randomUUID().substring(0, 8).toUpperCase();
+    var expiresAt = new Date(Date.now() + hours * 60 * 60 * 1000).toISOString();
+    var allowCamera = document.getElementById('share-allow-camera').checked;
+
+    await _supabase.from('gps_shared_tokens').insert({
+      token: token, device_id: deviceId, provider: providerId,
+      expires_at: expiresAt,
+      created_by: (typeof getUserName === 'function' ? getUserName() : ''),
+      reason: reason, allow_camera: allowCamera
+    });
+
+    var shareUrl = window.location.origin + (CONFIG.BASE_URL || '') + '/gps/share.html?token=' + token;
+    document.getElementById('share-url').value = shareUrl;
+    document.getElementById('share-result').style.display = '';
+
+    try {
+      await _supabase.from('activity_log').insert({
+        username: (typeof getUserName === 'function' ? getUserName() : ''),
+        role: (typeof getUserRole === 'function' ? getUserRole() : ''),
+        action: 'GPS_SHARE_CREATE',
+        target: deviceId,
+        details: 'Token: ' + token + ', Hours: ' + hours + ', Reason: ' + reason + (allowCamera ? ', Camera: ON' : '')
+      });
+    } catch(_) {}
+
+    loadSharedTokens();
+    toast('สร้างลิงก์สำเร็จ', 'success');
+  } catch(e) {
+    toast('Error: ' + e.message, 'error');
+    btn.disabled = false;
+  }
+}
+
+function copyShareUrl() {
+  var input = document.getElementById('share-url');
+  input.select();
+  navigator.clipboard.writeText(input.value).then(function() {
+    toast('Copied!', 'success');
+  });
+}
+
+// ============ SHARED TOKENS ============
+async function loadVehicleNameCache() {
+  try {
+    var res = await _supabase.from('gps_vehicles').select('device_id, nickname, device_name');
+    (res.data || []).forEach(function(v) {
+      _vehicleNameCache[v.device_id] = v.nickname || v.device_name || v.device_id;
+    });
+  } catch(e) { console.warn('vehicle name cache:', e.message); }
+}
+
+function vehicleNameFor(deviceId) { return _vehicleNameCache[deviceId] || deviceId; }
+
+async function loadSharedTokens() {
+  try {
+    if (Object.keys(_vehicleNameCache).length === 0) await loadVehicleNameCache();
+    var res = await _supabase.from('gps_shared_tokens').select('*')
+      .order('created_at', { ascending: false }).limit(20);
+    var tokens = res.data || [];
+    var el = document.getElementById('tokenList');
+    var activeCount = tokens.filter(function(t) {
+      return t.status === 'Active' && new Date(t.expires_at) > new Date();
+    }).length;
+    var sc = document.getElementById('pv-shared-count');
+    if (sc) sc.textContent = activeCount;
+
+    if (tokens.length === 0) {
+      el.innerHTML = '<div class="empty-state"><div class="icon">🔗</div><div>ยังไม่มีลิงก์แชร์</div></div>';
+      return;
+    }
+    var now = new Date();
+    var html = '';
+    tokens.forEach(function(t) {
+      var expired = new Date(t.expires_at) < now;
+      var isActive = t.status === 'Active' && !expired;
+      var statusText = isActive ? 'Active' : (t.status === 'Revoked' ? 'Revoked' : 'Expired');
+      var vName = vehicleNameFor(t.device_id);
+      var expDate = new Date(t.expires_at);
+      var expStr = expDate.toLocaleString('th-TH', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' });
+      var camIcon = t.allow_camera ? ' 📹' : '';
+
+      html += '<div class="token-card' + (!isActive ? ' expired' : '') + (t.allow_camera ? ' has-camera' : '') + '">'
+        + '<div class="token-header">'
+          + '<div class="token-vehicle">🚛 ' + esc(vName) + camIcon + '</div>'
+          + '<span class="token-status ' + (isActive ? 'active' : 'expired') + '">' + statusText + '</span>'
+        + '</div>'
+        + '<div class="token-meta">'
+          + '<span class="token-id-mono">' + esc(t.token) + '</span> · ' + esc(t.reason || '-')
+          + '<br>โดย ' + esc(t.created_by || '-') + ' · หมดอายุ ' + expStr
+        + '</div>'
+        + (isActive
+            ? '<div class="token-actions">'
+                + '<button class="token-btn" onclick="copyTokenLink(\'' + esc(t.token) + '\')">📋 Copy</button>'
+                + '<button class="token-btn ' + (t.allow_camera ? 'btn-cam-on' : '') + '" onclick="toggleTokenCamera(\'' + t.id + '\',' + (t.allow_camera ? 'false' : 'true') + ')">' + (t.allow_camera ? '📹 ปิด' : '📹 เปิด') + '</button>'
+                + '<button class="token-btn btn-revoke" onclick="revokeToken(\'' + t.id + '\')">✕ ยกเลิก</button>'
+              + '</div>'
+            : '<div class="token-actions">'
+                + '<button class="token-btn btn-revoke" onclick="deleteToken(\'' + t.id + '\')">🗑 ลบ</button>'
+              + '</div>')
+        + '</div>';
+    });
+    el.innerHTML = html;
+  } catch(e) { console.error(e); }
+}
+
+function copyTokenLink(token) {
+  var url = window.location.origin + (CONFIG.BASE_URL || '') + '/gps/share.html?token=' + token;
+  navigator.clipboard.writeText(url).then(function() { toast('Copied!', 'success'); })
+    .catch(function() { prompt('คัดลอก URL:', url); });
+}
+
+async function toggleTokenCamera(id, newValue) {
+  try {
+    await _supabase.from('gps_shared_tokens').update({ allow_camera: newValue }).eq('id', id);
+    try {
+      await _supabase.from('activity_log').insert({
+        username: (typeof getUserName === 'function' ? getUserName() : ''),
+        role: (typeof getUserRole === 'function' ? getUserRole() : ''),
+        action: 'GPS_SHARE_TOGGLE_CAM',
+        target: id, details: 'Camera: ' + (newValue ? 'ON' : 'OFF')
+      });
+    } catch(_) {}
+    toast(newValue ? 'เปิดกล้องแล้ว' : 'ปิดกล้องแล้ว', 'success');
+    loadSharedTokens();
+  } catch(e) { toast('Error: ' + e.message, 'error'); }
+}
+
+async function revokeToken(id) {
+  if (!confirm('ยกเลิกลิงก์แชร์นี้?')) return;
+  try {
+    await _supabase.from('gps_shared_tokens').update({ status: 'Revoked' }).eq('id', id);
+    loadSharedTokens();
+    toast('ยกเลิกแล้ว', 'success');
+  } catch(e) { console.error(e); toast('Error', 'error'); }
+}
+
+async function deleteToken(id) {
+  if (!confirm('ลบลิงก์แชร์? ลบแล้วไม่สามารถกู้คืนได้')) return;
+  try {
+    var res = await _supabase.from('gps_shared_tokens').delete().eq('id', id);
+    if (res.error) throw res.error;
+    loadSharedTokens();
+    toast('ลบสำเร็จ', 'success');
+  } catch(e) { toast('ลบไม่สำเร็จ: ' + (e.message || ''), 'error'); }
+}
+
+// ============ PANEL VIEW SWITCH ============
+function switchPanelView(view) {
+  _panelView = view;
+  document.querySelectorAll('.subnav-item[data-view]').forEach(function(el) {
+    el.classList.toggle('active', el.dataset.view === view);
+  });
+  document.getElementById('fleetPanel').style.display = (view === 'fleet') ? '' : 'none';
+  var sp = document.getElementById('sharedPanel');
+  sp.style.display = (view === 'shared') ? 'flex' : 'none';
+  if (view === 'shared') loadSharedTokens();
+}
+
+// ============ HOSPITALS / NEARBY PLACES ============
+function updateHospitalButtonVisibility() {
+  var btn = document.getElementById('btnFindHospitals');
+  if (!btn) return;
+  var canUse = window.MapConfig && MapConfig.useGoogle && MapConfig.useGoogle();
+  var vehiclePicked = false;
+  if (_selectedKey && _statuses[_selectedKey]) {
+    var s = _statuses[_selectedKey];
+    var lat = Number(s.lat), lng = Number(s.lng);
+    vehiclePicked = !isNaN(lat) && !isNaN(lng) && !(lat === 0 && lng === 0);
+  }
+  btn.style.display = (canUse && vehiclePicked) ? '' : 'none';
+}
+
+function resolveHospitalOrigin() {
+  if (_selectedKey && _statuses[_selectedKey]) {
+    var s = _statuses[_selectedKey];
+    var lat = Number(s.lat), lng = Number(s.lng);
+    if (!isNaN(lat) && !isNaN(lng) && !(lat === 0 && lng === 0)) {
+      var v = _vehicles.find(function(x) { return (x.device_id + '_' + x.provider) === _selectedKey; });
+      return {
+        lat: lat, lng: lng,
+        label: v ? ('รถ: ' + (v.nickname || v.device_name || v.device_id)) : 'รถที่เลือก'
+      };
+    }
+  }
+  return null;
+}
+
+function getCachedGeoLabel(lat, lng) {
+  if (!lat || !lng || !window.PlacesAPI) return '';
+  var cacheKey = Number(lat).toFixed(4) + ',' + Number(lng).toFixed(4);
+  var cached = PlacesAPI._geoCache && PlacesAPI._geoCache[cacheKey];
+  if (!cached) return '';
+  return PlacesAPI.formatThaiAddress(cached);
+}
+
+// Reverse-geocode addresses for ALL vehicles in the rendered list.
+// Uses PlacesAPI cache so repeated refreshes are cheap. Updates DOM in place.
+function enrichVehicleAddresses() {
+  if (!window.PlacesAPI || !window.MapConfig || !MapConfig.useGoogle()) return;
+  document.querySelectorAll('.v-address[data-vkey]').forEach(function(div) {
+    var key = div.getAttribute('data-vkey');
+    var s = _statuses[key];
+    if (!s || !s.lat || !s.lng || (s.lat === 0 && s.lng === 0)) return;
+    PlacesAPI.reverseGeocode(s.lat, s.lng).then(function(geo) {
+      var label = PlacesAPI.formatThaiAddress(geo);
+      if (!label) return;
+      var span = div.querySelector('span');
+      if (span) span.textContent = label;
+      div.title = label + ' • ' + Number(s.lat).toFixed(5) + ', ' + Number(s.lng).toFixed(5);
+    }).catch(function(){ /* silently skip */ });
+  });
+}
+
+// Reject places whose secondary types or names clearly don't match the UI
+// category. Google's Thai Places data frequently mis-tags lodging, vet clinics,
+// opticians, and small medical clinics as primaryType=hospital.
+function filterNoiseByType(places, uiType) {
+  if (!places || !places.length) return places;
+  var globalBadTypes = {
+    'lodging':1,'hotel':1,'motel':1,'resort_hotel':1,'hostel':1,'bed_and_breakfast':1,
+    'guest_house':1,'inn':1,'rv_park':1,'campground':1,'apartment_complex':1,
+    'veterinary_care':1,'pet_store':1,'animal_hospital':1,
+    'beauty_salon':1,'hair_care':1,'spa':1,'nail_salon':1,
+    'optician':1,'eyewear_store':1,
+    'massage':1
+  };
+  var uiBadTypes = {
+    hospital:    { 'doctor':1, 'dentist':1, 'dental_clinic':1, 'physiotherapist':1, 'chiropractor':1 },
+    clinic:      { 'hospital':1 },
+    pharmacy:    {},
+    gas_station: {},
+    police:      {},
+    fire_station:{}
+  };
+  var uiBad = uiBadTypes[uiType] || {};
+  var badNameRe = /ห้องพัก|หอพัก|รีสอร์ท|รีสอร์ต|โรงแรม|hotel|hostel|resort|apartment|อพาร์ท|คอนโด|condo|B&B|guest.?house|pet|สัตว์|สัตวแพทย์|vet|นวด|massage|salon|สปา|spa|แว่น|optic|eyewear|眼镜|镜|พระเครื่อง|โชคดี.?ห้อง/i;
+  var hospitalNameRe = /^\s*(คลินิก|clinic)/i;
+  return places.filter(function(p) {
+    var types = p.types || [];
+    for (var i = 0; i < types.length; i++) {
+      if (globalBadTypes[types[i]]) return false;
+      if (uiBad[types[i]]) return false;
+    }
+    if (p.name) {
+      if (badNameRe.test(p.name)) return false;
+      if (uiType === 'hospital' && hospitalNameRe.test(p.name)) return false;
+    }
+    return true;
+  });
+}
+
+// Phase 4 — Enrich places list with road distance + ETA via Distance Matrix,
+// re-sort by ETA, and re-render. Silently falls back if API not enabled.
+// Distance Matrix limit = 25 destinations per request, so we chunk.
+async function enrichWithDistanceMatrix(places) {
+  if (!places || !places.length || !_hospitalOrigin) return;
+  if (!window.PlacesAPI || typeof PlacesAPI.getDistanceMatrix !== 'function') return;
+  var toEnrich = places.filter(function(p) { return p.roadDurationSeconds == null; });
+  if (!toEnrich.length) return;
+  var CHUNK = 25;
+  var chunks = [];
+  for (var i = 0; i < toEnrich.length; i += CHUNK) {
+    chunks.push(toEnrich.slice(i, i + CHUNK));
+  }
+  try {
+    var results = await Promise.all(chunks.map(function(ch) {
+      return PlacesAPI.getDistanceMatrix(
+        { lat: _hospitalOrigin.lat, lng: _hospitalOrigin.lng },
+        ch
+      );
+    }));
+    var flat = [].concat.apply([], results);
+    toEnrich.forEach(function(p, idx) {
+      var m = flat[idx];
+      if (m && m.status === 'OK') {
+        p.roadDistance = m.distance;
+        p.roadDistanceMeters = m.distanceMeters;
+        p.roadDuration = m.duration;
+        p.roadDurationSeconds = m.durationSeconds;
+      }
+    });
+    var sorted = places.slice();
+    sorted.sort(function(a, b) {
+      var aSec = a.roadDurationSeconds != null ? a.roadDurationSeconds : Infinity;
+      var bSec = b.roadDurationSeconds != null ? b.roadDurationSeconds : Infinity;
+      return aSec - bSec;
+    });
+    renderHospitalList(sorted);
+  } catch(e) {
+    console.warn('[DistanceMatrix] enrichment failed:', String(e && e.message || e));
+  }
+}
+
+// Append remaining (cached) results below the initial 10, then enrich new batch
+function loadMoreHospitals() {
+  if (!_hospitalAllResults || _hospitalAllResults.length <= 10) return;
+  _hospitalShowMoreAvailable = false;
+  var full = _hospitalAllResults.slice();
+  renderHospitalList(full);
+  var needEnrich = full.filter(function(h) { return h.roadDurationSeconds == null; });
+  if (needEnrich.length) enrichWithDistanceMatrix(full);
+}
+
+async function openNearestHospitalsModal() {
+  if (!window.PlacesAPI) { toast('Places API not loaded', 'error'); return; }
+  if (!MapConfig.useGoogle() || !MapConfig.getConfig().apiKey) {
+    toast('ต้องตั้งค่า Google Maps API Key ใน Admin', 'error');
+    return;
+  }
+  var origin = resolveHospitalOrigin();
+  if (!origin) { toast('กรุณาเลือกรถก่อนค้นหา', 'error'); return; }
+  clearHospitalMarkers();
+  _hospitalOrigin = origin;
+  document.getElementById('hospitals-origin-label').textContent = origin.label
+    + ' (' + Number(origin.lat).toFixed(5) + ', ' + Number(origin.lng).toFixed(5) + ')';
+  document.getElementById('hospitals-list').innerHTML = '';
+  document.getElementById('hospitals-error').style.display = 'none';
+  setSearchType('hospital');
+  openModal('hospitalsModal');
+  await runHospitalSearch();
+}
+
+function setSearchType(type) {
+  document.getElementById('hospitals-type').value = type;
+  document.querySelectorAll('#hospitals-type-group .seg-btn').forEach(function(b) {
+    b.classList.toggle('active', b.dataset.type === type);
+  });
+  document.querySelectorAll('#hospitals-emergency-group .seg-btn').forEach(function(b) {
+    b.classList.toggle('active', b.dataset.type === type);
+  });
+  var tw = document.getElementById('hospitals-text-wrap');
+  if (tw) tw.style.display = (type === 'text') ? '' : 'none';
+}
+
+async function runHospitalSearch() {
+  if (!_hospitalOrigin) return;
+  var radius = parseInt(document.getElementById('hospitals-radius').value, 10) || 5000;
+  var type = document.getElementById('hospitals-type').value || 'hospital';
+  var loading = document.getElementById('hospitals-loading');
+  var list = document.getElementById('hospitals-list');
+  var err = document.getElementById('hospitals-error');
+  loading.style.display = '';
+  list.innerHTML = '';
+  err.style.display = 'none';
+  try {
+    var results;
+    if (type === 'text') {
+      var q = (document.getElementById('hospitals-text-query').value || '').trim();
+      if (!q) {
+        loading.style.display = 'none';
+        err.textContent = 'กรุณาพิมพ์คำค้น';
+        err.style.display = '';
+        return;
+      }
+      results = await PlacesAPI.searchText({ query: q, lat: _hospitalOrigin.lat, lng: _hospitalOrigin.lng, radius: radius, maxResults: 10 });
+    } else {
+      var primaryTypes = (type === 'clinic') ? ['doctor', 'dentist'] : [type];
+      results = await PlacesAPI.searchNearby({
+        lat: _hospitalOrigin.lat, lng: _hospitalOrigin.lng,
+        radius: radius, primaryTypes: primaryTypes, maxResults: 20
+      });
+      results = filterNoiseByType(results, type);
+    }
+    _hospitalAllResults = results || [];
+    var firstBatch = _hospitalAllResults.slice(0, 10);
+    _hospitalShowMoreAvailable = _hospitalAllResults.length > 10;
+    loading.style.display = 'none';
+    renderHospitalList(firstBatch);
+    // Phase 4: enrich first batch with Distance Matrix road distance + ETA,
+    // re-sort by ETA, and re-render with "เร็วสุด" badge on the fastest.
+    enrichWithDistanceMatrix(firstBatch);
+  } catch(e) {
+    loading.style.display = 'none';
+    err.textContent = 'ค้นหาไม่สำเร็จ: ' + (e.message || String(e)).substring(0, 200);
+    err.style.display = '';
+  }
+}
+
+function renderHospitalList(hospitals) {
+  var list = document.getElementById('hospitals-list');
+  if (!hospitals.length) {
+    list.innerHTML = '<div style="text-align:center; padding:30px 0; color:var(--c-muted);">ไม่พบผลลัพธ์ในรัศมีนี้</div>';
+    return;
+  }
+  // If any hospital has road duration → already enriched & sorted by ETA.
+  var hasRoadData = hospitals.some(function(h) { return h.roadDurationSeconds != null; });
+  var html = '';
+  hospitals.forEach(function(h, idx) {
+    var distText = h.roadDistance
+      ? ('<span style="font-weight:600; color:#dc2626;">🛣 ' + esc(h.roadDistance) + '</span>')
+      : ('📐 ' + (window.PlacesAPI && PlacesAPI.formatDistance ? PlacesAPI.formatDistance(h.distanceM) : (h.distanceM + 'm')) + ' (เส้นตรง)');
+    var etaText = h.roadDuration
+      ? ' <span style="font-weight:700; color:#16a34a;">⏱ ' + esc(h.roadDuration) + '</span>'
+      : '';
+    var rating = h.rating ? (' ⭐ ' + h.rating.toFixed(1) + ' (' + (h.ratingCount || 0) + ')') : '';
+    var phoneBtn = h.phone ? '<a href="tel:' + esc(h.phone) + '" class="btn-ghost" style="padding:4px 10px; font-size:11px;">📞 ' + esc(h.phone) + '</a>' : '';
+    var gmapBtn = h.googleMapsUri ? '<a href="' + esc(h.googleMapsUri) + '" target="_blank" class="btn-ghost" style="padding:4px 10px; font-size:11px;">🗺 Google Maps</a>' : '';
+    var fastestBadge = (hasRoadData && idx === 0 && h.roadDuration)
+      ? ' <span style="background:linear-gradient(135deg,#16a34a,#15803d); color:#fff; padding:2px 8px; border-radius:10px; font-size:10px; font-weight:700; box-shadow:0 2px 6px rgba(22,163,74,0.4);">⚡ เร็วสุด</span>'
+      : '';
+    var rowExtra = (hasRoadData && idx === 0)
+      ? ' style="border:2px solid #16a34a; background:#f0fdf4;"'
+      : '';
+    html += '<div class="hosp-row"' + rowExtra + '>'
+      + '<div style="font-weight:700; font-size:13px;">' + (idx + 1) + '. ' + esc(h.name) + fastestBadge + '</div>'
+      + '<div style="font-size:11px; color:var(--c-muted); margin-top:2px;">' + esc(h.address || '') + '</div>'
+      + '<div style="margin-top:6px; font-size:11px; color:#475569;">' + distText + etaText + rating + '</div>'
+      + '<div style="margin-top:8px; display:flex; gap:6px; flex-wrap:wrap;">'
+        + '<button class="btn-primary" style="padding:4px 10px; font-size:11px;" onclick="plotHospitalMarker(' + idx + ')">📍 บนแผนที่</button>'
+        + phoneBtn + gmapBtn
+      + '</div>'
+    + '</div>';
+  });
+  // "ค้นหาเพิ่ม" button — show remaining cached results without a new API call
+  if (_hospitalShowMoreAvailable && hospitals.length < _hospitalAllResults.length) {
+    var remaining = _hospitalAllResults.length - hospitals.length;
+    html += '<div style="text-align:center; padding:8px 0 4px;">'
+      + '<button class="btn-ghost" style="padding:6px 16px; font-size:12px; font-weight:600;" onclick="loadMoreHospitals()">'
+      + '➕ ค้นหาเพิ่ม (อีก ' + remaining + ' รายการ)'
+      + '</button></div>';
+  }
+  list.innerHTML = html;
+  window._hospitalsCache = hospitals;
+}
+
+function plotHospitalMarker(idx) {
+  var h = (window._hospitalsCache || [])[idx];
+  if (!h) return;
+  var mk = L.marker([h.lat, h.lng], {
+    icon: L.divIcon({
+      className: '',
+      html: '<div style="width:32px; height:32px; background:#dc2626; border:3px solid #fff; border-radius:50%; display:flex; align-items:center; justify-content:center; box-shadow:0 4px 12px rgba(220,38,38,.4); color:#fff; font-size:14px;">🏥</div>',
+      iconSize: [32, 32], iconAnchor: [16, 16]
+    })
+  }).addTo(map).bindPopup('<b>' + esc(h.name) + '</b><br>' + esc(h.address || ''));
+  _hospitalMarkers.push(mk);
+  closeModal('hospitalsModal');
+  map.setView([h.lat, h.lng], 16);
+  mk.openPopup();
+}
+
+function clearHospitalMarkers() {
+  _hospitalMarkers.forEach(function(m) { try { map.removeLayer(m); } catch(_){} });
+  _hospitalMarkers = [];
+}
+
+// ============ MOBILE BOTTOM SHEET (Drag) ============
+(function initBottomSheet() {
+  if (!isMobile()) return;
+  var panel = document.getElementById('sidePanel');
+  var handle = document.getElementById('sheetHandle');
+  if (!panel || !handle) return;
+
+  var startY = 0, startMax = 0, dragging = false;
+
+  function onStart(e) {
+    dragging = true;
+    startY = (e.touches ? e.touches[0].clientY : e.clientY);
+    startMax = panel.getBoundingClientRect().height;
+    panel.style.transition = 'none';
+  }
+  function onMove(e) {
+    if (!dragging) return;
+    var y = (e.touches ? e.touches[0].clientY : e.clientY);
+    var dy = startY - y;
+    var newH = Math.max(80, Math.min(window.innerHeight * 0.85, startMax + dy));
+    panel.style.maxHeight = newH + 'px';
+  }
+  function onEnd() {
+    if (!dragging) return;
+    dragging = false;
+    panel.style.transition = '';
+    var h = panel.getBoundingClientRect().height;
+    var vh = window.innerHeight;
+    if (h < vh * 0.2) panel.style.maxHeight = '130px';
+    else if (h > vh * 0.6) panel.style.maxHeight = '80vh';
+    else panel.style.maxHeight = '50vh';
+    setTimeout(function() { if (map.invalidateSize) map.invalidateSize(); }, 240);
+  }
+  handle.addEventListener('touchstart', onStart, { passive: true });
+  handle.addEventListener('mousedown', onStart);
+  window.addEventListener('touchmove', onMove, { passive: true });
+  window.addEventListener('mousemove', onMove);
+  window.addEventListener('touchend', onEnd);
+  window.addEventListener('mouseup', onEnd);
+})();
+
+// ============ START ============
+document.addEventListener('DOMContentLoaded', init);
+</script>
+
+</body>
+</html>

@@ -1527,6 +1527,11 @@ function toggleDnr(item) {
         if (cb.checked) otherInput.classList.remove('d-none');
         else otherInput.classList.add('d-none');
     }
+    // Notify parent (V2 transport form) — flips NR Status to DNR
+    var anyDnr = !!document.querySelector('.dnr-item input:checked');
+    if (anyDnr && window.parent && window.parent !== window) {
+        try { window.parent.postMessage({ type: 'CONSENT_DNR' }, '*'); } catch(_){}
+    }
     validateForm();
 }
 

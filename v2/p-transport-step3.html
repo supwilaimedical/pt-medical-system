@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>V2 — Transport Step 3: ขณะนำส่ง</title>
+<link rel="stylesheet" href="preview.css">
+</head>
+<body>
+
+<header class="preview-header">
+  <div class="preview-header-inner">
+    <div>
+      <h1 class="preview-title">📝 Transport Step 3 — ขณะนำส่ง</h1>
+      <p class="preview-sub"><a href="preview.html" style="color:#0369a1;">← Launcher</a> · <a href="p-transport-step2.html" style="color:#0369a1;">← Step 2</a> · <a href="p-transport-subforms.html" style="color:#0369a1;">Sub-forms</a></p>
+    </div>
+    <span class="badge-pill warn">DESIGN ONLY</span>
+  </div>
+</header>
+
+<div class="preview-wrap">
+
+  <!-- MOBILE -->
+  <div>
+    <div class="preview-label">📱 Mobile · Step 3</div>
+    <div class="device-frame">
+      <div class="device-screen">
+
+        <div class="topbar">
+          <a href="p-transport-list.html" class="icon-btn" title="กลับเคสทั้งหมด" style="display:flex; align-items:center; gap:2px; padding:0 8px; width:auto;">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:18px; height:18px;"><path d="M15 6l-6 6 6 6"/></svg>
+            <span style="font-size:12px; font-weight:600;">เคส</span>
+          </a>
+          <div style="flex:1; min-width:0;">
+            <div style="font-weight:600; font-size:13px; line-height:1.2;">TR-047 · สมชาย ใจดี</div>
+            <div style="font-size:10px; color:var(--c-muted);">Step 3 · บันทึกระหว่างนำส่ง</div>
+          </div>
+          <button class="icon-btn"><svg viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="5" r="1.8"/><circle cx="12" cy="12" r="1.8"/><circle cx="12" cy="19" r="1.8"/></svg></button>
+        </div>
+
+        <div class="tl-bar">
+          <span class="tl-icon">⏱</span>
+          <div class="tl-step"><span class="tl-dot done"></span><span class="tl-label">Disp</span><span class="tl-time">14:32</span></div>
+          <span class="tl-arrow">━</span>
+          <div class="tl-step"><span class="tl-dot done"></span><span class="tl-label">Scene</span><span class="tl-time">14:38</span><span class="tl-dur">+6m</span></div>
+          <span class="tl-arrow">━</span>
+          <div class="tl-step"><span class="tl-dot done"></span><span class="tl-label">Depart</span><span class="tl-time">14:48</span><span class="tl-dur">+10m</span></div>
+          <span class="tl-arrow">━</span>
+          <div class="tl-step active"><span class="tl-dot active"></span><span class="tl-label">Hosp</span><span class="tl-pending-time">--:--</span><button class="tl-now-btn">Now</button></div>
+        </div>
+        <div style="background:#fff; border-bottom:1px solid var(--c-border); display:flex; flex-shrink:0;">
+          <button style="flex:1; padding:8px 4px; font-size:12px; color:#64748b; background:none; border:none; cursor:pointer;">1. ข้อมูล</button>
+          <button style="flex:1; padding:8px 4px; font-size:12px; color:#64748b; background:none; border:none; cursor:pointer;">2. ประเมิน</button>
+          <button style="flex:1; padding:8px 4px; font-size:12px; font-weight:600; color:#0369a1; border-bottom:2px solid #0ea5e9; background:none; border-top:none; border-left:none; border-right:none; cursor:pointer;">3. นำส่ง</button>
+        </div>
+
+        <main style="flex:1; overflow-y:auto; padding:10px; padding-bottom:80px; background:var(--c-bg);">
+
+          <!-- Summary banner -->
+          <div style="background:linear-gradient(135deg,#0ea5e9,#0284c7); color:#fff; padding:10px 12px; border-radius:10px; margin-bottom:10px;">
+            <div style="font-size:11px; opacity:.9;">สรุปสถานะ (จาก Step 2)</div>
+            <div style="display:flex; flex-wrap:wrap; gap:4px; margin-top:6px;">
+              <span style="background:rgba(255,255,255,.25); padding:2px 8px; border-radius:6px; font-size:11px; font-weight:600;">Airway: Open</span>
+              <span style="background:rgba(255,255,255,.25); padding:2px 8px; border-radius:6px; font-size:11px; font-weight:600;">O2: 3 LPM Nasal</span>
+              <span style="background:rgba(255,255,255,.25); padding:2px 8px; border-radius:6px; font-size:11px; font-weight:600;">IV: 2 lines</span>
+              <span style="background:rgba(255,255,255,.25); padding:2px 8px; border-radius:6px; font-size:11px; font-weight:600;">GCS: 15</span>
+            </div>
+          </div>
+
+          <!-- IV Pre recap -->
+          <div class="section-card">
+            <div class="section-header" style="background:#f8fafc;"><div class="section-num" style="background:#94a3b8;">📋</div><div class="section-title" style="font-size:13px;">IV Lines (Pre) — read-only</div></div>
+            <div class="section-body" style="padding:8px;">
+              <div style="font-size:11px; color:#475569;">#1 NSS 1000ml @100/hr · #2 5%DW + ASA @50/hr</div>
+            </div>
+          </div>
+
+          <!-- Equipment -->
+          <div class="section-card">
+            <div class="section-header"><div class="section-num">A</div><div class="section-title">อุปกรณ์ที่ใช้</div></div>
+            <div class="section-body">
+              <div style="display:grid; grid-template-columns:1fr 1fr; gap:6px;">
+                <label style="font-size:13px; padding:6px 8px; background:#f8fafc; border-radius:6px;"><input type="checkbox" style="width:14px;"> Spinal Board</label>
+                <label style="font-size:13px; padding:6px 8px; background:#f8fafc; border-radius:6px;"><input type="checkbox" style="width:14px;"> Scoop</label>
+                <label style="font-size:13px; padding:6px 8px; background:#f8fafc; border-radius:6px;"><input type="checkbox" style="width:14px;"> Vacuum Mat</label>
+                <label style="font-size:13px; padding:6px 8px; background:#e0f2fe; border-radius:6px;"><input type="checkbox" style="width:14px;" checked> Monitor/Defib</label>
+                <label style="font-size:13px; padding:6px 8px; background:#f8fafc; border-radius:6px;"><input type="checkbox" style="width:14px;"> ECMO</label>
+                <label style="font-size:13px; padding:6px 8px; background:#f8fafc; border-radius:6px;"><input type="checkbox" style="width:14px;"> อื่นๆ</label>
+              </div>
+            </div>
+          </div>
+
+          <!-- Transport IVs -->
+          <div class="section-card">
+            <div class="section-header"><div class="section-num">B</div><div class="section-title">สารน้ำ/ยา ระหว่างนำส่ง</div><span class="flag-chip ok" style="margin-left:auto;">1</span></div>
+            <div class="section-body" style="padding:10px;">
+              <div style="background:#f0f9ff; border:1px solid #bae6fd; border-radius:6px; padding:8px; margin-bottom:8px;">
+                <div style="display:flex; justify-content:space-between;"><strong style="font-size:13px;">#1 · NTG drip</strong><button class="kebab-btn" style="width:24px; height:24px;"><svg viewBox="0 0 24 24" fill="currentColor" style="width:14px; height:14px;"><circle cx="12" cy="5" r="1.8"/><circle cx="12" cy="12" r="1.8"/><circle cx="12" cy="19" r="1.8"/></svg></button></div>
+                <div style="font-size:11px; color:#475569; margin-top:2px;">ผสม 50mg/100ml D5W · 5 mcg/min · เริ่ม 14:38</div>
+              </div>
+              <button class="btn-ghost" style="width:100%; padding:8px;">+ เพิ่มรายการ</button>
+            </div>
+          </div>
+
+          <!-- Vitals Log -->
+          <div class="section-card">
+            <div class="section-header" style="background:#0f172a; color:#fff;"><div class="section-num" style="background:#dc2626;">📊</div><div class="section-title" style="color:#fff;">บันทึกสัญญาณชีพ</div></div>
+            <div style="background:#0f172a; color:#fff; padding:10px;">
+              <div style="display:flex; gap:6px; margin-bottom:10px;">
+                <button class="btn-danger" style="flex:1; padding:6px; font-size:12px;">⚠ + Arrest</button>
+                <button style="flex:1; padding:6px; background:#16a34a; color:#fff; border:none; border-radius:6px; font-size:12px; font-weight:600;">+ Vital</button>
+              </div>
+              <table style="width:100%; font-size:11px; color:#f1f5f9;">
+                <thead style="background:#1e293b;">
+                  <tr><th style="padding:6px; text-align:left;">เวลา</th><th>BP</th><th>PR</th><th>SpO2</th><th></th></tr>
+                </thead>
+                <tbody>
+                  <tr style="border-bottom:1px solid #334155;"><td style="padding:6px;">14:35</td><td style="text-align:center;">140/90</td><td style="text-align:center;">92</td><td style="text-align:center;">96</td><td><button style="background:none; border:none; color:#94a3b8; cursor:pointer;">✕</button></td></tr>
+                  <tr style="border-bottom:1px solid #334155;"><td style="padding:6px;">14:42</td><td style="text-align:center;">135/85</td><td style="text-align:center;">88</td><td style="text-align:center;">98</td><td><button style="background:none; border:none; color:#94a3b8; cursor:pointer;">✕</button></td></tr>
+                  <tr><td style="padding:6px;">14:50</td><td style="text-align:center;">130/82</td><td style="text-align:center;">85</td><td style="text-align:center;">99</td><td><button style="background:none; border:none; color:#94a3b8; cursor:pointer;">✕</button></td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- Nurse Note -->
+          <div class="section-card">
+            <div class="section-header"><div class="section-num">C</div><div class="section-title">บันทึกอาการ/การพยาบาล</div></div>
+            <div class="section-body">
+              <textarea rows="6" style="width:100%; padding:10px; font-size:13px; border:1px solid var(--c-border); border-radius:8px; font-family:inherit;">14:35 ผู้ป่วยรู้สึกตัวดี ตอบโต้ได้ ปวดแน่นหน้าอกระดับ 5/10
+14:42 อาการคงที่ ให้ NTG drip 5 mcg/min
+14:50 อาการดีขึ้น Pain ลดเหลือ 3/10</textarea>
+            </div>
+          </div>
+
+          <!-- Refer Docs -->
+          <div class="section-card">
+            <div class="section-header"><div class="section-num">D</div><div class="section-title">เอกสารแนบ Refer</div><span class="flag-chip" style="margin-left:auto;">2/5</span></div>
+            <div class="section-body">
+              <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:8px;">
+                <div style="background:#f8fafc; border:1px solid var(--c-border); border-radius:8px; padding:8px; text-align:center;"><div style="font-size:32px;">📄</div><div style="font-size:11px; margin-top:4px;">refer-form.pdf</div></div>
+                <div style="background:#f8fafc; border:1px solid var(--c-border); border-radius:8px; padding:8px; text-align:center;"><div style="font-size:32px;">🖼️</div><div style="font-size:11px; margin-top:4px;">EKG-12-lead.jpg</div></div>
+              </div>
+              <button class="btn-ghost" style="width:100%; padding:8px;">📎 อัปโหลดไฟล์ (เหลือ 3)</button>
+            </div>
+          </div>
+
+          <!-- Timeline (EMS) -->
+          <div class="section-card">
+            <div class="section-header"><div class="section-num" style="background:#7c3aed;">⏱</div><div class="section-title">Timeline (EMS)</div></div>
+            <div class="section-body">
+              <div style="display:flex; flex-direction:column; gap:6px;">
+                <div style="display:flex; align-items:center; gap:8px;"><span style="font-size:12px; flex:1;">Dispatch</span><input type="time" value="14:32" style="font-size:12px; padding:4px 8px; width:90px;"><button class="btn-ghost" style="padding:3px 8px; font-size:11px;">Now</button></div>
+                <div style="display:flex; align-items:center; gap:8px;"><span style="font-size:12px; flex:1;">Arrive Scene</span><input type="time" value="14:38" style="font-size:12px; padding:4px 8px; width:90px;"><button class="btn-ghost" style="padding:3px 8px; font-size:11px;">Now</button></div>
+                <div style="display:flex; align-items:center; gap:8px;"><span style="font-size:12px; flex:1;">Depart Scene</span><input type="time" value="14:48" style="font-size:12px; padding:4px 8px; width:90px;"><button class="btn-ghost" style="padding:3px 8px; font-size:11px;">Now</button></div>
+                <div style="display:flex; align-items:center; gap:8px;"><span style="font-size:12px; flex:1;">Arrive Hospital</span><input type="time" style="font-size:12px; padding:4px 8px; width:90px;"><button class="btn-ghost" style="padding:3px 8px; font-size:11px;">Now</button></div>
+              </div>
+              <div style="margin-top:8px; padding:6px; background:#f0f9ff; border-radius:6px; font-size:11px; color:#0369a1; text-align:center;">⏱ Scene→Depart: 10 นาที · ทั้งหมด: ยังไม่จบ</div>
+            </div>
+          </div>
+
+        </main>
+
+        <div style="position:absolute; bottom:0; left:0; right:0; background:#fff; border-top:1px solid var(--c-border); padding:8px 12px; z-index:30;">
+          <div style="font-size:10px; color:#16a34a; text-align:center; margin-bottom:4px;">✓ Auto-saved 14:50</div>
+          <div style="display:flex; gap:5px;">
+            <button class="btn-ghost" style="padding:10px 10px;">← ก่อน</button>
+            <button class="btn-primary" style="flex:1; padding:10px; background:#16a34a;">💾 บันทึก</button>
+            <button class="btn-ghost" style="padding:10px 10px;">🖨️</button>
+            <button class="btn-primary" style="padding:10px 14px;">✓ ปิดเคส</button>
+          </div>
+        </div>
+
+      </div>
+    </div>
+    <p class="preview-hint">Banner สรุป Step 2 · Vitals Log dark theme · Refer docs gallery</p>
+  </div>
+
+  <!-- DESKTOP -->
+  <div>
+    <div class="preview-label">🖥️ Desktop · Step 3</div>
+    <div class="desktop-frame">
+      <div class="desktop-screen">
+        <div class="desktop-3col">
+
+          <aside class="col-nav" id="dNav">
+            <div style="padding:12px 0; justify-content:center; border-bottom:1px solid var(--c-border); display:flex;"><div style="width:32px; height:32px; border-radius:8px; background:linear-gradient(135deg,#0ea5e9,#0284c7); color:#fff; display:flex; align-items:center; justify-content:center; font-weight:700; font-size:13px; cursor:pointer;" onclick="toggleNav()">PT</div></div>
+            <nav style="flex:1; padding:8px 0;">
+              <a class="nav-item active" title="Transport"><span class="nav-icon">🚑</span><span class="nav-label">Transport</span></a>
+              <a class="nav-item" title="FirstAid"><span class="nav-icon">🩹</span><span class="nav-label">FirstAid</span></a>
+              <a class="nav-item" title="Location"><span class="nav-icon">🗺️</span><span class="nav-label">Location</span></a>
+              <a class="nav-item" title="GPS"><span class="nav-icon">🛰️</span><span class="nav-label">GPS</span></a>
+            </nav>
+          </aside>
+
+          <aside class="col-subnav">
+            <div style="padding:8px 14px; border-bottom:1px solid var(--c-border); background:#f1f5f9;">
+              <a href="p-transport-list.html" style="font-size:12px; color:#0369a1; font-weight:600;">← เคสทั้งหมด (Active)</a>
+            </div>
+            <div style="padding:10px 14px; border-bottom:1px solid var(--c-border);">
+              <div style="font-weight:700; font-size:13px;">TR-047/2569</div>
+              <div style="font-size:11px; color:var(--c-muted);">สมชาย ใจดี · ALS · Resus</div>
+            </div>
+            <div style="flex:1; overflow-y:auto;">
+              <div class="subnav-section">Step (Jump to)</div>
+              <div class="subnav-item"><span>1️⃣ ข้อมูลทั่วไป</span><span class="badge" style="background:#dcfce7; color:#166534;">✓</span></div>
+              <div class="subnav-item"><span>2️⃣ ประเมินร่างกาย</span><span class="badge" style="background:#dcfce7; color:#166534;">✓</span></div>
+              <div class="subnav-item active"><span>3️⃣ ขณะนำส่ง</span><span class="badge">●</span></div>
+
+              <div class="subnav-section">Sub-form (เลี่ยง modal)</div>
+              <div class="subnav-item"><span>📝 หนังสือยินยอม</span><span class="badge danger">!</span></div>
+              <div class="subnav-item"><span>📊 V/S แรกรับ</span></div>
+              <div class="subnav-item"><span>💉 IV Lines (Pre)</span></div>
+              <div class="subnav-item"><span>💉 IV Lines (Transport)</span><span class="badge">1</span></div>
+              <div class="subnav-item active"><span>📈 Vitals Log</span><span class="badge">3</span></div>
+              <div class="subnav-item"><span>📎 เอกสาร Refer</span><span class="badge">2/5</span></div>
+
+              <div class="subnav-section">Action</div>
+              <div class="subnav-item" style="font-size:12px;"><span>🖨️ พิมพ์ใบนำส่ง</span></div>
+              <div class="subnav-item" style="font-size:12px;"><span>🔗 Public Link</span></div>
+              <div class="subnav-item" style="font-size:12px; color:#16a34a;"><span>✓ ปิดเคส</span></div>
+            </div>
+          </aside>
+
+          <section class="col-content">
+            <div class="col-header">
+              <div><div style="font-weight:700; font-size:14px;">Step 3: ขณะนำส่ง</div><div style="font-size:11px; color:var(--c-muted);">Auto-saved 14:50 · กำลังนำส่ง 18 นาที</div></div>
+              <div style="display:flex; gap:6px;"><button class="btn-ghost">บันทึก</button><button class="btn-ghost">🖨️ พิมพ์</button><button class="btn-primary">✓ ปิดเคส</button></div>
+            </div>
+            <div class="tl-bar">
+              <span class="tl-icon">⏱ EMS Timeline</span>
+              <div class="tl-step"><span class="tl-dot done"></span><span class="tl-label">Dispatch</span><span class="tl-time">14:32</span></div>
+              <span class="tl-arrow">━━</span>
+              <div class="tl-step"><span class="tl-dot done"></span><span class="tl-label">Arr.Scene</span><span class="tl-time">14:38</span><span class="tl-dur">+6m</span></div>
+              <span class="tl-arrow">━━</span>
+              <div class="tl-step"><span class="tl-dot done"></span><span class="tl-label">Depart</span><span class="tl-time">14:48</span><span class="tl-dur">+10m</span></div>
+              <span class="tl-arrow">━━</span>
+              <div class="tl-step active"><span class="tl-dot active"></span><span class="tl-label">Arr.Hospital</span><span class="tl-pending-time">--:--</span><button class="tl-now-btn">Now</button></div>
+            </div>
+            <div class="col-body" style="padding:14px;">
+
+              <!-- Summary banner -->
+              <div style="background:linear-gradient(135deg,#0ea5e9,#0284c7); color:#fff; padding:10px 14px; border-radius:10px; margin-bottom:10px; display:flex; flex-wrap:wrap; gap:6px; align-items:center;">
+                <strong style="font-size:13px;">สรุป (จาก Step 2):</strong>
+                <span style="background:rgba(255,255,255,.25); padding:2px 10px; border-radius:6px; font-size:11px;">Airway: Open</span>
+                <span style="background:rgba(255,255,255,.25); padding:2px 10px; border-radius:6px; font-size:11px;">O2: 3 LPM Nasal</span>
+                <span style="background:rgba(255,255,255,.25); padding:2px 10px; border-radius:6px; font-size:11px;">IV: 2 lines · NSS, 5%DW+ASA</span>
+                <span style="background:rgba(255,255,255,.25); padding:2px 10px; border-radius:6px; font-size:11px;">GCS: 15</span>
+                <span style="background:rgba(255,255,255,.25); padding:2px 10px; border-radius:6px; font-size:11px;">Pain: 5/10</span>
+              </div>
+
+              <!-- Equipment + Transport IVs -->
+              <div style="display:grid; grid-template-columns:1fr 1.5fr; gap:10px; margin-bottom:10px;">
+                <div class="section-card" style="margin-bottom:0;">
+                  <div class="section-header"><div class="section-num">A</div><div class="section-title">อุปกรณ์</div></div>
+                  <div class="section-body" style="padding:10px;">
+                    <div style="display:grid; grid-template-columns:1fr 1fr; gap:5px; font-size:12px;">
+                      <label><input type="checkbox" style="width:14px;"> Spinal Board</label>
+                      <label><input type="checkbox" style="width:14px;"> Scoop</label>
+                      <label><input type="checkbox" style="width:14px;"> Vacuum Mat</label>
+                      <label><input type="checkbox" style="width:14px;" checked> Monitor/Defib</label>
+                      <label><input type="checkbox" style="width:14px;"> ECMO</label>
+                      <label><input type="checkbox" style="width:14px;"> อื่นๆ</label>
+                    </div>
+                  </div>
+                </div>
+                <div class="section-card" style="margin-bottom:0;">
+                  <div class="section-header"><div class="section-num">B</div><div class="section-title">สารน้ำ/ยา ระหว่างนำส่ง</div><button class="btn-primary" style="margin-left:auto; padding:3px 8px; font-size:11px;">+</button></div>
+                  <div class="section-body" style="padding:10px;">
+                    <div style="background:#f0f9ff; padding:8px; border-radius:6px; font-size:12px;"><strong>#1 · NTG drip</strong> · ผสม 50mg/100ml D5W · 5 mcg/min · เริ่ม 14:38</div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Vitals Log -->
+              <div class="section-card">
+                <div class="section-header" style="background:#0f172a; color:#fff;"><div class="section-num" style="background:#dc2626;">📊</div><div class="section-title" style="color:#fff;">บันทึกสัญญาณชีพ</div><div style="margin-left:auto; display:flex; gap:6px;"><button class="btn-danger" style="padding:5px 12px; font-size:12px;">⚠ + Arrest</button><button style="padding:5px 12px; background:#16a34a; color:#fff; border:none; border-radius:6px; font-size:12px; font-weight:600;">+ Vital</button></div></div>
+                <div style="background:#0f172a; color:#fff; padding:0;">
+                  <table style="width:100%; font-size:12px;">
+                    <thead style="background:#1e293b;">
+                      <tr><th style="padding:8px; text-align:left;">เวลา</th><th>BP</th><th>PR</th><th>RR</th><th>SpO2</th><th>Temp</th><th>DTX</th><th>Pain</th><th>หมายเหตุ</th><th></th></tr>
+                    </thead>
+                    <tbody>
+                      <tr style="border-bottom:1px solid #334155;"><td style="padding:8px;">14:35</td><td style="text-align:center;">140/90</td><td style="text-align:center;">92</td><td style="text-align:center;">20</td><td style="text-align:center;">96</td><td style="text-align:center;">37.2</td><td style="text-align:center;">110</td><td style="text-align:center;">5</td><td style="font-size:11px; color:#cbd5e1;">บันทึกแรกรับ</td><td><button style="background:none; border:none; color:#94a3b8;">✕</button></td></tr>
+                      <tr style="border-bottom:1px solid #334155;"><td style="padding:8px;">14:42</td><td style="text-align:center;">135/85</td><td style="text-align:center;">88</td><td style="text-align:center;">18</td><td style="text-align:center;">98</td><td style="text-align:center;">37.0</td><td style="text-align:center;">-</td><td style="text-align:center;">4</td><td style="font-size:11px; color:#cbd5e1;">หลังให้ NTG</td><td><button style="background:none; border:none; color:#94a3b8;">✕</button></td></tr>
+                      <tr><td style="padding:8px;">14:50</td><td style="text-align:center;">130/82</td><td style="text-align:center;">85</td><td style="text-align:center;">18</td><td style="text-align:center;">99</td><td style="text-align:center;">37.0</td><td style="text-align:center;">-</td><td style="text-align:center; color:#16a34a;">3</td><td style="font-size:11px; color:#cbd5e1;">อาการดีขึ้น</td><td><button style="background:none; border:none; color:#94a3b8;">✕</button></td></tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+
+              <!-- Nurse Note + Refer Docs -->
+              <div style="display:grid; grid-template-columns:1.5fr 1fr; gap:10px; margin-bottom:10px;">
+                <div class="section-card" style="margin-bottom:0;">
+                  <div class="section-header"><div class="section-num">C</div><div class="section-title">Nurse Note</div></div>
+                  <div class="section-body"><textarea rows="5" style="width:100%; padding:10px; font-size:13px; border:1px solid var(--c-border); border-radius:8px; font-family:inherit;">14:35 ผู้ป่วยรู้สึกตัวดี ตอบโต้ได้ ปวดแน่นหน้าอกระดับ 5/10
+14:42 อาการคงที่ ให้ NTG drip 5 mcg/min
+14:50 อาการดีขึ้น Pain ลดเหลือ 3/10</textarea></div>
+                </div>
+                <div class="section-card" style="margin-bottom:0;">
+                  <div class="section-header"><div class="section-num">D</div><div class="section-title">Refer Docs</div><span class="flag-chip" style="margin-left:auto;">2/5</span></div>
+                  <div class="section-body" style="padding:10px;">
+                    <div style="display:grid; grid-template-columns:1fr 1fr; gap:6px; margin-bottom:6px;">
+                      <div style="background:#f8fafc; border:1px solid var(--c-border); border-radius:6px; padding:6px; text-align:center;"><div style="font-size:24px;">📄</div><div style="font-size:10px; margin-top:2px;">refer-form.pdf</div></div>
+                      <div style="background:#f8fafc; border:1px solid var(--c-border); border-radius:6px; padding:6px; text-align:center;"><div style="font-size:24px;">🖼️</div><div style="font-size:10px; margin-top:2px;">EKG-12.jpg</div></div>
+                    </div>
+                    <button class="btn-ghost" style="width:100%; padding:6px; font-size:12px;">📎 + ไฟล์ (เหลือ 3)</button>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Timeline -->
+              <div class="section-card">
+                <div class="section-header"><div class="section-num" style="background:#7c3aed;">⏱</div><div class="section-title">Timeline (EMS)</div></div>
+                <div class="section-body">
+                  <div style="display:grid; grid-template-columns:repeat(4,1fr); gap:8px;">
+                    <div style="background:#f0f9ff; padding:8px; border-radius:6px;"><div style="font-size:11px; color:var(--c-muted);">Dispatch</div><div style="font-weight:700; font-size:14px; margin-top:2px;">14:32</div></div>
+                    <div style="background:#f0f9ff; padding:8px; border-radius:6px;"><div style="font-size:11px; color:var(--c-muted);">Arrive Scene</div><div style="font-weight:700; font-size:14px; margin-top:2px;">14:38 <span style="font-size:11px; color:#16a34a;">(+6m)</span></div></div>
+                    <div style="background:#f0f9ff; padding:8px; border-radius:6px;"><div style="font-size:11px; color:var(--c-muted);">Depart Scene</div><div style="font-weight:700; font-size:14px; margin-top:2px;">14:48 <span style="font-size:11px; color:#16a34a;">(+10m)</span></div></div>
+                    <div style="background:#fff7ed; padding:8px; border-radius:6px;"><div style="font-size:11px; color:#92400e;">Arrive Hospital</div><div style="display:flex; gap:4px; margin-top:2px;"><input type="time" style="font-size:12px; padding:4px;"><button class="btn-primary" style="padding:4px 8px; font-size:11px;">Now</button></div></div>
+                  </div>
+                </div>
+              </div>
+
+            </div>
+          </section>
+
+        </div>
+      </div>
+    </div>
+    <p class="preview-hint">Vitals Log table ดำ + ปุ่ม Arrest/Vital · Timeline แสดง duration · Refer docs gallery</p>
+  </div>
+
+</div>
+
+<script src="preview.js"></script>
+</body>
+</html>

@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>V2 — GPS Tracking</title>
+<link rel="stylesheet" href="preview.css">
+</head>
+<body>
+
+<header class="preview-header">
+  <div class="preview-header-inner">
+    <div>
+      <h1 class="preview-title">🛰️ GPS Tracking</h1>
+      <p class="preview-sub"><a href="preview.html" style="color:#0369a1;">← Launcher</a> · Vehicle fleet · Live map · Share tokens · Hospitals nearby</p>
+    </div>
+    <span class="badge-pill warn">DESIGN ONLY</span>
+  </div>
+</header>
+
+<div class="preview-wrap">
+
+  <!-- MOBILE -->
+  <div>
+    <div class="preview-label">📱 Mobile · Map + Bottom Sheet</div>
+    <div class="device-frame">
+      <div class="device-screen">
+
+        <div class="topbar">
+          <button class="icon-btn" onclick="toggleDrawer()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12h18M3 6h18M3 18h18"/></svg></button>
+          <div style="flex:1;"><div style="font-weight:600; font-size:14px;">GPS Tracking</div><div style="font-size:11px; color:var(--c-muted);"><span class="status-dot live"></span>Live · 5 รถ Online</div></div>
+          <button class="icon-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4-4"/></svg></button>
+        </div>
+
+        <div class="drawer-backdrop" id="mDrawerBack" onclick="toggleDrawer()"></div>
+        <div class="drawer" id="mDrawer">
+          <nav style="padding:8px 0;">
+            <a class="nav-item"><span class="nav-icon">🚑</span>Transport</a>
+            <a class="nav-item"><span class="nav-icon">🩹</span>FirstAid</a>
+            <a class="nav-item"><span class="nav-icon">🗺️</span>Location</a>
+            <a class="nav-item active"><span class="nav-icon">🛰️</span>GPS Tracking</a>
+          </nav>
+        </div>
+
+        <!-- Map -->
+        <div class="map-placeholder" style="flex:1; position:relative;">
+          <div class="map-pin" style="top:25%; left:30%;">🚑</div>
+          <div class="map-pin green" style="top:50%; left:55%;">🚑</div>
+          <div class="map-pin blue" style="top:35%; left:65%;">🚑</div>
+          <div class="map-pin" style="top:65%; left:40%;">🚑</div>
+
+          <!-- Top floating chips -->
+          <div style="position:absolute; top:10px; left:10px; display:flex; gap:6px; flex-wrap:wrap;">
+            <div style="background:rgba(255,255,255,.95); padding:5px 10px; border-radius:999px; font-size:11px; font-weight:600; box-shadow:0 2px 8px rgba(0,0,0,.1);"><span class="status-dot live"></span>Live</div>
+            <div style="background:rgba(255,255,255,.95); padding:5px 10px; border-radius:999px; font-size:11px; font-weight:600; box-shadow:0 2px 8px rgba(0,0,0,.1);">📡 Synology · 12ms</div>
+          </div>
+
+          <!-- Right floating buttons -->
+          <div style="position:absolute; right:10px; top:60px; display:flex; flex-direction:column; gap:6px;">
+            <button class="icon-btn" style="background:#fff; box-shadow:0 2px 8px rgba(0,0,0,.1);"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12a9 9 0 1 1-3-6.7"/><path d="M21 4v5h-5"/></svg></button>
+            <button class="icon-btn" style="background:#fff; box-shadow:0 2px 8px rgba(0,0,0,.1);" title="Fit all"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9V3h6M21 9V3h-6M3 15v6h6M21 15v6h-6"/></svg></button>
+            <button class="icon-btn" style="background:#0ea5e9; color:#fff; box-shadow:0 2px 8px rgba(0,0,0,.1);" title="Hospitals"><span style="font-size:14px;">🏥</span></button>
+          </div>
+        </div>
+
+        <!-- Bottom sheet -->
+        <div style="background:#fff; border-top:1px solid var(--c-border); max-height:340px; overflow-y:auto; flex-shrink:0;">
+          <div style="text-align:center; padding:6px 0;"><div style="width:36px; height:4px; background:#cbd5e1; border-radius:2px; margin:0 auto;"></div></div>
+          <div style="padding:0 12px 8px; display:flex; gap:6px; flex-wrap:wrap;">
+            <input placeholder="🔍 ค้นทะเบียน/ชื่อรถ" style="flex:1; padding:6px 10px; border:1px solid var(--c-border); border-radius:6px; font-size:12px;">
+            <select style="padding:6px 8px; border:1px solid var(--c-border); border-radius:6px; font-size:12px;"><option>ทั้งหมด</option></select>
+          </div>
+
+          <div style="padding:0 8px 12px;">
+            <div style="background:#fff; border:1px solid #16a34a; border-radius:8px; padding:10px; margin-bottom:6px; cursor:pointer;">
+              <div style="display:flex; justify-content:space-between;"><div style="font-weight:700; font-size:13px;">นข 1234 · รถ 1</div><div style="display:flex; gap:4px;"><span class="flag-chip ok"><span class="status-dot online"></span>Online</span></div></div>
+              <div style="font-size:11px; color:var(--c-muted); margin-top:4px;">📍 ต.หนองชาก ม.4 · 25 km/h</div>
+              <div style="display:flex; gap:6px; margin-top:8px;"><button class="btn-ghost" style="flex:1; padding:5px; font-size:11px;">📹 กล้อง</button><button class="btn-ghost" style="flex:1; padding:5px; font-size:11px;">🔗 แชร์</button></div>
+            </div>
+            <div style="background:#fff; border:1px solid var(--c-border); border-radius:8px; padding:10px; margin-bottom:6px;">
+              <div style="display:flex; justify-content:space-between;"><div style="font-weight:700; font-size:13px;">บง 5678 · รถ 2</div><span class="flag-chip" style="background:#fef3c7; color:#854d0e;"><span class="status-dot idle"></span>Idle</span></div>
+              <div style="font-size:11px; color:var(--c-muted); margin-top:4px;">📍 รพ. ชลบุรี · 0 km/h</div>
+            </div>
+            <div style="background:#fef2f2; border:2px solid #dc2626; border-radius:8px; padding:10px; margin-bottom:6px;">
+              <div style="display:flex; justify-content:space-between;"><div style="font-weight:700; font-size:13px;">กก 9999 · รถ 3 ⚠</div><span class="flag-chip danger">Overspeed!</span></div>
+              <div style="font-size:11px; color:#991b1b; margin-top:4px;">📍 ทางหลวง 7 · <strong>112 km/h</strong></div>
+            </div>
+            <div style="background:#fff; border:1px solid var(--c-border); border-radius:8px; padding:10px;">
+              <div style="display:flex; justify-content:space-between;"><div style="font-weight:700; font-size:13px;">ฮข 4321 · รถ 4</div><span class="flag-chip" style="background:#f1f5f9; color:#475569;"><span class="status-dot offline"></span>Offline</span></div>
+              <div style="font-size:11px; color:var(--c-muted); margin-top:4px;">📍 ครั้งสุดท้าย 12:45</div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+    <p class="preview-hint">Map เต็มจอ · Bottom sheet ลากดึงขึ้น/ลง · สีกรอบรถบ่งบอก status</p>
+  </div>
+
+  <!-- DESKTOP -->
+  <div>
+    <div class="preview-label">🖥️ Desktop · Fleet + Map + Share</div>
+    <div class="desktop-frame">
+      <div class="desktop-screen">
+        <div class="desktop-3col">
+
+          <aside class="col-nav" id="dNav">
+            <div style="padding:12px 0; justify-content:center; border-bottom:1px solid var(--c-border); display:flex;"><div style="width:32px; height:32px; border-radius:8px; background:linear-gradient(135deg,#0ea5e9,#0284c7); color:#fff; display:flex; align-items:center; justify-content:center; font-weight:700; font-size:13px; cursor:pointer;" onclick="toggleNav()">PT</div></div>
+            <nav style="flex:1; padding:8px 0;">
+              <a class="nav-item" title="Transport"><span class="nav-icon">🚑</span><span class="nav-label">Transport</span></a>
+              <a class="nav-item" title="FirstAid"><span class="nav-icon">🩹</span><span class="nav-label">FirstAid</span></a>
+              <a class="nav-item" title="Location"><span class="nav-icon">🗺️</span><span class="nav-label">Location</span></a>
+              <a class="nav-item active" title="GPS"><span class="nav-icon">🛰️</span><span class="nav-label">GPS</span></a>
+            </nav>
+          </aside>
+
+          <aside class="col-subnav">
+            <div style="padding:12px 14px; border-bottom:1px solid var(--c-border);">
+              <div style="font-weight:700; font-size:14px;">GPS Tracking</div>
+              <div style="font-size:11px; color:var(--c-muted);"><span class="status-dot live"></span>Live · Synology 12ms</div>
+            </div>
+            <div style="flex:1; overflow-y:auto;">
+              <div class="subnav-section">มุมมอง</div>
+              <div class="subnav-item active"><span>🚗 Fleet (5 รถ)</span></div>
+              <div class="subnav-item"><span>🔗 Share Tokens</span><span class="badge">3</span></div>
+
+              <div class="subnav-section">สถานะรถ</div>
+              <div class="subnav-item"><span><span class="status-dot online"></span>Online</span><span class="badge">3</span></div>
+              <div class="subnav-item"><span><span class="status-dot idle"></span>Idle</span><span class="badge">1</span></div>
+              <div class="subnav-item"><span style="color:#dc2626;">⚠ Overspeed</span><span class="badge danger">1</span></div>
+              <div class="subnav-item"><span><span class="status-dot offline"></span>Offline</span><span class="badge">1</span></div>
+
+              <div class="subnav-section">เครื่องมือ</div>
+              <div class="subnav-item"><span>🏥 หาที่ใกล้ๆ</span></div>
+              <div class="subnav-item"><span>⤢ Fit all markers</span></div>
+              <div class="subnav-item"><span>↻ Refresh ทันที</span></div>
+              <div class="subnav-item"><span>⏱ Auto-refresh 10s</span><span class="badge">ON</span></div>
+
+              <div class="subnav-section">Proxy Chain</div>
+              <div class="subnav-item"><span>1° Synology</span><span class="badge" style="background:#dcfce7; color:#166534;">12ms</span></div>
+              <div class="subnav-item"><span>2° Render</span><span class="badge">200ms</span></div>
+              <div class="subnav-item"><span>3° GAS</span><span class="badge">500ms</span></div>
+            </div>
+          </aside>
+
+          <section class="col-content">
+            <div class="col-header">
+              <div><div style="font-weight:700; font-size:14px;">Fleet Map · 5 รถ</div><div style="font-size:11px; color:var(--c-muted);">เลือกรถใน list ขวาเพื่อดูบนแผนที่</div></div>
+              <div style="display:flex; gap:6px;"><button class="btn-ghost">⤢ Fit</button><button class="btn-ghost">↻</button></div>
+            </div>
+            <div class="col-body" style="display:flex;">
+              <div class="map-placeholder" style="flex:1; min-height:400px;">
+                <div class="map-pin" style="top:25%; left:30%;">🚑</div>
+                <div class="map-pin green" style="top:45%; left:50%;">🚑</div>
+                <div class="map-pin blue" style="top:35%; left:65%;">🚑</div>
+                <div class="map-pin" style="top:60%; left:40%;">🚑</div>
+                <div class="map-pin green" style="top:55%; left:75%;">🚑</div>
+                <div style="position:relative; z-index:10; background:rgba(255,255,255,.9); padding:8px 12px; border-radius:8px;">🛰️ Live Map · 5 vehicles</div>
+              </div>
+              <aside style="width:260px; border-left:1px solid var(--c-border); background:#fff; overflow-y:auto;">
+                <div style="padding:10px; border-bottom:1px solid var(--c-border);"><input placeholder="🔍 ค้นทะเบียน" style="width:100%; padding:6px 10px; border:1px solid var(--c-border); border-radius:6px; font-size:12px;"></div>
+
+                <div style="padding:10px; border-bottom:1px solid var(--c-border); background:#f0f9ff; border-left:3px solid #0ea5e9;">
+                  <div style="display:flex; justify-content:space-between;"><div style="font-weight:700; font-size:13px;">นข 1234</div><span class="flag-chip ok"><span class="status-dot online"></span>Online</span></div>
+                  <div style="font-size:11px; color:var(--c-muted); margin-top:4px;">📍 ต.หนองชาก ม.4</div>
+                  <div style="font-size:11px; color:var(--c-muted);">25 km/h · 14:35</div>
+                  <div style="display:flex; gap:4px; margin-top:8px;"><button class="btn-ghost" style="flex:1; padding:4px; font-size:10px;">📹</button><button class="btn-ghost" style="flex:1; padding:4px; font-size:10px;">📡</button><button class="btn-ghost" style="flex:1; padding:4px; font-size:10px;">🔗</button></div>
+                </div>
+
+                <div style="padding:10px; border-bottom:1px solid var(--c-border); cursor:pointer;">
+                  <div style="display:flex; justify-content:space-between;"><div style="font-weight:700; font-size:13px;">บง 5678</div><span class="flag-chip warn"><span class="status-dot idle"></span>Idle</span></div>
+                  <div style="font-size:11px; color:var(--c-muted); margin-top:4px;">📍 รพ. ชลบุรี · จอด</div>
+                </div>
+
+                <div style="padding:10px; border-bottom:1px solid var(--c-border); cursor:pointer; background:#fef2f2; border-left:3px solid #dc2626;">
+                  <div style="display:flex; justify-content:space-between;"><div style="font-weight:700; font-size:13px; color:#991b1b;">กก 9999 ⚠</div><span class="flag-chip danger">Overspeed</span></div>
+                  <div style="font-size:11px; color:#991b1b; margin-top:4px;">📍 ทางหลวง 7</div>
+                  <div style="font-size:11px; color:#991b1b; font-weight:700;">112 km/h</div>
+                </div>
+
+                <div style="padding:10px; border-bottom:1px solid var(--c-border); cursor:pointer;">
+                  <div style="display:flex; justify-content:space-between;"><div style="font-weight:700; font-size:13px;">ฮข 4321</div><span class="flag-chip"><span class="status-dot offline"></span>Offline</span></div>
+                  <div style="font-size:11px; color:var(--c-muted); margin-top:4px;">📍 ครั้งสุดท้าย 12:45</div>
+                </div>
+              </aside>
+            </div>
+          </section>
+
+        </div>
+      </div>
+    </div>
+    <p class="preview-hint">Sub-nav กรอง status / สลับ Fleet ↔ Share Tokens · รถ Overspeed สีแดงเด้งทั้งใน list และบน map</p>
+  </div>
+
+</div>
+
+<script src="preview.js"></script>
+</body>
+</html>

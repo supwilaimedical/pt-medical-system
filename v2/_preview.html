@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PT Medical V2 — Preview Summary</title>
+<link rel="stylesheet" href="preview.css">
+<style>
+  body{ background:#f1f5f9; min-height:100vh; }
+  .summary-wrap{ max-width:1300px; margin:0 auto; padding:32px 24px; }
+  .summary-header{ text-align:center; margin-bottom:32px; }
+  .summary-header h1{ font-size:30px; font-weight:800; margin:0 0 8px; color:#0f172a; }
+  .summary-header p{ font-size:14px; color:var(--c-muted); margin:6px 0; }
+
+  .stat-strip{ display:grid; grid-template-columns:repeat(auto-fit,minmax(160px,1fr)); gap:12px; margin:20px 0 28px; }
+  .stat-box{ background:#fff; padding:14px; border-radius:10px; border:1px solid var(--c-border); text-align:center; }
+  .stat-box .num{ font-size:28px; font-weight:800; color:#0ea5e9; }
+  .stat-box .lbl{ font-size:11px; color:var(--c-muted); margin-top:2px; text-transform:uppercase; letter-spacing:.05em; }
+
+  .group-title{
+    font-size:13px; font-weight:700; color:#475569; text-transform:uppercase;
+    letter-spacing:.08em; margin:24px 0 10px;
+    padding-bottom:6px; border-bottom:2px solid var(--c-border);
+  }
+
+  .grid{ display:grid; grid-template-columns:repeat(auto-fill,minmax(290px,1fr)); gap:14px; }
+
+  .card{
+    background:#fff; border:1px solid var(--c-border); border-radius:12px;
+    padding:16px; text-decoration:none; color:inherit;
+    display:flex; flex-direction:column; gap:6px;
+    transition:all .15s; cursor:pointer; position:relative;
+  }
+  .card:hover{ border-color:#0ea5e9; box-shadow:0 6px 20px rgba(14,165,233,.12); transform:translateY(-2px); }
+  .card-icon{ font-size:28px; line-height:1; }
+  .card-name{ font-size:15px; font-weight:700; color:#0f172a; }
+  .card-desc{ font-size:12px; color:var(--c-muted); line-height:1.5; }
+  .card-tags{ display:flex; flex-wrap:wrap; gap:4px; margin-top:6px; }
+  .card-tag{ font-size:10px; padding:2px 7px; border-radius:5px; background:#f1f5f9; color:#475569; font-weight:600; }
+  .card-tag.green{ background:#dcfce7; color:#166534; }
+  .card-tag.orange{ background:#ffedd5; color:#9a3412; }
+  .card-tag.purple{ background:#ede9fe; color:#6b21a8; }
+  .card.featured{ border-color:#0ea5e9; background:linear-gradient(135deg,#fff,#f0f9ff); }
+  .card-num{ position:absolute; top:10px; right:12px; font-size:11px; color:var(--c-muted); font-weight:700; }
+
+  .checklist{
+    background:#fff; border:1px solid var(--c-border); border-radius:12px;
+    padding:20px; margin-top:24px;
+  }
+  .checklist h3{ font-size:15px; font-weight:700; margin:0 0 12px; }
+  .checklist ul{ margin:0; padding:0; list-style:none; display:grid; grid-template-columns:repeat(auto-fit,minmax(280px,1fr)); gap:6px; }
+  .checklist li{
+    padding:8px 12px; background:#f8fafc; border-radius:6px;
+    font-size:13px; color:#334155; display:flex; align-items:center; gap:8px;
+  }
+  .checklist li::before{ content:'✓'; color:#16a34a; font-weight:700; }
+</style>
+</head>
+<body>
+
+<div class="summary-wrap">
+
+  <div class="summary-header">
+    <h1>📋 PT Medical V2 — Preview Summary</h1>
+    <p>Design preview ครบทุก function · Font Sarabun · 3-column desktop · Hamburger mobile · Light only</p>
+    <div style="margin-top:10px; display:inline-flex; gap:6px;">
+      <span class="badge-pill warn">DESIGN ONLY</span>
+      <span class="badge-pill ok">All V1 functions intact</span>
+      <span class="badge-pill ok">Sarabun font</span>
+    </div>
+  </div>
+
+  <!-- Stats -->
+  <div class="stat-strip">
+    <div class="stat-box"><div class="num">12</div><div class="lbl">Preview pages</div></div>
+    <div class="stat-box"><div class="num">7</div><div class="lbl">Modules covered</div></div>
+    <div class="stat-box"><div class="num">100%</div><div class="lbl">Real V1 fields</div></div>
+    <div class="stat-box"><div class="num">2</div><div class="lbl">Devices (Mobile + Desktop)</div></div>
+  </div>
+
+  <!-- Auth -->
+  <div class="group-title">🚪 1. Authentication & Landing</div>
+  <div class="grid">
+    <a class="card" href="p-login.html">
+      <span class="card-num">1/12</span>
+      <div class="card-icon">🔐</div>
+      <div class="card-name">Login + Module Picker</div>
+      <div class="card-desc">หน้า login + landing card grid · เลือก module หลัง login</div>
+      <div class="card-tags"><span class="card-tag">index.html</span></div>
+    </a>
+  </div>
+
+  <!-- Transport -->
+  <div class="group-title">🚑 2. Transport (นำส่งผู้ป่วย) — 5 หน้า</div>
+  <div class="grid">
+    <a class="card featured" href="p-transport-list.html">
+      <span class="card-num">2/12</span>
+      <div class="card-icon">📋</div>
+      <div class="card-name">Transport List</div>
+      <div class="card-desc">Active/Closed cases · Kebab actions (เปิด · แก้ผู้ป่วย · พิมพ์ · แชร์ · ลบ)</div>
+      <div class="card-tags"><span class="card-tag green">3-col</span><span class="card-tag">Sub-nav</span><span class="card-tag">Kebab</span></div>
+    </a>
+    <a class="card" href="p-transport-form.html">
+      <span class="card-num">3/12</span>
+      <div class="card-icon">1️⃣</div>
+      <div class="card-name">Form Step 1 — ข้อมูลทั่วไป</div>
+      <div class="card-desc">Op unit · Scene · Consent · Patient identity · Triage · Transport type · Origin/Dest · CC/Dx · UD · Allergy</div>
+      <div class="card-tags"><span class="card-tag purple">Timeline bar</span><span class="card-tag">OCR</span></div>
+    </a>
+    <a class="card" href="p-transport-step2.html">
+      <span class="card-num">4/12</span>
+      <div class="card-icon">2️⃣</div>
+      <div class="card-name">Form Step 2 — ประเมินร่างกาย</div>
+      <div class="card-desc">V/S · Airway · Breathing/O2 · Circulation · IV Lines · Cardiac Arrest · GCS · Pupils · Pain · Motor · Drainage</div>
+      <div class="card-tags"><span class="card-tag purple">Timeline bar</span><span class="card-tag">8 sections</span></div>
+    </a>
+    <a class="card" href="p-transport-step3.html">
+      <span class="card-num">5/12</span>
+      <div class="card-icon">3️⃣</div>
+      <div class="card-name">Form Step 3 — ขณะนำส่ง</div>
+      <div class="card-desc">Equipment · Transport IVs · Vitals Log (dark table) · Nurse Note · Refer Docs · Summary banner</div>
+      <div class="card-tags"><span class="card-tag purple">Timeline bar</span><span class="card-tag orange">Vitals Log</span></div>
+    </a>
+    <a class="card" href="p-transport-subforms.html">
+      <span class="card-num">6/12</span>
+      <div class="card-icon">📑</div>
+      <div class="card-name">Sub-forms (5 อัน)</div>
+      <div class="card-desc">หนังสือยินยอม · V/S แรกรับ · IV Lines · Vitals Log Entry · Refer Docs Gallery · เปิดเป็นหน้าเต็ม (ไม่ใช่ modal)</div>
+      <div class="card-tags"><span class="card-tag">Tab switch</span><span class="card-tag green">No modal</span></div>
+    </a>
+  </div>
+
+  <!-- FirstAid -->
+  <div class="group-title">🩹 3. FirstAid (ปฐมพยาบาล) — 3 หน้า</div>
+  <div class="grid">
+    <a class="card" href="p-firstaid-events.html">
+      <span class="card-num">7/12</span>
+      <div class="card-icon">🎪</div>
+      <div class="card-name">Events Dashboard</div>
+      <div class="card-desc">Active/Complete events · Card grid · Sports/Concert/General · CRUD events</div>
+      <div class="card-tags"><span class="card-tag green">3-col</span></div>
+    </a>
+    <a class="card" href="p-firstaid-detail.html">
+      <span class="card-num">8/12</span>
+      <div class="card-icon">🩺</div>
+      <div class="card-name">Event Detail + Registry</div>
+      <div class="card-desc">Quick Dispense (นับวัสดุ) · Patient Registry table · Triage stats · Add/Edit registry</div>
+      <div class="card-tags"><span class="card-tag">Quick Dispense</span></div>
+    </a>
+    <a class="card featured" href="p-firstaid-dashboard.html">
+      <span class="card-num">9/12</span>
+      <div class="card-icon">📊</div>
+      <div class="card-name">Medical Registry Dashboard</div>
+      <div class="card-desc">Total · Triage % · Time of Incident chart · 5 donut charts · 4 lists (CC/Problem/Result)</div>
+      <div class="card-tags"><span class="card-tag purple">Charts</span><span class="card-tag">V1 layout</span></div>
+    </a>
+  </div>
+
+  <!-- Location/GPS -->
+  <div class="group-title">🗺️ 4. Location + GPS</div>
+  <div class="grid">
+    <a class="card" href="p-location.html">
+      <span class="card-num">10/12</span>
+      <div class="card-icon">📍</div>
+      <div class="card-name">Location (พิกัดสถานที่)</div>
+      <div class="card-desc">4 tabs: Dashboard (map) · List · Add · Share Tokens · Filter ตามประเภท/จังหวัด</div>
+      <div class="card-tags"><span class="card-tag">Leaflet map</span></div>
+    </a>
+    <a class="card" href="p-gps.html">
+      <span class="card-num">11/12</span>
+      <div class="card-icon">🛰️</div>
+      <div class="card-name">GPS Tracking</div>
+      <div class="card-desc">Vehicle fleet · Live map · Status (Online/Idle/Offline/Overspeed) · Share tokens · Hospitals nearby · Proxy chain</div>
+      <div class="card-tags"><span class="card-tag">Realtime</span></div>
+    </a>
+  </div>
+
+  <!-- Monitor + Admin -->
+  <div class="group-title">📡 5. Monitor + Admin + Fullscreen</div>
+  <div class="grid">
+    <a class="card" href="p-admin.html">
+      <span class="card-num">12/12</span>
+      <div class="card-icon">⚙️</div>
+      <div class="card-name">Admin Settings</div>
+      <div class="card-desc">9 sections: Org · Branding · GPS · OCR · Notify · Integrations · Sessions · Stats · Activity Log</div>
+      <div class="card-tags"><span class="card-tag">Sidebar</span></div>
+    </a>
+    <a class="card featured" href="p-fullscreen-dashboard.html">
+      <span class="card-num">+</span>
+      <div class="card-icon">📺</div>
+      <div class="card-name">Fullscreen Dashboard (TV)</div>
+      <div class="card-desc">เวอร์ชัน fullscreen 16:9 สำหรับ TV/จอใหญ่ห้องควบคุม · auto-refresh · นาฬิกา real-time</div>
+      <div class="card-tags"><span class="card-tag purple">TV display</span><span class="card-tag">16:9</span></div>
+    </a>
+    <div class="card" style="background:#fef3c7; border-color:#fcd34d; cursor:default;">
+      <div class="card-icon" style="opacity:.5;">📡</div>
+      <div class="card-name">Monitor Dashboard</div>
+      <div class="card-desc"><strong>ใช้ V1 ทั้งดุ้น</strong> (มี function เยอะกว่า) · ตอน build จริงค่อยปรับสี/font ให้เข้า design system</div>
+      <div class="card-tags"><span class="card-tag orange">Keep V1</span></div>
+    </div>
+  </div>
+
+  <!-- Checklist -->
+  <div class="checklist">
+    <h3>✅ Design Decisions ที่ตกลงแล้ว</h3>
+    <ul>
+      <li>Font: <strong>Sarabun</strong> ทั้งระบบ (มีหัว ดูทางการ)</li>
+      <li>Theme: <strong>Light only</strong></li>
+      <li>Desktop: <strong>3-column layout</strong> (Modules · Sub-nav · Content)</li>
+      <li>Col 1 ย่อ <strong>icon-only</strong> เมื่อมี sub-nav</li>
+      <li>Mobile: <strong>Hamburger drawer</strong> max-width 85vw, word-break</li>
+      <li>List: <strong>Kebab menu (⋮)</strong> ทุก row สำหรับ actions</li>
+      <li>Transport ไม่ lock — <strong>scroll แก้ทุก step ได้ตลอด</strong></li>
+      <li>Sub-form แทน modal: <strong>Consent / V/S / IV / Refer</strong></li>
+      <li>Timeline = <strong>thin sticky bar</strong> ทั้ง 3 step</li>
+      <li>Mobile bottom action: <strong>💾 บันทึก (สีเขียว)</strong> + ✓ Auto-saved indicator</li>
+      <li>Navigate back: <strong>← เคสทั้งหมด</strong> ทุกหน้า form</li>
+      <li>Print, Share Public, Edit Patient, Delete = <strong>kebab</strong> ทุกที่</li>
+      <li>Monitor: <strong>คง V1 layout</strong> (มี function เยอะ)</li>
+      <li>Real V1 fields: <strong>ไม่เพิ่ม ไม่ลด ไม่เปลี่ยน function</strong></li>
+      <li><strong>iOS Print compatibility</strong> — webkit-print-color-adjust + page-break-inside + PWA fallback ด้วย html2pdf</li>
+      <li>Consent: <strong>ใช้ V1 ทั้งดุ้น</strong> (transport/consent-prototype.html)</li>
+    </ul>
+  </div>
+
+  <!-- iOS Print Note -->
+  <div class="checklist" style="background:#fef3c7; border-color:#fcd34d; margin-top:14px;">
+    <h3 style="color:#92400e;">⚠ iOS Print — ต้อง test ก่อน rollout</h3>
+    <ul>
+      <li><strong>Background colors</strong> — `-webkit-print-color-adjust: exact`</li>
+      <li><strong>PWA standalone</strong> — fallback ใช้ html2pdf.js</li>
+      <li><strong>Page break</strong> — `page-break-inside: avoid` ทุก section</li>
+      <li><strong>Hide UI chrome</strong> — topbar/sub-nav/FAB/kebab ซ่อนใน @media print</li>
+      <li><strong>Font Sarabun embed</strong> — preload + fallback Tahoma</li>
+      <li><strong>A4 size</strong> — `@page { size:A4; margin:12mm; }`</li>
+      <li>Test matrix: iOS Safari + iOS PWA + Android Chrome + Desktop</li>
+    </ul>
+  </div>
+
+  <div style="margin-top:32px; text-align:center; font-size:13px; color:var(--c-muted);">
+    เปิดเข้าทุก card เพื่อตรวจสอบ design · เจอจุดที่อยากแก้ → list มาแล้วผมแก้รอบเดียว → จากนั้นเริ่ม build จริงใน <code>v2/</code>
+  </div>
+
+</div>
+
+</body>
+</html>

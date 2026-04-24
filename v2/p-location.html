@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>V2 — Location</title>
+<link rel="stylesheet" href="preview.css">
+</head>
+<body>
+
+<header class="preview-header">
+  <div class="preview-header-inner">
+    <div>
+      <h1 class="preview-title">🗺️ Location — พิกัดสถานที่</h1>
+      <p class="preview-sub"><a href="preview.html" style="color:#0369a1;">← Launcher</a> · 4 tabs: Dashboard / List / Add / Share</p>
+    </div>
+    <span class="badge-pill warn">DESIGN ONLY</span>
+  </div>
+</header>
+
+<div class="preview-wrap">
+
+  <!-- MOBILE -->
+  <div>
+    <div class="preview-label">📱 Mobile · List view</div>
+    <div class="device-frame">
+      <div class="device-screen">
+
+        <div class="topbar">
+          <button class="icon-btn" onclick="toggleDrawer()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12h18M3 6h18M3 18h18"/></svg></button>
+          <div style="flex:1;"><div style="font-weight:600; font-size:14px;">พิกัดสถานที่</div><div style="font-size:11px; color:var(--c-muted);">142 รายการ</div></div>
+          <button class="icon-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4-4"/></svg></button>
+        </div>
+
+        <div class="drawer-backdrop" id="mDrawerBack" onclick="toggleDrawer()"></div>
+        <div class="drawer" id="mDrawer">
+          <div style="padding:18px 14px; border-bottom:1px solid var(--c-border); display:flex; align-items:center; gap:10px;"><div class="avatar">นภ</div><div><div style="font-weight:600; font-size:14px;">นพ. ตั้นกล้วย</div><div style="font-size:11px; color:var(--c-muted);">supwilai · admin</div></div></div>
+          <nav style="padding:8px 0;">
+            <a class="nav-item"><span class="nav-icon">🚑</span>Transport</a>
+            <a class="nav-item"><span class="nav-icon">🩹</span>FirstAid</a>
+            <a class="nav-item active"><span class="nav-icon">🗺️</span>Location</a>
+            <a class="nav-item"><span class="nav-icon">🛰️</span>GPS</a>
+          </nav>
+        </div>
+
+        <div style="background:#fff; border-bottom:1px solid var(--c-border); display:flex; overflow-x:auto; flex-shrink:0;">
+          <button style="padding:10px 12px; font-size:12px; color:#64748b; background:none; border:none; white-space:nowrap; cursor:pointer;">📊 Dashboard</button>
+          <button style="padding:10px 12px; font-size:12px; font-weight:600; color:#0369a1; border-bottom:2px solid #0ea5e9; background:none; border-top:none; border-left:none; border-right:none; white-space:nowrap; cursor:pointer;">📋 รายการ</button>
+          <button style="padding:10px 12px; font-size:12px; color:#64748b; background:none; border:none; white-space:nowrap; cursor:pointer;">➕ เพิ่ม</button>
+          <button style="padding:10px 12px; font-size:12px; color:#64748b; background:none; border:none; white-space:nowrap; cursor:pointer;">🔗 Share</button>
+        </div>
+
+        <div style="padding:10px; background:#fafbfc; flex-shrink:0; display:flex; gap:6px; flex-wrap:wrap;">
+          <select style="flex:1; padding:6px 8px; font-size:12px; border:1px solid var(--c-border); border-radius:6px;"><option>ทุกประเภท</option></select>
+          <select style="flex:1; padding:6px 8px; font-size:12px; border:1px solid var(--c-border); border-radius:6px;"><option>ทุกจังหวัด</option></select>
+        </div>
+
+        <div class="case-list" style="flex:1; overflow-y:auto;">
+          <div class="case-row">
+            <div style="width:40px; height:40px; border-radius:8px; background:linear-gradient(135deg,#0ea5e9,#0284c7); display:flex; align-items:center; justify-content:center; color:#fff; font-size:18px; flex-shrink:0;">🏥</div>
+            <div class="case-info">
+              <div class="case-name">รพ. สมเด็จฯ ณ ชลบุรี</div>
+              <div class="case-meta"><span class="flag-chip info">สถานพยาบาล</span><span>📞 038-275-200</span></div>
+              <div class="case-meta"><span>📍 ชลบุรี · เมือง</span></div>
+            </div>
+            <div class="kebab-wrap"><button class="kebab-btn" onclick="kebab(event,'lk1')"><svg viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="5" r="1.8"/><circle cx="12" cy="12" r="1.8"/><circle cx="12" cy="19" r="1.8"/></svg></button>
+              <div class="kebab-menu" id="lk1">
+                <button class="kebab-item">👁️ ดูรายละเอียด</button>
+                <button class="kebab-item">🗺️ เปิดในแผนที่</button>
+                <button class="kebab-item">✏️ แก้ไข</button>
+                <button class="kebab-item">🔗 แชร์ลิงก์</button>
+                <div class="kebab-divider"></div>
+                <button class="kebab-item danger">🗑️ ลบ</button>
+              </div>
+            </div>
+          </div>
+          <div class="case-row">
+            <div style="width:40px; height:40px; border-radius:8px; background:linear-gradient(135deg,#22c55e,#15803d); display:flex; align-items:center; justify-content:center; color:#fff; font-size:18px; flex-shrink:0;">🏠</div>
+            <div class="case-info"><div class="case-name">บ้านลุงสมพงษ์ ม.4 ต.หนองชาก</div><div class="case-meta"><span class="flag-chip">ลูกค้าทั่วไป</span><span>📞 081-234-5678</span></div><div class="case-meta"><span>📍 ชลบุรี · บ้านบึง</span></div></div>
+            <div class="kebab-wrap"><button class="kebab-btn"><svg viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="5" r="1.8"/><circle cx="12" cy="12" r="1.8"/><circle cx="12" cy="19" r="1.8"/></svg></button></div>
+          </div>
+          <div class="case-row">
+            <div style="width:40px; height:40px; border-radius:8px; background:linear-gradient(135deg,#f59e0b,#d97706); display:flex; align-items:center; justify-content:center; color:#fff; font-size:18px; flex-shrink:0;">🏨</div>
+            <div class="case-info"><div class="case-name">โรงแรมเมอร์เคียวพัทยา</div><div class="case-meta"><span class="flag-chip warn">โรงแรม</span><span>📞 038-425-555</span></div><div class="case-meta"><span>📍 ชลบุรี · บางละมุง</span></div></div>
+            <div class="kebab-wrap"><button class="kebab-btn"><svg viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="5" r="1.8"/><circle cx="12" cy="12" r="1.8"/><circle cx="12" cy="19" r="1.8"/></svg></button></div>
+          </div>
+          <div class="case-row">
+            <div style="width:40px; height:40px; border-radius:8px; background:linear-gradient(135deg,#a855f7,#7c3aed); display:flex; align-items:center; justify-content:center; color:#fff; font-size:18px; flex-shrink:0;">🏡</div>
+            <div class="case-info"><div class="case-name">ศูนย์ดูแลผู้สูงอายุพานทอง</div><div class="case-meta"><span class="flag-chip" style="background:#f3e8ff; color:#6b21a8;">ศูนย์ดูแล</span><span>📞 038-672-100</span></div></div>
+            <div class="kebab-wrap"><button class="kebab-btn"><svg viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="5" r="1.8"/><circle cx="12" cy="12" r="1.8"/><circle cx="12" cy="19" r="1.8"/></svg></button></div>
+          </div>
+        </div>
+
+        <button style="position:absolute; bottom:20px; right:20px; width:56px; height:56px; border-radius:50%; background:#22c55e; color:#fff; border:none; box-shadow:0 6px 16px rgba(34,197,94,.4); cursor:pointer; font-size:28px; line-height:1; z-index:30;">+</button>
+
+      </div>
+    </div>
+    <p class="preview-hint">Tab pills: Dashboard / รายการ / เพิ่ม / Share · FAB เขียว = + เพิ่มสถานที่</p>
+  </div>
+
+  <!-- DESKTOP -->
+  <div>
+    <div class="preview-label">🖥️ Desktop · Dashboard (Map)</div>
+    <div class="desktop-frame">
+      <div class="desktop-screen">
+        <div class="desktop-3col">
+
+          <aside class="col-nav" id="dNav">
+            <div style="padding:12px 0; justify-content:center; border-bottom:1px solid var(--c-border); display:flex;"><div style="width:32px; height:32px; border-radius:8px; background:linear-gradient(135deg,#0ea5e9,#0284c7); color:#fff; display:flex; align-items:center; justify-content:center; font-weight:700; font-size:13px; cursor:pointer;" onclick="toggleNav()">PT</div></div>
+            <nav style="flex:1; padding:8px 0;">
+              <a class="nav-item" title="Transport"><span class="nav-icon">🚑</span><span class="nav-label">Transport</span></a>
+              <a class="nav-item" title="FirstAid"><span class="nav-icon">🩹</span><span class="nav-label">FirstAid</span></a>
+              <a class="nav-item active" title="Location"><span class="nav-icon">🗺️</span><span class="nav-label">Location</span></a>
+              <a class="nav-item" title="GPS"><span class="nav-icon">🛰️</span><span class="nav-label">GPS</span></a>
+            </nav>
+          </aside>
+
+          <aside class="col-subnav">
+            <div style="padding:12px 14px; border-bottom:1px solid var(--c-border); display:flex; justify-content:space-between; align-items:center;">
+              <div><div style="font-weight:700; font-size:14px;">พิกัดสถานที่</div><div style="font-size:11px; color:var(--c-muted);">PT Location</div></div>
+              <button class="btn-primary" style="padding:6px 10px; font-size:12px;">+ เพิ่ม</button>
+            </div>
+            <div style="flex:1; overflow-y:auto;">
+              <div class="subnav-section">มุมมอง</div>
+              <div class="subnav-item active"><span>📊 Dashboard (Map)</span></div>
+              <div class="subnav-item"><span>📋 รายการทั้งหมด</span><span class="badge">142</span></div>
+              <div class="subnav-item"><span>➕ เพิ่มสถานที่ใหม่</span></div>
+
+              <div class="subnav-section">ตามประเภท</div>
+              <div class="subnav-item"><span>🏥 สถานพยาบาล</span><span class="badge">23</span></div>
+              <div class="subnav-item"><span>🏠 ลูกค้าทั่วไป</span><span class="badge">89</span></div>
+              <div class="subnav-item"><span>🏨 โรงแรม</span><span class="badge">15</span></div>
+              <div class="subnav-item"><span>🏡 ศูนย์ดูแล</span><span class="badge">15</span></div>
+
+              <div class="subnav-section">กรอง</div>
+              <div class="subnav-item"><span>🌏 ตามจังหวัด</span></div>
+              <div class="subnav-item"><span>📍 ตามอำเภอ</span></div>
+
+              <div class="subnav-section">Share Tokens</div>
+              <div class="subnav-item"><span>🔗 จัดการ Public Link</span><span class="badge">5</span></div>
+            </div>
+          </aside>
+
+          <section class="col-content">
+            <div class="col-header">
+              <div><div style="font-weight:700; font-size:14px;">Dashboard · Map View</div><div style="font-size:11px; color:var(--c-muted);">142 สถานที่ · กรองดูเฉพาะกลุ่มได้จาก Sub-nav</div></div>
+              <div style="display:flex; gap:6px;"><button class="btn-ghost">⤢ Fit All</button><button class="btn-ghost">↻ Refresh</button></div>
+            </div>
+            <div class="col-body" style="display:flex;">
+              <div class="map-placeholder" style="flex:1; min-height:400px;">
+                <div class="map-pin" style="top:30%; left:25%;">🏥</div>
+                <div class="map-pin green" style="top:45%; left:50%;">🏠</div>
+                <div class="map-pin blue" style="top:55%; left:35%;">🏨</div>
+                <div class="map-pin" style="top:25%; left:60%;">🏥</div>
+                <div class="map-pin green" style="top:65%; left:55%;">🏠</div>
+                <div class="map-pin green" style="top:50%; left:70%;">🏠</div>
+                <div style="position:relative; z-index:10; background:rgba(255,255,255,.9); padding:8px 12px; border-radius:8px; backdrop-filter:blur(4px);">📍 Leaflet Map (placeholder)</div>
+              </div>
+              <aside style="width:260px; border-left:1px solid var(--c-border); background:#fff; padding:12px; overflow-y:auto;">
+                <div style="font-size:12px; font-weight:700; color:var(--c-muted); text-transform:uppercase; letter-spacing:.05em; margin-bottom:8px;">เพิ่ม/แก้ไข ล่าสุด</div>
+                <div style="font-size:12px; color:#334155;">
+                  <div style="padding:8px 0; border-bottom:1px solid var(--c-border);"><strong>รพ.สต. หนองชาก</strong><div style="color:var(--c-muted); font-size:11px;">23 เม.ย. 14:20 · นพ.ตั้น</div></div>
+                  <div style="padding:8px 0; border-bottom:1px solid var(--c-border);"><strong>บ้านลุงสมพงษ์</strong><div style="color:var(--c-muted); font-size:11px;">23 เม.ย. 13:05 · พยาบาลแหม่ม</div></div>
+                  <div style="padding:8px 0;"><strong>ศูนย์ดูแลพานทอง</strong><div style="color:var(--c-muted); font-size:11px;">22 เม.ย. 16:30 · นพ.ตั้น</div></div>
+                </div>
+              </aside>
+            </div>
+          </section>
+
+        </div>
+      </div>
+    </div>
+    <p class="preview-hint">Map (Leaflet) · กรองด้วย sub-nav (ประเภท / จังหวัด) · Recent activity ขวา</p>
+  </div>
+
+</div>
+
+<script src="preview.js"></script>
+</body>
+</html>

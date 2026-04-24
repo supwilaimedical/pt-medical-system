@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>V2 — FirstAid Events</title>
+<link rel="stylesheet" href="preview.css">
+</head>
+<body>
+
+<header class="preview-header">
+  <div class="preview-header-inner">
+    <div>
+      <h1 class="preview-title">🩹 FirstAid — Events Dashboard</h1>
+      <p class="preview-sub"><a href="preview.html" style="color:#0369a1;">← Launcher</a> · Active/Complete events · Card grid · Sports/Concert/General</p>
+    </div>
+    <span class="badge-pill warn">DESIGN ONLY</span>
+  </div>
+</header>
+
+<div class="preview-wrap">
+
+  <!-- MOBILE -->
+  <div>
+    <div class="preview-label">📱 Mobile</div>
+    <div class="device-frame">
+      <div class="device-screen">
+
+        <div class="topbar">
+          <button class="icon-btn" onclick="toggleDrawer()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12h18M3 6h18M3 18h18"/></svg></button>
+          <div style="flex:1;"><div style="font-weight:600; font-size:14px;">ปฐมพยาบาล</div><div style="font-size:11px; color:var(--c-muted);">3 งาน Active</div></div>
+          <button class="icon-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4-4"/></svg></button>
+        </div>
+
+        <div class="drawer-backdrop" id="mDrawerBack" onclick="toggleDrawer()"></div>
+        <div class="drawer" id="mDrawer">
+          <div style="padding:18px 14px; border-bottom:1px solid var(--c-border); display:flex; align-items:center; gap:10px;">
+            <div class="avatar">นภ</div>
+            <div><div style="font-weight:600; font-size:14px;">นพ. ตั้นกล้วย</div><div style="font-size:11px; color:var(--c-muted);">supwilai · admin</div></div>
+          </div>
+          <nav style="padding:8px 0;">
+            <a class="nav-item"><span class="nav-icon">🚑</span><span>นำส่งผู้ป่วย</span></a>
+            <a class="nav-item active"><span class="nav-icon">🩹</span><span>ปฐมพยาบาล</span></a>
+            <a class="nav-item"><span class="nav-icon">🗺️</span><span>พิกัดสถานที่</span></a>
+            <a class="nav-item"><span class="nav-icon">🛰️</span><span>GPS Tracking</span></a>
+          </nav>
+        </div>
+
+        <div style="background:#fff; border-bottom:1px solid var(--c-border); display:flex; flex-shrink:0;">
+          <button style="flex:1; padding:10px; font-size:13px; font-weight:600; color:#0369a1; border-bottom:2px solid #0ea5e9; background:none; border-top:none; border-left:none; border-right:none; cursor:pointer;">Active <span style="background:#16a34a; color:#fff; padding:1px 6px; border-radius:999px; font-size:10px; margin-left:4px;">3</span></button>
+          <button style="flex:1; padding:10px; font-size:13px; color:#64748b; background:none; border:none; cursor:pointer;">Complete <span style="background:#94a3b8; color:#fff; padding:1px 6px; border-radius:999px; font-size:10px; margin-left:4px;">12</span></button>
+        </div>
+
+        <div style="flex:1; overflow-y:auto; padding:12px;">
+
+          <div style="background:#fff; border:1px solid var(--c-border); border-radius:12px; overflow:hidden; margin-bottom:10px;">
+            <div style="height:80px; background:linear-gradient(135deg,#fb923c,#f97316); display:flex; align-items:center; justify-content:center; color:#fff; font-size:32px;">🏃</div>
+            <div style="padding:12px;">
+              <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:8px;">
+                <div style="font-weight:700; font-size:14px;">Marathon ชลบุรี 2026</div>
+                <span class="flag-chip ok">Active</span>
+              </div>
+              <div style="font-size:12px; color:var(--c-muted); margin-top:4px;">📍 สนามกีฬา ม.บูรพา · 24 เม.ย. 05:00-12:00</div>
+              <div style="display:flex; align-items:center; justify-content:space-between; margin-top:10px;">
+                <div style="display:flex; gap:6px;"><span class="flag-chip">Sports</span><span class="flag-chip info">23 ผู้ป่วย</span></div>
+                <button class="btn-primary" style="padding:5px 10px; font-size:11px;">เข้าจัดการ</button>
+              </div>
+            </div>
+          </div>
+
+          <div style="background:#fff; border:1px solid var(--c-border); border-radius:12px; overflow:hidden; margin-bottom:10px;">
+            <div style="height:80px; background:linear-gradient(135deg,#a855f7,#7c3aed); display:flex; align-items:center; justify-content:center; color:#fff; font-size:32px;">🎤</div>
+            <div style="padding:12px;">
+              <div style="display:flex; justify-content:space-between;"><div style="font-weight:700; font-size:14px;">Concert บอย พีซเมกเกอร์</div><span class="flag-chip ok">Active</span></div>
+              <div style="font-size:12px; color:var(--c-muted); margin-top:4px;">📍 IMPACT Arena · 24 เม.ย. 18:00-23:00</div>
+              <div style="display:flex; justify-content:space-between; margin-top:10px;"><div style="display:flex; gap:6px;"><span class="flag-chip">Concert</span><span class="flag-chip info">8 ผู้ป่วย</span></div><button class="btn-primary" style="padding:5px 10px; font-size:11px;">เข้าจัดการ</button></div>
+            </div>
+          </div>
+
+          <div style="background:#fff; border:1px solid var(--c-border); border-radius:12px; overflow:hidden; margin-bottom:10px;">
+            <div style="height:80px; background:linear-gradient(135deg,#22c55e,#15803d); display:flex; align-items:center; justify-content:center; color:#fff; font-size:32px;">🎪</div>
+            <div style="padding:12px;">
+              <div style="display:flex; justify-content:space-between;"><div style="font-weight:700; font-size:14px;">งานวัดเสาธง</div><span class="flag-chip ok">Active</span></div>
+              <div style="font-size:12px; color:var(--c-muted); margin-top:4px;">📍 วัดเสาธง พนัสฯ · 23-25 เม.ย.</div>
+              <div style="display:flex; justify-content:space-between; margin-top:10px;"><div style="display:flex; gap:6px;"><span class="flag-chip">General</span><span class="flag-chip info">5 ผู้ป่วย</span></div><button class="btn-primary" style="padding:5px 10px; font-size:11px;">เข้าจัดการ</button></div>
+            </div>
+          </div>
+
+        </div>
+
+        <button title="faEventModal" style="position:absolute; bottom:20px; right:20px; width:56px; height:56px; border-radius:50%; background:var(--c-primary); color:#fff; border:none; box-shadow:0 6px 16px rgba(14,165,233,.4); cursor:pointer; font-size:28px; line-height:1; z-index:30;">+</button>
+
+      </div>
+    </div>
+    <p class="preview-hint">FAB + = สร้างงานใหม่ (faEventModal) · Tab Active/Complete</p>
+  </div>
+
+  <!-- DESKTOP -->
+  <div>
+    <div class="preview-label">🖥️ Desktop · Sub-nav จัดงาน + ผู้ป่วย</div>
+    <div class="desktop-frame">
+      <div class="desktop-screen">
+        <div class="desktop-3col">
+
+          <aside class="col-nav" id="dNav">
+            <div class="nav-brand-mini" style="padding:12px 0; justify-content:center; border-bottom:1px solid var(--c-border); display:flex;">
+              <div style="width:32px; height:32px; border-radius:8px; background:linear-gradient(135deg,#0ea5e9,#0284c7); color:#fff; display:flex; align-items:center; justify-content:center; font-weight:700; font-size:13px; cursor:pointer;" onclick="toggleNav()">PT</div>
+            </div>
+            <nav style="flex:1; padding:8px 0;">
+              <a class="nav-item" title="Transport"><span class="nav-icon">🚑</span><span class="nav-label">Transport</span></a>
+              <a class="nav-item active" title="FirstAid"><span class="nav-icon">🩹</span><span class="nav-label">FirstAid</span></a>
+              <a class="nav-item" title="Location"><span class="nav-icon">🗺️</span><span class="nav-label">Location</span></a>
+              <a class="nav-item" title="GPS"><span class="nav-icon">🛰️</span><span class="nav-label">GPS</span></a>
+              <a class="nav-item" title="Monitor"><span class="nav-icon">📡</span><span class="nav-label">Monitor</span></a>
+            </nav>
+          </aside>
+
+          <aside class="col-subnav">
+            <div style="padding:12px 14px; border-bottom:1px solid var(--c-border); display:flex; align-items:center; justify-content:space-between;">
+              <div><div style="font-weight:700; font-size:14px;">ปฐมพยาบาล</div><div style="font-size:11px; color:var(--c-muted);">FirstAid Events</div></div>
+              <button class="btn-primary" style="padding:6px 10px; font-size:12px;">+ งานใหม่</button>
+            </div>
+            <div style="flex:1; overflow-y:auto;">
+              <div class="subnav-section">งานทั้งหมด</div>
+              <div class="subnav-item active"><span>🟢 Active</span><span class="badge">3</span></div>
+              <div class="subnav-item"><span>📋 Complete</span><span class="badge">12</span></div>
+
+              <div class="subnav-section">ตามประเภท</div>
+              <div class="subnav-item"><span>🏃 Sports</span><span class="badge">2</span></div>
+              <div class="subnav-item"><span>🎤 Concert</span><span class="badge">1</span></div>
+              <div class="subnav-item"><span>🎪 General</span><span class="badge">12</span></div>
+
+              <div class="subnav-section">ค้นหา</div>
+              <div class="subnav-item"><span>🔍 ค้นชื่องาน / สถานที่</span></div>
+              <div class="subnav-item"><span>📅 เรียงตามวันที่</span></div>
+
+              <div class="subnav-section">รายงาน</div>
+              <div class="subnav-item"><span>📊 สถิติ Triage</span></div>
+              <div class="subnav-item"><span>📈 Top CC / Diagnosis</span></div>
+              <div class="subnav-item"><span>📤 Export PDF</span></div>
+            </div>
+          </aside>
+
+          <section class="col-content">
+            <div class="col-header">
+              <div><div style="font-weight:700; font-size:15px;">Active Events · 3 งาน</div><div style="font-size:11px; color:var(--c-muted);">เรียงวันที่ใหม่สุด</div></div>
+              <div style="display:flex; gap:6px;"><input placeholder="🔍 ค้นชื่องาน" style="padding:6px 10px; border:1px solid var(--c-border); border-radius:8px; font-size:13px; width:200px;"><button class="btn-ghost">↻</button></div>
+            </div>
+            <div class="col-body" style="padding:14px;">
+
+              <div style="display:grid; grid-template-columns:repeat(auto-fill,minmax(260px,1fr)); gap:14px;">
+
+                <div style="background:#fff; border:1px solid var(--c-border); border-radius:12px; overflow:hidden;">
+                  <div style="height:100px; background:linear-gradient(135deg,#fb923c,#f97316); display:flex; align-items:center; justify-content:center; color:#fff; font-size:36px;">🏃</div>
+                  <div style="padding:12px;">
+                    <div style="display:flex; justify-content:space-between; align-items:start; gap:8px;"><div style="font-weight:700; font-size:14px; line-height:1.3;">Marathon ชลบุรี 2026</div><div class="kebab-wrap"><button class="kebab-btn" onclick="kebab(event,'fk1')"><svg viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="5" r="1.8"/><circle cx="12" cy="12" r="1.8"/><circle cx="12" cy="19" r="1.8"/></svg></button><div class="kebab-menu" id="fk1"><button class="kebab-item">📂 เข้าจัดการ</button><button class="kebab-item">✏️ แก้งาน</button><button class="kebab-item">🖨️ Print Report</button><div class="kebab-divider"></div><button class="kebab-item">🔒 ปิดงาน</button><button class="kebab-item danger">🗑️ ลบ</button></div></div></div>
+                    <div style="font-size:12px; color:var(--c-muted); margin-top:4px;">📍 สนามกีฬา ม.บูรพา</div>
+                    <div style="font-size:11px; color:var(--c-muted); margin-top:2px;">📅 24 เม.ย. 05:00-12:00 น.</div>
+                    <div style="display:flex; gap:6px; margin-top:8px; flex-wrap:wrap;"><span class="flag-chip">Sports</span><span class="flag-chip ok">Active</span><span class="flag-chip info">23 ผู้ป่วย</span></div>
+                    <button class="btn-primary" style="width:100%; margin-top:10px; padding:8px; font-size:12px; justify-content:center;">เข้าจัดการ →</button>
+                  </div>
+                </div>
+
+                <div style="background:#fff; border:1px solid var(--c-border); border-radius:12px; overflow:hidden;">
+                  <div style="height:100px; background:linear-gradient(135deg,#a855f7,#7c3aed); display:flex; align-items:center; justify-content:center; color:#fff; font-size:36px;">🎤</div>
+                  <div style="padding:12px;">
+                    <div style="display:flex; justify-content:space-between;"><div style="font-weight:700; font-size:14px;">Concert บอย พีซเมกเกอร์</div><button class="kebab-btn"><svg viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="5" r="1.8"/><circle cx="12" cy="12" r="1.8"/><circle cx="12" cy="19" r="1.8"/></svg></button></div>
+                    <div style="font-size:12px; color:var(--c-muted); margin-top:4px;">📍 IMPACT Arena</div>
+                    <div style="font-size:11px; color:var(--c-muted);">📅 24 เม.ย. 18:00-23:00</div>
+                    <div style="display:flex; gap:6px; margin-top:8px; flex-wrap:wrap;"><span class="flag-chip">Concert</span><span class="flag-chip ok">Active</span><span class="flag-chip info">8 ผู้ป่วย</span></div>
+                    <button class="btn-primary" style="width:100%; margin-top:10px; padding:8px; font-size:12px; justify-content:center;">เข้าจัดการ →</button>
+                  </div>
+                </div>
+
+                <div style="background:#fff; border:1px solid var(--c-border); border-radius:12px; overflow:hidden;">
+                  <div style="height:100px; background:linear-gradient(135deg,#22c55e,#15803d); display:flex; align-items:center; justify-content:center; color:#fff; font-size:36px;">🎪</div>
+                  <div style="padding:12px;">
+                    <div style="display:flex; justify-content:space-between;"><div style="font-weight:700; font-size:14px;">งานวัดเสาธง</div><button class="kebab-btn"><svg viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="5" r="1.8"/><circle cx="12" cy="12" r="1.8"/><circle cx="12" cy="19" r="1.8"/></svg></button></div>
+                    <div style="font-size:12px; color:var(--c-muted); margin-top:4px;">📍 วัดเสาธง พนัสฯ</div>
+                    <div style="font-size:11px; color:var(--c-muted);">📅 23-25 เม.ย.</div>
+                    <div style="display:flex; gap:6px; margin-top:8px; flex-wrap:wrap;"><span class="flag-chip">General</span><span class="flag-chip ok">Active</span><span class="flag-chip info">5 ผู้ป่วย</span></div>
+                    <button class="btn-primary" style="width:100%; margin-top:10px; padding:8px; font-size:12px; justify-content:center;">เข้าจัดการ →</button>
+                  </div>
+                </div>
+
+              </div>
+
+            </div>
+          </section>
+
+        </div>
+      </div>
+    </div>
+    <p class="preview-hint">เคลิก "เข้าจัดการ" เพื่อเข้า Event Detail (ดู preview ถัดไป)</p>
+  </div>
+
+</div>
+
+<script src="preview.js"></script>
+</body>
+</html>

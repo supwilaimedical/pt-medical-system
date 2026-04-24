@@ -1,0 +1,511 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>V2 — Transport Sub-forms</title>
+<link rel="stylesheet" href="preview.css">
+<style>
+  .sub-tab{
+    padding:10px 16px; font-size:13px; font-weight:600; color:#64748b;
+    background:none; border:none; border-bottom:3px solid transparent;
+    cursor:pointer; white-space:nowrap;
+  }
+  .sub-tab.active{ color:#0369a1; border-bottom-color:#0ea5e9; }
+  .sub-pane{ display:none; }
+  .sub-pane.active{ display:block; }
+  .signature-pad{
+    background:#fff; border:2px dashed #cbd5e1; border-radius:8px;
+    height:120px; display:flex; align-items:center; justify-content:center;
+    color:var(--c-muted); font-size:13px;
+  }
+</style>
+</head>
+<body>
+
+<header class="preview-header">
+  <div class="preview-header-inner">
+    <div>
+      <h1 class="preview-title">📋 Transport — Sub-forms (เลี่ยง Modal)</h1>
+      <p class="preview-sub"><a href="preview.html" style="color:#0369a1;">← Launcher</a> · <a href="p-transport-list.html" style="color:#0369a1;">← เคสทั้งหมด</a> · <a href="p-transport-form.html" style="color:#0369a1;">← กลับเคส TR-047</a> · <a href="p-transport-step2.html" style="color:#0369a1;">Step 2</a> · <a href="p-transport-step3.html" style="color:#0369a1;">Step 3</a></p>
+    </div>
+    <span class="badge-pill warn">DESIGN ONLY</span>
+  </div>
+</header>
+
+<!-- Sub-form switcher -->
+<div style="background:#fff; border-bottom:1px solid var(--c-border); position:sticky; top:78px; z-index:90;">
+  <div style="max-width:1500px; margin:0 auto; padding:0 24px; display:flex; overflow-x:auto;">
+    <button class="sub-tab active" onclick="switchPane(event,'consent')">📝 หนังสือยินยอม</button>
+    <button class="sub-tab" onclick="switchPane(event,'vs')">📊 V/S แรกรับ</button>
+    <button class="sub-tab" onclick="switchPane(event,'iv')">💉 IV Lines (Add/Edit)</button>
+    <button class="sub-tab" onclick="switchPane(event,'vitals')">📈 Vitals Log Entry</button>
+    <button class="sub-tab" onclick="switchPane(event,'refer')">📎 Refer Docs Gallery</button>
+  </div>
+</div>
+
+<div class="preview-wrap">
+
+  <!-- ============= CONSENT ============= -->
+  <div class="sub-pane active" id="pane-consent" style="grid-column:1/-1;">
+    <h2 style="font-size:16px; font-weight:700; margin:0 0 12px; padding:0 8px;">📝 หนังสือยินยอม + PDPA + ลายเซ็น</h2>
+
+    <div style="background:#fef3c7; border:1px solid #fcd34d; border-radius:10px; padding:14px 18px; margin:0 8px 16px; display:flex; align-items:center; gap:12px;">
+      <div style="font-size:32px;">✓</div>
+      <div style="flex:1;">
+        <div style="font-weight:700; font-size:14px; color:#92400e;">ใช้ V1 ทั้งดุ้น — ไม่ต้อง redesign</div>
+        <div style="font-size:12px; color:#78350f; margin-top:2px;">
+          V1 มี logic ครบแล้ว: ลายเซ็นผู้ป่วย/ญาติ/พยาน · DNR auto-detect → ตั้ง NR Status ใน Step 1 · PDPA · เวอร์ชัน consent · iframe จาก <code>transport/consent-prototype.html</code>
+        </div>
+        <div style="font-size:12px; color:#78350f; margin-top:6px;">
+          <strong>ตอน build จริง:</strong> เปลี่ยน font → Sarabun, ปรับสี header → sky blue accent · โครงสร้าง form/logic/signature pad = คงไว้เหมือนเดิม
+        </div>
+      </div>
+    </div>
+
+    <details style="margin:0 8px;">
+      <summary style="cursor:pointer; padding:10px 14px; background:#f1f5f9; border-radius:8px; font-size:13px; font-weight:600; color:#475569;">▸ คลิกดู preview ที่ผมวาดไว้ (สำหรับ reference เท่านั้น)</summary>
+    <div style="display:grid; grid-template-columns:1fr; gap:24px;">
+      <div style="display:grid; grid-template-columns:1fr; gap:24px;">
+        <div style="display:grid; grid-template-columns:380px 1fr; gap:24px; align-items:start;">
+
+          <!-- Mobile -->
+          <div>
+            <div class="preview-label">📱 Mobile</div>
+            <div class="device-frame">
+              <div class="device-screen">
+                <div class="topbar">
+                  <button class="icon-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 6l-6 6 6 6"/></svg></button>
+                  <div style="flex:1;"><div style="font-weight:600; font-size:13px;">หนังสือยินยอม</div><div style="font-size:11px; color:var(--c-muted);">TR-047 · สมชาย ใจดี</div></div>
+                </div>
+                <div style="flex:1; overflow-y:auto; padding:12px; background:#fafbfc;">
+
+                  <div class="section-card">
+                    <div class="section-header"><div class="section-num">1</div><div class="section-title">ข้อมูลผู้ป่วย</div></div>
+                    <div class="section-body"><div style="font-size:13px; color:#334155;"><strong>สมชาย ใจดี</strong> · 45 ปี · ชาย<br>เลขบัตร: 1-2345-67890-12-3</div></div>
+                  </div>
+
+                  <div class="section-card">
+                    <div class="section-header"><div class="section-num">2</div><div class="section-title">รายการยินยอม</div></div>
+                    <div class="section-body" style="display:flex; flex-direction:column; gap:8px; font-size:12px;">
+                      <label style="padding:8px; background:#f8fafc; border-radius:6px;"><input type="checkbox" checked style="width:16px;"> ยินยอมรับการรักษา/นำส่ง</label>
+                      <label style="padding:8px; background:#f8fafc; border-radius:6px;"><input type="checkbox" checked style="width:16px;"> ยินยอมการประมวลข้อมูล (PDPA)</label>
+                      <label style="padding:8px; background:#fef3c7; border-radius:6px; border:1px solid #fcd34d;"><input type="checkbox" style="width:16px;"> <strong>DNR</strong> (Do Not Resuscitate) — ไม่กู้ชีพ</label>
+                      <label style="padding:8px; background:#fef3c7; border-radius:6px; border:1px solid #fcd34d;"><input type="checkbox" style="width:16px;"> Palliative Care</label>
+                    </div>
+                  </div>
+
+                  <div class="section-card">
+                    <div class="section-header"><div class="section-num">3</div><div class="section-title">ลายเซ็นผู้ป่วย/ญาติ</div></div>
+                    <div class="section-body">
+                      <div class="signature-pad" style="height:100px;">✍️ แตะวาดลายเซ็น</div>
+                      <div style="display:flex; gap:6px; margin-top:6px;">
+                        <button class="btn-ghost" style="flex:1; padding:6px; font-size:11px;">ล้าง</button>
+                        <button class="btn-ghost" style="flex:1; padding:6px; font-size:11px;">📷 ถ่ายภาพ</button>
+                      </div>
+                      <div class="field" style="margin-top:8px;"><label>ชื่อผู้เซ็น</label><input value="สมชาย ใจดี" style="font-size:12px;"></div>
+                      <div class="field" style="margin-top:6px;"><label>ความเกี่ยวข้อง</label><select><option>ผู้ป่วยเอง</option><option>คู่สมรส</option><option>บุตร</option><option>บิดา/มารดา</option></select></div>
+                    </div>
+                  </div>
+
+                  <div class="section-card">
+                    <div class="section-header"><div class="section-num">4</div><div class="section-title">ลายเซ็นพยาน</div></div>
+                    <div class="section-body">
+                      <div class="signature-pad" style="height:80px;">✍️ พยาน</div>
+                      <div class="field" style="margin-top:8px;"><label>ชื่อพยาน</label><input value="แหม่ม สวยเสมอ" style="font-size:12px;"></div>
+                    </div>
+                  </div>
+
+                </div>
+                <div style="background:#fff; border-top:1px solid var(--c-border); padding:8px 12px; display:flex; gap:6px;">
+                  <button class="btn-ghost" style="flex:1;">ยกเลิก</button>
+                  <button class="btn-primary" style="flex:2;">✓ บันทึกยินยอม</button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Desktop -->
+          <div>
+            <div class="preview-label">🖥️ Desktop · เปิดเป็นหน้า full (ไม่ใช่ modal)</div>
+            <div class="desktop-frame">
+              <div class="desktop-screen">
+                <div class="col-header" style="background:#fff;">
+                  <div><div style="font-weight:700; font-size:14px;">📝 หนังสือยินยอมรับบริการ</div><div style="font-size:11px; color:var(--c-muted);">TR-047/2569 · สมชาย ใจดี · เปิดในหน้าเต็มไม่ใช่ modal</div></div>
+                  <div style="display:flex; gap:6px;"><button class="btn-ghost">← กลับ</button><button class="btn-primary">✓ บันทึก</button></div>
+                </div>
+                <div style="flex:1; overflow-y:auto; padding:20px; background:var(--c-bg);">
+
+                  <div style="max-width:700px; margin:0 auto; background:#fff; border:1px solid var(--c-border); border-radius:10px; padding:24px;">
+
+                    <div style="text-align:center; border-bottom:2px solid var(--c-border); padding-bottom:14px; margin-bottom:18px;">
+                      <h3 style="font-size:18px; font-weight:700; margin:0 0 4px;">หนังสือยินยอมรับบริการการแพทย์ฉุกเฉิน</h3>
+                      <p style="font-size:12px; color:var(--c-muted); margin:0;">บริษัท ศุภวิลัยการแพทย์ จำกัด · เคส TR-047/2569</p>
+                    </div>
+
+                    <div style="margin-bottom:14px;">
+                      <div style="font-weight:700; font-size:13px; margin-bottom:6px;">ข้อมูลผู้ป่วย</div>
+                      <div style="background:#f8fafc; padding:12px; border-radius:8px; font-size:13px;"><strong>สมชาย ใจดี</strong> · 45 ปี · ชาย · เลขบัตร 1-2345-67890-12-3</div>
+                    </div>
+
+                    <div style="margin-bottom:14px;">
+                      <div style="font-weight:700; font-size:13px; margin-bottom:6px;">รายการยินยอม</div>
+                      <div style="display:flex; flex-direction:column; gap:8px;">
+                        <label style="padding:10px; background:#f0fdf4; border-radius:8px; font-size:13px;"><input type="checkbox" checked style="width:16px;"> ข้าพเจ้ายินยอมรับการรักษา/นำส่งโดยทีม EMS</label>
+                        <label style="padding:10px; background:#f0fdf4; border-radius:8px; font-size:13px;"><input type="checkbox" checked style="width:16px;"> ข้าพเจ้ายินยอมการประมวลข้อมูลส่วนบุคคล (PDPA)</label>
+                        <label style="padding:10px; background:#fef3c7; border-radius:8px; border:1px solid #fcd34d; font-size:13px;"><input type="checkbox" style="width:16px;"> <strong>DNR</strong> · ไม่กู้ชีพหากหัวใจหยุดเต้น (Do Not Resuscitate)</label>
+                        <label style="padding:10px; background:#fef3c7; border-radius:8px; border:1px solid #fcd34d; font-size:13px;"><input type="checkbox" style="width:16px;"> <strong>Palliative Care</strong> · ดูแลแบบประคับประคอง</label>
+                      </div>
+                      <p style="font-size:11px; color:#92400e; margin:6px 0 0; padding:6px; background:#fef3c7; border-radius:6px;">⚠ หากเลือก DNR / Palliative ระบบจะตั้ง NR Status ใน Step 1 อัตโนมัติ</p>
+                    </div>
+
+                    <div style="display:grid; grid-template-columns:1fr 1fr; gap:14px;">
+                      <div>
+                        <div style="font-weight:700; font-size:13px; margin-bottom:6px;">ลายเซ็นผู้ป่วย/ญาติ</div>
+                        <div class="signature-pad">✍️ คลิกแล้วลาก</div>
+                        <div style="display:flex; gap:4px; margin-top:6px;">
+                          <button class="btn-ghost" style="flex:1; padding:5px; font-size:11px;">ล้าง</button>
+                          <button class="btn-ghost" style="flex:1; padding:5px; font-size:11px;">📷 ภาพถ่าย</button>
+                        </div>
+                        <div class="field" style="margin-top:8px;"><label>ชื่อผู้เซ็น</label><input value="สมชาย ใจดี"></div>
+                        <div class="field" style="margin-top:6px;"><label>ความเกี่ยวข้อง</label><select><option>ผู้ป่วยเอง</option></select></div>
+                      </div>
+                      <div>
+                        <div style="font-weight:700; font-size:13px; margin-bottom:6px;">ลายเซ็นพยาน</div>
+                        <div class="signature-pad">✍️ พยาน</div>
+                        <div class="field" style="margin-top:14px;"><label>ชื่อพยาน</label><input value="แหม่ม สวยเสมอ"></div>
+                        <div class="field" style="margin-top:6px;"><label>ตำแหน่ง</label><input value="พยาบาล"></div>
+                      </div>
+                    </div>
+
+                  </div>
+
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+    </details>
+  </div>
+
+  <!-- ============= V/S แรกรับ ============= -->
+  <div class="sub-pane" id="pane-vs" style="grid-column:1/-1;">
+    <h2 style="font-size:16px; font-weight:700; margin:0 0 12px; padding:0 8px;">📊 บันทึก V/S แรกรับ</h2>
+    <div style="display:grid; grid-template-columns:380px 1fr; gap:24px; align-items:start;">
+
+      <div>
+        <div class="preview-label">📱 Mobile</div>
+        <div class="device-frame">
+          <div class="device-screen">
+            <div class="topbar"><button class="icon-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 6l-6 6 6 6"/></svg></button><div style="flex:1;"><div style="font-weight:600; font-size:13px;">V/S แรกรับ</div></div></div>
+            <div style="flex:1; overflow-y:auto; padding:12px; background:#fafbfc;">
+              <div class="section-card">
+                <div class="section-header"><div class="section-num">⏱</div><div class="section-title">เวลา</div></div>
+                <div class="section-body"><div style="display:flex; gap:6px;"><input type="time" value="14:35" style="flex:1; padding:8px; font-size:14px;"><button class="btn-ghost">Now</button></div></div>
+              </div>
+              <div class="section-card">
+                <div class="section-header"><div class="section-num">📊</div><div class="section-title">Vital Signs</div></div>
+                <div class="section-body">
+                  <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px;">
+                    <div class="field"><label>BP (mmHg)</label><input value="140/90" placeholder="120/80"></div>
+                    <div class="field"><label>PR (bpm)</label><input value="92"></div>
+                    <div class="field"><label>RR (/min)</label><input value="20"></div>
+                    <div class="field"><label>Temp (°C)</label><input value="37.2"></div>
+                    <div class="field"><label>SpO2 (%)</label><input value="96"></div>
+                    <div class="field"><label>DTX (mg/dL)</label><input value="110"></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div style="background:#fff; border-top:1px solid var(--c-border); padding:8px 12px; display:flex; gap:6px;">
+              <button class="btn-ghost" style="flex:1;">ยกเลิก</button><button class="btn-primary" style="flex:2;">บันทึก V/S</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <div class="preview-label">🖥️ Desktop</div>
+        <div class="desktop-frame">
+          <div class="desktop-screen">
+            <div class="col-header"><div><div style="font-weight:700; font-size:14px;">📊 V/S แรกรับ</div><div style="font-size:11px; color:var(--c-muted);">TR-047 · สมชาย ใจดี</div></div><button class="btn-primary">บันทึก</button></div>
+            <div style="flex:1; padding:20px; background:var(--c-bg);">
+              <div style="max-width:600px; margin:0 auto; background:#fff; border:1px solid var(--c-border); border-radius:10px; padding:20px;">
+                <div class="field" style="margin-bottom:14px;"><label>เวลาวัด</label><div style="display:flex; gap:6px;"><input type="time" value="14:35" style="flex:1;"><button class="btn-ghost">Now</button></div></div>
+                <div style="display:grid; grid-template-columns:repeat(3,1fr); gap:10px;">
+                  <div class="field"><label>BP (mmHg)</label><input value="140/90"></div>
+                  <div class="field"><label>PR (bpm)</label><input value="92"></div>
+                  <div class="field"><label>RR (/min)</label><input value="20"></div>
+                  <div class="field"><label>Temp (°C)</label><input value="37.2"></div>
+                  <div class="field"><label>SpO2 (%)</label><input value="96"></div>
+                  <div class="field"><label>DTX (mg/dL)</label><input value="110"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ============= IV LINES ============= -->
+  <div class="sub-pane" id="pane-iv" style="grid-column:1/-1;">
+    <h2 style="font-size:16px; font-weight:700; margin:0 0 12px; padding:0 8px;">💉 IV Lines — Add / Edit Form</h2>
+    <div style="display:grid; grid-template-columns:380px 1fr; gap:24px; align-items:start;">
+
+      <div>
+        <div class="preview-label">📱 Mobile</div>
+        <div class="device-frame">
+          <div class="device-screen">
+            <div class="topbar"><button class="icon-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 6l-6 6 6 6"/></svg></button><div style="flex:1;"><div style="font-weight:600; font-size:13px;">IV Line · เพิ่มใหม่</div></div></div>
+            <div style="flex:1; overflow-y:auto; padding:12px; background:#fafbfc;">
+              <div class="section-card">
+                <div class="section-body">
+                  <div class="field" style="margin-bottom:10px;"><label>ประเภท</label><select><option>Peripheral</option><option>Central Line</option><option>Intraosseous (IO)</option></select></div>
+                  <div class="field-row-2" style="margin-bottom:10px;">
+                    <div class="field"><label>ขนาดเข็ม</label><select><option>14G</option><option>16G</option><option selected>18G</option><option>20G</option><option>22G</option></select></div>
+                    <div class="field"><label>ตำแหน่ง</label><input value="R Cubital"></div>
+                  </div>
+                  <div class="field" style="margin-bottom:10px;"><label>สารน้ำ/ยา</label><input value="NSS 1000ml" placeholder="NSS, RLS, 5%DW, ASA, NTG..."></div>
+                  <div class="field-row-2" style="margin-bottom:10px;">
+                    <div class="field"><label>Rate (ml/hr)</label><input value="100"></div>
+                    <div class="field"><label>Volume เริ่ม</label><input value="1000"></div>
+                  </div>
+                  <div class="field"><label>หมายเหตุ</label><textarea rows="2" placeholder="เช่น Drip จาก รพต. แล้ว 200ml"></textarea></div>
+                </div>
+              </div>
+            </div>
+            <div style="background:#fff; border-top:1px solid var(--c-border); padding:8px 12px; display:flex; gap:6px;">
+              <button class="btn-ghost" style="flex:1;">ยกเลิก</button><button class="btn-primary" style="flex:2;">+ เพิ่ม IV</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <div class="preview-label">🖥️ Desktop · Inline form (ไม่ใช่ modal)</div>
+        <div class="desktop-frame">
+          <div class="desktop-screen">
+            <div class="col-header"><div><div style="font-weight:700; font-size:14px;">💉 IV Lines (Pre)</div><div style="font-size:11px; color:var(--c-muted);">2 รายการ + กำลังเพิ่มใหม่</div></div></div>
+            <div style="flex:1; padding:20px; background:var(--c-bg); overflow-y:auto;">
+
+              <!-- Existing IVs -->
+              <div style="background:#fff; border:1px solid var(--c-border); border-radius:8px; padding:12px; margin-bottom:8px; display:flex; align-items:center; gap:10px;">
+                <strong style="font-size:13px;">#1</strong>
+                <div style="flex:1;"><div style="font-weight:600; font-size:13px;">Peripheral 18G · R Cubital</div><div style="font-size:11px; color:var(--c-muted);">NSS 1000ml @ 100 ml/hr</div></div>
+                <button class="btn-ghost" style="padding:4px 8px; font-size:11px;">✏️</button>
+                <button class="btn-ghost" style="padding:4px 8px; font-size:11px; color:#dc2626;">🗑️</button>
+              </div>
+              <div style="background:#fff; border:1px solid var(--c-border); border-radius:8px; padding:12px; margin-bottom:14px; display:flex; align-items:center; gap:10px;">
+                <strong style="font-size:13px;">#2</strong>
+                <div style="flex:1;"><div style="font-weight:600; font-size:13px;">Peripheral 20G · L Forearm</div><div style="font-size:11px; color:var(--c-muted);">5%DW + ASA 300mg drip @ 50 ml/hr</div></div>
+                <button class="btn-ghost" style="padding:4px 8px; font-size:11px;">✏️</button>
+                <button class="btn-ghost" style="padding:4px 8px; font-size:11px; color:#dc2626;">🗑️</button>
+              </div>
+
+              <!-- Add new (inline expanded) -->
+              <div style="background:#f0f9ff; border:2px dashed #0ea5e9; border-radius:10px; padding:14px;">
+                <div style="font-weight:700; font-size:13px; margin-bottom:10px; color:#0369a1;">+ เพิ่ม IV Line ใหม่</div>
+                <div style="display:grid; grid-template-columns:1fr 1fr 1fr 1fr; gap:8px; margin-bottom:8px;">
+                  <div class="field"><label>ประเภท</label><select><option>Peripheral</option><option>Central</option><option>IO</option></select></div>
+                  <div class="field"><label>ขนาด</label><select><option>18G</option></select></div>
+                  <div class="field"><label>ตำแหน่ง</label><input placeholder="R Cubital"></div>
+                  <div class="field"><label>Rate (ml/hr)</label><input></div>
+                </div>
+                <div class="field-row-2" style="margin-bottom:8px;">
+                  <div class="field"><label>สารน้ำ/ยา</label><input placeholder="NSS / RLS / 5%DW + ยา drip"></div>
+                  <div class="field"><label>Volume เริ่ม (ml)</label><input></div>
+                </div>
+                <div class="field" style="margin-bottom:10px;"><label>หมายเหตุ</label><input></div>
+                <div style="display:flex; gap:6px; justify-content:flex-end;">
+                  <button class="btn-ghost">ยกเลิก</button>
+                  <button class="btn-primary">+ เพิ่ม</button>
+                </div>
+              </div>
+
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ============= VITALS LOG ============= -->
+  <div class="sub-pane" id="pane-vitals" style="grid-column:1/-1;">
+    <h2 style="font-size:16px; font-weight:700; margin:0 0 12px; padding:0 8px;">📈 Vitals Log Entry — Add Vital / Add Arrest</h2>
+    <div style="display:grid; grid-template-columns:380px 1fr; gap:24px; align-items:start;">
+
+      <div>
+        <div class="preview-label">📱 Mobile · Add Vital</div>
+        <div class="device-frame">
+          <div class="device-screen">
+            <div class="topbar"><button class="icon-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 6l-6 6 6 6"/></svg></button><div style="flex:1;"><div style="font-weight:600; font-size:13px;">+ บันทึก Vital</div></div></div>
+            <div style="flex:1; overflow-y:auto; padding:12px; background:#fafbfc;">
+              <div style="background:#fff; border-radius:10px; padding:14px;">
+                <div class="field" style="margin-bottom:10px;"><label>เวลา</label><div style="display:flex; gap:6px;"><input type="time" value="15:05" style="flex:1;"><button class="btn-ghost" style="padding:6px 10px; font-size:11px;">Now</button></div></div>
+                <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:10px;">
+                  <div class="field"><label>BP</label><input placeholder="120/80"></div>
+                  <div class="field"><label>PR</label><input></div>
+                  <div class="field"><label>RR</label><input></div>
+                  <div class="field"><label>Temp</label><input></div>
+                  <div class="field"><label>SpO2</label><input></div>
+                  <div class="field"><label>DTX</label><input></div>
+                </div>
+                <div class="field" style="margin-bottom:10px;"><label>Pain (0-10)</label><div class="chip-radio-group"><span class="chip">0</span><span class="chip">3</span><span class="chip">5</span><span class="chip">7</span><span class="chip">10</span></div></div>
+                <div class="field"><label>หมายเหตุ</label><input placeholder="เช่น หลังให้ยา"></div>
+              </div>
+            </div>
+            <div style="background:#fff; border-top:1px solid var(--c-border); padding:8px 12px; display:flex; gap:6px;">
+              <button class="btn-ghost" style="flex:1;">ยกเลิก</button><button class="btn-primary" style="flex:2;">+ บันทึก</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <div class="preview-label">🖥️ Desktop · Add Arrest (special form)</div>
+        <div class="desktop-frame">
+          <div class="desktop-screen" style="background:#fef2f2;">
+            <div class="col-header" style="background:#dc2626; color:#fff; border-bottom:none;"><div><div style="font-weight:700; font-size:14px;">⚠ + บันทึก Cardiac Arrest Event</div><div style="font-size:11px; opacity:.9;">TR-047 · สมชาย ใจดี</div></div><button style="background:rgba(255,255,255,.2); color:#fff; padding:6px 12px; border-radius:8px; border:none; cursor:pointer; font-size:13px;">ยกเลิก</button></div>
+            <div style="flex:1; padding:20px; overflow-y:auto;">
+              <div style="max-width:700px; margin:0 auto; background:#fff; border:2px solid #dc2626; border-radius:10px; padding:20px;">
+
+                <div style="display:grid; grid-template-columns:1fr 1fr; gap:14px; margin-bottom:14px;">
+                  <div class="field"><label style="color:#991b1b; font-weight:600;">เวลา Arrest</label><div style="display:flex; gap:6px;"><input type="time" value="14:55" style="flex:1;"><button class="btn-danger" style="padding:6px 10px; font-size:11px;">Now</button></div></div>
+                  <div class="field"><label style="color:#991b1b; font-weight:600;">เริ่ม CPR</label><div style="display:flex; gap:6px;"><input type="time" value="14:55" style="flex:1;"><button class="btn-danger" style="padding:6px 10px; font-size:11px;">Now</button></div></div>
+                </div>
+
+                <div style="background:#fee2e2; padding:10px; border-radius:8px; margin-bottom:14px; text-align:center; font-weight:700; color:#991b1b;">⏱ CPR Duration: 0:00 (live)</div>
+
+                <div style="margin-bottom:14px;">
+                  <label style="font-size:12px; color:#991b1b; font-weight:600;">Initial Rhythm</label>
+                  <div class="chip-radio-group" style="margin-top:6px;">
+                    <span class="chip" style="background:#fee2e2;">VF</span>
+                    <span class="chip" style="background:#fee2e2;">pVT</span>
+                    <span class="chip" style="background:#fee2e2;">PEA</span>
+                    <span class="chip" style="background:#fee2e2;">Asystole</span>
+                    <span class="chip selected" style="background:#dc2626; color:#fff;">Unknown</span>
+                  </div>
+                </div>
+
+                <div style="margin-bottom:14px;">
+                  <label style="font-size:12px; color:#991b1b; font-weight:600;">Outcome</label>
+                  <div class="chip-radio-group" style="margin-top:6px;">
+                    <span class="chip" style="background:#dcfce7;">ROSC</span>
+                    <span class="chip" style="background:#1e293b; color:#fff;">Dead</span>
+                    <span class="chip selected" style="background:#dc2626; color:#fff;">Ongoing CPR</span>
+                  </div>
+                  <div style="font-size:11px; color:var(--c-muted); margin-top:4px;">📌 หากเลือก ROSC → จะมีช่อง ROSC Time · หากเลือก Dead → จะมีช่อง Pronounced Time</div>
+                </div>
+
+                <div class="field"><label style="color:#991b1b; font-weight:600;">Note สรุป</label><textarea rows="3" placeholder="เช่น Witnessed arrest, BLS เริ่มทันที..."></textarea></div>
+
+                <div style="display:flex; gap:6px; justify-content:flex-end; margin-top:14px;">
+                  <button class="btn-ghost">ยกเลิก</button>
+                  <button class="btn-danger">⚠ บันทึก Arrest</button>
+                </div>
+
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ============= REFER DOCS ============= -->
+  <div class="sub-pane" id="pane-refer" style="grid-column:1/-1;">
+    <h2 style="font-size:16px; font-weight:700; margin:0 0 12px; padding:0 8px;">📎 Refer Documents Gallery</h2>
+    <div style="display:grid; grid-template-columns:380px 1fr; gap:24px; align-items:start;">
+
+      <div>
+        <div class="preview-label">📱 Mobile</div>
+        <div class="device-frame">
+          <div class="device-screen">
+            <div class="topbar"><button class="icon-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 6l-6 6 6 6"/></svg></button><div style="flex:1;"><div style="font-weight:600; font-size:13px;">เอกสารแนบ</div><div style="font-size:11px; color:var(--c-muted);">2/5 ไฟล์</div></div></div>
+            <div style="flex:1; overflow-y:auto; padding:12px; background:#fafbfc;">
+              <button class="btn-primary" style="width:100%; padding:12px; justify-content:center; margin-bottom:14px;">📎 อัปโหลดไฟล์ (เหลือ 3)</button>
+
+              <div style="background:#fff; border:1px solid var(--c-border); border-radius:8px; padding:10px; margin-bottom:8px; display:flex; align-items:center; gap:10px;">
+                <div style="width:48px; height:48px; background:#fee2e2; border-radius:8px; display:flex; align-items:center; justify-content:center; font-size:24px;">📄</div>
+                <div style="flex:1; min-width:0;"><div style="font-weight:600; font-size:13px;">refer-form.pdf</div><div style="font-size:11px; color:var(--c-muted);">245 KB · อัปโหลด 14:33</div></div>
+                <button class="kebab-btn"><svg viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="5" r="1.8"/><circle cx="12" cy="12" r="1.8"/><circle cx="12" cy="19" r="1.8"/></svg></button>
+              </div>
+              <div style="background:#fff; border:1px solid var(--c-border); border-radius:8px; padding:10px; margin-bottom:8px; display:flex; align-items:center; gap:10px;">
+                <div style="width:48px; height:48px; background:linear-gradient(135deg,#dbeafe,#bfdbfe); border-radius:8px; display:flex; align-items:center; justify-content:center; font-size:24px;">🖼️</div>
+                <div style="flex:1; min-width:0;"><div style="font-weight:600; font-size:13px;">EKG-12-lead.jpg</div><div style="font-size:11px; color:var(--c-muted);">1.2 MB · อัปโหลด 14:34</div></div>
+                <button class="kebab-btn"><svg viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="5" r="1.8"/><circle cx="12" cy="12" r="1.8"/><circle cx="12" cy="19" r="1.8"/></svg></button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <div class="preview-label">🖥️ Desktop · Drag-drop + Gallery</div>
+        <div class="desktop-frame">
+          <div class="desktop-screen">
+            <div class="col-header"><div><div style="font-weight:700; font-size:14px;">📎 Refer Documents</div><div style="font-size:11px; color:var(--c-muted);">TR-047 · 2/5 ไฟล์ · max 5</div></div><button class="btn-primary">📎 อัปโหลด</button></div>
+            <div style="flex:1; padding:20px; background:var(--c-bg); overflow-y:auto;">
+
+              <!-- Drop zone -->
+              <div style="background:#f0f9ff; border:2px dashed #0ea5e9; border-radius:12px; padding:32px; text-align:center; margin-bottom:18px;">
+                <div style="font-size:48px;">📥</div>
+                <div style="font-weight:700; font-size:14px; margin-top:8px;">ลากไฟล์มาวางที่นี่</div>
+                <div style="font-size:12px; color:var(--c-muted); margin-top:4px;">หรือคลิกเพื่อเลือกไฟล์ · รองรับ JPG, PNG, PDF · max 10 MB/ไฟล์</div>
+              </div>
+
+              <div style="display:grid; grid-template-columns:repeat(auto-fill,minmax(200px,1fr)); gap:14px;">
+
+                <div style="background:#fff; border:1px solid var(--c-border); border-radius:10px; overflow:hidden;">
+                  <div style="height:140px; background:#fee2e2; display:flex; align-items:center; justify-content:center; font-size:48px;">📄</div>
+                  <div style="padding:10px;">
+                    <div style="font-weight:600; font-size:13px;">refer-form.pdf</div>
+                    <div style="font-size:11px; color:var(--c-muted); margin-top:2px;">245 KB · 14:33</div>
+                    <div style="display:flex; gap:4px; margin-top:8px;"><button class="btn-ghost" style="flex:1; padding:5px; font-size:11px;">👁️</button><button class="btn-ghost" style="flex:1; padding:5px; font-size:11px;">⬇️</button><button class="btn-ghost" style="flex:1; padding:5px; font-size:11px; color:#dc2626;">🗑️</button></div>
+                  </div>
+                </div>
+
+                <div style="background:#fff; border:1px solid var(--c-border); border-radius:10px; overflow:hidden;">
+                  <div style="height:140px; background:linear-gradient(135deg,#dbeafe,#bfdbfe); display:flex; align-items:center; justify-content:center; font-size:48px;">📈</div>
+                  <div style="padding:10px;">
+                    <div style="font-weight:600; font-size:13px;">EKG-12-lead.jpg</div>
+                    <div style="font-size:11px; color:var(--c-muted); margin-top:2px;">1.2 MB · 14:34</div>
+                    <div style="display:flex; gap:4px; margin-top:8px;"><button class="btn-ghost" style="flex:1; padding:5px; font-size:11px;">👁️</button><button class="btn-ghost" style="flex:1; padding:5px; font-size:11px;">⬇️</button><button class="btn-ghost" style="flex:1; padding:5px; font-size:11px; color:#dc2626;">🗑️</button></div>
+                  </div>
+                </div>
+
+                <!-- empty slots -->
+                <div style="background:#f8fafc; border:1px dashed var(--c-border); border-radius:10px; height:200px; display:flex; align-items:center; justify-content:center; color:var(--c-muted); font-size:13px;">+ ไฟล์ที่ 3</div>
+                <div style="background:#f8fafc; border:1px dashed var(--c-border); border-radius:10px; height:200px; display:flex; align-items:center; justify-content:center; color:var(--c-muted); font-size:13px;">+ ไฟล์ที่ 4</div>
+                <div style="background:#f8fafc; border:1px dashed var(--c-border); border-radius:10px; height:200px; display:flex; align-items:center; justify-content:center; color:var(--c-muted); font-size:13px;">+ ไฟล์ที่ 5</div>
+
+              </div>
+
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+</div>
+
+<script src="preview.js"></script>
+<script>
+function switchPane(e, name){
+  document.querySelectorAll('.sub-tab').forEach(t=>t.classList.remove('active'));
+  e.target.classList.add('active');
+  document.querySelectorAll('.sub-pane').forEach(p=>p.classList.remove('active'));
+  document.getElementById('pane-'+name).classList.add('active');
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,75 @@
+<!-- V2 Side Rail snippet — inject after <body> in each module -->
+<style id="v2-overlay">
+  body{ padding-left:56px; }
+  @media (max-width: 767px){ body{ padding-left:0; } }
+  .v2-rail{
+    position:fixed; left:0; top:0; bottom:0; width:56px;
+    background:#fff; border-right:1px solid #e2e8f0;
+    display:flex; flex-direction:column; align-items:center;
+    padding:10px 0; gap:4px; z-index:1030;
+    font-family:'Sarabun',sans-serif;
+  }
+  @media (max-width: 767px){ .v2-rail{ display:none; } }
+  .v2-rail .v2-logo{
+    width:36px; height:36px; border-radius:8px;
+    background:linear-gradient(135deg,#0ea5e9,#0284c7); color:#fff;
+    display:flex; align-items:center; justify-content:center;
+    font-weight:800; font-size:13px; margin-bottom:6px;
+  }
+  .v2-rail a{
+    width:40px; height:40px; border-radius:8px;
+    display:flex; align-items:center; justify-content:center;
+    color:#475569; text-decoration:none; font-size:20px;
+    transition:all .15s;
+  }
+  .v2-rail a:hover{ background:#f1f5f9; color:#0f172a; }
+  .v2-rail a.active{ background:#e0f2fe; color:#0369a1; }
+  .v2-rail .v2-spacer{ flex:1; }
+  .v2-rail .v2-divider{ width:32px; height:1px; background:#e2e8f0; margin:4px 0; }
+  body .btn-primary{ background:#0ea5e9; border-color:#0ea5e9; }
+  body .btn-primary:hover{ background:#0284c7; border-color:#0284c7; }
+  body .text-primary{ color:#0ea5e9 !important; }
+  body .border-primary{ border-color:#0ea5e9 !important; }
+  body .bg-primary{ background:#0ea5e9 !important; }
+  body, body *{ font-family:'Sarabun', sans-serif !important; }
+</style>
+<aside class="v2-rail no-print">
+  <div class="v2-logo" title="PT Medical V2">PT</div>
+  <a href="../transport/" data-mod="transport" title="นำส่งผู้ป่วย">🚑</a>
+  <a href="../firstaid/" data-mod="firstaid" title="ปฐมพยาบาล">🩹</a>
+  <a href="../location/" data-mod="location" title="พิกัดสถานที่">📍</a>
+  <a href="../gps/" data-mod="gps" id="rail-gps" title="GPS Tracking" style="display:none;">🛰️</a>
+  <div class="v2-spacer"></div>
+  <a href="../monitor/" data-mod="monitor" id="rail-monitor" title="Monitor" style="display:none;">📡</a>
+  <a href="../admin.html" data-mod="admin" id="rail-admin" title="Admin Settings" style="display:none;">⚙️</a>
+  <div class="v2-divider"></div>
+  <a href="../" title="หน้าหลัก">🏠</a>
+</aside>
+<script>
+(function(){
+  // Mark active rail item by current path
+  var path = location.pathname;
+  document.querySelectorAll('.v2-rail a[data-mod]').forEach(function(a){
+    var m = a.getAttribute('data-mod');
+    if(path.indexOf('/v2/'+m+'/') !== -1 || path.indexOf('/v2/'+m+'.html') !== -1){
+      a.classList.add('active');
+    }
+  });
+  // Show admin-only rail items
+  function showAdminRail(){
+    try {
+      var meta = localStorage.getItem('pt_user_meta');
+      if(!meta) return;
+      var u = JSON.parse(meta);
+      var role = (u.role||'').toLowerCase();
+      if(role.indexOf('admin') !== -1){
+        ['rail-gps','rail-monitor','rail-admin'].forEach(function(id){
+          var el = document.getElementById(id); if(el) el.style.display = '';
+        });
+      }
+    } catch(e){}
+  }
+  if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', showAdminRail);
+  else showAdminRail();
+})();
+</script>

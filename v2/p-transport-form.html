@@ -1,0 +1,456 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>V2 — Transport Form (3 Step)</title>
+<link rel="stylesheet" href="preview.css">
+</head>
+<body>
+
+<header class="preview-header">
+  <div class="preview-header-inner">
+    <div>
+      <h1 class="preview-title">📝 Transport — Form (3 Step)</h1>
+      <p class="preview-sub"><a href="preview.html" style="color:#0369a1;">← Launcher</a> · ใช้ field จริงจาก V1 · ไม่ lock step (scroll แก้ได้ตลอด)</p>
+    </div>
+    <span class="badge-pill warn">DESIGN ONLY</span>
+  </div>
+</header>
+
+<div class="preview-wrap">
+
+  <!-- MOBILE -->
+  <div>
+    <div class="preview-label">📱 Mobile · scrollable 3 sections</div>
+    <div class="device-frame">
+      <div class="device-screen">
+
+        <div class="topbar">
+          <a href="p-transport-list.html" class="icon-btn" title="กลับเคสทั้งหมด" style="display:flex; align-items:center; gap:2px; padding:0 8px; width:auto;">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:18px; height:18px;"><path d="M15 6l-6 6 6 6"/></svg>
+            <span style="font-size:12px; font-weight:600;">เคส</span>
+          </a>
+          <div style="flex:1; min-width:0;">
+            <div style="font-weight:600; font-size:13px; line-height:1.2;">TR-047/2569 · สมชาย ใจดี</div>
+            <div style="font-size:10px; color:var(--c-muted);">Auto-save · เริ่ม 14:32</div>
+          </div>
+          <button class="icon-btn" title="kebab"><svg viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="5" r="1.8"/><circle cx="12" cy="12" r="1.8"/><circle cx="12" cy="19" r="1.8"/></svg></button>
+        </div>
+
+        <!-- Timeline thin bar (visible all 3 steps) -->
+        <div class="tl-bar">
+          <span class="tl-icon">⏱</span>
+          <div class="tl-step"><span class="tl-dot done"></span><span class="tl-label">Disp</span><span class="tl-time">14:32</span></div>
+          <span class="tl-arrow">━</span>
+          <div class="tl-step"><span class="tl-dot done"></span><span class="tl-label">Scene</span><span class="tl-time">14:38</span><span class="tl-dur">+6m</span></div>
+          <span class="tl-arrow">━</span>
+          <div class="tl-step"><span class="tl-dot done"></span><span class="tl-label">Depart</span><span class="tl-time">14:48</span><span class="tl-dur">+10m</span></div>
+          <span class="tl-arrow">━</span>
+          <div class="tl-step active"><span class="tl-dot active"></span><span class="tl-label">Hosp</span><span class="tl-pending-time">--:--</span><button class="tl-now-btn">Now</button></div>
+        </div>
+
+        <!-- Step jump tabs -->
+        <div style="background:#fff; border-bottom:1px solid var(--c-border); display:flex; flex-shrink:0;">
+          <button style="flex:1; padding:8px 4px; font-size:12px; font-weight:600; color:#0369a1; border-bottom:2px solid #0ea5e9; background:none; border-top:none; border-left:none; border-right:none; cursor:pointer;">1. ข้อมูล</button>
+          <button style="flex:1; padding:8px 4px; font-size:12px; color:#64748b; background:none; border:none; cursor:pointer;">2. ประเมิน</button>
+          <button style="flex:1; padding:8px 4px; font-size:12px; color:#64748b; background:none; border:none; cursor:pointer;">3. นำส่ง</button>
+        </div>
+
+        <main style="flex:1; overflow-y:auto; padding:10px; padding-bottom:80px; background:var(--c-bg);">
+
+          <!-- STEP 1 -->
+          <div class="section-card">
+            <div class="section-header"><div class="section-num">1</div><div class="section-title">ข้อมูลทั่วไป</div></div>
+            <div class="section-body">
+
+              <div class="subsection-title">ชุดปฏิบัติการ</div>
+              <div style="margin-bottom:10px;">
+                <div class="chip-radio-group" style="margin-bottom:8px;">
+                  <span class="chip">BLS</span><span class="chip selected">ALS</span>
+                </div>
+                <div class="field-row-2" style="margin-bottom:8px;">
+                  <div class="field"><label>เลือกรถ (GPS)</label><select><option>รถ 1 - ทะเบียน นข 1234</option></select></div>
+                  <div class="field"><label>เบอร์รถ</label><input value="1"></div>
+                </div>
+                <div class="field-row-2" style="margin-bottom:8px;">
+                  <div class="field"><label>Staff 1 (ชื่อ)</label><input value="สมศักดิ์ เก่งกาจ"></div>
+                  <div class="field"><label>ตำแหน่ง</label><select><option>EMT</option><option>EMR</option></select></div>
+                </div>
+                <div class="field-row-2" style="margin-bottom:8px;">
+                  <div class="field"><label>Staff 2</label><input></div>
+                  <div class="field"><label>ตำแหน่ง</label><select><option>Driver</option></select></div>
+                </div>
+                <div class="field-row-2" style="margin-bottom:8px;">
+                  <div class="field"><label>พยาบาล / พาราเมดิก</label><input value="แหม่ม สวยเสมอ"></div>
+                  <div class="field"><label>แพทย์ (ALS)</label><input value="นพ.ตั้นกล้วย"></div>
+                </div>
+              </div>
+
+              <div class="subsection-title">จุดเกิดเหตุ (EMS)</div>
+              <div style="margin-bottom:10px;">
+                <div class="chip-radio-group" style="margin-bottom:8px;">
+                  <span class="chip selected">Trauma</span><span class="chip">Non-Trauma</span>
+                </div>
+                <div class="field"><label>MOI / รายละเอียด</label><textarea rows="2">รถจักรยานยนต์เสียหลักล้ม หมวกกันน็อคหลุด</textarea></div>
+              </div>
+
+              <div class="subsection-title">หนังสือยินยอม</div>
+              <div style="background:#fef3c7; border:1px dashed #f59e0b; border-radius:8px; padding:10px; margin-bottom:10px; display:flex; align-items:center; justify-content:space-between;">
+                <div><div style="font-size:12px; font-weight:600; color:#92400e;">📝 รอเซ็นยินยอม</div><div style="font-size:10px; color:#78350f;">PDPA · ยินยอมรับบริการ</div></div>
+                <button class="btn-ghost" style="padding:5px 10px; font-size:11px;">เปิดฟอร์ม</button>
+              </div>
+
+              <div class="subsection-title">ข้อมูลผู้ป่วย</div>
+              <div class="field field-required" style="margin-bottom:8px;"><label>ชื่อ-นามสกุล</label><input value="สมชาย ใจดี"></div>
+              <div class="field-row-2" style="margin-bottom:8px;">
+                <div class="field"><label>อายุ</label><input value="45"></div>
+                <div class="field"><label>เพศ</label><select><option>ชาย</option></select></div>
+              </div>
+              <div class="field" style="margin-bottom:8px;"><label>บัตรประชาชน · <button class="btn-ghost" style="padding:2px 8px; font-size:11px;">📷 OCR</button></label><input value="1-2345-67890-12-3"></div>
+
+              <div class="subsection-title">รายละเอียดผู้ป่วย</div>
+              <div style="margin-bottom:8px;">
+                <label style="font-size:11px; color:var(--c-muted); font-weight:500;">Triage Level</label>
+                <div class="chip-radio-group" style="margin-top:4px;">
+                  <span class="chip selected" style="background:#dc2626; color:#fff;">Resus</span>
+                  <span class="chip">Emerg</span>
+                  <span class="chip">Urgent</span>
+                  <span class="chip">Non-Urg</span>
+                </div>
+              </div>
+              <div class="field-row-2" style="margin-bottom:8px;">
+                <div class="field"><label>ประเภท</label><select><option>EMS</option><option>Refer</option><option>Discharge</option></select></div>
+                <div class="field"><label>NR Status</label><select><option>Full Support</option><option>DNR</option></select></div>
+              </div>
+              <div class="field" style="margin-bottom:8px;"><label>รับจาก (ต้นทาง)</label><input value="เกิดเหตุ ต.หนองชาก ม.4"></div>
+              <div class="field" style="margin-bottom:8px;"><label>นำส่ง (ปลายทาง)</label><input value="รพ. สมเด็จฯ ณ ชลบุรี"></div>
+              <div class="field" style="margin-bottom:8px;"><label>CC (Chief Complaint)</label><textarea rows="2">เจ็บแน่นหน้าอก ปวดร้าวแขนซ้าย</textarea></div>
+              <div class="field" style="margin-bottom:8px;"><label>Dx (Diagnosis)</label><textarea rows="2">Acute MI R/O</textarea></div>
+
+              <div style="margin-bottom:8px;">
+                <label style="font-size:11px; color:var(--c-muted); font-weight:500;">Underlying Disease</label>
+                <div style="display:flex; flex-wrap:wrap; gap:4px; margin-top:4px;">
+                  <span class="chip">DM</span><span class="chip selected">HT</span><span class="chip">DLP</span><span class="chip">IHD/CAD</span><span class="chip">CVA</span><span class="chip">CKD</span><span class="chip">COPD</span><span class="chip">Cancer</span><span class="chip">Epilepsy</span>
+                </div>
+              </div>
+              <div class="field" style="margin-bottom:8px;"><label>UD อื่นๆ</label><input></div>
+              <div class="field" style="margin-bottom:8px;"><label>ยาประจำตัว</label><input value="ASA, Atorvastatin"></div>
+              <div class="field" style="margin-bottom:8px; background:#fef2f2; padding:8px; border-radius:8px; border:1px solid #fecaca;"><label style="color:#991b1b;">⚠ แพ้ยา/อาหาร</label><input value="Sulfa" style="border-color:#fca5a5;"></div>
+            </div>
+          </div>
+
+          <!-- STEP 2 -->
+          <div class="section-card">
+            <div class="section-header"><div class="section-num">2</div><div class="section-title">ประเมินร่างกาย</div></div>
+            <div class="section-body">
+              <div class="subsection-title">สัญญาณชีพแรกรับ</div>
+              <button class="btn-ghost" style="width:100%; margin-bottom:10px;">📊 บันทึก V/S แรกรับ</button>
+
+              <div class="subsection-title">Airway</div>
+              <div class="chip-radio-group" style="margin-bottom:10px;">
+                <span class="chip selected">Open</span><span class="chip">Mgt.</span><span class="chip">ET Tube</span><span class="chip">Tracheostomy</span>
+              </div>
+
+              <div class="subsection-title">Breathing & Oxygen</div>
+              <div style="display:flex; align-items:center; gap:6px; margin-bottom:8px;"><input type="checkbox" id="vent"> <label for="vent" style="font-size:13px;">ใช้เครื่องช่วยหายใจ (Ventilator)</label></div>
+              <div class="field-row-2" style="margin-bottom:10px;">
+                <div class="field"><label>O2 Device</label><select><option>Nasal Cannula</option><option>Face Mask</option><option>NRB</option></select></div>
+                <div class="field"><label>Flow (LPM)</label><input value="3"></div>
+              </div>
+
+              <div class="subsection-title">Circulation</div>
+              <div class="chip-radio-group" style="margin-bottom:8px;">
+                <span class="chip selected">Stable</span><span class="chip">Shock</span>
+              </div>
+              <div class="field" style="margin-bottom:8px;"><label>EKG Rhythm</label><input value="NSR"></div>
+              <div style="display:flex; align-items:center; gap:6px; margin-bottom:10px;"><input type="checkbox"> <label style="font-size:13px;">มี Central Line</label></div>
+
+              <div class="subsection-title">IV Lines (ก่อนนำส่ง)</div>
+              <button class="btn-ghost" style="width:100%; margin-bottom:10px; padding:8px;">+ เพิ่ม IV Line</button>
+
+              <div class="subsection-title">Cardiac Arrest</div>
+              <div style="display:flex; align-items:center; gap:6px; margin-bottom:10px;"><input type="checkbox"> <label style="font-size:13px;">ผู้ป่วยมี Cardiac Arrest</label></div>
+
+              <div class="subsection-title">Disability (GCS)</div>
+              <div class="field-row-3" style="margin-bottom:10px;">
+                <div class="field"><label>E</label><select><option>4</option></select></div>
+                <div class="field"><label>V</label><select><option>5</option></select></div>
+                <div class="field"><label>M</label><select><option>6</option></select></div>
+              </div>
+              <div class="field-row-2" style="margin-bottom:10px;">
+                <div class="field"><label>Pupil Size</label><input value="3/3"></div>
+                <div class="field"><label>React</label><select><option>React</option><option>No React</option></select></div>
+              </div>
+              <div class="field" style="margin-bottom:10px;"><label>Pain Score (0-10)</label><select><option>5</option></select></div>
+
+              <div class="subsection-title">Motor Power (0-5)</div>
+              <div class="field-row-2" style="margin-bottom:6px;">
+                <div class="field"><label>RA</label><select><option>5</option></select></div>
+                <div class="field"><label>LA</label><select><option>4</option></select></div>
+              </div>
+              <div class="field-row-2" style="margin-bottom:10px;">
+                <div class="field"><label>RL</label><select><option>5</option></select></div>
+                <div class="field"><label>LL</label><select><option>5</option></select></div>
+              </div>
+
+              <div class="subsection-title">Drainage / Tubes</div>
+              <div style="display:flex; flex-direction:column; gap:5px; margin-bottom:6px;">
+                <label style="font-size:13px;"><input type="checkbox"> ICD</label>
+                <label style="font-size:13px;"><input type="checkbox"> NG Tube</label>
+                <label style="font-size:13px;"><input type="checkbox"> Foley Cath</label>
+                <label style="font-size:13px;"><input type="checkbox"> อื่นๆ</label>
+              </div>
+            </div>
+          </div>
+
+          <!-- STEP 3 -->
+          <div class="section-card">
+            <div class="section-header"><div class="section-num">3</div><div class="section-title">ขณะนำส่ง</div></div>
+            <div class="section-body">
+              <div class="subsection-title">อุปกรณ์ที่ใช้</div>
+              <div style="display:flex; flex-direction:column; gap:5px; margin-bottom:10px;">
+                <label style="font-size:13px;"><input type="checkbox"> Spinal Board</label>
+                <label style="font-size:13px;"><input type="checkbox"> Scoop Stretcher</label>
+                <label style="font-size:13px;"><input type="checkbox"> Vacuum Mattress</label>
+                <label style="font-size:13px;"><input type="checkbox" checked> Monitor / Defib</label>
+                <label style="font-size:13px;"><input type="checkbox"> ECMO</label>
+                <label style="font-size:13px;"><input type="checkbox"> อื่นๆ</label>
+              </div>
+
+              <div class="subsection-title">สารน้ำ/ยา ระหว่างนำส่ง</div>
+              <button class="btn-ghost" style="width:100%; margin-bottom:10px; padding:8px;">+ เพิ่มรายการ</button>
+
+              <div class="subsection-title">บันทึกสัญญาณชีพ</div>
+              <div style="background:#0f172a; color:#fff; padding:10px; border-radius:8px; margin-bottom:10px;">
+                <div style="display:flex; gap:6px; margin-bottom:8px;">
+                  <button class="btn-danger" style="flex:1; padding:6px; font-size:12px;">+ Arrest</button>
+                  <button style="flex:1; padding:6px; background:#16a34a; color:#fff; border:none; border-radius:6px; font-size:12px; font-weight:500;">+ Vital</button>
+                </div>
+                <div style="font-size:11px; opacity:.7; text-align:center;">ยังไม่มีบันทึก</div>
+              </div>
+
+              <div class="subsection-title">บันทึกอาการ/การพยาบาล</div>
+              <div class="field" style="margin-bottom:10px;"><textarea rows="4">ผู้ป่วยอาการคงที่ ให้ออกซิเจน 3 LPM</textarea></div>
+
+              <div class="subsection-title">เอกสารแนบ Refer (max 5)</div>
+              <div style="display:flex; align-items:center; gap:6px; margin-bottom:8px;">
+                <button class="btn-ghost" style="flex:1; padding:8px;">📎 อัปโหลดไฟล์</button>
+                <span class="flag-chip">2/5</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Timeline -->
+          <div class="section-card">
+            <div class="section-header"><div class="section-num" style="background:#7c3aed;">⏱</div><div class="section-title">Timeline (EMS)</div></div>
+            <div class="section-body">
+              <div style="display:flex; flex-direction:column; gap:8px;">
+                <div style="display:flex; align-items:center; gap:8px;"><span style="font-size:12px; flex:1;">Dispatch</span><input type="time" value="14:32" style="font-size:12px; padding:4px 8px;"><button class="btn-ghost" style="padding:4px 8px; font-size:11px;">Now</button></div>
+                <div style="display:flex; align-items:center; gap:8px;"><span style="font-size:12px; flex:1;">Arrive Scene</span><input type="time" value="14:38" style="font-size:12px; padding:4px 8px;"><button class="btn-ghost" style="padding:4px 8px; font-size:11px;">Now</button></div>
+                <div style="display:flex; align-items:center; gap:8px;"><span style="font-size:12px; flex:1;">Depart Scene</span><input type="time" style="font-size:12px; padding:4px 8px;"><button class="btn-ghost" style="padding:4px 8px; font-size:11px;">Now</button></div>
+                <div style="display:flex; align-items:center; gap:8px;"><span style="font-size:12px; flex:1;">Arrive Hospital</span><input type="time" style="font-size:12px; padding:4px 8px;"><button class="btn-ghost" style="padding:4px 8px; font-size:11px;">Now</button></div>
+              </div>
+            </div>
+          </div>
+
+        </main>
+
+        <!-- Bottom action bar -->
+        <div style="position:absolute; bottom:0; left:0; right:0; background:#fff; border-top:1px solid var(--c-border); padding:8px 12px; z-index:30;">
+          <div style="font-size:10px; color:#16a34a; text-align:center; margin-bottom:4px;">✓ Auto-saved 14:34</div>
+          <div style="display:flex; gap:6px;">
+            <button class="btn-primary" style="flex:1.2; padding:10px; background:#16a34a;">💾 บันทึก</button>
+            <button class="btn-ghost" style="flex:none; padding:10px;">🖨️</button>
+            <button class="btn-primary" style="flex:1; padding:10px;">ถัดไป →</button>
+          </div>
+        </div>
+
+      </div>
+    </div>
+    <p class="preview-hint">3 sections อยู่ในหน้าเดียว · ไม่ lock · เลื่อนแก้ได้ทุกจุด · กด Tab ด้านบนเพื่อ jump</p>
+  </div>
+
+  <!-- DESKTOP -->
+  <div>
+    <div class="preview-label">🖥️ Desktop · Sub-nav = Step jumper + Sub-pages</div>
+    <div class="desktop-frame">
+      <div class="desktop-screen">
+        <div class="desktop-3col">
+
+          <aside class="col-nav" id="dNav">
+            <div class="nav-brand-mini" style="padding:12px 0; justify-content:center; border-bottom:1px solid var(--c-border); display:flex;">
+              <div style="width:32px; height:32px; border-radius:8px; background:linear-gradient(135deg,#0ea5e9,#0284c7); color:#fff; display:flex; align-items:center; justify-content:center; font-weight:700; font-size:13px; cursor:pointer;" onclick="toggleNav()">PT</div>
+            </div>
+            <nav style="flex:1; padding:8px 0;">
+              <a class="nav-item active" title="Transport"><span class="nav-icon">🚑</span><span class="nav-label">Transport</span></a>
+              <a class="nav-item" title="FirstAid"><span class="nav-icon">🩹</span><span class="nav-label">FirstAid</span></a>
+              <a class="nav-item" title="Location"><span class="nav-icon">🗺️</span><span class="nav-label">Location</span></a>
+              <a class="nav-item" title="GPS"><span class="nav-icon">🛰️</span><span class="nav-label">GPS</span></a>
+              <a class="nav-item" title="Monitor"><span class="nav-icon">📡</span><span class="nav-label">Monitor</span></a>
+            </nav>
+          </aside>
+
+          <aside class="col-subnav">
+            <div style="padding:8px 14px; border-bottom:1px solid var(--c-border); background:#f1f5f9;">
+              <a href="p-transport-list.html" style="font-size:12px; color:#0369a1; font-weight:600;">← เคสทั้งหมด (Active)</a>
+            </div>
+            <div style="padding:10px 14px; border-bottom:1px solid var(--c-border);">
+              <div style="font-weight:700; font-size:13px;">TR-047/2569</div>
+              <div style="font-size:11px; color:var(--c-muted);">สมชาย ใจดี · เริ่ม 14:32</div>
+              <div style="display:flex; gap:4px; margin-top:6px;">
+                <span class="ttype-pill">EMS</span><span class="ops-chip">ALS</span><span class="triage-pill resus">Resus</span>
+              </div>
+            </div>
+            <div style="flex:1; overflow-y:auto;">
+              <div class="subnav-section">Step (Jump to)</div>
+              <div class="subnav-item active"><span>1️⃣ ข้อมูลทั่วไป</span><span class="badge">●</span></div>
+              <div class="subnav-item"><span>2️⃣ ประเมินร่างกาย</span></div>
+              <div class="subnav-item"><span>3️⃣ ขณะนำส่ง</span></div>
+
+              <div class="subnav-section">Sub-form (เลี่ยง modal)</div>
+              <div class="subnav-item"><span>📝 หนังสือยินยอม</span><span class="badge danger">!</span></div>
+              <div class="subnav-item"><span>📊 V/S แรกรับ</span></div>
+              <div class="subnav-item"><span>💉 IV Lines (Pre)</span></div>
+              <div class="subnav-item"><span>💉 IV Lines (Transport)</span></div>
+              <div class="subnav-item"><span>📈 Vitals Log</span></div>
+              <div class="subnav-item"><span>📎 เอกสาร Refer</span><span class="badge">2/5</span></div>
+
+              <div class="subnav-section">Action</div>
+              <div class="subnav-item"><span>🖨️ พิมพ์ใบนำส่ง</span></div>
+              <div class="subnav-item"><span>🔗 แชร์ Public Link</span></div>
+              <div class="subnav-item"><span style="color:#16a34a;">✓ ปิดเคส</span></div>
+            </div>
+          </aside>
+
+          <section class="col-content">
+            <div class="col-header">
+              <div><div style="font-weight:700; font-size:14px;">Step 1: ข้อมูลทั่วไป</div><div style="font-size:11px; color:var(--c-muted);">Auto-saved 14:34 · ไม่ lock — แก้ได้ตลอด</div></div>
+              <div style="display:flex; gap:6px;"><button class="btn-ghost">💾 บันทึก</button><button class="btn-ghost">🖨️ พิมพ์</button><button class="btn-primary">ถัดไป →</button></div>
+            </div>
+            <!-- Timeline thin bar (visible all 3 steps) -->
+            <div class="tl-bar">
+              <span class="tl-icon">⏱ EMS Timeline</span>
+              <div class="tl-step"><span class="tl-dot done"></span><span class="tl-label">Dispatch</span><span class="tl-time">14:32</span></div>
+              <span class="tl-arrow">━━</span>
+              <div class="tl-step"><span class="tl-dot done"></span><span class="tl-label">Arr.Scene</span><span class="tl-time">14:38</span><span class="tl-dur">+6m</span></div>
+              <span class="tl-arrow">━━</span>
+              <div class="tl-step"><span class="tl-dot done"></span><span class="tl-label">Depart</span><span class="tl-time">14:48</span><span class="tl-dur">+10m</span></div>
+              <span class="tl-arrow">━━</span>
+              <div class="tl-step active"><span class="tl-dot active"></span><span class="tl-label">Arr.Hospital</span><span class="tl-pending-time">--:--</span><button class="tl-now-btn">Now</button></div>
+            </div>
+            <div class="col-body" style="padding:14px;">
+
+              <div class="section-card">
+                <div class="section-header" style="background:#fff;"><div class="section-num">A</div><div class="section-title">ชุดปฏิบัติการ</div></div>
+                <div class="section-body">
+                  <div style="margin-bottom:10px;"><div class="chip-radio-group"><span class="chip">BLS</span><span class="chip selected">ALS</span></div></div>
+                  <div class="field-row-4" style="margin-bottom:10px;">
+                    <div class="field"><label>เลือกรถ (GPS)</label><select><option>รถ 1</option></select></div>
+                    <div class="field"><label>เบอร์รถ</label><input value="1"></div>
+                    <div class="field"><label>พยาบาล / พาราเมดิก</label><input value="แหม่ม สวยเสมอ"></div>
+                    <div class="field"><label>แพทย์</label><input value="นพ.ตั้นกล้วย"></div>
+                  </div>
+                  <div class="field-row-3" style="margin-bottom:6px;">
+                    <div class="field">
+                      <label>Staff 1 (ชื่อ + ตำแหน่ง)</label>
+                      <div style="display:grid; grid-template-columns:2fr 1fr; gap:4px;">
+                        <input value="สมศักดิ์ เก่งกาจ">
+                        <select><option>EMT</option><option>EMR</option><option>Driver</option></select>
+                      </div>
+                    </div>
+                    <div class="field">
+                      <label>Staff 2 (ชื่อ + ตำแหน่ง)</label>
+                      <div style="display:grid; grid-template-columns:2fr 1fr; gap:4px;">
+                        <input>
+                        <select><option>EMT</option><option>EMR</option><option>Driver</option></select>
+                      </div>
+                    </div>
+                    <div class="field">
+                      <label>Staff 3 (ชื่อ + ตำแหน่ง)</label>
+                      <div style="display:grid; grid-template-columns:2fr 1fr; gap:4px;">
+                        <input value="แดง">
+                        <select><option>Driver</option><option>EMT</option><option>EMR</option></select>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="section-card">
+                <div class="section-header" style="background:#fff;"><div class="section-num">B</div><div class="section-title">จุดเกิดเหตุ (EMS)</div></div>
+                <div class="section-body">
+                  <div class="chip-radio-group" style="margin-bottom:10px;"><span class="chip selected">Trauma</span><span class="chip">Non-Trauma</span></div>
+                  <div class="field"><label>MOI / รายละเอียด</label><textarea rows="2">รถจักรยานยนต์เสียหลักล้ม หมวกกันน็อคหลุด</textarea></div>
+                </div>
+              </div>
+
+              <div class="section-card">
+                <div class="section-header" style="background:#fef3c7;"><div class="section-num" style="background:#f59e0b;">C</div><div class="section-title">หนังสือยินยอม — รอเซ็น</div><button class="btn-primary" style="margin-left:auto; padding:4px 10px; font-size:11px;">เปิดฟอร์ม</button></div>
+              </div>
+
+              <div class="section-card">
+                <div class="section-header" style="background:#fff;"><div class="section-num">D</div><div class="section-title">ข้อมูลผู้ป่วย</div></div>
+                <div class="section-body">
+                  <div class="field-row-4" style="margin-bottom:10px;">
+                    <div class="field field-required"><label>ชื่อ-นามสกุล</label><input value="สมชาย ใจดี"></div>
+                    <div class="field"><label>อายุ</label><input value="45"></div>
+                    <div class="field"><label>เพศ</label><select><option>ชาย</option></select></div>
+                    <div class="field"><label>บัตร ปชช. <button class="btn-ghost" style="padding:1px 6px; font-size:10px;">📷 OCR</button></label><input value="1-2345-67890-12-3"></div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="section-card">
+                <div class="section-header" style="background:#fff;"><div class="section-num">E</div><div class="section-title">รายละเอียดผู้ป่วย</div></div>
+                <div class="section-body">
+                  <div style="margin-bottom:10px;">
+                    <label style="font-size:11px; color:var(--c-muted); font-weight:600;">Triage Level</label>
+                    <div class="chip-radio-group" style="margin-top:4px;">
+                      <span class="chip selected" style="background:#dc2626; color:#fff;">Resuscitation</span>
+                      <span class="chip">Emergency</span>
+                      <span class="chip">Urgent</span>
+                      <span class="chip">Non-Urgent</span>
+                    </div>
+                  </div>
+                  <div class="field-row-3" style="margin-bottom:10px;">
+                    <div class="field"><label>Transport Type</label><select><option>EMS</option><option>Refer</option></select></div>
+                    <div class="field"><label>NR Status</label><select><option>Full Support</option><option>DNR</option><option>Palliative</option></select></div>
+                    <div class="field"><label>Op Level</label><select><option>ALS</option></select></div>
+                  </div>
+                  <div class="field-row-2" style="margin-bottom:10px;">
+                    <div class="field"><label>รับจาก</label><input value="เกิดเหตุ ต.หนองชาก ม.4"></div>
+                    <div class="field"><label>นำส่ง</label><input value="รพ. สมเด็จฯ ณ ชลบุรี"></div>
+                  </div>
+                  <div class="field-row-2" style="margin-bottom:10px;">
+                    <div class="field"><label>CC (Chief Complaint)</label><textarea rows="2">เจ็บแน่นหน้าอก ปวดร้าวแขนซ้าย</textarea></div>
+                    <div class="field"><label>Dx (Diagnosis)</label><textarea rows="2">Acute MI R/O</textarea></div>
+                  </div>
+                  <div style="margin-bottom:10px;">
+                    <label style="font-size:11px; color:var(--c-muted); font-weight:600;">Underlying Disease</label>
+                    <div style="display:flex; flex-wrap:wrap; gap:4px; margin-top:4px;">
+                      <span class="chip">DM</span><span class="chip selected">HT</span><span class="chip">DLP</span><span class="chip">IHD/CAD</span><span class="chip">CVA/Stroke</span><span class="chip">CKD</span><span class="chip">COPD/Asthma</span><span class="chip">Cancer</span><span class="chip">Epilepsy</span>
+                    </div>
+                  </div>
+                  <div class="field-row-2" style="margin-bottom:10px;">
+                    <div class="field"><label>UD อื่นๆ</label><input></div>
+                    <div class="field"><label>ยาประจำตัว</label><input value="ASA, Atorvastatin"></div>
+                  </div>
+                  <div class="field" style="background:#fef2f2; padding:10px; border-radius:8px; border:1px solid #fecaca;"><label style="color:#991b1b; font-weight:600;">⚠ ประวัติแพ้ยา/อาหาร</label><input value="Sulfa" style="border-color:#fca5a5;"></div>
+                </div>
+              </div>
+
+            </div>
+          </section>
+
+        </div>
+      </div>
+    </div>
+    <p class="preview-hint"><strong>Sub-nav (Col 2)</strong> ใช้แทน modal: หนังสือยินยอม / V/S แรกรับ / IV Lines / Vitals Log / Refer Docs · กดได้เปิด sub-page เลี่ยง modal</p>
+  </div>
+
+</div>
+
+<script src="preview.js"></script>
+</body>
+</html>

@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>V2 — FirstAid Event Detail</title>
+<link rel="stylesheet" href="preview.css">
+</head>
+<body>
+
+<header class="preview-header">
+  <div class="preview-header-inner">
+    <div>
+      <h1 class="preview-title">🩺 FirstAid — Event Detail + Registry</h1>
+      <p class="preview-sub"><a href="preview.html" style="color:#0369a1;">← Launcher</a> · Quick Dispense · Registry · Stats</p>
+    </div>
+    <span class="badge-pill warn">DESIGN ONLY</span>
+  </div>
+</header>
+
+<div class="preview-wrap">
+
+  <!-- MOBILE -->
+  <div>
+    <div class="preview-label">📱 Mobile · Event Detail</div>
+    <div class="device-frame">
+      <div class="device-screen">
+
+        <div class="topbar">
+          <a href="p-firstaid-events.html" class="icon-btn" title="กลับ Events ทั้งหมด" style="display:flex; align-items:center; gap:2px; padding:0 8px; width:auto;">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:18px; height:18px;"><path d="M15 6l-6 6 6 6"/></svg>
+            <span style="font-size:12px; font-weight:600;">Events</span>
+          </a>
+          <div style="flex:1;"><div style="font-weight:600; font-size:13px;">Marathon ชลบุรี 2026</div><div style="font-size:11px; color:var(--c-muted);">23 ผู้ป่วย · Active</div></div>
+          <button class="icon-btn"><svg viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="5" r="1.8"/><circle cx="12" cy="12" r="1.8"/><circle cx="12" cy="19" r="1.8"/></svg></button>
+        </div>
+
+        <div style="flex:1; overflow-y:auto;">
+
+          <!-- Event banner -->
+          <div style="background:linear-gradient(135deg,#fb923c,#f97316); color:#fff; padding:14px;">
+            <div style="font-size:13px; opacity:.9;">📍 สนามกีฬา ม.บูรพา</div>
+            <div style="font-size:13px; opacity:.9;">📅 24 เม.ย. 05:00-12:00 น.</div>
+            <div style="display:flex; gap:6px; margin-top:8px;"><span class="flag-chip" style="background:rgba(255,255,255,.25); color:#fff;">Sports</span><span class="flag-chip" style="background:rgba(255,255,255,.25); color:#fff;">Active</span></div>
+          </div>
+
+          <!-- Quick Dispense -->
+          <div style="padding:12px;">
+            <div style="font-size:12px; font-weight:700; color:var(--c-muted); text-transform:uppercase; letter-spacing:.05em; margin-bottom:8px;">Quick Dispense (จ่ายเร็ว)</div>
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px;">
+              <div style="background:#fff; border:1px solid var(--c-border); border-radius:10px; padding:10px; text-align:center;"><div style="font-size:11px; color:var(--c-muted);">💧 Ammonia</div><div style="font-size:20px; font-weight:700; margin:4px 0;">5</div><div style="display:flex; gap:4px; justify-content:center;"><button style="width:28px; height:28px; border:1px solid var(--c-border); border-radius:6px; background:#fff; cursor:pointer;">−</button><button style="width:28px; height:28px; border:1px solid var(--c-border); border-radius:6px; background:#0ea5e9; color:#fff; cursor:pointer;">+</button></div></div>
+              <div style="background:#fff; border:1px solid var(--c-border); border-radius:10px; padding:10px; text-align:center;"><div style="font-size:11px; color:var(--c-muted);">🩹 Plaster</div><div style="font-size:20px; font-weight:700; margin:4px 0;">12</div><div style="display:flex; gap:4px; justify-content:center;"><button style="width:28px; height:28px; border:1px solid var(--c-border); border-radius:6px; background:#fff; cursor:pointer;">−</button><button style="width:28px; height:28px; border:1px solid var(--c-border); border-radius:6px; background:#0ea5e9; color:#fff; cursor:pointer;">+</button></div></div>
+              <div style="background:#fff; border:1px solid var(--c-border); border-radius:10px; padding:10px; text-align:center;"><div style="font-size:11px; color:var(--c-muted);">💨 Spray</div><div style="font-size:20px; font-weight:700; margin:4px 0;">8</div><div style="display:flex; gap:4px; justify-content:center;"><button style="width:28px; height:28px; border:1px solid var(--c-border); border-radius:6px; background:#fff; cursor:pointer;">−</button><button style="width:28px; height:28px; border:1px solid var(--c-border); border-radius:6px; background:#0ea5e9; color:#fff; cursor:pointer;">+</button></div></div>
+              <div style="background:#fff; border:1px solid var(--c-border); border-radius:10px; padding:10px; text-align:center;"><div style="font-size:11px; color:var(--c-muted);">🩸 Wound</div><div style="font-size:20px; font-weight:700; margin:4px 0;">3</div><div style="display:flex; gap:4px; justify-content:center;"><button style="width:28px; height:28px; border:1px solid var(--c-border); border-radius:6px; background:#fff; cursor:pointer;">−</button><button style="width:28px; height:28px; border:1px solid var(--c-border); border-radius:6px; background:#0ea5e9; color:#fff; cursor:pointer;">+</button></div></div>
+            </div>
+          </div>
+
+          <!-- Triage Stats -->
+          <div style="padding:0 12px 12px;">
+            <div style="font-size:12px; font-weight:700; color:var(--c-muted); text-transform:uppercase; letter-spacing:.05em; margin-bottom:8px;">Triage Summary</div>
+            <div style="background:#fff; border:1px solid var(--c-border); border-radius:10px; padding:12px;">
+              <div style="display:flex; flex-direction:column; gap:6px;">
+                <div style="display:flex; align-items:center; gap:8px;"><span style="width:10px; height:10px; border-radius:50%; background:#16a34a;"></span><span style="flex:1; font-size:12px;">A · Alert</span><strong style="font-size:13px;">15</strong></div>
+                <div style="display:flex; align-items:center; gap:8px;"><span style="width:10px; height:10px; border-radius:50%; background:#eab308;"></span><span style="flex:1; font-size:12px;">V · Verbal</span><strong style="font-size:13px;">5</strong></div>
+                <div style="display:flex; align-items:center; gap:8px;"><span style="width:10px; height:10px; border-radius:50%; background:#ea580c;"></span><span style="flex:1; font-size:12px;">P · Pain</span><strong style="font-size:13px;">2</strong></div>
+                <div style="display:flex; align-items:center; gap:8px;"><span style="width:10px; height:10px; border-radius:50%; background:#dc2626;"></span><span style="flex:1; font-size:12px;">U · Unresponsive</span><strong style="font-size:13px;">1</strong></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Patient Registry -->
+          <div style="padding:0 12px 12px;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+              <div style="font-size:12px; font-weight:700; color:var(--c-muted); text-transform:uppercase; letter-spacing:.05em;">Patient Registry · 23</div>
+              <button class="btn-primary" style="padding:5px 10px; font-size:11px;">+ บันทึก</button>
+            </div>
+
+            <div class="case-list" style="border:1px solid var(--c-border); border-radius:10px; overflow:hidden;">
+              <div class="case-row">
+                <span style="background:#16a34a; color:#fff; width:24px; height:24px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:11px; font-weight:700;">A</span>
+                <div class="case-info"><div class="case-name" style="font-size:13px;">นักวิ่ง #023 · ชาย 28</div><div class="case-meta">CC: เป็นตะคริว · จุดที่ 5 · 08:42</div></div>
+                <span class="flag-chip ok">D/C</span>
+              </div>
+              <div class="case-row">
+                <span style="background:#eab308; color:#fff; width:24px; height:24px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:11px; font-weight:700;">V</span>
+                <div class="case-info"><div class="case-name" style="font-size:13px;">นักวิ่ง #156 · หญิง 35</div><div class="case-meta">CC: เป็นลม · จุดที่ 2 · 09:15</div></div>
+                <span class="flag-chip warn">Treatment</span>
+              </div>
+              <div class="case-row">
+                <span style="background:#dc2626; color:#fff; width:24px; height:24px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:11px; font-weight:700;">U</span>
+                <div class="case-info"><div class="case-name" style="font-size:13px;">นักวิ่ง #089 · ชาย 42</div><div class="case-meta">CC: หมดสติ · จุดที่ 8 · 09:32</div></div>
+                <span class="flag-chip danger">Transfer รพ.</span>
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+      </div>
+    </div>
+    <p class="preview-hint">Quick dispense ใช้นับวัสดุเร็ว · Registry list คลิกดูรายละเอียด</p>
+  </div>
+
+  <!-- DESKTOP -->
+  <div>
+    <div class="preview-label">🖥️ Desktop · Event Detail</div>
+    <div class="desktop-frame">
+      <div class="desktop-screen">
+        <div class="desktop-3col">
+
+          <aside class="col-nav" id="dNav">
+            <div style="padding:12px 0; justify-content:center; border-bottom:1px solid var(--c-border); display:flex;"><div style="width:32px; height:32px; border-radius:8px; background:linear-gradient(135deg,#0ea5e9,#0284c7); color:#fff; display:flex; align-items:center; justify-content:center; font-weight:700; font-size:13px; cursor:pointer;" onclick="toggleNav()">PT</div></div>
+            <nav style="flex:1; padding:8px 0;">
+              <a class="nav-item" title="Transport"><span class="nav-icon">🚑</span><span class="nav-label">Transport</span></a>
+              <a class="nav-item active" title="FirstAid"><span class="nav-icon">🩹</span><span class="nav-label">FirstAid</span></a>
+              <a class="nav-item" title="Location"><span class="nav-icon">🗺️</span><span class="nav-label">Location</span></a>
+              <a class="nav-item" title="GPS"><span class="nav-icon">🛰️</span><span class="nav-label">GPS</span></a>
+            </nav>
+          </aside>
+
+          <aside class="col-subnav">
+            <div style="padding:8px 14px; border-bottom:1px solid var(--c-border); background:#f1f5f9;">
+              <a href="p-firstaid-events.html" style="font-size:12px; color:#0369a1; font-weight:600;">← Events ทั้งหมด</a>
+            </div>
+            <div style="padding:10px 14px; border-bottom:1px solid var(--c-border);">
+              <div style="font-weight:700; font-size:13px; line-height:1.3;">Marathon ชลบุรี 2026</div>
+              <div style="font-size:11px; color:var(--c-muted);">📅 24 เม.ย. · 23 ผู้ป่วย</div>
+              <div style="display:flex; gap:4px; margin-top:6px;"><span class="flag-chip">Sports</span><span class="flag-chip ok">Active</span></div>
+            </div>
+            <div style="flex:1; overflow-y:auto;">
+              <div class="subnav-section">หน้าหลัก</div>
+              <div class="subnav-item active"><span>📊 Overview &amp; Stats</span></div>
+              <div class="subnav-item"><span>👥 Patient Registry</span><span class="badge">23</span></div>
+
+              <div class="subnav-section">Triage Filter</div>
+              <div class="subnav-item"><span>🟢 A · Alert</span><span class="badge">15</span></div>
+              <div class="subnav-item"><span>🟡 V · Verbal</span><span class="badge">5</span></div>
+              <div class="subnav-item"><span>🟠 P · Pain</span><span class="badge">2</span></div>
+              <div class="subnav-item"><span>🔴 U · Unresponsive</span><span class="badge danger">1</span></div>
+
+              <div class="subnav-section">Result</div>
+              <div class="subnav-item"><span>✓ D/C (จำหน่าย)</span><span class="badge">18</span></div>
+              <div class="subnav-item"><span>🚑 Transfer รพ.</span><span class="badge">3</span></div>
+
+              <div class="subnav-section">Quick Dispense</div>
+              <div class="subnav-item"><span>💧 Ammonia: 5</span></div>
+              <div class="subnav-item"><span>🩹 Plaster: 12</span></div>
+              <div class="subnav-item"><span>💨 Spray: 8</span></div>
+              <div class="subnav-item"><span>🩸 Wound: 3</span></div>
+
+              <div class="subnav-section">Action</div>
+              <div class="subnav-item"><span>🖨️ Print Report</span></div>
+              <div class="subnav-item"><span>✏️ แก้ข้อมูลงาน</span></div>
+              <div class="subnav-item"><span>🔒 ปิดงาน</span></div>
+            </div>
+          </aside>
+
+          <section class="col-content">
+            <div class="col-header">
+              <div><div style="font-weight:700; font-size:14px;">Patient Registry · 23 ราย</div><div style="font-size:11px; color:var(--c-muted);">Realtime · Auto-update</div></div>
+              <div style="display:flex; gap:6px;"><input placeholder="🔍 ค้นชื่อ" style="padding:6px 10px; border:1px solid var(--c-border); border-radius:8px; font-size:13px; width:180px;"><button class="btn-primary" style="padding:6px 14px;">+ บันทึก</button></div>
+            </div>
+            <div class="col-body">
+
+              <!-- Triage stats bar -->
+              <div style="background:#fff; padding:12px 14px; border-bottom:1px solid var(--c-border); display:flex; gap:14px;">
+                <div style="text-align:center;"><div style="font-size:11px; color:var(--c-muted);">A · Alert</div><div style="font-size:22px; font-weight:800; color:#16a34a;">15</div></div>
+                <div style="text-align:center;"><div style="font-size:11px; color:var(--c-muted);">V · Verbal</div><div style="font-size:22px; font-weight:800; color:#eab308;">5</div></div>
+                <div style="text-align:center;"><div style="font-size:11px; color:var(--c-muted);">P · Pain</div><div style="font-size:22px; font-weight:800; color:#ea580c;">2</div></div>
+                <div style="text-align:center;"><div style="font-size:11px; color:var(--c-muted);">U · Unresp.</div><div style="font-size:22px; font-weight:800; color:#dc2626;">1</div></div>
+                <div style="border-left:1px solid var(--c-border); padding-left:14px; text-align:center;"><div style="font-size:11px; color:var(--c-muted);">Total</div><div style="font-size:22px; font-weight:800;">23</div></div>
+              </div>
+
+              <div class="case-list">
+                <div class="case-row">
+                  <span style="background:#16a34a; color:#fff; width:30px; height:30px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:13px; font-weight:700; flex-shrink:0;">A</span>
+                  <div class="case-info">
+                    <div style="font-weight:600; font-size:14px;">นักวิ่ง #023 · ชาย 28</div>
+                    <div style="font-size:12px; color:#334155; margin-top:2px;"><strong>CC:</strong> เป็นตะคริวขาขวา · <strong>Etiology:</strong> Trauma</div>
+                    <div style="font-size:11px; color:var(--c-muted); margin-top:2px;">📍 จุดที่ 5 · 🕐 รับ 08:42 · จำหน่าย 08:55 (13 น.)</div>
+                  </div>
+                  <span class="flag-chip ok">D/C · finished</span>
+                  <div class="kebab-wrap"><button class="kebab-btn"><svg viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="5" r="1.8"/><circle cx="12" cy="12" r="1.8"/><circle cx="12" cy="19" r="1.8"/></svg></button></div>
+                </div>
+                <div class="case-row">
+                  <span style="background:#eab308; color:#fff; width:30px; height:30px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:13px; font-weight:700; flex-shrink:0;">V</span>
+                  <div class="case-info">
+                    <div style="font-weight:600; font-size:14px;">นักวิ่ง #156 · หญิง 35</div>
+                    <div style="font-size:12px; color:#334155; margin-top:2px;"><strong>CC:</strong> เป็นลม คลื่นไส้ · <strong>Etiology:</strong> Medicine</div>
+                    <div style="font-size:11px; color:var(--c-muted); margin-top:2px;">📍 จุดที่ 2 · 🕐 รับ 09:15 · ยังรักษาอยู่</div>
+                  </div>
+                  <span class="flag-chip warn">Treatment</span>
+                  <div class="kebab-wrap"><button class="kebab-btn"><svg viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="5" r="1.8"/><circle cx="12" cy="12" r="1.8"/><circle cx="12" cy="19" r="1.8"/></svg></button></div>
+                </div>
+                <div class="case-row">
+                  <span style="background:#dc2626; color:#fff; width:30px; height:30px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:13px; font-weight:700; flex-shrink:0;">U</span>
+                  <div class="case-info">
+                    <div style="font-weight:600; font-size:14px;">นักวิ่ง #089 · ชาย 42</div>
+                    <div style="font-size:12px; color:#334155; margin-top:2px;"><strong>CC:</strong> หมดสติ · <strong>Etiology:</strong> Medicine · <strong>Allergy:</strong> Sulfa</div>
+                    <div style="font-size:11px; color:var(--c-muted); margin-top:2px;">📍 จุดที่ 8 · 🕐 รับ 09:32 · ส่งต่อ รพ. ชลบุรี</div>
+                  </div>
+                  <span class="flag-chip danger">Transfer</span>
+                  <div class="kebab-wrap"><button class="kebab-btn"><svg viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="5" r="1.8"/><circle cx="12" cy="12" r="1.8"/><circle cx="12" cy="19" r="1.8"/></svg></button></div>
+                </div>
+              </div>
+
+            </div>
+          </section>
+
+        </div>
+      </div>
+    </div>
+    <p class="preview-hint">Sub-nav ใช้กรองเร็ว (Triage / Result) · Quick Dispense ตัวเลขในนี้ · กด + บันทึกเปิดฟอร์มลงทะเบียนผู้ป่วย</p>
+  </div>
+
+</div>
+
+<script src="preview.js"></script>
+</body>
+</html>

@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>V2 — Monitor Dashboard</title>
+<link rel="stylesheet" href="preview.css">
+</head>
+<body>
+
+<header class="preview-header">
+  <div class="preview-header-inner">
+    <div>
+      <h1 class="preview-title">📡 Monitor Dashboard (Admin Only)</h1>
+      <p class="preview-sub"><a href="preview.html" style="color:#0369a1;">← Launcher</a> · Realtime · Read-only · Light theme · Critical alerts</p>
+    </div>
+    <span class="badge-pill warn">DESIGN ONLY</span>
+  </div>
+</header>
+
+<div class="preview-wrap">
+
+  <!-- MOBILE -->
+  <div>
+    <div class="preview-label">📱 Mobile</div>
+    <div class="device-frame">
+      <div class="device-screen">
+
+        <div class="topbar">
+          <button class="icon-btn" onclick="toggleDrawer()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12h18M3 6h18M3 18h18"/></svg></button>
+          <div style="flex:1;">
+            <div style="font-weight:600; font-size:14px;"><span class="status-dot live"></span>Monitor</div>
+            <div style="font-size:11px; color:var(--c-muted);">อัปเดต 14:35:42</div>
+          </div>
+          <div style="background:#dc2626; color:#fff; padding:4px 10px; border-radius:999px; font-size:11px; font-weight:700;">⚠ 2</div>
+        </div>
+
+        <div class="drawer-backdrop" id="mDrawerBack" onclick="toggleDrawer()"></div>
+        <div class="drawer" id="mDrawer">
+          <nav style="padding:8px 0;">
+            <a class="nav-item"><span class="nav-icon">🚑</span>Transport</a>
+            <a class="nav-item"><span class="nav-icon">🩹</span>FirstAid</a>
+            <a class="nav-item active"><span class="nav-icon">📡</span>Monitor</a>
+            <a class="nav-item"><span class="nav-icon">⚙️</span>Admin</a>
+          </nav>
+        </div>
+
+        <div style="flex:1; overflow-y:auto; padding:12px; background:var(--c-bg);">
+
+          <!-- Critical alert -->
+          <div style="background:#fff; border:2px solid #dc2626; border-radius:12px; padding:12px; margin-bottom:12px; display:flex; align-items:center; gap:10px;">
+            <div style="width:36px; height:36px; border-radius:50%; background:#fee2e2; display:flex; align-items:center; justify-content:center; font-size:18px; flex-shrink:0;">⚠</div>
+            <div style="flex:1;">
+              <div style="font-weight:700; font-size:13px; color:#991b1b;">CRITICAL · 2 เคส</div>
+              <div style="font-size:11px; color:#7f1d1d; margin-top:2px;">TR-047 (Resus) + FA-089 (Unresponsive)</div>
+            </div>
+          </div>
+
+          <!-- Transport section -->
+          <div style="display:flex; align-items:center; gap:8px; margin-bottom:8px;">
+            <span style="font-size:18px;">🚑</span>
+            <strong style="font-size:14px;">Transport · Active</strong>
+            <span style="background:#0ea5e9; color:#fff; padding:1px 8px; border-radius:999px; font-size:11px; font-weight:600; margin-left:auto;">4</span>
+          </div>
+
+          <div style="background:#fff; border:2px solid #dc2626; border-radius:10px; padding:10px; margin-bottom:6px;">
+            <div style="display:flex; justify-content:space-between;"><strong style="font-size:13px;">TR-047 · สมชาย ใจดี</strong><span class="triage-pill resus">Resus</span></div>
+            <div style="font-size:11px; color:var(--c-muted); margin-top:4px;">→ รพ.สมเด็จฯ · นพ.ตั้น · เริ่ม 14:32</div>
+          </div>
+          <div style="background:#fff; border:1px solid var(--c-border); border-radius:10px; padding:10px; margin-bottom:6px;">
+            <div style="display:flex; justify-content:space-between;"><strong style="font-size:13px;">TR-046 · วิภา ศรีสุข</strong><span class="triage-pill emerg">Emerg</span></div>
+            <div style="font-size:11px; color:var(--c-muted); margin-top:4px;">→ รพ.ชลบุรี · 1.20 ชม.</div>
+          </div>
+          <div style="background:#fff; border:1px solid var(--c-border); border-radius:10px; padding:10px; margin-bottom:12px;">
+            <div style="display:flex; justify-content:space-between;"><strong style="font-size:13px;">TR-045 · มาลี ทองคำ</strong><span class="triage-pill urgent">Urgent</span></div>
+            <div style="font-size:11px; color:var(--c-muted); margin-top:4px;">→ รพ.พนัสฯ · 2.27 ชม.</div>
+          </div>
+
+          <!-- FirstAid section -->
+          <div style="display:flex; align-items:center; gap:8px; margin-bottom:8px;">
+            <span style="font-size:18px;">🩹</span>
+            <strong style="font-size:14px;">FirstAid · Active</strong>
+            <span style="background:#dc2626; color:#fff; padding:1px 8px; border-radius:999px; font-size:11px; font-weight:600; margin-left:auto;">3</span>
+          </div>
+
+          <div style="background:#fff; border:2px solid #dc2626; border-radius:10px; padding:10px; margin-bottom:6px;">
+            <div style="display:flex; justify-content:space-between;"><strong style="font-size:13px;">FA-089 · นักวิ่ง #089</strong><span style="background:#dc2626; color:#fff; padding:1px 6px; border-radius:4px; font-size:10px; font-weight:700;">U</span></div>
+            <div style="font-size:11px; color:var(--c-muted); margin-top:4px;">Marathon · จุด 8 · CC: หมดสติ</div>
+          </div>
+          <div style="background:#fff; border:1px solid var(--c-border); border-radius:10px; padding:10px;">
+            <div style="display:flex; justify-content:space-between;"><strong style="font-size:13px;">FA-156 · นักวิ่ง #156</strong><span style="background:#eab308; color:#fff; padding:1px 6px; border-radius:4px; font-size:10px; font-weight:700;">V</span></div>
+            <div style="font-size:11px; color:var(--c-muted); margin-top:4px;">Marathon · จุด 2 · เป็นลม</div>
+          </div>
+
+        </div>
+
+      </div>
+    </div>
+    <p class="preview-hint">Light theme · Auto refresh 2 นาที · Critical card กรอบแดง · กดเข้าดู preview เต็ม</p>
+  </div>
+
+  <!-- DESKTOP -->
+  <div>
+    <div class="preview-label">🖥️ Desktop · Side-by-side</div>
+    <div class="desktop-frame">
+      <div class="desktop-screen">
+        <div class="desktop-3col">
+
+          <aside class="col-nav" id="dNav">
+            <div style="padding:12px 0; justify-content:center; border-bottom:1px solid var(--c-border); display:flex;"><div style="width:32px; height:32px; border-radius:8px; background:linear-gradient(135deg,#0ea5e9,#0284c7); color:#fff; display:flex; align-items:center; justify-content:center; font-weight:700; font-size:13px; cursor:pointer;" onclick="toggleNav()">PT</div></div>
+            <nav style="flex:1; padding:8px 0;">
+              <a class="nav-item" title="Transport"><span class="nav-icon">🚑</span><span class="nav-label">Transport</span></a>
+              <a class="nav-item" title="FirstAid"><span class="nav-icon">🩹</span><span class="nav-label">FirstAid</span></a>
+              <a class="nav-item" title="Location"><span class="nav-icon">🗺️</span><span class="nav-label">Location</span></a>
+              <a class="nav-item" title="GPS"><span class="nav-icon">🛰️</span><span class="nav-label">GPS</span></a>
+              <a class="nav-item active" title="Monitor"><span class="nav-icon">📡</span><span class="nav-label">Monitor</span></a>
+            </nav>
+            <div style="padding:8px 0; border-top:1px solid var(--c-border);">
+              <a class="nav-item" title="Admin"><span class="nav-icon">⚙️</span><span class="nav-label">Admin</span></a>
+            </div>
+          </aside>
+
+          <section class="col-content" style="flex:1; min-width:0;">
+            <div class="col-header">
+              <div>
+                <div style="font-weight:700; font-size:15px;"><span class="status-dot live"></span>Monitor LIVE Dashboard</div>
+                <div style="font-size:11px; color:var(--c-muted);">อัปเดต 14:35:42 · Auto-refresh 2:00 · Connected</div>
+              </div>
+              <div style="display:flex; gap:8px; align-items:center;">
+                <div style="background:#fee2e2; color:#991b1b; padding:5px 12px; border-radius:999px; font-size:12px; font-weight:700; border:1px solid #fca5a5;">⚠ Critical: 2</div>
+                <button class="btn-ghost">↻ Refresh</button>
+              </div>
+            </div>
+            <div class="col-body" style="padding:14px;">
+
+              <div style="display:grid; grid-template-columns:1fr 1fr; gap:14px;">
+
+                <!-- Transport column -->
+                <div>
+                  <div style="display:flex; align-items:center; gap:8px; margin-bottom:10px;">
+                    <span style="font-size:20px;">🚑</span>
+                    <strong style="font-size:14px;">Transport · Active</strong>
+                    <span style="background:#0ea5e9; color:#fff; padding:2px 10px; border-radius:999px; font-size:12px; font-weight:600; margin-left:auto;">4</span>
+                  </div>
+
+                  <div style="background:#fff; border:2px solid #dc2626; border-radius:10px; padding:12px; margin-bottom:8px;">
+                    <div style="display:flex; justify-content:space-between;"><strong>TR-047 · สมชาย ใจดี</strong><span class="triage-pill resus">Resus</span></div>
+                    <div style="font-size:12px; color:#334155; margin-top:4px;"><strong>CC:</strong> เจ็บแน่นหน้าอก</div>
+                    <div style="font-size:11px; color:var(--c-muted); margin-top:2px;">→ รพ.สมเด็จฯ · นพ.ตั้น · 14:32 (3 นาที)</div>
+                  </div>
+                  <div style="background:#fff; border:1px solid var(--c-border); border-radius:10px; padding:12px; margin-bottom:8px;">
+                    <div style="display:flex; justify-content:space-between;"><strong>TR-046 · วิภา ศรีสุข</strong><span class="triage-pill emerg">Emerg</span></div>
+                    <div style="font-size:11px; color:var(--c-muted); margin-top:4px;">→ รพ.ชลบุรี · 1.20 ชม.</div>
+                  </div>
+                  <div style="background:#fff; border:1px solid var(--c-border); border-radius:10px; padding:12px; margin-bottom:8px;">
+                    <div style="display:flex; justify-content:space-between;"><strong>TR-045 · มาลี ทองคำ</strong><span class="triage-pill urgent">Urgent</span></div>
+                    <div style="font-size:11px; color:var(--c-muted); margin-top:4px;">→ รพ.พนัสฯ · 2.27 ชม.</div>
+                  </div>
+                  <div style="background:#fff; border:1px solid var(--c-border); border-radius:10px; padding:12px;">
+                    <div style="display:flex; justify-content:space-between;"><strong>TR-044 · อาทิตย์ พันธ์ดี</strong><span class="triage-pill nonurg">Non-Urg</span></div>
+                    <div style="font-size:11px; color:var(--c-muted); margin-top:4px;">→ บ้าน · 3.53 ชม. (Discharge)</div>
+                  </div>
+                </div>
+
+                <!-- FirstAid column -->
+                <div>
+                  <div style="display:flex; align-items:center; gap:8px; margin-bottom:10px;">
+                    <span style="font-size:20px;">🩹</span>
+                    <strong style="font-size:14px;">FirstAid · Active</strong>
+                    <span style="background:#dc2626; color:#fff; padding:2px 10px; border-radius:999px; font-size:12px; font-weight:600; margin-left:auto;">3</span>
+                  </div>
+
+                  <div style="background:#fff; border:2px solid #dc2626; border-radius:10px; padding:12px; margin-bottom:8px;">
+                    <div style="display:flex; justify-content:space-between;"><strong>FA-089 · นักวิ่ง #089</strong><span style="background:#dc2626; color:#fff; padding:2px 8px; border-radius:6px; font-size:11px; font-weight:700;">U</span></div>
+                    <div style="font-size:12px; color:#334155; margin-top:4px;"><strong>CC:</strong> หมดสติ</div>
+                    <div style="font-size:11px; color:var(--c-muted); margin-top:2px;">Marathon · จุด 8 · 09:32</div>
+                  </div>
+                  <div style="background:#fff; border:1px solid var(--c-border); border-radius:10px; padding:12px; margin-bottom:8px;">
+                    <div style="display:flex; justify-content:space-between;"><strong>FA-156 · นักวิ่ง #156</strong><span style="background:#eab308; color:#fff; padding:2px 8px; border-radius:6px; font-size:11px; font-weight:700;">V</span></div>
+                    <div style="font-size:11px; color:var(--c-muted); margin-top:4px;">Marathon · จุด 2 · เป็นลม</div>
+                  </div>
+                  <div style="background:#fff; border:1px solid var(--c-border); border-radius:10px; padding:12px;">
+                    <div style="display:flex; justify-content:space-between;"><strong>FA-023 · นักวิ่ง #023</strong><span style="background:#16a34a; color:#fff; padding:2px 8px; border-radius:6px; font-size:11px; font-weight:700;">A</span></div>
+                    <div style="font-size:11px; color:var(--c-muted); margin-top:4px;">Marathon · จุด 5 · ตะคริว</div>
+                  </div>
+                </div>
+
+              </div>
+
+            </div>
+
+            <!-- Toast critical alert (top-right) -->
+            <div style="position:absolute; top:70px; right:14px; background:#fff; border:2px solid #dc2626; border-radius:10px; padding:12px 14px; max-width:280px; box-shadow:0 8px 24px rgba(220,38,38,.2);">
+              <div style="font-weight:700; font-size:13px; color:#991b1b;">⚠ CRITICAL · TR-047</div>
+              <div style="font-size:12px; color:#334155; margin-top:2px;">สมชาย ใจดี · Resuscitation</div>
+              <div style="font-size:11px; color:var(--c-muted); margin-top:2px;">เจ็บแน่นหน้าอก · นำส่ง รพ.สมเด็จฯ</div>
+            </div>
+
+          </section>
+
+        </div>
+      </div>
+    </div>
+    <p class="preview-hint">Light theme เข้ากับระบบ · Side nav ซ้าย · Critical card กรอบแดงเด่นแต่ไม่กลืน · Toast alert มุมขวาบน</p>
+  </div>
+
+</div>
+
+<script src="preview.js"></script>
+</body>
+</html>
