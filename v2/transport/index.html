@@ -311,6 +311,53 @@
     .tr-dash-right .tr-dot.pink{ background:#ec4899; }
     .tr-dash-right .tr-dot.yellow{ background:#eab308; }
     .tr-dash-right .tr-dot.green{ background:#16a34a; }
+    /* Shares list */
+    .tr-dash-right .tr-rc-count{
+      display:inline-block; background:#e0f2fe; color:#0369a1;
+      padding:1px 8px; border-radius:10px; font-size:10px;
+      margin-left:6px; font-weight:700; font-variant-numeric:tabular-nums;
+    }
+    .tr-dash-right .tr-rc-share-row{
+      display:flex; align-items:center; gap:8px;
+      padding:9px 12px; cursor:pointer;
+      border-bottom:1px solid #f1f5f9;
+      transition:background .12s;
+    }
+    .tr-dash-right .tr-rc-share-row:last-child{ border-bottom:none; }
+    .tr-dash-right .tr-rc-share-row:hover{ background:#f0f9ff; }
+    .tr-dash-right .tr-rc-share-row .sh-main{ flex:1; min-width:0; }
+    .tr-dash-right .tr-rc-share-row .sh-id{
+      font-size:11.5px; font-weight:700; color:#0369a1;
+      font-variant-numeric:tabular-nums;
+      overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
+      display:flex; align-items:center; gap:5px;
+    }
+    .tr-dash-right .tr-rc-share-row .sh-id .bi{ font-size:11px; opacity:.75; }
+    .tr-dash-right .tr-rc-share-row .sh-name{
+      font-size:11px; color:#64748b; margin-top:1px;
+      overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
+    }
+    .tr-dash-right .tr-rc-share-row .sh-exp{
+      font-size:10px; color:#94a3b8; flex-shrink:0;
+      padding:2px 6px; border-radius:6px; background:#f1f5f9;
+      font-weight:600;
+    }
+    .tr-dash-right .tr-rc-share-row .sh-exp.permanent{ background:#dcfce7; color:#166534; }
+    .tr-dash-right .tr-rc-share-row .sh-exp.warn{ background:#fef3c7; color:#92400e; }
+    .tr-dash-right .tr-rc-share-row .sh-exp.expired{ background:#fee2e2; color:#991b1b; }
+    .tr-dash-right .tr-rc-empty{
+      padding:14px 12px; text-align:center;
+      color:#94a3b8; font-size:11.5px; font-style:italic;
+    }
+    .tr-dash-right .tr-rc-empty .bi{
+      display:block; font-size:18px; margin-bottom:4px; opacity:.5;
+    }
+    .tr-dash-right .tr-rc-more{
+      padding:8px 12px; text-align:center;
+      font-size:11px; color:#0369a1; font-weight:600;
+      cursor:pointer; background:#f8fafc; border-top:1px solid #f1f5f9;
+    }
+    .tr-dash-right .tr-rc-more:hover{ background:#e0f2fe; }
     /* Empty state — dim everything except section labels */
     .tr-dash-right.tr-dash-right-empty{ opacity:.45; filter:grayscale(.4); }
     .tr-dash-right.tr-dash-right-empty::before{
@@ -1516,7 +1563,7 @@
         title.innerHTML = '📝 หนังสือยินยอม <span style="font-size:11px; color:#64748b;">กรอก + เซ็น</span>';
       }
       var mode = isSigned ? (isLocked ? 'preview' : 'print-preview') : '';
-      var src = '../consent-prototype.html?embed=1';
+      var src = 'consent-prototype.html?embed=1';
       if(mode) src += '&mode=' + mode;
       if(cid) src += '&case_id=' + encodeURIComponent(cid);
       if(pn)  src += '&pt_name=' + encodeURIComponent(pn);
@@ -1684,7 +1731,7 @@
     var pa = (document.querySelector('[name=pt_age]')||{}).value || '';
     var or = (document.querySelector('[name=origin]')||{}).value || '';
     var de = (document.querySelector('[name=destination]')||{}).value || '';
-    var src = '../consent-prototype.html?embed=1';
+    var src = 'consent-prototype.html?embed=1';
     if(cid) src += '&case_id=' + encodeURIComponent(cid);
     if(pn)  src += '&pt_name=' + encodeURIComponent(pn);
     if(pi)  src += '&pt_id=' + encodeURIComponent(pi);
@@ -7115,7 +7162,7 @@
       }
 
       // Dashboard = Print Preview (has print button)
-      var src = '../consent-prototype.html?embed=1&mode=print-preview';
+      var src = 'consent-prototype.html?embed=1&mode=print-preview';
       src += '&case_id=' + encodeURIComponent(caseId);
       if (ptName) src += '&pt_name=' + encodeURIComponent(ptName);
       if (ptId) src += '&pt_id=' + encodeURIComponent(ptId);
@@ -7196,7 +7243,7 @@
 
       // Rebuild URL with consent_data from selected version
       var cd = ver.consent_data || {};
-      var src = '../consent-prototype.html?embed=1&mode=print-preview';
+      var src = 'consent-prototype.html?embed=1&mode=print-preview';
       src += '&case_id=' + encodeURIComponent(_previewConsentCaseId);
       if (cd.patient) {
         if (cd.patient.name) src += '&pt_name=' + encodeURIComponent(cd.patient.name);
@@ -7258,7 +7305,7 @@
       if (!consentSigned) {
         var modal = document.getElementById('consent-modal');
         var iframe = document.getElementById('consent-iframe');
-        var src = '../consent-prototype.html?embed=1';
+        var src = 'consent-prototype.html?embed=1';
         if (caseId) src += '&case_id=' + encodeURIComponent(caseId);
         if (ptName) src += '&pt_name=' + encodeURIComponent(ptName);
         if (ptIdCard) src += '&pt_id=' + encodeURIComponent(ptIdCard);
@@ -7305,7 +7352,7 @@
         '<button onclick="deleteConsentFromCase()" style="padding:10px 20px;font-size:16px;border-radius:6px;border:none;cursor:pointer;font-family:Sarabun,sans-serif;font-weight:600;margin:0 5px;background:#dc2626;color:#fff;">🗑️ ลบฉบับนี้ (Admin)</button>' : '';
 
       var mode = isLocked ? 'preview' : 'print-preview';
-      var src = '../consent-prototype.html?embed=1&mode=' + mode;
+      var src = 'consent-prototype.html?embed=1&mode=' + mode;
       src += '&case_id=' + encodeURIComponent(caseId);
       if (ptName) src += '&pt_name=' + encodeURIComponent(ptName);
       if (ptIdCard) src += '&pt_id=' + encodeURIComponent(ptIdCard);
@@ -7362,7 +7409,7 @@
       var routeFrom = f ? (f.origin?.value || '') : '';
       var routeTo = f ? (f.destination?.value || '') : '';
 
-      var src = '../consent-prototype.html?embed=1';
+      var src = 'consent-prototype.html?embed=1';
       if (caseId) src += '&case_id=' + encodeURIComponent(caseId);
       if (ptName) src += '&pt_name=' + encodeURIComponent(ptName);
       if (ptIdCard) src += '&pt_id=' + encodeURIComponent(ptIdCard);
@@ -7447,7 +7494,7 @@
     function _openConsentEditFromDashboard(caseId, pi) {
       var modal = document.getElementById('consent-modal');
       var iframe = document.getElementById('consent-iframe');
-      var src = '../consent-prototype.html?embed=1';
+      var src = 'consent-prototype.html?embed=1';
       src += '&case_id=' + encodeURIComponent(caseId);
       if (pi.name) src += '&pt_name=' + encodeURIComponent(pi.name);
       if (pi.idCard) src += '&pt_id=' + encodeURIComponent(pi.idCard);
@@ -7488,7 +7535,7 @@
         '<button onclick="deleteConsentFromDashboard()" style="padding:10px 20px;font-size:16px;border-radius:6px;border:none;cursor:pointer;font-family:Sarabun,sans-serif;font-weight:600;margin:0 5px;background:#dc2626;color:#fff;">🗑️ ลบฉบับนี้ (Admin)</button>' : '';
 
       var mode = isLocked ? 'preview' : 'print-preview';
-      var src = '../consent-prototype.html?embed=1&mode=' + mode;
+      var src = 'consent-prototype.html?embed=1&mode=' + mode;
       src += '&case_id=' + encodeURIComponent(caseId);
       if (pi.name) src += '&pt_name=' + encodeURIComponent(pi.name);
       if (pi.idCard) src += '&pt_id=' + encodeURIComponent(pi.idCard);
