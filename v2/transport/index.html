@@ -6087,7 +6087,10 @@
 
         h += '<div class="no-print ctrl-bar">';
         h += '<button onclick="window.print()" class="btn-p">&#128424; สั่งพิมพ์ / Save PDF</button>';
-        h += '<button onclick="transport_closePrintView()" class="btn-c">&#10060; กลับ</button>';
+        // Public share mode: no back button (tab close is the only exit)
+        if (!document.body.classList.contains('public-share-mode')) {
+          h += '<button onclick="transport_closePrintView()" class="btn-c">&#10060; กลับ</button>';
+        }
         h += '</div>';
 
         h += '<div class="page">';
@@ -6452,8 +6455,19 @@
             try { handlePrint(); } catch(e){}
           }
         };
-        // Render print preview
-        setTimeout(function(){ if (typeof handlePrint === 'function') handlePrint(); }, 250);
+        // Render print preview, then DESTROY the form to prevent any DOM access
+        setTimeout(function(){
+          if (typeof handlePrint === 'function') handlePrint();
+          // Wait for print HTML to build, then remove the form/wrapper entirely
+          setTimeout(function(){
+            try {
+              var amw = document.getElementById('app-main-wrapper');
+              if (amw) amw.remove();
+              // Also clear any sensitive globals
+              try { window._activeCases = null; window._closedCases = null; window._closedRecords = null; } catch(_){}
+            } catch(_){}
+          }, 600);
+        }, 250);
       } catch(e){
         console.error('public view error:', e);
         _showPublicError('เกิดข้อผิดพลาด', e.message || 'ไม่สามารถโหลดข้อมูลได้');
