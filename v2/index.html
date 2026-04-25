@@ -38,7 +38,13 @@
     display:flex; align-items:center; justify-content:center;
     color:#fff; font-size:22px; font-weight:800; letter-spacing:.5px;
     box-shadow:0 8px 20px rgba(14,165,233,.25);
+    overflow:hidden;
   }
+  .splash-logo img, .l-brand img{
+    width:100%; height:100%; object-fit:contain;
+    background:#fff; padding:4px; box-sizing:border-box;
+  }
+  .l-brand{ overflow:hidden; }
   .splash-spinner{
     width:28px; height:28px; border-radius:50%;
     border:3px solid var(--c-border); border-top-color:var(--c-primary);
@@ -443,7 +449,7 @@
 
 <!-- ============ SPLASH ============ -->
 <div id="view-splash" class="splash">
-  <div class="splash-logo">PT</div>
+  <div class="splash-logo" id="brand-splash">PT</div>
   <div style="font-weight:700; font-size:15px;">PT Medical System</div>
   <div class="splash-spinner"></div>
   <div style="font-size:12px; color:var(--c-text-2);">กำลังเชื่อมต่อระบบ...</div>
@@ -452,7 +458,7 @@
 <!-- ============ LOGIN ============ -->
 <div id="view-login" class="login-view" style="display:none;">
   <div class="login-wrap">
-    <div class="splash-logo">PT</div>
+    <div class="splash-logo" id="brand-login">PT</div>
     <div style="text-align:center;">
       <div style="font-size:19px; font-weight:700; color:var(--c-text);">PT Medical System</div>
       <div style="font-size:12px; color:var(--c-text-2); margin-top:2px;" id="login-org">Supwilai Medical · v2.0</div>
@@ -484,7 +490,7 @@
   <section class="l-hero">
     <!-- Topbar inside hero -->
     <div class="l-topbar">
-      <div class="l-brand">PT</div>
+      <div class="l-brand" id="brand-landing">PT</div>
       <div class="l-title">
         <div class="t1" id="user-name">ผู้ใช้</div>
         <div class="t2">
@@ -663,6 +669,7 @@ function showView(id){
 }
 
 function init(){
+  loadCompanyLogo();  // async, non-blocking
   try {
     if(typeof isLoggedIn === 'function' && isLoggedIn()){
       var meta = (typeof getUserMeta === 'function') ? getUserMeta() : null;
@@ -673,6 +680,21 @@ function init(){
     console.error('init failed', e);
     showView('view-login');
   }
+}
+
+// Load company logo from settings table (key: APP_LOGO_URL)
+async function loadCompanyLogo(){
+  if(typeof _supabase === 'undefined') return;
+  try {
+    var res = await _supabase.from('settings').select('value').eq('key', 'APP_LOGO_URL').maybeSingle();
+    var url = res && res.data && res.data.value ? String(res.data.value).trim() : '';
+    if(!url) return;
+    var imgHtml = '<img src="' + url.replace(/"/g,'&quot;') + '" alt="logo">';
+    ['brand-splash','brand-login','brand-landing'].forEach(function(id){
+      var el = document.getElementById(id);
+      if(el) el.innerHTML = imgHtml;
+    });
+  } catch(e){ /* silent — keep default PT */ }
 }
 
 async function doLogin(e){
