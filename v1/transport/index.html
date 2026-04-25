@@ -2270,7 +2270,8 @@
                 if (exp > now) { var hoursLeft = Math.round((exp - now) / (1000 * 60 * 60)); statusText += ' <span class="badge bg-warning-subtle text-warning rounded-pill px-2 py-1"><i class="bi bi-clock me-1"></i>หมดอายุใน ~' + hoursLeft + ' ชม.</span>'; }
             } else { statusText += ' <span class="badge bg-primary-subtle text-primary rounded-pill px-2 py-1">Manual (ไม่หมดอายุ)</span>'; }
             if (publicToken) {
-                var baseUrl = window.location.href.split('?')[0];
+                // V1 archive: share links must point to V2 (V1 has no public-mode handler)
+                var baseUrl = window.location.origin + (typeof CONFIG !== 'undefined' && CONFIG.BASE_URL ? CONFIG.BASE_URL : '') + '/v2/transport/';
                 var publicUrl = baseUrl + '?mode=public&caseId=' + encodeURIComponent(caseId) + '&token=' + encodeURIComponent(publicToken);
                 linkSection = '<div class="mt-2 mb-3 p-2 rounded-3" style="background:#f0fdf4;border:1px solid #bbf7d0"><p class="small fw-bold text-success mb-1"><i class="bi bi-link-45deg me-1"></i>Link สำหรับแชร์:</p><div class="input-group input-group-sm"><input type="text" id="public-url-input" class="form-control form-control-sm bg-white" value="' + escapeHtml(publicUrl) + '" readonly style="font-size:11px;"><button class="btn btn-success btn-sm" onclick="copyPublicUrl()" title="Copy"><i class="bi bi-clipboard"></i></button></div><div id="copy-feedback" class="small text-success d-none mt-1"><i class="bi bi-check-circle"></i> Copied!</div></div>';
             }
@@ -2306,7 +2307,8 @@
             if (mode === 'manual_off') {
                 Swal.fire({ icon: 'success', title: 'ปิด Public Link แล้ว', timer: 1500 });
             } else {
-                var baseUrl = window.location.href.split('?')[0];
+                // V1 archive: share links must point to V2 (V1 has no public-mode handler)
+                var baseUrl = window.location.origin + (typeof CONFIG !== 'undefined' && CONFIG.BASE_URL ? CONFIG.BASE_URL : '') + '/v2/transport/';
                 var publicUrl = baseUrl + '?mode=public&caseId=' + encodeURIComponent(caseId) + '&token=' + encodeURIComponent(updateData.public_token);
                 Swal.fire({
                     icon: 'success', title: '<i class="bi bi-link-45deg text-success"></i> Public Link สำเร็จ!',
