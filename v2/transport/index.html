@@ -506,83 +506,82 @@
     /* ===== Bottom Step Navigation — shown on mobile + tablet/PC in single view (<1400px) ===== */
     .v2-bottom-nav{ display:none !important; }
 
-    /* ===== Mobile Patient Banner: ultra-compact (3 rows total) ===== */
+    /* ===== Mobile Patient Banner: collapsible (mini bar default; expand to see full details) ===== */
     @media (max-width:767px){
-      .patient-banner{ padding:5px 8px !important; font-size:10.5px; line-height:1.3; }
+      .patient-banner{ padding:0 !important; font-size:11px; }
+      .ban-mini-bar{ padding:5px 8px !important; gap:6px !important; }
+      .ban-mini-name{ font-size:13px !important; }
+      .ban-mini-triage{ font-size:9.5px !important; padding:1px 6px !important; }
+      .ban-consent-tag{ font-size:9.5px !important; padding:1px 6px !important; }
+      .ban-consent-tag .bi{ font-size:10px !important; }
+      .ban-toggle-btn{ padding:0 4px !important; }
+      .ban-toggle-btn .bi{ font-size:13px; }
+      /* Expanded details — keep readable, not ultra-compact */
+      .ban-details{ padding:6px 8px 4px !important; }
       .patient-banner .row{ margin:0 !important; }
-      .patient-banner .row.text-sm{ margin-bottom:3px !important; padding-bottom:3px !important; }
+      .patient-banner .row.text-sm{ margin-bottom:4px !important; padding-bottom:4px !important; }
       .patient-banner .row > [class*="col-"]{ padding:0 !important; }
-      /* Row 1: Vehicle + staff — single line nowrap with ellipsis */
       .patient-banner .row.text-sm > .col-12{
         flex-wrap:nowrap !important; overflow:hidden; gap:4px !important;
-        font-size:10.5px;
+        font-size:11px;
       }
-      .patient-banner .row.text-sm .text-muted.mx-1{ margin:0 2px !important; }
       .patient-banner #ban-staff-list{
-        max-width:none !important; flex:1 1 auto; min-width:0; font-size:10.5px;
+        max-width:none !important; flex:1 1 auto; min-width:0;
       }
-      .patient-banner .badge{ font-size:9.5px !important; padding:1px 5px !important; flex-shrink:0; }
-      .patient-banner .badge .bi{ font-size:10px; }
-      /* Row 2: Name + age + triage + route on ONE row */
-      .patient-banner .row.align-items-center{
-        display:flex !important; flex-wrap:nowrap !important; gap:6px;
-        align-items:center !important; overflow:hidden;
-      }
-      .patient-banner .row.align-items-center > .col-md-5{
-        flex:1 1 auto; max-width:none; min-width:0; overflow:hidden;
-        white-space:nowrap; text-overflow:ellipsis;
-      }
-      .patient-banner .row.align-items-center > .col-md-3{
-        flex:0 0 auto; max-width:none; margin-top:0 !important;
-      }
+      .patient-banner .badge{ font-size:10px !important; padding:2px 6px !important; }
+      .patient-banner .row.align-items-center > .col-md-5{ margin-bottom:3px; }
+      .patient-banner .row.align-items-center > .col-md-3{ margin-bottom:3px; }
       .patient-banner .row.align-items-center > .col-md-4{
-        flex:1 1 auto; max-width:none; margin-top:0 !important;
-        text-align:right; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
-        font-size:10.5px;
+        margin-top:2px !important; text-align:left !important;
       }
-      .patient-banner .fs-5{ font-size:12.5px !important; }
-      .patient-banner .fs-7{ font-size:10px !important; }
-      /* Row 3: Tags — horizontal scroll, stay single line */
+      .patient-banner .fs-5{ font-size:14px !important; }
+      .patient-banner .fs-7{ font-size:10.5px !important; }
       .patient-banner .row.align-items-center > .col-12.mt-2{
-        flex:1 1 100%; margin-top:3px !important; padding-top:3px !important;
+        margin-top:4px !important; padding-top:4px !important;
       }
       .patient-banner .row.align-items-center > .col-12.mt-2 > .d-flex{
-        flex-wrap:nowrap !important; overflow-x:auto;
-        scrollbar-width:none; gap:3px !important;
+        flex-wrap:wrap !important; gap:3px !important;
       }
-      .patient-banner .row.align-items-center > .col-12.mt-2 > .d-flex::-webkit-scrollbar{ display:none; }
       .patient-banner .row.align-items-center > .col-12.mt-2 .badge{
-        white-space:nowrap !important; flex-shrink:0;
-        font-size:9.5px !important; padding:1px 5px !important;
+        font-size:10px !important; padding:2px 6px !important;
       }
-      /* Consent strip ultra-compact */
-      .ban-consent-strip{
-        padding:3px 8px !important; font-size:10.5px !important;
-        margin-top:4px !important; gap:4px !important;
-      }
-      .ban-consent-strip .bi{ font-size:11px !important; }
     }
 
-    /* ===== Mobile Timeline: 2-col grid (compact 4-input EMS / 2-input Refer) ===== */
+    /* ===== Mobile Timeline: shrunk further (2-col grid, smaller inputs/labels) ===== */
     @media (max-width:767px){
+      #timeline-card{ margin-bottom:8px !important; }
       #tl-ems > .d-flex.flex-wrap,
       #tl-refer > .d-flex.flex-wrap{
         display:grid !important;
         grid-template-columns:1fr 1fr;
-        gap:0;
+        gap:0; font-size:11px !important;
       }
-      /* Timeline label spans full width as header */
+      /* Timeline label header — short, single line */
       #tl-ems > .d-flex.flex-wrap > div:first-child,
       #tl-refer > .d-flex.flex-wrap > div:first-child{
         grid-column:1 / -1; justify-content:center;
-        background:#dbeafe; border-end:none;
+        background:#dbeafe; padding:2px 8px !important; font-size:10.5px !important;
       }
-      /* Duration badges row spans full width */
+      #tl-ems > .d-flex.flex-wrap > div:first-child b,
+      #tl-refer > .d-flex.flex-wrap > div:first-child b{ font-size:10.5px !important; }
+      /* Time cells — tight padding */
+      #tl-ems > .d-flex.flex-wrap > div:not(:first-child):not(#tl-ems-durations),
+      #tl-refer > .d-flex.flex-wrap > div:not(:first-child):not(#tl-refer-durations){
+        padding:3px 6px !important; gap:2px;
+      }
+      #tl-ems > .d-flex.flex-wrap span.text-secondary,
+      #tl-refer > .d-flex.flex-wrap span.text-secondary{ font-size:10px !important; }
+      /* Inputs — compact but tappable */
+      .tl-time-input{ width:48px !important; font-size:12px !important; padding:1px 2px !important; }
+      .tl-btn{ font-size:11px !important; padding:1px 4px !important; line-height:1.2 !important; }
+      /* Duration badges row spans full width — tight */
       #tl-ems-durations,
-      #tl-refer-durations{ grid-column:1 / -1; }
-      /* Inputs slightly larger on mobile (touch) */
-      .tl-time-input{ width:60px !important; font-size:14px !important; }
-      .tl-btn{ font-size:14px !important; padding:4px 6px !important; }
+      #tl-refer-durations{
+        grid-column:1 / -1; padding:2px 6px !important; gap:2px !important;
+        font-size:9.5px !important;
+      }
+      #tl-ems-durations .badge,
+      #tl-refer-durations .badge{ font-size:9.5px !important; padding:1px 5px !important; }
     }
     @media (max-width: 1399px){
       .v2-bottom-nav.v2-bn-show{
@@ -772,21 +771,47 @@
     .consent-card-step1.signed .consent-icon {
       background: #bbf7d0; color: #15803d;
     }
-    /* Banner Consent Strip (Step 2/3) */
-    .ban-consent-strip {
-      display: flex; align-items: center; gap: 6px;
-      margin-top: 10px; padding: 7px 14px;
-      border-radius: 8px; cursor: pointer;
-      font-size: 0.78rem; transition: all 0.2s;
+    /* Banner Consent Tag (Step 2/3) — small inline tag, like list-page badge */
+    .ban-consent-tag {
+      display: inline-flex; align-items: center; gap: 4px;
+      padding: 2px 8px; border-radius: 999px; cursor: pointer;
+      font-size: 0.72rem; line-height: 1.4; font-weight: 600;
+      transition: background .15s, border-color .15s;
+      white-space: nowrap;
     }
-    .ban-consent-strip.pending {
+    .ban-consent-tag .bi { font-size: 0.78rem; }
+    .ban-consent-tag.pending {
       background: #fffbeb; border: 1px dashed #fbbf24; color: #92400e;
     }
-    .ban-consent-strip.pending:hover { background: #fef3c7; border-color: #f59e0b; }
-    .ban-consent-strip.done {
+    .ban-consent-tag.pending:hover { background: #fef3c7; border-color: #f59e0b; }
+    .ban-consent-tag.done {
       background: #f0fdf4; border: 1px solid #86efac; color: #166534;
     }
-    .ban-consent-strip.done:hover { background: #dcfce7; }
+    .ban-consent-tag.done:hover { background: #dcfce7; }
+
+    /* Patient Banner — Mini bar (always visible) + collapsible details */
+    .ban-mini-bar {
+      display: flex; align-items: center; gap: 8px;
+      padding: 6px 10px; cursor: pointer;
+      border-radius: 8px; transition: background .15s;
+      flex-wrap: nowrap; overflow: hidden;
+    }
+    .ban-mini-bar:hover { background: #f8fafc; }
+    .ban-mini-name {
+      font-size: 0.95rem; min-width: 0; overflow: hidden;
+      text-overflow: ellipsis; white-space: nowrap; flex: 0 1 auto;
+    }
+    .ban-mini-triage { font-size: 0.7rem; padding: 2px 8px; flex-shrink: 0; }
+    .ban-toggle-btn {
+      border: none; background: transparent; padding: 2px 6px;
+      color: #64748b; cursor: pointer; flex-shrink: 0;
+      transition: transform .2s;
+    }
+    .ban-toggle-btn:hover { color: #0ea5e9; }
+    .patient-banner.ban-collapsed .ban-details { display: none; }
+    .patient-banner.ban-collapsed .ban-toggle-btn .bi { transform: rotate(0deg); }
+    .patient-banner:not(.ban-collapsed) .ban-toggle-btn .bi { transform: rotate(180deg); }
+    .ban-details { padding: 8px 10px 4px; }
 
     /* Consent Modal Fullscreen */
     .consent-modal-overlay {
@@ -2165,45 +2190,56 @@
                 <span id="display-status" class="v2-tb-status">Active</span>
               </div>
             </div>
-            <!-- Patient Banner (row 2) — moved here as static topbar row 2 -->
-            <div id="patient-summary-banner" class="patient-banner v2-tb-row2 d-none">
-              <div class="d-flex justify-content-between gap-2">
-                 <div class="flex-grow-1" style="min-width:0;">
-                   <div class="row text-sm mb-2 border-bottom pb-2">
-                       <div class="col-12 text-primary d-flex align-items-center gap-2">
-                          <span class="badge bg-primary-subtle text-primary rounded-pill"><i class="bi bi-car-front-fill me-1"></i> <span id="ban-op-level">-</span></span>
-                          <span class="fw-medium text-dark">รถเบอร์: <span id="ban-op-no">-</span></span>
-                          <span class="text-muted mx-1">|</span>
-                          <span id="ban-staff-list" class="text-secondary small text-truncate d-inline-block pb-1" style="max-width: 60%;">-</span>
-                       </div>
-                   </div>
-                   <div class="row align-items-center">
-                     <div class="col-md-5">
-                         <div class="fs-5 fw-bold text-dark"><span id="ban-name">-</span> <span class="fs-7 fw-normal text-muted">(<span id="ban-age">-</span>)</span></div>
-                     </div>
-                     <div class="col-md-3">
-                         <span class="badge bg-danger-subtle text-danger border border-danger-subtle rounded-pill px-2"><i class="bi bi-exclamation-circle-fill me-1"></i> <span id="ban-triage">-</span></span>
-                     </div>
-                     <div class="col-md-4 text-md-end text-muted fs-7 mt-2 mt-md-0">
-                         <i class="bi bi-geo-alt-fill text-primary"></i> <span id="ban-route">-</span>
-                     </div>
-                     <div class="col-12 mt-2 pt-2 border-top" style="overflow:hidden;">
-                       <div class="d-flex flex-wrap align-items-start gap-1" style="font-size:0.75rem;">
-                         <span class="badge bg-light text-dark border me-1 text-start" style="max-width:100%; white-space:normal;">Dx: <span id="ban-dx" class="fw-normal">-</span></span>
-                         <span class="badge bg-light text-dark border me-1 text-start" style="max-width:100%; white-space:normal;">CC: <span id="ban-cc" class="fw-normal">-</span></span>
-                         <span class="badge bg-danger-subtle text-danger border border-danger-subtle me-1">แพ้: <span id="ban-allergy" class="fw-normal">-</span></span>
-                         <span class="badge bg-info-subtle text-info border border-info-subtle me-1">UD: <span id="ban-ud" class="fw-normal">-</span></span>
-                       </div>
-                     </div>
-                   </div>
-                 </div>
+            <!-- Patient Banner (row 2) — collapsible: mini bar always visible, details toggle -->
+            <div id="patient-summary-banner" class="patient-banner v2-tb-row2 d-none ban-collapsed">
+              <!-- Always-visible mini bar (name + triage + consent tag + chevron) -->
+              <div class="ban-mini-bar no-print" onclick="togglePatientBanner(event)" role="button" title="แตะเพื่อย่อ/ขยายข้อมูลคนไข้">
+                <span class="ban-mini-name fw-bold text-dark"><span id="ban-mini-name">-</span></span>
+                <span id="ban-mini-triage-wrap" class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-2 ban-mini-triage">
+                  <span id="ban-mini-triage">-</span>
+                </span>
+                <span id="ban-consent-card" class="ban-consent-tag pending" onclick="event.stopPropagation(); v2QuickAction('consent')" title="คลิกเพื่อเปิดฟอร์ม Consent">
+                  <i class="bi bi-file-earmark-check" id="ban-consent-icon-i"></i>
+                  <span id="ban-consent-text">รอลงนาม</span>
+                </span>
+                <button type="button" class="ban-toggle-btn ms-auto" title="ย่อ/ขยาย">
+                  <i class="bi bi-chevron-down"></i>
+                </button>
               </div>
-              <!-- Consent Status Strip -->
-              <div id="ban-consent-card" class="ban-consent-strip pending no-print" onclick="v2QuickAction('consent')" title="คลิกเพื่อเปิดฟอร์ม Consent">
-                <i class="bi bi-file-earmark-check" id="ban-consent-icon-i"></i>
-                <span class="fw-bold">Consent:</span>
-                <span id="ban-consent-text">รอลงนาม</span>
-                <i class="bi bi-chevron-right ms-auto" style="font-size:0.7rem; opacity:0.5;"></i>
+
+              <!-- Expandable details -->
+              <div class="ban-details">
+                <div class="d-flex justify-content-between gap-2">
+                   <div class="flex-grow-1" style="min-width:0;">
+                     <div class="row text-sm mb-2 border-bottom pb-2">
+                         <div class="col-12 text-primary d-flex align-items-center gap-2">
+                            <span class="badge bg-primary-subtle text-primary rounded-pill"><i class="bi bi-car-front-fill me-1"></i> <span id="ban-op-level">-</span></span>
+                            <span class="fw-medium text-dark">รถเบอร์: <span id="ban-op-no">-</span></span>
+                            <span class="text-muted mx-1">|</span>
+                            <span id="ban-staff-list" class="text-secondary small text-truncate d-inline-block pb-1" style="max-width: 60%;">-</span>
+                         </div>
+                     </div>
+                     <div class="row align-items-center">
+                       <div class="col-md-5">
+                           <div class="fs-5 fw-bold text-dark"><span id="ban-name">-</span> <span class="fs-7 fw-normal text-muted">(<span id="ban-age">-</span>)</span></div>
+                       </div>
+                       <div class="col-md-3">
+                           <span class="badge bg-danger-subtle text-danger border border-danger-subtle rounded-pill px-2"><i class="bi bi-exclamation-circle-fill me-1"></i> <span id="ban-triage">-</span></span>
+                       </div>
+                       <div class="col-md-4 text-md-end text-muted fs-7 mt-2 mt-md-0">
+                           <i class="bi bi-geo-alt-fill text-primary"></i> <span id="ban-route">-</span>
+                       </div>
+                       <div class="col-12 mt-2 pt-2 border-top" style="overflow:hidden;">
+                         <div class="d-flex flex-wrap align-items-start gap-1" style="font-size:0.75rem;">
+                           <span class="badge bg-light text-dark border me-1 text-start" style="max-width:100%; white-space:normal;">Dx: <span id="ban-dx" class="fw-normal">-</span></span>
+                           <span class="badge bg-light text-dark border me-1 text-start" style="max-width:100%; white-space:normal;">CC: <span id="ban-cc" class="fw-normal">-</span></span>
+                           <span class="badge bg-danger-subtle text-danger border border-danger-subtle me-1">แพ้: <span id="ban-allergy" class="fw-normal">-</span></span>
+                           <span class="badge bg-info-subtle text-info border border-info-subtle me-1">UD: <span id="ban-ud" class="fw-normal">-</span></span>
+                         </div>
+                       </div>
+                     </div>
+                   </div>
+                </div>
               </div>
             </div>
           </div>
@@ -4578,6 +4614,28 @@
        }
     }
 
+    // --- BANNER COLLAPSE TOGGLE ---
+    function togglePatientBanner(ev) {
+      if (ev) ev.stopPropagation();
+      var ban = document.getElementById('patient-summary-banner');
+      if (!ban) return;
+      ban.classList.toggle('ban-collapsed');
+      try {
+        localStorage.setItem('v2_ban_collapsed', ban.classList.contains('ban-collapsed') ? '1' : '0');
+      } catch(_){}
+    }
+    // Restore saved state on load (default: collapsed on mobile, expanded on desktop)
+    (function initBannerState(){
+      try {
+        var saved = localStorage.getItem('v2_ban_collapsed');
+        var ban = document.getElementById('patient-summary-banner');
+        if (!ban) return;
+        if (saved === '0') ban.classList.remove('ban-collapsed');
+        else if (saved === '1') ban.classList.add('ban-collapsed');
+        else if (window.innerWidth > 767) ban.classList.remove('ban-collapsed');
+      } catch(_){}
+    })();
+
     // --- BANNER & STATUS ---
     function updateBanner() {
       var f = document.forms['main-form'];
@@ -4589,6 +4647,8 @@
 
       setVal('ban-name', f.pt_name.value || '-');
       setVal('ban-age', f.pt_age.value || '-');
+      // Mirror to mini bar
+      setVal('ban-mini-name', f.pt_name.value || '-');
 
       var caseIdVal = document.getElementById('caseId').value || "New";
       setVal('print-case-id', caseIdVal);
@@ -4613,6 +4673,23 @@
           badge.className += ' bg-warning-subtle text-warning border border-warning-subtle';
         } else {
           badge.className += ' bg-success-subtle text-success border border-success-subtle';
+        }
+      }
+      // Mirror triage to mini bar
+      setVal('ban-mini-triage', triageVal);
+      var miniTri = document.getElementById('ban-mini-triage-wrap');
+      if (miniTri) {
+        miniTri.className = 'badge rounded-pill px-2 ban-mini-triage';
+        miniTri.style.cssText = '';
+        if (triageVal === 'Resuscitation') {
+          miniTri.className += ' bg-danger-subtle text-danger border border-danger-subtle';
+        } else if (triageVal === 'Emergency') {
+          miniTri.className += ' border';
+          miniTri.style.cssText = 'background-color:#f8d7e8;color:#d63384;border-color:#f1afc6;';
+        } else if (triageVal === 'Urgent') {
+          miniTri.className += ' bg-warning-subtle text-warning border border-warning-subtle';
+        } else {
+          miniTri.className += ' bg-success-subtle text-success border border-success-subtle';
         }
       }
 
@@ -8107,10 +8184,10 @@
 
         btn.className = 'btn btn-outline-success btn-sm rounded-pill px-3 fw-bold no-print';
         btn.innerHTML = '<i class="bi bi-eye me-1"></i> ดู/แก้ไข';
-        // Banner Strip → Green
-        banStrip.className = 'ban-consent-strip done no-print';
+        // Banner Tag → Green
+        banStrip.className = 'ban-consent-tag done';
         banIconI.className = 'bi bi-check-circle-fill';
-        banText.textContent = 'ลงนามแล้ว' + versionLabel + ' ✓';
+        banText.textContent = 'ลงนามแล้ว' + versionLabel;
       } else {
         // Step 1 Card → Yellow
         card.classList.remove('signed');
@@ -8118,8 +8195,8 @@
         statusText.textContent = 'ยังไม่ได้ลงนาม — กรุณาให้ผู้ป่วย/ญาติลงนามก่อนเริ่มนำส่ง';
         btn.className = 'btn btn-warning btn-sm rounded-pill px-3 fw-bold shadow-sm no-print';
         btn.innerHTML = '<i class="bi bi-pen me-1"></i> เปิดฟอร์ม';
-        // Banner Strip → Yellow
-        banStrip.className = 'ban-consent-strip pending no-print';
+        // Banner Tag → Yellow
+        banStrip.className = 'ban-consent-tag pending';
         banIconI.className = 'bi bi-file-earmark-check';
         banText.textContent = 'รอลงนาม';
       }
