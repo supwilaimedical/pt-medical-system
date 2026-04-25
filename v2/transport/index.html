@@ -87,6 +87,10 @@
     .v2-subnav a.active .badge-mini{ background:#0ea5e9; color:#fff; }
     .v2-subnav a .badge-mini.warn{ background:#fef3c7; color:#854d0e; }
     .v2-subnav a .badge-mini.ok{ background:#dcfce7; color:#166534; }
+    .v2-rail a .bi, .v2-mobile-rail-strip a .bi{ font-size:18px; line-height:1; }
+    .v2-subnav a .bi{ width:18px; display:inline-block; text-align:center; margin-right:6px; font-size:14px; opacity:.85; }
+    .v2-subnav a.active .bi{ opacity:1; }
+    .v2-subnav button .bi{ margin-right:4px; }
 
     /* ===== V2 design tokens (override V1 Bootstrap chrome) ===== */
     /* Body bg = V2 light slate */
@@ -909,15 +913,15 @@
 <!-- V2 Side Rail (Col 1) -->
 <aside class="v2-rail no-print">
   <div class="v2-logo" title="PT Medical V2">PT</div>
-  <a href="../transport/" class="active" title="นำส่งผู้ป่วย">🚑</a>
-  <a href="../firstaid/" title="ปฐมพยาบาล">🩹</a>
-  <a href="../location/" title="พิกัดสถานที่">📍</a>
-  <a href="../gps/" id="rail-gps" title="GPS Tracking" style="display:none;">🛰️</a>
+  <a href="../transport/" class="active" title="นำส่งผู้ป่วย"><i class="bi bi-truck-flatbed"></i></a>
+  <a href="../firstaid/" title="ปฐมพยาบาล"><i class="bi bi-bandaid"></i></a>
+  <a href="../location/" title="พิกัดสถานที่"><i class="bi bi-geo-alt-fill"></i></a>
+  <a href="../gps/" id="rail-gps" title="GPS Tracking" style="display:none;"><i class="bi bi-broadcast-pin"></i></a>
   <div class="v2-spacer"></div>
-  <a href="../monitor/" id="rail-monitor" title="Monitor" style="display:none;">📡</a>
-  <a href="../admin.html" id="rail-admin" title="Admin Settings" style="display:none;">⚙️</a>
+  <a href="../monitor/" id="rail-monitor" title="Monitor" style="display:none;"><i class="bi bi-activity"></i></a>
+  <a href="../admin.html" id="rail-admin" title="Admin Settings" style="display:none;"><i class="bi bi-gear"></i></a>
   <div class="v2-divider"></div>
-  <a href="../" title="หน้าหลัก">🏠</a>
+  <a href="../" title="หน้าหลัก"><i class="bi bi-house-door-fill"></i></a>
 </aside>
 
 <!-- V2 Sub-nav (Col 2) — swaps content based on active view -->
@@ -925,13 +929,13 @@
 <aside class="v2-subnav no-print">
   <!-- Mobile-only rail strip (modules) since the side rail is hidden on mobile -->
   <div class="v2-mobile-rail-strip">
-    <a href="../transport/" data-mod="transport" title="นำส่งผู้ป่วย" class="active">🚑</a>
-    <a href="../firstaid/" data-mod="firstaid" title="ปฐมพยาบาล">🩹</a>
-    <a href="../location/" data-mod="location" title="พิกัดสถานที่">📍</a>
-    <a href="../gps/" data-mod="gps" id="m-rail-gps" title="GPS" style="display:none;">🛰️</a>
-    <a href="../monitor/" data-mod="monitor" id="m-rail-monitor" title="Monitor" style="display:none;">📡</a>
-    <a href="../admin.html" data-mod="admin" id="m-rail-admin" title="Admin" style="display:none;">⚙️</a>
-    <a href="../" title="หน้าหลัก">🏠</a>
+    <a href="../transport/" data-mod="transport" title="นำส่งผู้ป่วย" class="active"><i class="bi bi-truck-flatbed"></i></a>
+    <a href="../firstaid/" data-mod="firstaid" title="ปฐมพยาบาล"><i class="bi bi-bandaid"></i></a>
+    <a href="../location/" data-mod="location" title="พิกัดสถานที่"><i class="bi bi-geo-alt-fill"></i></a>
+    <a href="../gps/" data-mod="gps" id="m-rail-gps" title="GPS" style="display:none;"><i class="bi bi-broadcast-pin"></i></a>
+    <a href="../monitor/" data-mod="monitor" id="m-rail-monitor" title="Monitor" style="display:none;"><i class="bi bi-activity"></i></a>
+    <a href="../admin.html" data-mod="admin" id="m-rail-admin" title="Admin" style="display:none;"><i class="bi bi-gear"></i></a>
+    <a href="../" title="หน้าหลัก"><i class="bi bi-house-door-fill"></i></a>
   </div>
   <div class="v2-subnav-header">
     <div class="title">นำส่งผู้ป่วย</div>
@@ -941,24 +945,24 @@
   <!-- ===== List view sub-nav (when dashboard-view is active) ===== -->
   <div id="v2-subnav-list">
     <div style="padding:10px 14px; border-bottom:1px solid #e2e8f0;">
-      <button onclick="if(typeof openNewCase==='function') openNewCase()" style="width:100%; padding:8px; background:#0ea5e9; color:#fff; border:none; border-radius:8px; font-weight:600; font-size:13px; cursor:pointer;">➕ สร้างเคสใหม่</button>
+      <button onclick="if(typeof openNewCase==='function') openNewCase()" style="width:100%; padding:8px; background:#0ea5e9; color:#fff; border:none; border-radius:8px; font-weight:600; font-size:13px; cursor:pointer;"><i class="bi bi-plus-lg"></i> สร้างเคสใหม่</button>
     </div>
     <a href="javascript:void(0)" data-list-tab="all" onclick="v2SetListTab('all')" class="active" style="border-bottom:1px solid #e2e8f0;">
-      <span>📋 ทั้งหมด</span>
+      <span><i class="bi bi-clipboard-check"></i> ทั้งหมด</span>
       <span id="v2-cnt-all" class="badge-mini">0</span>
     </a>
     <div class="v2-subnav-section">สถานะ</div>
     <a href="javascript:void(0)" data-list-tab="active" onclick="v2SetListTab('active')">
-      <span>🟢 กำลังดำเนินการ</span>
+      <span><i class="bi bi-circle-fill" style="color:#16a34a;"></i> กำลังดำเนินการ</span>
       <span id="v2-cnt-active" class="badge-mini">0</span>
     </a>
     <a href="javascript:void(0)" data-list-tab="closed" onclick="v2SetListTab('closed')">
-      <span>✅ ปิดเคสแล้ว</span>
+      <span><i class="bi bi-check-circle-fill" style="color:#16a34a;"></i> ปิดเคสแล้ว</span>
       <span id="v2-cnt-closed" class="badge-mini">0</span>
     </a>
     <div class="v2-subnav-section">ค้นหา &amp; กรอง</div>
-    <a href="javascript:void(0)" onclick="document.getElementById('search-name')?.focus();">🔍 ค้นชื่อ / รหัสเคส</a>
-    <a href="javascript:void(0)" onclick="document.getElementById('search-date')?.focus();">📅 กรองตามวันที่</a>
+    <a href="javascript:void(0)" onclick="document.getElementById('search-name')?.focus();"><i class="bi bi-search"></i> ค้นชื่อ / รหัสเคส</a>
+    <a href="javascript:void(0)" onclick="document.getElementById('search-date')?.focus();"><i class="bi bi-calendar-event"></i> กรองตามวันที่</a>
   </div>
 
   <!-- ===== Case view sub-nav (when form-view is active) ===== -->
@@ -974,10 +978,10 @@
     <div id="v2-subnav-opening">
       <div class="v2-subnav-section">เปิดเคส</div>
       <a href="javascript:void(0)" data-step="1" onclick="v2GoToStep(1)" class="active">
-        <span>👤 ข้อมูลทั่วไป</span>
+        <span><i class="bi bi-person"></i> ข้อมูลทั่วไป</span>
       </a>
       <a href="javascript:void(0)" data-quick="consent" onclick="v2QuickAction('consent')">
-        <span>📝 หนังสือยินยอม</span>
+        <span><i class="bi bi-file-earmark-text"></i> หนังสือยินยอม</span>
         <span id="v2-consent-badge-op" class="badge-mini warn">รอเซ็น</span>
       </a>
     </div>
@@ -986,22 +990,22 @@
     <div id="v2-subnav-active" style="display:none;">
       <!-- STEP section — 2 items at <1400px, 1 merged item at ≥1400px (split view) -->
       <div class="v2-subnav-section v2-subnav-step-section">ขั้นตอน</div>
-      <a href="javascript:void(0)" class="v2-subnav-step-item" data-step="2" onclick="v2GoToStep(2)"><span>1️⃣ ประเมินร่างกาย</span></a>
-      <a href="javascript:void(0)" class="v2-subnav-step-item" data-step="3" onclick="v2GoToStep(3)"><span>2️⃣ ขณะนำส่ง</span></a>
+      <a href="javascript:void(0)" class="v2-subnav-step-item" data-step="2" onclick="v2GoToStep(2)"><span><i class="bi bi-1-circle-fill"></i> ประเมินร่างกาย</span></a>
+      <a href="javascript:void(0)" class="v2-subnav-step-item" data-step="3" onclick="v2GoToStep(3)"><span><i class="bi bi-2-circle-fill"></i> ขณะนำส่ง</span></a>
       <!-- Split-only merged item (closes quick panel + scrolls to top of form) -->
-      <a href="javascript:void(0)" class="v2-subnav-step-split-item" onclick="if(typeof v2CloseQuickPanel==='function') v2CloseQuickPanel(); setTimeout(function(){ document.getElementById('main-form')?.scrollIntoView({behavior:'smooth', block:'start'}); }, 50);"><span>📋 ฟอร์มเคส <span style="font-size:10px; color:#94a3b8; font-weight:400;">(ประเมิน + นำส่ง)</span></span></a>
+      <a href="javascript:void(0)" class="v2-subnav-step-split-item" onclick="if(typeof v2CloseQuickPanel==='function') v2CloseQuickPanel(); setTimeout(function(){ document.getElementById('main-form')?.scrollIntoView({behavior:'smooth', block:'start'}); }, 50);"><span><i class="bi bi-clipboard-check"></i> ฟอร์มเคส <span style="font-size:10px; color:#94a3b8; font-weight:400;">(ประเมิน + นำส่ง)</span></span></a>
 
       <div class="v2-subnav-section">การดำเนินงาน</div>
       <a href="javascript:void(0)" data-quick="consent" onclick="v2QuickAction('consent')">
-        <span>📝 หนังสือยินยอม</span>
+        <span><i class="bi bi-file-earmark-text"></i> หนังสือยินยอม</span>
         <span id="v2-consent-badge" class="badge-mini warn">รอเซ็น</span>
       </a>
       <a href="javascript:void(0)" data-quick="refer" onclick="v2QuickAction('refer')">
-        <span>📎 เอกสาร Refer</span>
+        <span><i class="bi bi-paperclip"></i> เอกสาร Refer</span>
         <span id="v2-refer-badge" class="badge-mini">0</span>
       </a>
       <a href="javascript:void(0)" onclick="if(typeof handlePrint==='function') handlePrint(); else window.print();">
-        <span>🖨️ พิมพ์ใบนำส่ง</span>
+        <span><i class="bi bi-printer"></i> พิมพ์ใบนำส่ง</span>
       </a>
     </div>
   </div>

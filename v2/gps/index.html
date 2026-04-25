@@ -779,6 +779,10 @@
     cursor:pointer; font-size:14px; flex-shrink:0; transition:all .15s;
   }
   .v2-subnav-btn:hover{ background:#e0f2fe; border-color:#0ea5e9; }
+  .v2-rail a .bi, .v2-mobile-rail-strip a .bi{ font-size:18px; line-height:1; }
+  .v2-subnav a .bi{ width:18px; display:inline-block; text-align:center; margin-right:6px; font-size:14px; opacity:.85; }
+  .v2-subnav a.active .bi{ opacity:1; }
+  .v2-subnav button .bi{ margin-right:4px; }
 
   /* ===== GPS Dashboard layout restructure: map flex-grow + right col 280 ===== */
   /* Hide floating map action buttons that moved to subnav (keep "ล้าง" as floating since it's context-sensitive) */
@@ -996,28 +1000,28 @@
 
 <aside class="v2-rail no-print">
   <div class="v2-logo" title="PT Medical V2">PT</div>
-  <a href="../transport/" data-mod="transport" title="นำส่งผู้ป่วย">🚑</a>
-  <a href="../firstaid/" data-mod="firstaid" title="ปฐมพยาบาล">🩹</a>
-  <a href="../location/" data-mod="location" title="พิกัดสถานที่">📍</a>
-  <a href="../gps/" data-mod="gps" id="rail-gps" title="GPS Tracking" style="display:none;">🛰️</a>
+  <a href="../transport/" data-mod="transport" title="นำส่งผู้ป่วย"><i class="bi bi-truck-flatbed"></i></a>
+  <a href="../firstaid/" data-mod="firstaid" title="ปฐมพยาบาล"><i class="bi bi-bandaid"></i></a>
+  <a href="../location/" data-mod="location" title="พิกัดสถานที่"><i class="bi bi-geo-alt-fill"></i></a>
+  <a href="../gps/" data-mod="gps" id="rail-gps" title="GPS Tracking" style="display:none;"><i class="bi bi-broadcast-pin"></i></a>
   <div class="v2-spacer"></div>
-  <a href="../monitor/" data-mod="monitor" id="rail-monitor" title="Monitor" style="display:none;">📡</a>
-  <a href="../admin.html" data-mod="admin" id="rail-admin" title="Admin Settings" style="display:none;">⚙️</a>
+  <a href="../monitor/" data-mod="monitor" id="rail-monitor" title="Monitor" style="display:none;"><i class="bi bi-activity"></i></a>
+  <a href="../admin.html" data-mod="admin" id="rail-admin" title="Admin Settings" style="display:none;"><i class="bi bi-gear"></i></a>
   <div class="v2-divider"></div>
-  <a href="../" title="หน้าหลัก">🏠</a>
+  <a href="../" title="หน้าหลัก"><i class="bi bi-house-door-fill"></i></a>
 </aside>
 
 <button class="v2-mobile-nav-toggle no-print" onclick="document.body.classList.toggle('v2-nav-open')" aria-label="เมนู" title="เมนู"><i class="bi bi-list"></i></button>
 
 <aside class="v2-subnav no-print">
   <div class="v2-mobile-rail-strip">
-    <a href="../transport/" data-mod="transport" title="นำส่งผู้ป่วย">🚑</a>
-    <a href="../firstaid/" data-mod="firstaid" title="ปฐมพยาบาล">🩹</a>
-    <a href="../location/" data-mod="location" title="พิกัดสถานที่">📍</a>
-    <a href="../gps/" data-mod="gps" id="m-rail-gps" title="GPS" style="display:none;" class="active">🛰️</a>
-    <a href="../monitor/" data-mod="monitor" id="m-rail-monitor" title="Monitor" style="display:none;">📡</a>
-    <a href="../admin.html" data-mod="admin" id="m-rail-admin" title="Admin" style="display:none;">⚙️</a>
-    <a href="../" title="หน้าหลัก">🏠</a>
+    <a href="../transport/" data-mod="transport" title="นำส่งผู้ป่วย"><i class="bi bi-truck-flatbed"></i></a>
+    <a href="../firstaid/" data-mod="firstaid" title="ปฐมพยาบาล"><i class="bi bi-bandaid"></i></a>
+    <a href="../location/" data-mod="location" title="พิกัดสถานที่"><i class="bi bi-geo-alt-fill"></i></a>
+    <a href="../gps/" data-mod="gps" id="m-rail-gps" title="GPS" style="display:none;" class="active"><i class="bi bi-broadcast-pin"></i></a>
+    <a href="../monitor/" data-mod="monitor" id="m-rail-monitor" title="Monitor" style="display:none;"><i class="bi bi-activity"></i></a>
+    <a href="../admin.html" data-mod="admin" id="m-rail-admin" title="Admin" style="display:none;"><i class="bi bi-gear"></i></a>
+    <a href="../" title="หน้าหลัก"><i class="bi bi-house-door-fill"></i></a>
   </div>
   <div class="v2-subnav-header">
     <div class="v2-subnav-header-flex">
@@ -1033,46 +1037,46 @@
 
   <div class="v2-subnav-section">มุมมอง</div>
   <a href="javascript:void(0)" class="active" onclick="if(typeof fitAllMarkers==='function') fitAllMarkers();">
-    <span>🗺️ แผนที่ Live</span>
+    <span><i class="bi bi-map"></i> แผนที่ Live</span>
   </a>
 
   <div class="v2-subnav-section" id="gps-subnav-status-section">ตามสถานะ</div>
   <a href="javascript:void(0)" id="gps-subnav-online" onclick="gpsV2Filter('online')">
-    <span>🟢 Online</span>
+    <span><i class="bi bi-circle-fill" style="color:#16a34a;"></i> Online</span>
     <span class="badge-mini" id="gps-count-online">0</span>
   </a>
   <a href="javascript:void(0)" id="gps-subnav-idle" onclick="gpsV2Filter('idle')">
-    <span>🟡 Idle</span>
+    <span><i class="bi bi-circle-fill" style="color:#eab308;"></i> Idle</span>
     <span class="badge-mini" id="gps-count-idle">0</span>
   </a>
   <a href="javascript:void(0)" id="gps-subnav-overspeed" onclick="gpsV2Filter('overspeed')">
-    <span>🔴 Overspeed</span>
+    <span><i class="bi bi-circle-fill" style="color:#dc2626;"></i> Overspeed</span>
     <span class="badge-mini" id="gps-count-overspeed">0</span>
   </a>
   <a href="javascript:void(0)" id="gps-subnav-offline" onclick="gpsV2Filter('offline')">
-    <span>⚪ Offline</span>
+    <span><i class="bi bi-circle-fill" style="color:#94a3b8;"></i> Offline</span>
     <span class="badge-mini" id="gps-count-offline">0</span>
   </a>
   <a href="javascript:void(0)" id="gps-subnav-all" onclick="gpsV2Filter('all')">
-    <span>📋 ทั้งหมด</span>
+    <span><i class="bi bi-clipboard-check"></i> ทั้งหมด</span>
     <span class="badge-mini" id="gps-count-all">0</span>
   </a>
 
   <div class="v2-subnav-section">ค้นหา</div>
   <a href="javascript:void(0)" onclick="var s=document.querySelector('.panel-search input, #vehicleSearch, input[type=search]'); if(s){ s.focus(); s.scrollIntoView({block:'center'}); }">
-    <span>🔍 ค้นรถ</span>
+    <span><i class="bi bi-search"></i> ค้นรถ</span>
   </a>
 
   <div class="v2-subnav-section">เครื่องมือ</div>
   <a href="javascript:void(0)" id="gps-subnav-auto" onclick="if(typeof toggleAutoRefresh==='function') toggleAutoRefresh();">
-    <span>⚡ Auto-refresh</span>
+    <span><i class="bi bi-lightning-fill"></i> Auto-refresh</span>
     <span class="badge-mini" id="gps-auto-label">OFF</span>
   </a>
   <a href="javascript:void(0)" onclick="if(typeof fitAllMarkers==='function') fitAllMarkers();">
-    <span>🔳 ซูมดูทุกคัน</span>
+    <span><i class="bi bi-bounding-box"></i> ซูมดูทุกคัน</span>
   </a>
   <a href="javascript:void(0)" onclick="if(typeof openNearestHospitalsModal==='function') openNearestHospitalsModal();">
-    <span>🏥 สถานที่ใกล้เคียง</span>
+    <span><i class="bi bi-hospital"></i> สถานที่ใกล้เคียง</span>
   </a>
 </aside>
 

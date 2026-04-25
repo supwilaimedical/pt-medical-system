@@ -32,18 +32,22 @@
   body .border-primary{ border-color:#0ea5e9 !important; }
   body .bg-primary{ background:#0ea5e9 !important; }
   body, body *{ font-family:'Sarabun', sans-serif !important; }
+  .v2-rail a .bi, .v2-mobile-rail-strip a .bi{ font-size:18px; line-height:1; }
+  .v2-subnav a .bi{ width:18px; display:inline-block; text-align:center; margin-right:6px; font-size:14px; opacity:.85; }
+  .v2-subnav a.active .bi{ opacity:1; }
+  .v2-subnav button .bi{ margin-right:4px; }
 </style>
 <aside class="v2-rail no-print">
   <div class="v2-logo" title="PT Medical V2">PT</div>
-  <a href="../transport/" data-mod="transport" title="นำส่งผู้ป่วย">🚑</a>
-  <a href="../firstaid/" data-mod="firstaid" title="ปฐมพยาบาล">🩹</a>
-  <a href="../location/" data-mod="location" title="พิกัดสถานที่">📍</a>
-  <a href="../gps/" data-mod="gps" id="rail-gps" title="GPS Tracking" style="display:none;">🛰️</a>
+  <a href="../transport/" data-mod="transport" title="นำส่งผู้ป่วย"><i class="bi bi-truck-flatbed"></i></a>
+  <a href="../firstaid/" data-mod="firstaid" title="ปฐมพยาบาล"><i class="bi bi-bandaid"></i></a>
+  <a href="../location/" data-mod="location" title="พิกัดสถานที่"><i class="bi bi-geo-alt-fill"></i></a>
+  <a href="../gps/" data-mod="gps" id="rail-gps" title="GPS Tracking" style="display:none;"><i class="bi bi-broadcast-pin"></i></a>
   <div class="v2-spacer"></div>
-  <a href="../monitor/" data-mod="monitor" id="rail-monitor" title="Monitor" style="display:none;">📡</a>
-  <a href="../admin.html" data-mod="admin" id="rail-admin" title="Admin Settings" style="display:none;">⚙️</a>
+  <a href="../monitor/" data-mod="monitor" id="rail-monitor" title="Monitor" style="display:none;"><i class="bi bi-activity"></i></a>
+  <a href="../admin.html" data-mod="admin" id="rail-admin" title="Admin Settings" style="display:none;"><i class="bi bi-gear"></i></a>
   <div class="v2-divider"></div>
-  <a href="../" title="หน้าหลัก">🏠</a>
+  <a href="../" title="หน้าหลัก"><i class="bi bi-house-door-fill"></i></a>
 </aside>
 <script>
 (function(){

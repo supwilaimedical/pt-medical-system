@@ -102,6 +102,9 @@
   }
   .sidebar-item:hover { background:var(--asurface-2); color:var(--atext); }
   .sidebar-item.active { background:var(--aaccent-soft); color:var(--aaccent-dark); font-weight:600; }
+  .sidebar-item .bi{ width:18px; display:inline-block; text-align:center; margin-right:6px; font-size:14px; opacity:.85; }
+  .sidebar-item.active .bi{ opacity:1; }
+  .v2-modrail a .bi{ font-size:18px; line-height:1; }
   .sidebar-item.active::before {
     content:''; position:absolute; left:-10px; top:8px; bottom:8px;
     width:3px; background:var(--aaccent); border-radius:0 3px 3px 0;
@@ -393,15 +396,15 @@
   <!-- V2 Modules rail (Transport · FirstAid · Location · Monitor · Admin) -->
   <aside class="v2-modrail">
     <div class="v2-logo">PT</div>
-    <a href="transport/" title="นำส่งผู้ป่วย">🚑</a>
-    <a href="firstaid/" title="ปฐมพยาบาล">🩹</a>
-    <a href="location/" title="พิกัดสถานที่">📍</a>
-    <a href="gps/" title="GPS Tracking">🛰️</a>
+    <a href="transport/" title="นำส่งผู้ป่วย"><i class="bi bi-truck-flatbed"></i></a>
+    <a href="firstaid/" title="ปฐมพยาบาล"><i class="bi bi-bandaid"></i></a>
+    <a href="location/" title="พิกัดสถานที่"><i class="bi bi-geo-alt-fill"></i></a>
+    <a href="gps/" title="GPS Tracking"><i class="bi bi-broadcast-pin"></i></a>
     <div class="v2-spacer"></div>
-    <a href="monitor/" title="Monitor">📡</a>
-    <a href="#" class="active" title="ตั้งค่าระบบ">⚙️</a>
+    <a href="monitor/" title="Monitor"><i class="bi bi-activity"></i></a>
+    <a href="#" class="active" title="ตั้งค่าระบบ"><i class="bi bi-gear"></i></a>
     <div class="v2-divider"></div>
-    <a href="index.html" title="หน้าหลัก">🏠</a>
+    <a href="index.html" title="หน้าหลัก"><i class="bi bi-house-door-fill"></i></a>
   </aside>
 
   <aside class="admin-sidebar" id="sb-sidebar">
@@ -414,30 +417,30 @@
     <nav>
       <div class="sidebar-group">
         <div class="sidebar-group-title">ทั่วไป</div>
-        <a class="sidebar-item active" onclick="adm_show('organization', this)">🏢 องค์กร</a>
-        <a class="sidebar-item" onclick="adm_show('branding', this)">🎨 โลโก้ & แบรนด์</a>
+        <a class="sidebar-item active" onclick="adm_show('organization', this)"><i class="bi bi-building"></i> องค์กร</a>
+        <a class="sidebar-item" onclick="adm_show('branding', this)"><i class="bi bi-palette"></i> โลโก้ & แบรนด์</a>
       </div>
       <div class="sidebar-group">
         <div class="sidebar-group-title">บริการ</div>
-        <a class="sidebar-item" onclick="adm_show('gps', this)">🛰️ GPS Tracking</a>
-        <a class="sidebar-item" onclick="adm_show('ocr', this)">📄 OCR</a>
-        <a class="sidebar-item" onclick="adm_show('notifications', this); loadNotifySection();">🔔 การแจ้งเตือน</a>
-        <a class="sidebar-item" onclick="adm_show('integrations', this)">🔌 เชื่อมต่อระบบ</a>
+        <a class="sidebar-item" onclick="adm_show('gps', this)"><i class="bi bi-broadcast-pin"></i> GPS Tracking</a>
+        <a class="sidebar-item" onclick="adm_show('ocr', this)"><i class="bi bi-file-earmark-text"></i> OCR</a>
+        <a class="sidebar-item" onclick="adm_show('notifications', this); loadNotifySection();"><i class="bi bi-bell"></i> การแจ้งเตือน</a>
+        <a class="sidebar-item" onclick="adm_show('integrations', this)"><i class="bi bi-plug"></i> เชื่อมต่อระบบ</a>
       </div>
       <div class="sidebar-group">
         <div class="sidebar-group-title">ความปลอดภัย</div>
-        <a class="sidebar-item" onclick="adm_show('sessions', this)">🔐 Sessions</a>
-        <a class="sidebar-item" onclick="adm_show('pubshare', this); loadPublicShares();">🔗 Public Share</a>
+        <a class="sidebar-item" onclick="adm_show('sessions', this)"><i class="bi bi-shield-lock"></i> Sessions</a>
+        <a class="sidebar-item" onclick="adm_show('pubshare', this); loadPublicShares();"><i class="bi bi-link-45deg"></i> Public Share</a>
       </div>
       <div class="sidebar-group">
         <div class="sidebar-group-title">สถิติ & บันทึก</div>
-        <a class="sidebar-item" onclick="adm_show('stats', this); loadAdminStats();">📊 สถิติการใช้งาน</a>
-        <a class="sidebar-item" onclick="adm_show('activity', this); loadActivityLog(1);">🕑 Activity Log</a>
-        <a class="sidebar-item" onclick="adm_show('overview', this); loadSystemOverview();">📑 ภาพรวมระบบ</a>
+        <a class="sidebar-item" onclick="adm_show('stats', this); loadAdminStats();"><i class="bi bi-bar-chart"></i> สถิติการใช้งาน</a>
+        <a class="sidebar-item" onclick="adm_show('activity', this); loadActivityLog(1);"><i class="bi bi-clock-history"></i> Activity Log</a>
+        <a class="sidebar-item" onclick="adm_show('overview', this); loadSystemOverview();"><i class="bi bi-files"></i> ภาพรวมระบบ</a>
       </div>
       <div class="sidebar-group">
         <div class="sidebar-group-title">ช่วยเหลือ</div>
-        <a class="sidebar-item" onclick="adm_show('docs', this)">📘 เอกสารคู่มือ</a>
+        <a class="sidebar-item" onclick="adm_show('docs', this)"><i class="bi bi-book"></i> เอกสารคู่มือ</a>
       </div>
     </nav>
 

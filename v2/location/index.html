@@ -97,6 +97,10 @@
     background:#e2e8f0; color:#475569; font-weight:600;
   }
   .v2-subnav a.active .badge-mini{ background:#0ea5e9; color:#fff; }
+  .v2-rail a .bi, .v2-mobile-rail-strip a .bi{ font-size:18px; line-height:1; }
+  .v2-subnav a .bi{ width:18px; display:inline-block; text-align:center; margin-right:6px; font-size:14px; opacity:.85; }
+  .v2-subnav a.active .bi{ opacity:1; }
+  .v2-subnav button .bi{ margin-right:4px; }
 
   /* ===== Mobile Hamburger Nav ===== */
   .v2-mobile-nav-toggle{ display:none; }
@@ -551,15 +555,15 @@
 
 <aside class="v2-rail no-print">
   <div class="v2-logo" title="PT Medical V2">PT</div>
-  <a href="../transport/" data-mod="transport" title="นำส่งผู้ป่วย">🚑</a>
-  <a href="../firstaid/" data-mod="firstaid" title="ปฐมพยาบาล">🩹</a>
-  <a href="../location/" data-mod="location" title="พิกัดสถานที่">📍</a>
-  <a href="../gps/" data-mod="gps" id="rail-gps" title="GPS Tracking" style="display:none;">🛰️</a>
+  <a href="../transport/" data-mod="transport" title="นำส่งผู้ป่วย"><i class="bi bi-truck-flatbed"></i></a>
+  <a href="../firstaid/" data-mod="firstaid" title="ปฐมพยาบาล"><i class="bi bi-bandaid"></i></a>
+  <a href="../location/" data-mod="location" title="พิกัดสถานที่"><i class="bi bi-geo-alt-fill"></i></a>
+  <a href="../gps/" data-mod="gps" id="rail-gps" title="GPS Tracking" style="display:none;"><i class="bi bi-broadcast-pin"></i></a>
   <div class="v2-spacer"></div>
-  <a href="../monitor/" data-mod="monitor" id="rail-monitor" title="Monitor" style="display:none;">📡</a>
-  <a href="../admin.html" data-mod="admin" id="rail-admin" title="Admin Settings" style="display:none;">⚙️</a>
+  <a href="../monitor/" data-mod="monitor" id="rail-monitor" title="Monitor" style="display:none;"><i class="bi bi-activity"></i></a>
+  <a href="../admin.html" data-mod="admin" id="rail-admin" title="Admin Settings" style="display:none;"><i class="bi bi-gear"></i></a>
   <div class="v2-divider"></div>
-  <a href="../" title="หน้าหลัก">🏠</a>
+  <a href="../" title="หน้าหลัก"><i class="bi bi-house-door-fill"></i></a>
 </aside>
 
 <!-- Mobile hamburger toggle -->
@@ -568,13 +572,13 @@
 <!-- V2 Sub-nav (Col 2) -->
 <aside class="v2-subnav no-print">
   <div class="v2-mobile-rail-strip">
-    <a href="../transport/" data-mod="transport" title="นำส่งผู้ป่วย">🚑</a>
-    <a href="../firstaid/" data-mod="firstaid" title="ปฐมพยาบาล">🩹</a>
-    <a href="../location/" data-mod="location" title="พิกัดสถานที่" class="active">📍</a>
-    <a href="../gps/" data-mod="gps" id="m-rail-gps" title="GPS" style="display:none;">🛰️</a>
-    <a href="../monitor/" data-mod="monitor" id="m-rail-monitor" title="Monitor" style="display:none;">📡</a>
-    <a href="../admin.html" data-mod="admin" id="m-rail-admin" title="Admin" style="display:none;">⚙️</a>
-    <a href="../" title="หน้าหลัก">🏠</a>
+    <a href="../transport/" data-mod="transport" title="นำส่งผู้ป่วย"><i class="bi bi-truck-flatbed"></i></a>
+    <a href="../firstaid/" data-mod="firstaid" title="ปฐมพยาบาล"><i class="bi bi-bandaid"></i></a>
+    <a href="../location/" data-mod="location" title="พิกัดสถานที่" class="active"><i class="bi bi-geo-alt-fill"></i></a>
+    <a href="../gps/" data-mod="gps" id="m-rail-gps" title="GPS" style="display:none;"><i class="bi bi-broadcast-pin"></i></a>
+    <a href="../monitor/" data-mod="monitor" id="m-rail-monitor" title="Monitor" style="display:none;"><i class="bi bi-activity"></i></a>
+    <a href="../admin.html" data-mod="admin" id="m-rail-admin" title="Admin" style="display:none;"><i class="bi bi-gear"></i></a>
+    <a href="../" title="หน้าหลัก"><i class="bi bi-house-door-fill"></i></a>
   </div>
   <!-- Header with inline [+ เพิ่ม] button -->
   <div class="v2-subnav-header" style="display:flex; align-items:center; justify-content:space-between; gap:8px;">
@@ -588,29 +592,29 @@
   <!-- Section: มุมมอง -->
   <div class="v2-subnav-section">มุมมอง</div>
   <a href="javascript:void(0)" data-view="loc-dashboard-view" onclick="if(typeof loc_switchTab==='function') loc_switchTab('dashboard')">
-    <span>🗺️ แผนที่</span>
+    <span><i class="bi bi-map"></i> แผนที่</span>
   </a>
   <a href="javascript:void(0)" data-view="loc-list-view" onclick="if(typeof loc_switchTab==='function') loc_switchTab('customers')">
-    <span>📋 รายการ</span>
+    <span><i class="bi bi-clipboard-check"></i> รายการ</span>
     <span id="v2-loc-count-all" class="badge-mini">0</span>
   </a>
 
   <!-- Section: ตามประเภท (auto-hide 0-count rows) -->
   <div class="v2-subnav-section" id="v2-loc-type-section">ตามประเภท</div>
   <a href="javascript:void(0)" data-loc-type="สถานพยาบาล" data-loc-type-row="med" onclick="v2LocFilterType('สถานพยาบาล')" style="display:none;">
-    <span>🏥 สถานพยาบาล</span>
+    <span><i class="bi bi-hospital"></i> สถานพยาบาล</span>
     <span id="v2-loc-count-med" class="badge-mini">0</span>
   </a>
   <a href="javascript:void(0)" data-loc-type="ลูกค้าทั่วไป" data-loc-type-row="general" onclick="v2LocFilterType('ลูกค้าทั่วไป')" style="display:none;">
-    <span>🏠 ลูกค้าทั่วไป</span>
+    <span><i class="bi bi-house-door-fill"></i> ลูกค้าทั่วไป</span>
     <span id="v2-loc-count-general" class="badge-mini">0</span>
   </a>
   <a href="javascript:void(0)" data-loc-type="โรงแรม" data-loc-type-row="hotel" onclick="v2LocFilterType('โรงแรม')" style="display:none;">
-    <span>🏨 โรงแรม</span>
+    <span><i class="bi bi-building"></i> โรงแรม</span>
     <span id="v2-loc-count-hotel" class="badge-mini">0</span>
   </a>
   <a href="javascript:void(0)" data-loc-type="ศูนย์ดูแล" data-loc-type-row="care" onclick="v2LocFilterType('ศูนย์ดูแล')" style="display:none;">
-    <span>🏡 ศูนย์ดูแล</span>
+    <span><i class="bi bi-house-heart"></i> ศูนย์ดูแล</span>
     <span id="v2-loc-count-care" class="badge-mini">0</span>
   </a>
 
@@ -624,7 +628,7 @@
   <!-- Section: Share Tokens (admin) -->
   <div id="v2-sn-admin" class="v2-subnav-section" style="display:none;">Share Tokens</div>
   <a href="javascript:void(0)" id="v2-sn-tokens" data-view="loc-tokens-view" onclick="if(typeof loc_switchTab==='function') loc_switchTab('tokens')" style="display:none;">
-    <span>🔗 จัดการ Public Link</span>
+    <span><i class="bi bi-link-45deg"></i> จัดการ Public Link</span>
     <span id="v2-loc-count-tokens" class="badge-mini">0</span>
   </a>
 </aside>

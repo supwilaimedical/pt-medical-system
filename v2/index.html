@@ -8,6 +8,7 @@
 <link rel="manifest" href="manifest.json">
 <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
 <link rel="stylesheet" href="shared.css">
 <link rel="icon" href="../assets/icon.svg" type="image/svg+xml">
 <style>
@@ -80,105 +81,184 @@
     border:1px solid #fecaca;
   }
 
-  /* ============ LANDING ============ */
-  .landing{ min-height:100vh; background:var(--c-bg); display:flex; flex-direction:column; }
+  /* ============ LANDING (Command Center) ============ */
+  .landing{
+    min-height:100vh; display:flex; flex-direction:column;
+    background:#f3f6fb;
+  }
 
-  /* Compact top bar — ไม่มี gradient ฟ้าใหญ่แล้ว */
+  /* ============ HERO (dark) ============ */
+  .l-hero{
+    position:relative; color:#fff;
+    background:
+      radial-gradient(1200px 600px at 100% -20%, rgba(14,165,233,.35), transparent 60%),
+      radial-gradient(900px 600px at -10% 120%, rgba(2,132,199,.30), transparent 55%),
+      linear-gradient(160deg, #0b1e3f 0%, #102a52 45%, #0b1e3f 100%);
+    padding:0 0 96px;
+    overflow:hidden;
+  }
+  /* subtle grid pattern in hero */
+  .l-hero::before{
+    content:""; position:absolute; inset:0; pointer-events:none; opacity:.5;
+    background-image:
+      linear-gradient(rgba(255,255,255,.04) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255,255,255,.04) 1px, transparent 1px);
+    background-size:32px 32px;
+    mask-image:linear-gradient(180deg, rgba(0,0,0,.7), transparent 80%);
+    -webkit-mask-image:linear-gradient(180deg, rgba(0,0,0,.7), transparent 80%);
+  }
+  .l-hero > *{ position:relative; z-index:1; }
+
+  /* Topbar inside hero (transparent over dark) */
   .l-topbar{
-    background:#fff; border-bottom:1px solid var(--c-border);
-    padding:0 24px; height:64px;
-    display:flex; align-items:center; gap:14px;
-    position:sticky; top:0; z-index:10;
+    padding:14px 24px; display:flex; align-items:center; gap:14px;
   }
   .l-brand{
     width:40px; height:40px; border-radius:10px;
-    background:linear-gradient(135deg,#0ea5e9,#0284c7);
+    background:linear-gradient(135deg,#0ea5e9,#38bdf8);
     color:#fff; font-weight:800; font-size:14px; letter-spacing:.3px;
     display:flex; align-items:center; justify-content:center;
     flex-shrink:0;
+    box-shadow:0 6px 16px rgba(56,189,248,.35), inset 0 1px 0 rgba(255,255,255,.2);
   }
   .l-title{ flex:1; min-width:0; }
-  .l-title .t1{ font-size:15px; font-weight:700; color:var(--c-text); line-height:1.2; }
-  .l-title .t2{ font-size:12px; color:var(--c-text-2); margin-top:2px; }
-  .l-title .t2 .sep{ color:var(--c-text-3); margin:0 6px; }
-  .l-logout{
-    width:38px; height:38px; border-radius:8px;
-    background:transparent; border:1px solid var(--c-border);
-    color:var(--c-text-2); cursor:pointer;
+  .l-title .t1{ font-size:15px; font-weight:700; color:#fff; line-height:1.2; }
+  .l-title .t2{ font-size:12px; color:rgba(255,255,255,.6); margin-top:2px; }
+  .l-title .t2 .sep{ color:rgba(255,255,255,.3); margin:0 6px; }
+  .l-tb-action{
+    width:40px; height:40px; border-radius:10px;
+    background:rgba(255,255,255,.08); border:1px solid rgba(255,255,255,.12);
+    color:rgba(255,255,255,.85); cursor:pointer;
     display:flex; align-items:center; justify-content:center;
-    font-size:16px; transition:all .12s;
+    font-size:16px; transition:all .15s;
+    position:relative;
   }
-  .l-logout:hover{ background:#fef2f2; color:#dc2626; border-color:#fecaca; }
+  .l-tb-action:hover{ background:rgba(255,255,255,.14); color:#fff; transform:translateY(-1px); }
+  .l-tb-action.danger:hover{ background:rgba(239,68,68,.25); color:#fff; border-color:rgba(239,68,68,.4); }
+  .l-tb-action .badge-dot{
+    position:absolute; top:8px; right:8px; width:8px; height:8px;
+    background:#ef4444; border-radius:50%;
+    box-shadow:0 0 0 2px #102a52, 0 0 0 4px rgba(239,68,68,.3);
+    animation:pulse 1.6s ease-in-out infinite;
+  }
+  @keyframes pulse{ 0%,100%{transform:scale(1);} 50%{transform:scale(1.2);} }
 
-  /* Content */
-  .l-content{
-    flex:1; padding:24px 24px 60px;
-    max-width:1100px; width:100%; margin:0 auto;
+  /* Hero center: eyebrow + title + status row */
+  .l-hero-center{
+    padding:30px 24px 18px; max-width:1280px; margin:0 auto;
+    display:flex; align-items:flex-end; justify-content:space-between; gap:24px; flex-wrap:wrap;
   }
-  .l-section-title{
-    font-size:11px; font-weight:700; color:var(--c-text-3);
-    text-transform:uppercase; letter-spacing:.08em;
-    margin:0 0 10px; padding:0 4px;
+  .l-eyebrow{
+    font-size:11px; font-weight:700; letter-spacing:.18em;
+    color:rgba(125,211,252,.9); text-transform:uppercase;
     display:flex; align-items:center; gap:8px;
   }
-  .l-section-title .count{
-    background:var(--c-border-soft); color:var(--c-text-2);
-    padding:1px 8px; border-radius:10px; font-size:10.5px;
-    font-weight:600; letter-spacing:0;
+  .l-eyebrow .live-dot{
+    width:7px; height:7px; border-radius:50%; background:#22c55e;
+    box-shadow:0 0 0 3px rgba(34,197,94,.25); animation:pulse 1.6s ease-in-out infinite;
   }
-  .l-section-title .more{
-    margin-left:auto; text-transform:none; letter-spacing:0;
-    font-weight:500; color:var(--c-primary); text-decoration:none;
-    font-size:12px;
+  .l-h1{
+    margin:6px 0 0; font-size:30px; font-weight:800; color:#fff;
+    letter-spacing:-.01em; line-height:1.1;
   }
-  .l-section-title .more:hover{ text-decoration:underline; }
-  .l-section-title + *{ margin-bottom:24px; }
+  .l-status-row{ display:flex; gap:8px; flex-wrap:wrap; }
+  .l-pill{
+    display:inline-flex; align-items:center; gap:6px;
+    padding:6px 12px; border-radius:999px;
+    background:rgba(255,255,255,.08); border:1px solid rgba(255,255,255,.12);
+    font-size:12px; color:rgba(255,255,255,.85); font-weight:500;
+  }
+  .l-pill.ok .dot{ width:7px; height:7px; border-radius:50%; background:#22c55e; box-shadow:0 0 0 3px rgba(34,197,94,.2); }
+  .l-pill.warn{ background:rgba(245,158,11,.15); border-color:rgba(245,158,11,.3); color:#fbbf24; }
+  .l-pill.warn .dot{ width:7px; height:7px; border-radius:50%; background:#f59e0b; box-shadow:0 0 0 3px rgba(245,158,11,.2); }
+  .l-pill .bi{ font-size:13px; opacity:.85; }
+  .l-pill.clock{ font-variant-numeric:tabular-nums; }
 
-  /* KPI strip */
+  /* Glass KPI strip on hero */
   .l-kpi{
-    display:grid; grid-template-columns:repeat(4,1fr); gap:10px;
-    margin-bottom:24px;
+    display:grid; grid-template-columns:repeat(4,1fr); gap:14px;
+    max-width:1280px; margin:24px auto 0; padding:0 24px;
   }
   .l-kpi-card{
-    background:#fff; border:1px solid var(--c-border);
-    border-radius:12px; padding:14px 16px;
-    display:flex; gap:12px; align-items:center;
+    background:rgba(255,255,255,.06);
+    border:1px solid rgba(255,255,255,.12);
+    border-radius:14px; padding:16px 18px;
+    backdrop-filter:blur(12px) saturate(180%);
+    -webkit-backdrop-filter:blur(12px) saturate(180%);
+    transition:transform .15s, background .15s, border-color .15s;
   }
-  .l-kpi-icon{
-    width:38px; height:38px; border-radius:10px;
-    display:flex; align-items:center; justify-content:center;
-    font-size:18px; flex-shrink:0;
+  .l-kpi-card:hover{
+    transform:translateY(-2px);
+    background:rgba(255,255,255,.10);
+    border-color:rgba(255,255,255,.2);
   }
-  .l-kpi-icon.blue{ background:#e0f2fe; color:#0369a1; }
-  .l-kpi-icon.green{ background:#dcfce7; color:#15803d; }
-  .l-kpi-icon.amber{ background:#fef3c7; color:#a16207; }
-  .l-kpi-icon.rose{ background:#fee2e2; color:#b91c1c; }
-  .l-kpi-body{ flex:1; min-width:0; }
+  .l-kpi-head{
+    display:flex; align-items:center; gap:10px; margin-bottom:10px;
+    font-size:12px; color:rgba(255,255,255,.7); font-weight:500;
+  }
+  .l-kpi-head .bi{ font-size:14px; opacity:.85; }
   .l-kpi-num{
-    font-size:22px; font-weight:700; color:var(--c-text);
-    line-height:1.1; font-variant-numeric:tabular-nums;
+    font-size:30px; font-weight:800; color:#fff;
+    line-height:1; font-variant-numeric:tabular-nums;
+    letter-spacing:-.02em;
   }
-  .l-kpi-num .sub{ font-size:13px; color:var(--c-text-3); font-weight:500; }
-  .l-kpi-label{ font-size:11.5px; color:var(--c-text-2); margin-top:2px; }
+  .l-kpi-sub{
+    font-size:11.5px; color:rgba(255,255,255,.55); margin-top:6px;
+    display:flex; align-items:center; gap:6px;
+  }
+  .l-kpi-sub .up{ color:#4ade80; }
+  .l-kpi-sub .down{ color:#fb7185; }
 
-  /* Active cases mini-list */
-  .l-list{
-    background:#fff; border:1px solid var(--c-border);
-    border-radius:12px; overflow:hidden;
+  /* ============ CONTENT (overlap on hero) ============ */
+  .l-content{
+    flex:1; max-width:1280px; width:100%; margin:0 auto;
+    padding:0 24px 60px;
+    margin-top:-72px; /* overlap into hero */
+    position:relative; z-index:2;
   }
+
+  /* Active cases card overlap */
+  .l-overlap{
+    background:#fff; border:1px solid rgba(15,23,42,.05);
+    border-radius:16px; padding:18px 20px;
+    box-shadow:0 4px 8px rgba(15,23,42,.04), 0 24px 48px -20px rgba(15,23,42,.18);
+    margin-bottom:32px;
+  }
+  .l-overlap-head{
+    display:flex; align-items:center; gap:10px; margin-bottom:14px;
+  }
+  .l-overlap-title{
+    font-size:14px; font-weight:700; color:var(--c-text);
+    display:flex; align-items:center; gap:8px;
+  }
+  .l-overlap-count{
+    background:#e0f2fe; color:#0369a1;
+    padding:1px 9px; border-radius:10px; font-size:11.5px; font-weight:700;
+  }
+  .l-overlap-more{
+    margin-left:auto; font-size:12.5px; font-weight:500;
+    color:var(--c-primary); text-decoration:none;
+    display:inline-flex; align-items:center; gap:4px;
+  }
+  .l-overlap-more:hover{ text-decoration:underline; }
+
+  /* Active list rows (now inside overlap card) */
+  .l-list{ display:flex; flex-direction:column; }
   .l-list-row{
-    display:flex; align-items:center; gap:12px;
-    padding:12px 16px; border-bottom:1px solid var(--c-border-soft);
+    display:flex; align-items:center; gap:14px;
+    padding:12px 4px; border-bottom:1px solid var(--c-border-soft);
     text-decoration:none; color:var(--c-text);
-    transition:background .12s;
+    transition:background .12s; border-radius:8px;
   }
   .l-list-row:last-child{ border-bottom:none; }
-  .l-list-row:hover{ background:var(--c-bg); color:var(--c-text); }
+  .l-list-row:hover{ background:#f8fafc; padding-left:8px; padding-right:8px; }
   .l-list-dot{
-    width:8px; height:8px; border-radius:50%;
-    background:#16a34a; flex-shrink:0;
-    box-shadow:0 0 0 3px rgba(22,163,74,.15);
+    width:9px; height:9px; border-radius:50%;
+    background:#22c55e; flex-shrink:0;
+    box-shadow:0 0 0 3px rgba(34,197,94,.15);
+    margin-left:6px;
   }
+  .l-list-dot.warn{ background:#f59e0b; box-shadow:0 0 0 3px rgba(245,158,11,.15); }
   .l-list-main{ flex:1; min-width:0; }
   .l-list-name{
     font-size:13.5px; font-weight:600; color:var(--c-text);
@@ -195,67 +275,167 @@
   }
   .l-list-empty i{ font-size:22px; display:block; margin-bottom:6px; opacity:.5; }
 
-  /* Module grid */
-  .l-grid{
-    display:grid; grid-template-columns:repeat(4,1fr); gap:12px;
+  /* ============ MAIN GRID (asymmetric: modules left, map right) ============ */
+  .l-section-title{
+    font-size:11.5px; font-weight:700; color:var(--c-text-2);
+    margin:0 0 12px; padding:0 2px;
+    display:flex; align-items:center; gap:8px;
   }
-  .l-grid.admin{ grid-template-columns:repeat(2,1fr); max-width:500px; }
+
+  .l-main-grid{
+    display:grid;
+    grid-template-columns: minmax(0,1fr) 360px;
+    gap:24px;
+    align-items:start;
+  }
+  .l-main-left{ min-width:0; }
+
+  /* Module grid (2-col) */
+  .l-grid{
+    display:grid; grid-template-columns:repeat(2,1fr); gap:14px;
+    margin-bottom:28px;
+  }
+  .l-grid.admin{ grid-template-columns:repeat(2,1fr); }
+
   .l-card{
+    --acc:#0ea5e9; --acc-soft:#e0f2fe;
+    position:relative;
     background:#fff; border:1px solid var(--c-border);
-    border-radius:12px; padding:18px 18px;
+    border-radius:14px; padding:16px 18px;
     text-decoration:none; color:var(--c-text);
-    display:flex; gap:14px; align-items:flex-start;
-    transition:all .15s;
-    cursor:pointer;
+    display:flex; gap:14px; align-items:center;
+    transition:transform .18s ease, box-shadow .18s ease, border-color .18s ease;
+    cursor:pointer; overflow:hidden;
+    box-shadow:0 1px 2px rgba(15,23,42,.04), 0 8px 20px -14px rgba(15,23,42,.15);
+  }
+  .l-card::before{
+    content:""; position:absolute; left:0; top:0; bottom:0; width:3px;
+    background:var(--acc);
+    transform:scaleY(0); transform-origin:top;
+    transition:transform .25s ease;
   }
   .l-card:hover{
-    border-color:var(--c-primary);
+    border-color:color-mix(in srgb, var(--acc) 35%, var(--c-border));
     transform:translateY(-2px);
-    box-shadow:0 6px 16px rgba(14,165,233,.1);
+    box-shadow:
+      0 1px 2px rgba(15,23,42,.04),
+      0 14px 28px -14px color-mix(in srgb, var(--acc) 40%, transparent);
     color:var(--c-text);
   }
+  .l-card:hover::before{ transform:scaleY(1); }
+  .l-card:hover .l-card-icon{ transform:scale(1.05); }
+  .l-card:hover .l-card-arrow{ transform:translateX(3px); color:var(--acc); }
+
   .l-card-icon{
-    width:42px; height:42px; border-radius:10px;
-    background:var(--c-primary-light); color:var(--c-primary);
+    width:42px; height:42px; border-radius:11px;
+    background:var(--acc-soft); color:var(--acc);
     display:flex; align-items:center; justify-content:center;
-    font-size:22px; flex-shrink:0;
+    font-size:20px; flex-shrink:0;
+    transition:transform .18s ease;
+    box-shadow:inset 0 0 0 1px color-mix(in srgb, var(--acc) 18%, transparent);
   }
   .l-card-body{ flex:1; min-width:0; }
-  .l-card-name{ font-size:14.5px; font-weight:600; color:var(--c-text); line-height:1.25; }
-  .l-card-desc{ font-size:12px; color:var(--c-text-2); margin-top:4px; line-height:1.4; }
-
-  /* Admin cards — smaller, neutral */
-  .l-card.admin{ padding:14px 16px; }
-  .l-card.admin .l-card-icon{
-    width:36px; height:36px; font-size:18px;
-    background:var(--c-border-soft); color:var(--c-text-2);
+  .l-card-name{
+    font-size:14.5px; font-weight:700; color:var(--c-text); line-height:1.25;
+    display:flex; align-items:center; gap:8px;
   }
-  .l-card.admin:hover .l-card-icon{ background:var(--c-primary-light); color:var(--c-primary); }
-  .l-card.admin .l-card-name{ font-size:13.5px; }
+  .l-card-name .badge-mini{
+    font-size:10.5px; font-weight:600; padding:1px 7px; border-radius:8px;
+    background:var(--acc-soft); color:var(--acc);
+  }
+  .l-card-name .badge-mini.live{
+    background:#dcfce7; color:#166534;
+    display:inline-flex; align-items:center; gap:4px;
+  }
+  .l-card-name .badge-mini.live::before{
+    content:""; width:5px; height:5px; border-radius:50%; background:#22c55e;
+    box-shadow:0 0 0 2px rgba(34,197,94,.2);
+  }
+  .l-card-desc{ font-size:12px; color:var(--c-text-2); margin-top:3px; line-height:1.4; }
+  .l-card-arrow{
+    color:var(--c-text-3); font-size:18px; flex-shrink:0;
+    transition:transform .18s ease, color .18s ease;
+  }
+
+  /* Per-module color identity */
+  .l-card[href^="transport"]{ --acc:#0ea5e9; --acc-soft:#e0f2fe; }
+  .l-card[href^="firstaid"]{ --acc:#16a34a; --acc-soft:#dcfce7; }
+  .l-card[href^="location"]{ --acc:#eab308; --acc-soft:#fef9c3; }
+  .l-card[href^="gps"]{      --acc:#e11d48; --acc-soft:#ffe4e6; }
+  .l-card[href^="monitor"]{  --acc:#7c3aed; --acc-soft:#ede9fe; }
+  .l-card[href^="admin"]{    --acc:#475569; --acc-soft:#f1f5f9; }
+
+  /* Right column: map card */
+  .l-rail{ display:flex; flex-direction:column; gap:18px; }
+  .l-map-card{
+    background:#fff; border:1px solid var(--c-border);
+    border-radius:14px; overflow:hidden;
+    box-shadow:0 1px 2px rgba(15,23,42,.04), 0 12px 28px -16px rgba(15,23,42,.18);
+  }
+  .l-map-head{
+    display:flex; align-items:center; gap:8px;
+    padding:14px 16px 10px;
+  }
+  .l-map-head .ttl{ font-size:13.5px; font-weight:700; color:var(--c-text); }
+  .l-map-head .more{
+    margin-left:auto; font-size:12px; color:var(--c-primary);
+    text-decoration:none; font-weight:500;
+    display:inline-flex; align-items:center; gap:4px;
+  }
+  .l-map-head .more:hover{ text-decoration:underline; }
+  .l-map-wrap{
+    height:280px; background:#eef4f9; position:relative;
+  }
+  #l-mini-map{ height:100%; width:100%; }
+  .l-map-legend{
+    display:flex; flex-wrap:wrap; gap:14px;
+    padding:12px 16px; border-top:1px solid var(--c-border-soft);
+    font-size:11.5px; color:var(--c-text-2);
+  }
+  .l-map-legend .lg{ display:inline-flex; align-items:center; gap:5px; }
+  .l-map-legend .dot{ width:8px; height:8px; border-radius:50%; }
+  .l-map-legend .dot.red{ background:#ef4444; }
+  .l-map-legend .dot.green{ background:#22c55e; }
+  .l-map-legend .dot.gray{ background:#cbd5e1; }
 
   /* Footer */
   .l-footer{
     text-align:center; font-size:11.5px; color:var(--c-text-3);
-    padding:20px 0 10px;
+    padding:24px 0 10px;
   }
   .l-footer .dot{ color:var(--c-border); margin:0 6px; }
 
-  /* Responsive */
-  @media (max-width:900px){
-    .l-grid{ grid-template-columns:repeat(2,1fr); }
-    .l-kpi{ grid-template-columns:repeat(2,1fr); }
-    .l-content{ padding:20px 16px 40px; }
-    .l-topbar{ padding:0 16px; }
+  /* ============ RESPONSIVE ============ */
+  @media (max-width:1100px){
+    .l-main-grid{ grid-template-columns:1fr; }
+    .l-rail{ flex-direction:row; }
+    .l-map-card{ flex:1; }
   }
-  @media (max-width:480px){
+  @media (max-width:900px){
+    .l-kpi{ grid-template-columns:repeat(2,1fr); }
+    .l-grid{ grid-template-columns:repeat(2,1fr); }
+    .l-h1{ font-size:24px; }
+    .l-rail{ flex-direction:column; }
+  }
+  @media (max-width:640px){
     .l-grid{ grid-template-columns:1fr; }
     .l-grid.admin{ grid-template-columns:1fr; }
-    .l-card{ padding:14px 16px; }
+    .l-hero{ padding-bottom:80px; }
+    .l-hero-center{ padding:20px 16px 14px; }
+    .l-h1{ font-size:22px; }
+    .l-eyebrow{ font-size:10.5px; }
+    .l-topbar{ padding:12px 16px; }
+    .l-kpi{ padding:0 16px; gap:10px; }
+    .l-kpi-card{ padding:14px; }
+    .l-kpi-num{ font-size:24px; }
+    .l-content{ padding:0 16px 40px; }
+    .l-overlap{ padding:14px 16px; }
+    .l-status-row{ width:100%; }
+  }
+  @media (max-width:480px){
+    .l-kpi{ grid-template-columns:1fr 1fr; }
     .l-title .t1{ font-size:14px; }
     .l-title .t2{ font-size:11px; }
-    .l-kpi-num{ font-size:19px; }
-    .l-kpi-card{ padding:12px 14px; }
-    .l-kpi-icon{ width:34px; height:34px; font-size:16px; }
   }
 </style>
 </head>
@@ -297,120 +477,166 @@
   </div>
 </div>
 
-<!-- ============ LANDING ============ -->
+<!-- ============ LANDING (Command Center) ============ -->
 <div id="view-landing" class="landing" style="display:none;">
 
-  <!-- Compact topbar -->
-  <div class="l-topbar">
-    <div class="l-brand">PT</div>
-    <div class="l-title">
-      <div class="t1" id="user-name">ผู้ใช้</div>
-      <div class="t2">
-        <span id="user-role">User</span>
-        <span class="sep">·</span>
-        <span id="welcome-date">—</span>
+  <!-- ===== HERO (dark) ===== -->
+  <section class="l-hero">
+    <!-- Topbar inside hero -->
+    <div class="l-topbar">
+      <div class="l-brand">PT</div>
+      <div class="l-title">
+        <div class="t1" id="user-name">ผู้ใช้</div>
+        <div class="t2">
+          <span id="user-role">User</span>
+          <span class="sep">·</span>
+          <span id="welcome-date">—</span>
+        </div>
+      </div>
+      <button class="l-tb-action" id="btn-bell" onclick="openCriticalAlerts()" title="แจ้งเตือนสำคัญ" style="display:none;">
+        <i class="bi bi-bell"></i>
+        <span class="badge-dot" id="bell-dot" style="display:none;"></span>
+      </button>
+      <button class="l-tb-action danger" onclick="doLogout()" title="ออกจากระบบ">
+        <i class="bi bi-box-arrow-right"></i>
+      </button>
+    </div>
+
+    <!-- Eyebrow + title + status -->
+    <div class="l-hero-center">
+      <div>
+        <div class="l-eyebrow"><span class="live-dot"></span> COMMAND CENTER · LIVE</div>
+        <h1 class="l-h1">สถานะระบบเรียลไทม์</h1>
+      </div>
+      <div class="l-status-row">
+        <span class="l-pill ok" id="sys-status-pill"><span class="dot"></span> ระบบปกติ</span>
+        <span class="l-pill clock"><i class="bi bi-clock"></i> <span id="live-clock">--:--:--</span></span>
       </div>
     </div>
-    <button class="l-logout" onclick="doLogout()" title="ออกจากระบบ">
-      <i class="bi bi-box-arrow-right"></i>
-    </button>
-  </div>
 
-  <div class="l-content">
-
-    <!-- KPI strip (live) -->
+    <!-- Glass KPI strip -->
     <div class="l-kpi">
       <div class="l-kpi-card">
-        <div class="l-kpi-icon blue"><i class="bi bi-truck-flatbed"></i></div>
-        <div class="l-kpi-body">
-          <div class="l-kpi-num" id="kpi-cases-active">–</div>
-          <div class="l-kpi-label">เคสกำลังดำเนินการ</div>
-        </div>
+        <div class="l-kpi-head"><i class="bi bi-truck-flatbed"></i> เคสกำลังดำเนินการ</div>
+        <div class="l-kpi-num" id="kpi-cases-active">–</div>
+        <div class="l-kpi-sub" id="kpi-cases-sub">&nbsp;</div>
       </div>
       <div class="l-kpi-card">
-        <div class="l-kpi-icon green"><i class="bi bi-bandaid"></i></div>
-        <div class="l-kpi-body">
-          <div class="l-kpi-num" id="kpi-fa-active">–</div>
-          <div class="l-kpi-label">เหตุการณ์ปฐมพยาบาล</div>
-        </div>
+        <div class="l-kpi-head"><i class="bi bi-bandaid"></i> ปฐมพยาบาลกำลังดูแล</div>
+        <div class="l-kpi-num" id="kpi-fa-active">–</div>
+        <div class="l-kpi-sub" id="kpi-fa-sub">&nbsp;</div>
       </div>
       <div class="l-kpi-card">
-        <div class="l-kpi-icon amber"><i class="bi bi-geo-alt-fill"></i></div>
-        <div class="l-kpi-body">
-          <div class="l-kpi-num" id="kpi-loc-total">–</div>
-          <div class="l-kpi-label">พิกัดสถานที่ทั้งหมด</div>
-        </div>
+        <div class="l-kpi-head"><i class="bi bi-geo-alt-fill"></i> พิกัดสถานที่ทั้งหมด</div>
+        <div class="l-kpi-num" id="kpi-loc-total">–</div>
+        <div class="l-kpi-sub" id="kpi-loc-sub">&nbsp;</div>
       </div>
       <div class="l-kpi-card">
-        <div class="l-kpi-icon rose"><i class="bi bi-broadcast-pin"></i></div>
-        <div class="l-kpi-body">
-          <div class="l-kpi-num" id="kpi-gps-total">–</div>
-          <div class="l-kpi-label">รถในระบบ GPS</div>
+        <div class="l-kpi-head"><i class="bi bi-broadcast-pin"></i> รถในระบบ GPS</div>
+        <div class="l-kpi-num" id="kpi-gps-total">–</div>
+        <div class="l-kpi-sub" id="kpi-gps-sub">&nbsp;</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== CONTENT (overlap on hero) ===== -->
+  <div class="l-content">
+
+    <!-- Active cases overlap card -->
+    <div class="l-overlap">
+      <div class="l-overlap-head">
+        <div class="l-overlap-title">
+          เคสที่กำลังดำเนินการ
+          <span class="l-overlap-count" id="active-count">0</span>
         </div>
+        <a class="l-overlap-more" href="transport/">ดูทั้งหมด <i class="bi bi-arrow-right"></i></a>
+      </div>
+      <div class="l-list" id="active-list">
+        <div class="l-list-empty"><i class="bi bi-inbox"></i>กำลังโหลด...</div>
       </div>
     </div>
 
-    <!-- Main modules -->
-    <div class="l-section-title">ระบบหลัก</div>
-    <div class="l-grid" id="module-grid">
-      <a class="l-card" href="transport/">
-        <div class="l-card-icon"><i class="bi bi-truck-flatbed"></i></div>
-        <div class="l-card-body">
-          <div class="l-card-name">นำส่งผู้ป่วย</div>
-          <div class="l-card-desc">บันทึกเคส, V/S, Consent, พิมพ์ใบส่งตัว</div>
+    <!-- Asymmetric grid: modules left, map right -->
+    <div class="l-main-grid">
+      <div class="l-main-left">
+        <!-- Main modules -->
+        <div class="l-section-title">ระบบหลัก</div>
+        <div class="l-grid">
+          <a class="l-card" href="transport/">
+            <div class="l-card-icon"><i class="bi bi-truck-flatbed"></i></div>
+            <div class="l-card-body">
+              <div class="l-card-name">นำส่งผู้ป่วย <span class="badge-mini" id="mod-cases-badge" style="display:none;">0 เคส</span></div>
+              <div class="l-card-desc">บันทึกเคส, V/S, Comment, พิมพ์ใบส่งตัว</div>
+            </div>
+            <i class="bi bi-chevron-right l-card-arrow"></i>
+          </a>
+          <a class="l-card" href="firstaid/">
+            <div class="l-card-icon"><i class="bi bi-bandaid"></i></div>
+            <div class="l-card-body">
+              <div class="l-card-name">ปฐมพยาบาล</div>
+              <div class="l-card-desc">บันทึกเหตุการณ์, จุดเกิดเหตุ, รูปภาพ</div>
+            </div>
+            <i class="bi bi-chevron-right l-card-arrow"></i>
+          </a>
+          <a class="l-card" href="location/">
+            <div class="l-card-icon"><i class="bi bi-geo-alt-fill"></i></div>
+            <div class="l-card-body">
+              <div class="l-card-name">พิกัดสถานที่</div>
+              <div class="l-card-desc">ฐานข้อมูลธุรกิจ, แผนที่, ค้นหา</div>
+            </div>
+            <i class="bi bi-chevron-right l-card-arrow"></i>
+          </a>
+          <a class="l-card" href="gps/" id="card-gps" style="display:none;">
+            <div class="l-card-icon"><i class="bi bi-broadcast-pin"></i></div>
+            <div class="l-card-body">
+              <div class="l-card-name">ติดตามรถ <span class="badge-mini live">Live</span></div>
+              <div class="l-card-desc">GPS Live · ประวัติ · ดูกล้อง</div>
+            </div>
+            <i class="bi bi-chevron-right l-card-arrow"></i>
+          </a>
         </div>
-      </a>
-      <a class="l-card" href="firstaid/">
-        <div class="l-card-icon"><i class="bi bi-bandaid"></i></div>
-        <div class="l-card-body">
-          <div class="l-card-name">ปฐมพยาบาล</div>
-          <div class="l-card-desc">บันทึกเหตุการณ์, จุดเกิดเหตุ, รูปภาพ</div>
-        </div>
-      </a>
-      <a class="l-card" href="location/">
-        <div class="l-card-icon"><i class="bi bi-geo-alt-fill"></i></div>
-        <div class="l-card-body">
-          <div class="l-card-name">พิกัดสถานที่</div>
-          <div class="l-card-desc">ฐานข้อมูลลูกค้า, แผนที่, ค้นหา</div>
-        </div>
-      </a>
-      <a class="l-card" href="gps/" id="card-gps" style="display:none;">
-        <div class="l-card-icon"><i class="bi bi-broadcast-pin"></i></div>
-        <div class="l-card-body">
-          <div class="l-card-name">ติดตามรถ</div>
-          <div class="l-card-desc">GPS Live · ประวัติ · ดูกล้อง</div>
-        </div>
-      </a>
-    </div>
 
-    <!-- Active cases -->
-    <div class="l-section-title">
-      <span>เคสที่กำลังดำเนินการ</span>
-      <span class="count" id="active-count">0</span>
-      <a class="more" href="transport/">ดูทั้งหมด <i class="bi bi-arrow-right"></i></a>
-    </div>
-    <div class="l-list" id="active-list">
-      <div class="l-list-empty"><i class="bi bi-inbox"></i>กำลังโหลด...</div>
-    </div>
-
-    <!-- Admin tools -->
-    <div id="admin-tools" style="display:none;">
-      <div class="l-section-title">ผู้ดูแลระบบ</div>
-      <div class="l-grid admin">
-        <a class="l-card admin" href="monitor/">
-          <div class="l-card-icon"><i class="bi bi-activity"></i></div>
-          <div class="l-card-body">
-            <div class="l-card-name">Monitor</div>
-            <div class="l-card-desc">ศูนย์ควบคุมแบบเรียลไทม์</div>
+        <!-- Admin tools -->
+        <div id="admin-tools" style="display:none;">
+          <div class="l-section-title">ผู้ดูแลระบบ</div>
+          <div class="l-grid admin">
+            <a class="l-card" href="monitor/">
+              <div class="l-card-icon"><i class="bi bi-activity"></i></div>
+              <div class="l-card-body">
+                <div class="l-card-name">Monitor</div>
+                <div class="l-card-desc">ศูนย์ควบคุมแบบเรียลไทม์</div>
+              </div>
+              <i class="bi bi-chevron-right l-card-arrow"></i>
+            </a>
+            <a class="l-card" href="admin.html">
+              <div class="l-card-icon"><i class="bi bi-gear"></i></div>
+              <div class="l-card-body">
+                <div class="l-card-name">ตั้งค่าระบบ</div>
+                <div class="l-card-desc">Organization, Services, Security</div>
+              </div>
+              <i class="bi bi-chevron-right l-card-arrow"></i>
+            </a>
           </div>
-        </a>
-        <a class="l-card admin" href="admin.html">
-          <div class="l-card-icon"><i class="bi bi-gear"></i></div>
-          <div class="l-card-body">
-            <div class="l-card-name">ตั้งค่าระบบ</div>
-            <div class="l-card-desc">Organization, Services, Security</div>
+        </div>
+      </div>
+
+      <!-- Right rail: GPS mini map (admin only) -->
+      <div class="l-rail" id="rail-side" style="display:none;">
+        <div class="l-map-card">
+          <div class="l-map-head">
+            <i class="bi bi-map" style="color:#0ea5e9;"></i>
+            <span class="ttl">แผนที่รถ GPS</span>
+            <a class="more" href="gps/">เปิดเต็มจอ <i class="bi bi-arrow-right"></i></a>
           </div>
-        </a>
+          <div class="l-map-wrap">
+            <div id="l-mini-map"></div>
+          </div>
+          <div class="l-map-legend">
+            <span class="lg"><span class="dot red"></span> ฉุกเฉิน <b id="lg-emerg">0</b></span>
+            <span class="lg"><span class="dot green"></span> เคลื่อนที่ <b id="lg-move">0</b></span>
+            <span class="lg"><span class="dot gray"></span> ว่าง <b id="lg-idle">0</b></span>
+          </div>
+        </div>
       </div>
     </div>
 
@@ -423,7 +649,10 @@
 <!-- Shared scripts (use V1 shared/) -->
 <script src="../shared/config.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="../shared/settings.js"></script>
 <script src="../shared/auth.js"></script>
+<script src="../shared/gps-providers.js"></script>
 <script src="shared.js"></script>
 <script>
 function showView(id){
@@ -495,6 +724,10 @@ async function doLogin(e){
   return false;
 }
 
+var _miniMap = null;
+var _miniMarkers = [];
+var _clockTimer = null;
+
 function showLanding(user){
   document.getElementById('user-name').textContent = user.full_name || user.username || 'ผู้ใช้';
   var role = user.role || 'User';
@@ -509,9 +742,31 @@ function showLanding(user){
   // Reset admin-only UI first (prevents leaking from previous admin session)
   document.getElementById('card-gps').style.display = isAdmin ? '' : 'none';
   document.getElementById('admin-tools').style.display = isAdmin ? '' : 'none';
+  document.getElementById('rail-side').style.display = isAdmin ? '' : 'none';
+  document.getElementById('btn-bell').style.display = isAdmin ? '' : 'none';
   showView('view-landing');
+
+  startClock();
   loadKPIs();
   loadActiveCases();
+  if(isAdmin){
+    setTimeout(initMiniMap, 100);
+    loadCriticalAlerts();
+  }
+}
+
+// Live clock
+function startClock(){
+  if(_clockTimer) clearInterval(_clockTimer);
+  var tick = function(){
+    var el = document.getElementById('live-clock');
+    if(el){
+      var d = new Date();
+      el.textContent = d.toLocaleTimeString('th-TH', {hour:'2-digit', minute:'2-digit', second:'2-digit', hour12:false});
+    }
+  };
+  tick();
+  _clockTimer = setInterval(tick, 1000);
 }
 
 // Live KPI counters
@@ -522,17 +777,168 @@ async function loadKPIs(){
       _supabase.from('cases').select('case_id',{count:'exact',head:true}).eq('status','Active'),
       _supabase.from('fa_events').select('event_id',{count:'exact',head:true}).eq('status','Active'),
       _supabase.from('loc_customers').select('id',{count:'exact',head:true}),
-      _supabase.from('gps_vehicles').select('id',{count:'exact',head:true}).eq('is_active',true)
+      _supabase.from('gps_vehicles').select('id',{count:'exact',head:true}).eq('is_active',true),
+      // 24hr deltas
+      _supabase.from('cases').select('case_id',{count:'exact',head:true}).eq('status','Active').gte('created_at', new Date(Date.now()-86400000).toISOString()),
+      _supabase.from('fa_events').select('event_id',{count:'exact',head:true}).eq('status','Active').gte('created_at', new Date(Date.now()-86400000).toISOString()),
+      _supabase.from('loc_customers').select('id',{count:'exact',head:true}).gte('created_at', new Date(Date.now()-7*86400000).toISOString())
     ]);
     var setNum = function(id, val){
       var el = document.getElementById(id);
       if(el) el.textContent = (val != null) ? val.toLocaleString('th-TH') : '–';
     };
+    var setSub = function(id, html){
+      var el = document.getElementById(id);
+      if(el) el.innerHTML = html;
+    };
     setNum('kpi-cases-active', r[0].count);
     setNum('kpi-fa-active', r[1].count);
     setNum('kpi-loc-total', r[2].count);
     setNum('kpi-gps-total', r[3].count);
+
+    // Subs
+    setSub('kpi-cases-sub', r[4].count > 0 ? '<span class="up">+'+r[4].count+'</span> ใน 24 ชม.' : 'ไม่มีเคสใหม่ใน 24 ชม.');
+    setSub('kpi-fa-sub', r[1].count > 0 ? 'อยู่ระหว่างดูแล' : 'ไม่มีเหตุเปิดอยู่');
+    setSub('kpi-loc-sub', r[6].count > 0 ? '<span class="up">+'+r[6].count+'</span> สัปดาห์นี้' : 'อัปเดตล่าสุด');
+    setSub('kpi-gps-sub', r[3].count > 0 ? 'ออนไลน์ '+r[3].count+'/'+r[3].count : 'ไม่มีรถออนไลน์');
+
+    // Module badge
+    if(r[0].count > 0){
+      var b = document.getElementById('mod-cases-badge');
+      if(b){ b.textContent = r[0].count + ' เคส'; b.style.display = ''; }
+    }
+
+    // Map legend (placeholder breakdown until live status fetched)
+    var emerg = 0, move = 0, idle = r[3].count || 0;
+    var lge = document.getElementById('lg-emerg'); if(lge) lge.textContent = emerg;
+    var lgm = document.getElementById('lg-move'); if(lgm) lgm.textContent = move;
+    var lgi = document.getElementById('lg-idle'); if(lgi) lgi.textContent = idle;
   } catch(e){ console.warn('KPI load failed:', e); }
+}
+
+// Classify vehicle by speed (matches GPS module convention)
+function _classifyVehicle(s){
+  if(!s) return 'idle';
+  var spd = Number(s.speed) || 0;
+  var online = (s.online === true) || (s.status && /online|moving|run/i.test(s.status));
+  if(!online) return 'offline';
+  if(spd > 5) return 'moving';
+  return 'idle';
+}
+
+// Mini Leaflet map (admin only) — fetches REAL live GPS positions
+async function initMiniMap(){
+  if(typeof L === 'undefined') return;
+  var el = document.getElementById('l-mini-map');
+  if(!el || _miniMap) return;
+  try {
+    // Init map (Thailand center default)
+    _miniMap = L.map(el, {
+      zoomControl:false, attributionControl:false,
+      dragging:false, touchZoom:false, scrollWheelZoom:false, doubleClickZoom:false, boxZoom:false
+    }).setView([13.7563, 100.5018], 6);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom:18 }).addTo(_miniMap);
+
+    // Click → GPS module
+    el.style.cursor = 'pointer';
+    el.addEventListener('click', function(e){
+      // Don't navigate if clicking the popup
+      if(e.target && e.target.closest('.leaflet-popup')) return;
+      window.location.href = 'gps/';
+    });
+
+    // Bootstrap settings cache (needed by gps-providers proxy logic)
+    if(typeof gpsLoadProxyConfig === 'function'){
+      try { await gpsLoadProxyConfig(_supabase); } catch(e){ console.warn('proxy config:', e.message); }
+    }
+
+    // Fetch active providers + vehicles
+    var pRes = await _supabase.from('gps_providers').select('*').eq('is_active', true);
+    var providers = pRes.data || [];
+    if(!providers.length){ console.info('No active GPS providers — map empty'); return; }
+
+    // Fetch real-time statuses from each provider
+    var allStatuses = [];
+    for(var i = 0; i < providers.length; i++){
+      try {
+        var statuses = await gpsGetStatus(providers[i]);
+        (statuses || []).forEach(function(s){ s._providerId = providers[i].id; allStatuses.push(s); });
+      } catch(e){ console.warn('gps status fail:', providers[i].name, e.message); }
+    }
+
+    // Plot markers + tally classes
+    var bounds = [];
+    var counts = { moving:0, idle:0, offline:0, emergency:0 };
+    allStatuses.forEach(function(s){
+      var lat = Number(s.lat), lng = Number(s.lng);
+      if(!isFinite(lat) || !isFinite(lng) || (lat === 0 && lng === 0)) return;
+
+      var cls = _classifyVehicle(s);
+      counts[cls] = (counts[cls] || 0) + 1;
+
+      var color = cls === 'moving' ? '#22c55e' :
+                  cls === 'offline' ? '#94a3b8' :
+                  cls === 'emergency' ? '#ef4444' : '#cbd5e1';
+
+      var marker = L.circleMarker([lat,lng], {
+        radius:8, color:'#fff', weight:2.5,
+        fillColor:color, fillOpacity:.95
+      }).addTo(_miniMap);
+      var label = (s.nickname || s.deviceName || s.deviceId || 'Vehicle');
+      var spd = (Number(s.speed) || 0).toFixed(0);
+      marker.bindTooltip(label + ' · ' + spd + ' km/h', { direction:'top', offset:[0,-6] });
+      _miniMarkers.push(marker);
+      bounds.push([lat,lng]);
+    });
+
+    if(bounds.length){
+      _miniMap.fitBounds(bounds, { padding:[24,24], maxZoom:12 });
+    }
+
+    // Update legend with real counts
+    var lge = document.getElementById('lg-emerg'); if(lge) lge.textContent = counts.emergency;
+    var lgm = document.getElementById('lg-move'); if(lgm) lgm.textContent = counts.moving;
+    var lgi = document.getElementById('lg-idle'); if(lgi) lgi.textContent = counts.idle + counts.offline;
+
+    // Update KPI sub
+    var kpiSub = document.getElementById('kpi-gps-sub');
+    if(kpiSub){
+      var online = counts.moving + counts.idle;
+      var total = online + counts.offline;
+      kpiSub.innerHTML = total > 0 ? 'ออนไลน์ '+online+'/'+total : 'ไม่มีรถออนไลน์';
+    }
+  } catch(e){ console.warn('mini map init failed:', e); }
+}
+
+// Critical alerts (admin only) — pulls from Monitor system data
+async function loadCriticalAlerts(){
+  if(typeof _supabase === 'undefined') return;
+  try {
+    // Stale active cases (>24hr) = critical
+    var cutoff = new Date(Date.now() - 24*3600*1000).toISOString();
+    var r = await _supabase.from('cases')
+      .select('case_id',{count:'exact',head:true})
+      .eq('status','Active')
+      .lt('created_at', cutoff);
+    var critical = r.count || 0;
+    var dot = document.getElementById('bell-dot');
+    var pill = document.getElementById('sys-status-pill');
+    if(critical > 0){
+      if(dot) dot.style.display = '';
+      if(pill){
+        pill.className = 'l-pill warn';
+        pill.innerHTML = '<span class="dot"></span> เฝ้าระวัง '+critical+' เคส';
+      }
+    } else {
+      if(dot) dot.style.display = 'none';
+    }
+    window._criticalCount = critical;
+  } catch(e){ console.warn('critical load failed:', e); }
+}
+
+function openCriticalAlerts(){
+  // Jump to Monitor module
+  window.location.href = 'monitor/';
 }
 
 // Active cases (top 3)
@@ -599,6 +1005,8 @@ function relativeTime(iso){
 
 function doLogout(){
   try { localStorage.removeItem('pt_user_meta'); } catch(e){}
+  if(_clockTimer){ clearInterval(_clockTimer); _clockTimer = null; }
+  if(_miniMap){ try{ _miniMap.remove(); } catch(e){} _miniMap = null; _miniMarkers = []; }
   resetLoginForm();
   showView('view-login');
 }
