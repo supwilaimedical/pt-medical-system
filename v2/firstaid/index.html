@@ -3,7 +3,7 @@
 <head>
   <title>PT-System | First Aid</title>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="description" content="PT Medical System — ระบบบันทึกปฐมพยาบาล">
   <meta name="theme-color" content="#0ea5e9">
   <meta name="color-scheme" content="light">
@@ -120,7 +120,7 @@
     transition:all .15s;
   }
   .v2-rail a:hover{ background:#f1f5f9; }
-  .v2-rail a.active{ background:#e0f2fe; }
+  .v2-rail a.active{ background:#dcfce7; color:#14532d; }
   .v2-rail .v2-spacer{ flex:1; }
   .v2-rail .v2-divider{ width:32px; height:1px; background:#e2e8f0; margin:4px 0; }
   @media (max-width:991px){ .v2-rail{ display:none; } }
@@ -149,29 +149,29 @@
     position:relative;
   }
   .v2-subnav a:hover{ background:#f8fafc; }
-  .v2-subnav a.active{ background:#e0f2fe; color:#075985; font-weight:600; }
+  .v2-subnav a.active{ background:#dcfce7; color:#14532d; font-weight:600; }
   .v2-subnav a.active::before{
     content:''; position:absolute; left:0; top:8px; bottom:8px;
-    width:3px; background:#0ea5e9; border-radius:0 3px 3px 0;
+    width:3px; background:#16a34a; border-radius:0 3px 3px 0;
   }
   .v2-subnav .badge-mini{
     background:#e2e8f0; color:#475569;
     padding:1px 8px; border-radius:10px;
     font-size:11px; font-weight:600; font-variant-numeric:tabular-nums;
   }
-  .v2-subnav a.active .badge-mini{ background:#0ea5e9; color:#fff; }
+  .v2-subnav a.active .badge-mini{ background:#16a34a; color:#fff; }
   .v2-subnav .badge-mini.danger{ background:#fee2e2; color:#991b1b; }
   .v2-rail a .bi, .v2-mobile-rail-strip a .bi{ font-size:18px; line-height:1; }
   .v2-subnav a .bi{ width:18px; display:inline-block; text-align:center; margin-right:6px; font-size:14px; opacity:.85; }
   .v2-subnav a.active .bi{ opacity:1; }
   .v2-subnav button .bi{ margin-right:4px; }
   .v2-subnav .primary-cta{
-    margin:12px 14px 4px; padding:10px; background:#0ea5e9; color:#fff;
+    margin:10px 14px; padding:8px; width:calc(100% - 28px); background:#16a34a; color:#fff;
     border:none; border-radius:8px; font-weight:600; font-size:13px;
     display:flex; align-items:center; justify-content:center; gap:6px;
     cursor:pointer; transition:background .12s;
   }
-  .v2-subnav .primary-cta:hover{ background:#0284c7; }
+  .v2-subnav .primary-cta:hover{ background:#15803d; }
   .v2-subnav .back-link{
     padding:10px 16px; background:#f1f5f9;
     border-bottom:1px solid #e2e8f0;
@@ -404,7 +404,8 @@
   <a href="../firstaid/" data-mod="firstaid" title="ปฐมพยาบาล"><i class="bi bi-bandaid"></i></a>
   <a href="../location/" data-mod="location" title="พิกัดสถานที่"><i class="bi bi-geo-alt-fill"></i></a>
   <a href="../gps/" data-mod="gps" id="rail-gps" title="GPS Tracking" style="display:none;"><i class="bi bi-broadcast-pin"></i></a>
-  <div class="v2-spacer"></div>
+    <a href="../fleet/" data-mod="fleet" title="Fleet Status"><i class="bi bi-clipboard-check"></i></a>
+      <div class="v2-spacer"></div>
   <a href="../monitor/" data-mod="monitor" id="rail-monitor" title="Monitor" style="display:none;"><i class="bi bi-activity"></i></a>
   <a href="../admin.html" data-mod="admin" id="rail-admin" title="Admin Settings" style="display:none;"><i class="bi bi-gear"></i></a>
   <div class="v2-divider"></div>
@@ -422,6 +423,7 @@
     <a href="../firstaid/" title="ปฐมพยาบาล"><i class="bi bi-bandaid"></i></a>
     <a href="../location/" title="พิกัดสถานที่"><i class="bi bi-geo-alt-fill"></i></a>
     <a href="../gps/" id="m-rail-gps" title="GPS" style="display:none;"><i class="bi bi-broadcast-pin"></i></a>
+    <a href="../fleet/" title="Fleet Status"><i class="bi bi-clipboard-check"></i></a>
     <a href="../monitor/" id="m-rail-monitor" title="Monitor" style="display:none;"><i class="bi bi-activity"></i></a>
     <a href="../admin.html" id="m-rail-admin" title="Admin" style="display:none;"><i class="bi bi-gear"></i></a>
     <a href="../" title="หน้าหลัก"><i class="bi bi-house-door-fill"></i></a>
@@ -430,7 +432,7 @@
   <!-- ===== State 1: Event List ===== -->
   <div id="v2-fa-subnav-list">
     <div class="v2-subnav-header">
-      <div class="title">🩹 ปฐมพยาบาล</div>
+      <div class="title"><i class="bi bi-bandaid" style="color:#16a34a;"></i> ปฐมพยาบาล</div>
       <div class="sub" id="v2-fa-sub-stats">กำลังโหลด...</div>
     </div>
     <button class="primary-cta" onclick="if(typeof fa_openCreateEventModal==='function') fa_openCreateEventModal()">
@@ -838,7 +840,7 @@
         <div id="fa-dashboard-view" class="view-section active">
           <div class="fa-colhead">
             <div class="fa-colhead-left">
-              <h3 class="title">🩹 ปฐมพยาบาล</h3>
+              <h3 class="title"><i class="bi bi-bandaid" style="color:#16a34a;"></i> ปฐมพยาบาล</h3>
               <p class="sub" id="fa-dash-substats">—</p>
             </div>
           </div>
@@ -1105,7 +1107,7 @@
 
   <!-- FA: Medical Registry Form Modal -->
   <div class="modal fade" id="faRegistryModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+    <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable modal-fullscreen-sm-down">
       <div class="modal-content border-0 shadow-lg rounded-4">
         <div class="modal-header bg-light border-bottom-0 pb-0">
           <h5 class="modal-title fw-bold" id="reg-modal-title"><i class="bi bi-clipboard2-pulse text-success me-2"></i> บันทึก Medical Registry</h5>
@@ -1297,7 +1299,7 @@
 
   <!-- FA: View Registry Detail Modal -->
   <div class="modal fade" id="faViewRegistryModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+    <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable modal-fullscreen-sm-down">
       <div class="modal-content border-0 shadow-lg rounded-4">
         <div class="modal-header bg-light border-bottom-0 pb-0">
           <h5 class="modal-title fw-bold"><i class="bi bi-person-vcard text-primary me-2"></i> ข้อมูล Registry รายบุคคล</h5>

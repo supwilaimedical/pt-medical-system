@@ -1,0 +1,1358 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#0d9488">
+  <title>Fleet Status — สถานะทั่วไปของรถ | PT Medical V2</title>
+  <link rel="icon" href="../../assets/icon.svg" type="image/svg+xml">
+  <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="../../shared/styles.css">
+  <style>
+    :root{
+      /* Fleet identity = teal (matches landing card color) */
+      --fleet-acc:#0d9488; --fleet-acc-dark:#0f766e; --fleet-acc-soft:#ccfbf1; --fleet-acc-text:#134e4a;
+      --c-text:#0f172a; --c-text-2:#475569; --c-text-3:#94a3b8;
+      --c-bg:#f8fafc; --c-surface:#ffffff;
+      --c-border:#e2e8f0; --c-border-soft:#f1f5f9;
+      --c-success:#16a34a; --c-warn:#f59e0b; --c-danger:#dc2626;
+    }
+    *{ box-sizing:border-box; }
+    body{ font-family:'Sarabun',sans-serif !important; background:var(--c-bg); color:var(--c-text); padding-left:56px; }
+    @media (max-width:767px){ body{ padding-left:0; } }
+
+    /* ============ V2 RAIL (same as other modules) ============ */
+    .v2-rail{
+      position:fixed; left:0; top:0; bottom:0; width:56px;
+      background:#fff; border-right:1px solid var(--c-border);
+      display:flex; flex-direction:column; align-items:center;
+      padding:10px 0; gap:4px; z-index:1030;
+    }
+    @media (max-width:767px){ .v2-rail{ display:none; } }
+    .v2-rail .v2-logo{
+      width:36px; height:36px; border-radius:8px;
+      background:linear-gradient(135deg,#0ea5e9,#0284c7); color:#fff;
+      display:flex; align-items:center; justify-content:center;
+      font-weight:800; font-size:13px; margin-bottom:6px;
+      overflow:hidden;
+    }
+    .v2-rail a{
+      width:40px; height:40px; border-radius:8px;
+      display:flex; align-items:center; justify-content:center;
+      color:#475569; text-decoration:none; font-size:20px;
+      transition:all .15s;
+    }
+    .v2-rail a:hover{ background:#f1f5f9; color:#0f172a; }
+    .v2-rail a.active{ background:var(--fleet-acc-soft); color:var(--fleet-acc-dark); }
+    .v2-rail .v2-spacer{ flex:1; }
+    .v2-rail .v2-divider{ width:32px; height:1px; background:var(--c-border); margin:4px 0; }
+    .v2-rail a .bi, .v2-mobile-rail-strip a .bi{ font-size:18px; line-height:1; }
+
+    /* ============ V2 SUBNAV ============ */
+    .v2-subnav{
+      position:fixed; left:56px; top:0; bottom:0; width:240px;
+      background:#fff; border-right:1px solid var(--c-border);
+      overflow-y:auto; z-index:1020; padding-bottom:20px;
+    }
+    @media (max-width:767px){
+      .v2-subnav{
+        left:0; width:280px; transform:translateX(-100%);
+        transition:transform .25s ease; z-index:1050;
+      }
+      body.v2-nav-open .v2-subnav{ transform:translateX(0); }
+    }
+    .v2-subnav-header{
+      padding:18px 16px 12px; border-bottom:1px solid var(--c-border);
+    }
+    .v2-subnav-header .title{ font-size:15px; font-weight:700; color:var(--c-text); }
+    .v2-subnav-header .sub{ font-size:11.5px; color:var(--c-text-2); margin-top:2px; }
+    .v2-subnav-section{
+      font-size:10.5px; font-weight:700; color:var(--c-text-3);
+      text-transform:uppercase; letter-spacing:.06em;
+      padding:14px 16px 6px;
+    }
+    .v2-subnav a{
+      display:flex; align-items:center; justify-content:space-between;
+      padding:10px 16px; font-size:13px; color:#334155; text-decoration:none;
+      border-bottom:1px solid #f1f5f9; cursor:pointer;
+      transition:background .15s;
+    }
+    .v2-subnav a:hover{ background:#f8fafc; }
+    .v2-subnav a.active{ background:var(--fleet-acc-soft); color:var(--fleet-acc-text); font-weight:600; }
+    .v2-subnav a .bi{ width:18px; display:inline-block; text-align:center; margin-right:6px; font-size:14px; opacity:.85; }
+    .v2-subnav a.active .bi{ opacity:1; }
+    .v2-subnav .badge-mini{
+      background:#e2e8f0; color:#475569;
+      padding:1px 7px; border-radius:8px; font-size:10.5px; font-weight:600;
+    }
+    .v2-subnav a.active .badge-mini{ background:var(--fleet-acc); color:#fff; }
+    .v2-subnav .form-link{
+      padding:8px 16px; font-size:12.5px; color:var(--fleet-acc-dark);
+      display:flex; align-items:center; gap:8px;
+    }
+    .v2-subnav .form-link:hover{ background:var(--fleet-acc-soft); }
+
+    /* Mobile rail strip */
+    .v2-mobile-rail-strip{ display:none; }
+    @media (max-width:767px){
+      .v2-mobile-rail-strip{
+        display:flex; padding:10px 12px; gap:4px;
+        background:#f8fafc; border-bottom:1px solid var(--c-border);
+        justify-content:space-around; flex-wrap:wrap;
+      }
+      .v2-mobile-rail-strip a{
+        width:38px; height:38px; border-radius:8px;
+        display:flex; align-items:center; justify-content:center;
+        color:#475569; text-decoration:none; font-size:18px;
+        background:#fff; border:1px solid var(--c-border);
+      }
+      .v2-mobile-rail-strip a.active{ background:var(--fleet-acc-soft); color:var(--fleet-acc-dark); border-color:var(--fleet-acc); }
+    }
+
+    .v2-mobile-nav-toggle{
+      display:none; position:fixed; top:10px; left:10px; z-index:1040;
+      width:40px; height:40px; border-radius:8px;
+      background:#fff; border:1px solid var(--c-border);
+      cursor:pointer; font-size:20px; color:var(--c-text-2);
+    }
+    @media (max-width:767px){ .v2-mobile-nav-toggle{ display:flex; align-items:center; justify-content:center; } }
+
+    /* ============ MAIN ============ */
+    #app-main-wrapper{
+      margin-left:240px; min-height:100vh; padding:0;
+    }
+    @media (max-width:767px){ #app-main-wrapper{ margin-left:0; padding-top:60px; } }
+    body.fleet-has-rc #app-main-wrapper{ margin-right:280px; }
+    @media (max-width:1199px){ body.fleet-has-rc #app-main-wrapper{ margin-right:0; } }
+
+    .container-fluid{ padding:0 24px; max-width:none; }
+    @media (max-width:767px){ .container-fluid{ padding:0 12px; } }
+
+    /* Col header */
+    .v2-colheader{
+      display:flex; align-items:center; gap:14px; padding:18px 4px 14px;
+      border-bottom:1px solid var(--c-border-soft); margin-bottom:16px;
+    }
+    .v2-colheader-left{ flex:1; min-width:0; }
+    .v2-colheader h3{
+      margin:0; font-size:18px; font-weight:700; color:var(--c-text);
+      display:flex; align-items:center; gap:10px;
+    }
+    .v2-colheader h3 .bi{ color:var(--fleet-acc); }
+    .v2-colheader .sub{ font-size:12px; color:var(--c-text-2); margin-top:3px; }
+    .v2-colheader .live-pill{
+      display:inline-flex; align-items:center; gap:6px;
+      padding:5px 11px; border-radius:999px;
+      background:var(--fleet-acc-soft); color:var(--fleet-acc-text);
+      font-size:11.5px; font-weight:600;
+    }
+    .v2-colheader .live-pill .dot{
+      width:7px; height:7px; border-radius:50%; background:var(--fleet-acc);
+      box-shadow:0 0 0 3px rgba(13,148,136,.2);
+    }
+
+    /* ============ VEHICLE STATUS CARDS ============ */
+    .vehicle-grid{
+      display:grid; grid-template-columns:repeat(3, 1fr); gap:14px;
+      margin-bottom:18px;
+    }
+    @media (max-width:1100px) and (min-width:600px){ .vehicle-grid{ grid-template-columns:repeat(2, 1fr); } }
+    @media (max-width:599px){ .vehicle-grid{ grid-template-columns:1fr; } }
+
+    .vehicle-card{
+      background:#fff; border:1px solid var(--c-border); border-radius:14px;
+      padding:16px; cursor:pointer;
+      transition:all .18s ease;
+      box-shadow:0 1px 2px rgba(15,23,42,.04), 0 8px 20px -14px rgba(15,23,42,.15);
+      position:relative; overflow:hidden;
+    }
+    .vehicle-card::before{
+      content:""; position:absolute; left:0; top:0; bottom:0; width:3px;
+      background:var(--vh-acc); transform:scaleY(0); transform-origin:top;
+      transition:transform .25s ease;
+    }
+    .vehicle-card:hover{
+      transform:translateY(-2px);
+      box-shadow:0 1px 2px rgba(15,23,42,.04), 0 14px 28px -14px var(--vh-acc-shadow);
+      border-color:var(--vh-acc);
+    }
+    .vehicle-card:hover::before{ transform:scaleY(1); }
+
+    .vehicle-card.ok    { --vh-acc:#16a34a; --vh-acc-soft:#dcfce7; --vh-acc-shadow:rgba(22,163,74,.4); }
+    .vehicle-card.warn  { --vh-acc:#f59e0b; --vh-acc-soft:#fef3c7; --vh-acc-shadow:rgba(245,158,11,.4); }
+    .vehicle-card.fail  { --vh-acc:#dc2626; --vh-acc-soft:#fee2e2; --vh-acc-shadow:rgba(220,38,38,.4); }
+    .vehicle-card.empty { --vh-acc:#94a3b8; --vh-acc-soft:#f1f5f9; --vh-acc-shadow:rgba(148,163,184,.3); }
+
+    .vh-head{ display:flex; align-items:center; gap:12px; margin-bottom:12px; }
+    .vh-icon{
+      width:42px; height:42px; border-radius:11px;
+      background:var(--vh-acc-soft); color:var(--vh-acc);
+      display:flex; align-items:center; justify-content:center; font-size:20px;
+      flex-shrink:0;
+    }
+    .vh-head-info{ flex:1; min-width:0; }
+    .vh-name{ font-size:14.5px; font-weight:700; color:var(--c-text); }
+    .vh-status-badge{
+      display:inline-block; padding:2px 10px; border-radius:8px;
+      background:var(--vh-acc-soft); color:var(--vh-acc); font-size:10.5px; font-weight:600;
+      margin-top:3px;
+    }
+    .vh-arrow{ color:var(--c-text-3); font-size:14px; transition:transform .18s; }
+    .vehicle-card:hover .vh-arrow{ transform:translateX(3px); color:var(--vh-acc); }
+
+    .vh-rows{ background:#f8fafc; border-radius:10px; padding:8px 12px; }
+    .vh-row{
+      display:flex; align-items:center; justify-content:space-between;
+      padding:6px 0; font-size:12px;
+    }
+    .vh-row + .vh-row{ border-top:1px dashed var(--c-border); }
+    .vh-row-label{ display:flex; align-items:center; gap:8px; color:var(--c-text); font-weight:600; }
+    .vh-row-label .role-dot{
+      width:7px; height:7px; border-radius:50%; background:var(--c-text-3);
+    }
+    .vh-row-label.s-ok .role-dot{ background:var(--c-success); box-shadow:0 0 0 2px rgba(22,163,74,.2); }
+    .vh-row-label.s-warn .role-dot{ background:var(--c-warn); box-shadow:0 0 0 2px rgba(245,158,11,.2); }
+    .vh-row-label.s-fail .role-dot{ background:var(--c-danger); box-shadow:0 0 0 2px rgba(220,38,38,.2); }
+    .vh-row-status{
+      display:flex; align-items:center; gap:6px;
+      font-size:11px; font-weight:600;
+    }
+    .vh-row-status .badge-date{
+      background:#e2e8f0; color:#475569; padding:1px 7px; border-radius:7px;
+      font-size:10px; font-weight:600;
+    }
+    .s-ok-text{ color:var(--c-success); }
+    .s-warn-text{ color:var(--c-warn); }
+    .s-fail-text{ color:var(--c-danger); }
+
+    /* ============ STATS GRID ============ */
+    .stats-grid{
+      display:grid; grid-template-columns:repeat(4,1fr); gap:12px;
+      margin-bottom:18px;
+    }
+    @media (max-width:767px){ .stats-grid{ grid-template-columns:repeat(2,1fr); } }
+    .stat-card{
+      background:#fff; border:1px solid var(--c-border); border-radius:12px;
+      padding:14px 16px; display:flex; align-items:center; gap:12px;
+    }
+    .stat-icon{
+      width:38px; height:38px; border-radius:10px;
+      display:flex; align-items:center; justify-content:center; font-size:17px;
+      flex-shrink:0;
+    }
+    .stat-icon.info{ background:#e0f2fe; color:#0369a1; }
+    .stat-icon.success{ background:#dcfce7; color:#15803d; }
+    .stat-icon.warn{ background:#fef3c7; color:#a16207; }
+    .stat-icon.danger{ background:#fee2e2; color:#b91c1c; }
+    .stat-body{ flex:1; min-width:0; }
+    .stat-num{ font-size:22px; font-weight:700; color:var(--c-text); line-height:1.1; font-variant-numeric:tabular-nums; }
+    .stat-num small{ font-size:11.5px; color:var(--c-text-3); font-weight:500; margin-left:3px; }
+    .stat-label{ font-size:11.5px; color:var(--c-text-2); margin-top:2px; }
+
+    /* ============ READINESS PROGRESS ============ */
+    .readiness-card{
+      background:#fff; border:1px solid var(--c-border); border-radius:12px;
+      padding:16px 18px; margin-bottom:18px;
+    }
+    .readiness-head{
+      display:flex; align-items:center; justify-content:space-between;
+      margin-bottom:10px; flex-wrap:wrap; gap:8px;
+    }
+    .readiness-head .lbl{ font-size:13px; font-weight:600; color:var(--c-text-2); }
+    .readiness-head .lbl small{ display:block; font-size:11px; color:var(--c-text-3); margin-top:2px; }
+    .readiness-pct{
+      font-size:32px; font-weight:800; color:var(--fleet-acc);
+      font-variant-numeric:tabular-nums;
+    }
+    .readiness-bar{
+      width:100%; height:8px; background:#f1f5f9; border-radius:999px; overflow:hidden;
+    }
+    .readiness-bar-fill{
+      height:100%; background:linear-gradient(90deg, var(--fleet-acc), var(--fleet-acc-dark));
+      border-radius:999px; transition:width .5s ease;
+    }
+
+    /* ============ CALENDAR ============ */
+    .panel-card{
+      background:#fff; border:1px solid var(--c-border); border-radius:12px;
+      padding:14px 16px; margin-bottom:18px;
+    }
+    .panel-head{
+      display:flex; align-items:center; gap:10px; margin-bottom:12px; flex-wrap:wrap;
+    }
+    .panel-head h4{
+      margin:0; font-size:14px; font-weight:700; color:var(--c-text);
+      display:flex; align-items:center; gap:8px;
+    }
+    .panel-head h4 .bi{ color:var(--fleet-acc); }
+    .panel-tools{ margin-left:auto; display:flex; gap:6px; align-items:center; }
+    .panel-tools select{
+      padding:5px 10px; border:1px solid var(--c-border); border-radius:8px;
+      background:#fff; font-size:12px; cursor:pointer;
+    }
+    .panel-tools button{
+      width:28px; height:28px; border-radius:7px; border:1px solid var(--c-border);
+      background:#fff; color:var(--c-text-2); cursor:pointer;
+      display:inline-flex; align-items:center; justify-content:center;
+    }
+    .panel-tools button:hover{ background:#f8fafc; color:var(--fleet-acc-dark); border-color:var(--fleet-acc); }
+
+    .calendar-grid{
+      display:grid; grid-template-columns:repeat(7, 1fr); gap:6px;
+    }
+    .cal-header{
+      font-size:10.5px; font-weight:700; color:var(--c-text-3);
+      text-align:center; padding:6px 0; text-transform:uppercase;
+    }
+    .cal-cell{
+      min-height:78px; border:1px solid var(--c-border-soft); border-radius:8px;
+      padding:6px; background:#fff; transition:all .15s;
+    }
+    .cal-cell.has-data{ background:#f0fdfa; border-color:#99f6e4; cursor:pointer; }
+    .cal-cell.has-data:hover{ background:#ccfbf1; border-color:var(--fleet-acc); }
+    .cal-cell.today{ border:2px solid var(--fleet-acc); }
+    .cal-cell-head{ display:flex; justify-content:space-between; align-items:flex-start; }
+    .cal-day{ font-size:12px; font-weight:600; color:var(--c-text-2); }
+    .cal-cell.today .cal-day{
+      background:var(--fleet-acc); color:#fff; padding:1px 7px; border-radius:6px;
+    }
+    .cal-dot{ width:6px; height:6px; border-radius:50%; }
+    .cal-dot.green{ background:var(--c-success); }
+    .cal-dot.red{ background:var(--c-danger); }
+    .cal-tags{ margin-top:4px; display:flex; flex-wrap:wrap; gap:2px; }
+    .cal-tag{
+      font-size:9px; padding:1px 4px; border-radius:4px; font-weight:600;
+    }
+    .cal-tag.ok{ background:#dcfce7; color:#15803d; }
+    .cal-tag.warn{ background:#fef3c7; color:#a16207; }
+    .cal-tag.fail{ background:#fee2e2; color:#b91c1c; }
+
+    /* ============ CHARTS ROW ============ */
+    .charts-row{
+      display:grid; grid-template-columns: 1fr 1fr; gap:14px; margin-bottom:18px;
+    }
+    @media (max-width:991px){ .charts-row{ grid-template-columns:1fr; } }
+    .chart-wrap{ height:240px; position:relative; }
+    .chart-empty{
+      position:absolute; inset:0; display:flex; align-items:center; justify-content:center;
+      color:var(--c-text-3); font-size:13px;
+    }
+    .chart-empty.hidden{ display:none; }
+
+    /* ============ TABLE ============ */
+    .data-table{
+      width:100%; border-collapse:separate; border-spacing:0;
+      background:#fff;
+    }
+    .data-table th{
+      font-size:11px; font-weight:700; color:var(--c-text-3);
+      text-transform:uppercase; letter-spacing:.04em;
+      padding:10px 12px; background:#f8fafc;
+      border-bottom:1px solid var(--c-border); text-align:left;
+    }
+    .data-table td{
+      padding:10px 12px; font-size:12.5px; color:var(--c-text);
+      border-bottom:1px solid var(--c-border-soft);
+    }
+    .data-table tr:hover td{ background:#fafbfc; }
+    .table-search{
+      padding:6px 12px; border:1px solid var(--c-border); border-radius:8px;
+      font-size:12px; min-width:200px;
+    }
+    .badge{
+      display:inline-flex; align-items:center; gap:4px; font-size:10.5px;
+      padding:2px 8px; border-radius:8px; font-weight:600;
+    }
+    .badge-success{ background:#dcfce7; color:#166534; }
+    .badge-warning{ background:#fef3c7; color:#854d0e; }
+    .badge-danger{ background:#fee2e2; color:#991b1b; }
+    .badge-neutral{ background:#f1f5f9; color:#475569; }
+    .role-tag{
+      display:inline-flex; align-items:center; gap:4px; font-size:10px;
+      padding:1px 7px; border-radius:6px; font-weight:600;
+    }
+    .role-tag-emt{ background:#e0f2fe; color:#0369a1; }
+    .role-tag-driver{ background:#ede9fe; color:#6d28d9; }
+
+    /* ============ POPUP (calendar) ============ */
+    .pop-overlay{
+      position:fixed; inset:0; background:rgba(15,23,42,.5);
+      display:flex; align-items:center; justify-content:center;
+      z-index:2000; padding:20px;
+    }
+    .pop-card{
+      background:#fff; border-radius:14px; max-width:520px; width:100%;
+      max-height:90vh; overflow:auto; padding:18px 20px;
+      box-shadow:0 20px 60px rgba(0,0,0,.3);
+    }
+    .pop-close{ width:36px; height:36px; }
+
+    /* ============ MOBILE FIXES ============ */
+    @media (max-width:767px){
+      /* Hamburger clearance for col header */
+      .v2-colheader{ padding-left:54px; padding-right:4px; }
+      .v2-colheader h3{ font-size:16px; }
+      .v2-colheader .live-pill{ font-size:10.5px; padding:4px 9px; }
+      /* Smaller stat numbers */
+      .stat-num{ font-size:18px; }
+      .stat-card{ padding:11px 12px; gap:10px; }
+      .stat-icon{ width:34px; height:34px; font-size:15px; }
+      /* Compact calendar */
+      .calendar-grid{ gap:3px; }
+      .cal-cell{ min-height:54px; padding:4px; border-radius:6px; }
+      .cal-day{ font-size:11px; }
+      .cal-tags{ display:none; } /* hide preview tags, dot only */
+      .cal-dot{ width:7px; height:7px; }
+      .cal-header{ font-size:9.5px; padding:4px 0; }
+      /* Smaller chart height */
+      .chart-wrap{ height:200px; }
+      /* Readiness % smaller */
+      .readiness-pct{ font-size:24px; }
+      /* Panel head wraps cleanly */
+      .panel-head{ flex-wrap:wrap; }
+      .panel-tools{ margin-left:0; width:100%; }
+      .table-search{ min-width:0; width:100%; }
+      /* Form link more compact */
+      .v2-subnav .form-link{ padding:7px 16px; font-size:12px; }
+    }
+    @media (max-width:480px){
+      .stats-grid{ gap:8px; }
+      .stat-card{ padding:10px; }
+      .stat-num{ font-size:17px; }
+    }
+    .pop-head{
+      display:flex; justify-content:space-between; align-items:center;
+      padding-bottom:12px; border-bottom:1px solid var(--c-border-soft); margin-bottom:14px;
+    }
+    .pop-head h4{ margin:0; font-size:15px; font-weight:700; color:var(--c-text); }
+    .pop-close{
+      width:30px; height:30px; border-radius:7px; border:1px solid var(--c-border);
+      background:#fff; cursor:pointer; display:inline-flex; align-items:center; justify-content:center;
+    }
+    .pop-rec{
+      background:#f8fafc; border:1px solid var(--c-border); border-radius:10px;
+      padding:10px 12px; margin-bottom:8px;
+    }
+    .pop-rec-head{ display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:6px; }
+    .pop-rec-vh{ font-size:13px; font-weight:700; color:var(--c-text); }
+    .pop-rec-meta{ font-size:11.5px; color:var(--c-text-2); display:flex; align-items:center; gap:6px; }
+    .pop-rec-issue{
+      margin-top:6px; padding:6px 8px; background:#fef3c7;
+      border-left:3px solid var(--c-warn); border-radius:6px;
+      font-size:11.5px; color:#854d0e;
+    }
+
+    /* ============ RIGHT COL ============ */
+    .fleet-rc{
+      position:fixed; right:0; top:0; bottom:0; width:280px;
+      background:#fff; border-left:1px solid var(--c-border);
+      padding:18px 16px; overflow-y:auto; display:none;
+    }
+    body.fleet-has-rc .fleet-rc{ display:block; }
+    @media (max-width:1199px){ body.fleet-has-rc .fleet-rc{ display:none; } }
+    .rc-section-label{
+      font-size:11px; font-weight:700; color:var(--c-text-3);
+      text-transform:uppercase; letter-spacing:.06em;
+      margin:14px 0 8px; padding:0 4px;
+    }
+    .rc-section-label:first-child{ margin-top:0; }
+    .rc-group{
+      background:#f8fafc; border:1px solid var(--c-border-soft); border-radius:10px;
+      overflow:hidden;
+    }
+    .rc-row{
+      display:flex; align-items:center; justify-content:space-between;
+      padding:9px 12px; border-bottom:1px solid var(--c-border-soft);
+      font-size:12.5px;
+    }
+    .rc-row:last-child{ border-bottom:none; }
+    .rc-row .lbl{ color:var(--c-text); display:flex; align-items:center; gap:6px; }
+    .rc-row .val{ font-weight:700; color:var(--c-text); font-variant-numeric:tabular-nums; }
+    .rc-row .val.alert{ color:var(--c-danger); }
+    .rc-row .val.warn{ color:var(--c-warn); }
+    .rc-row .val.ok{ color:var(--c-success); }
+    .rc-issue{
+      padding:8px 12px; border-bottom:1px solid var(--c-border-soft);
+    }
+    .rc-issue:last-child{ border-bottom:none; }
+    .rc-issue-vh{ font-size:11.5px; font-weight:700; color:var(--c-text); }
+    .rc-issue-msg{ font-size:11px; color:var(--c-warn); margin-top:2px; line-height:1.4; }
+    .rc-empty{ padding:14px 12px; text-align:center; color:var(--c-text-3); font-size:12px; font-style:italic; }
+  </style>
+</head>
+<body>
+
+<!-- ============ V2 RAIL ============ -->
+<aside class="v2-rail no-print">
+  <div class="v2-logo" title="PT Medical V2">PT</div>
+  <a href="../transport/" title="นำส่งผู้ป่วย"><i class="bi bi-truck-flatbed"></i></a>
+  <a href="../firstaid/" title="ปฐมพยาบาล"><i class="bi bi-bandaid"></i></a>
+  <a href="../location/" title="พิกัดสถานที่"><i class="bi bi-geo-alt-fill"></i></a>
+  <a href="../gps/" id="rail-gps" title="GPS Tracking" style="display:none;"><i class="bi bi-broadcast-pin"></i></a>
+  <a href="../fleet/" class="active" title="Fleet Status"><i class="bi bi-clipboard-check"></i></a>
+  <div class="v2-spacer"></div>
+  <a href="../monitor/" id="rail-monitor" title="Monitor" style="display:none;"><i class="bi bi-activity"></i></a>
+  <a href="../admin.html" id="rail-admin" title="Admin Settings" style="display:none;"><i class="bi bi-gear"></i></a>
+  <div class="v2-divider"></div>
+  <a href="../" title="หน้าหลัก"><i class="bi bi-house-door-fill"></i></a>
+</aside>
+
+<!-- ============ V2 SUBNAV ============ -->
+<button class="v2-mobile-nav-toggle no-print" onclick="document.body.classList.toggle('v2-nav-open')" aria-label="เมนู"><i class="bi bi-list"></i></button>
+<aside class="v2-subnav no-print">
+  <!-- Mobile-only rail strip -->
+  <div class="v2-mobile-rail-strip">
+    <a href="../transport/" data-mod="transport" title="นำส่งผู้ป่วย"><i class="bi bi-truck-flatbed"></i></a>
+    <a href="../firstaid/" data-mod="firstaid" title="ปฐมพยาบาล"><i class="bi bi-bandaid"></i></a>
+    <a href="../location/" data-mod="location" title="พิกัดสถานที่"><i class="bi bi-geo-alt-fill"></i></a>
+    <a href="../gps/" data-mod="gps" id="m-rail-gps" title="GPS" style="display:none;"><i class="bi bi-broadcast-pin"></i></a>
+    <a href="../fleet/" data-mod="fleet" title="Fleet Status" class="active"><i class="bi bi-clipboard-check"></i></a>
+    <a href="../monitor/" data-mod="monitor" id="m-rail-monitor" title="Monitor" style="display:none;"><i class="bi bi-activity"></i></a>
+    <a href="../admin.html" data-mod="admin" id="m-rail-admin" title="Admin" style="display:none;"><i class="bi bi-gear"></i></a>
+    <a href="../" title="หน้าหลัก"><i class="bi bi-house-door-fill"></i></a>
+  </div>
+
+  <div class="v2-subnav-header">
+    <div class="title"><i class="bi bi-clipboard-check" style="color:var(--fleet-acc);"></i> Fleet Status</div>
+    <div class="sub">สถานะทั่วไปของรถ</div>
+  </div>
+
+  <!-- Form links (QR scan workflow stays!) -->
+  <div class="v2-subnav-section">บันทึกตรวจสอบ</div>
+  <div id="formLinksContainer">
+    <a class="form-link" href="javascript:void(0)" style="color:var(--c-text-3);font-style:italic;">
+      <i class="bi bi-clipboard-plus"></i> กำลังโหลด...
+    </a>
+  </div>
+
+  <!-- Filters -->
+  <div class="v2-subnav-section">ตัวกรอง</div>
+  <a href="javascript:void(0)" data-filter-vehicle="All" class="active" onclick="setFilterVehicle('All', this)">
+    <span><i class="bi bi-grid"></i> รถทุกคัน</span>
+    <span class="badge-mini" id="fv-cnt-all">0</span>
+  </a>
+  <div id="vehicleFilterList"></div>
+
+  <div class="v2-subnav-section">สถานะ</div>
+  <a href="javascript:void(0)" data-filter-status="All" class="active" onclick="setFilterStatus('All', this)">
+    <span><i class="bi bi-list-ul"></i> ทุกสถานะ</span>
+  </a>
+  <a href="javascript:void(0)" data-filter-status="ready_perfect" onclick="setFilterStatus('ready_perfect', this)">
+    <span><i class="bi bi-check-circle-fill" style="color:#16a34a;"></i> พร้อมสมบูรณ์</span>
+  </a>
+  <a href="javascript:void(0)" data-filter-status="ready_note" onclick="setFilterStatus('ready_note', this)">
+    <span><i class="bi bi-info-circle-fill" style="color:#f59e0b;"></i> มี Note</span>
+  </a>
+  <a href="javascript:void(0)" data-filter-status="not_ready" onclick="setFilterStatus('not_ready', this)">
+    <span><i class="bi bi-exclamation-triangle-fill" style="color:#dc2626;"></i> ไม่พร้อม</span>
+  </a>
+</aside>
+
+<!-- ============ MAIN ============ -->
+<main id="app-main-wrapper">
+  <div class="container-fluid">
+
+    <!-- Col header -->
+    <div class="v2-colheader">
+      <div class="v2-colheader-left">
+        <h3><i class="bi bi-clipboard-check"></i> Fleet Status</h3>
+        <div class="sub">สถานะการตรวจเช็คสภาพรถพยาบาล (Daily Vehicle Checklist)</div>
+      </div>
+      <span class="live-pill"><span class="dot"></span> <span id="lastUpdate">รอข้อมูล</span></span>
+    </div>
+
+    <!-- Loading state -->
+    <div id="fleetLoading" style="text-align:center; padding:60px 20px;">
+      <div class="spinner-border" style="color:var(--fleet-acc); width:36px; height:36px;" role="status"></div>
+      <p style="margin-top:14px; color:var(--c-text-2); font-size:13px;">กำลังโหลดข้อมูล Fleet...</p>
+    </div>
+
+    <!-- Content (hidden until data loaded) -->
+    <div id="fleetContent" style="display:none;">
+
+      <!-- Vehicle Status Cards (click → GPS) -->
+      <div class="vehicle-grid" id="vehicleStatusContainer"></div>
+
+      <!-- Stats -->
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-icon info"><i class="bi bi-clipboard-data"></i></div>
+          <div class="stat-body">
+            <div class="stat-num" id="statTotal">0</div>
+            <div class="stat-label">ตรวจทั้งหมด</div>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon success"><i class="bi bi-check-circle"></i></div>
+          <div class="stat-body">
+            <div class="stat-num" id="statReadyPerfect">0</div>
+            <div class="stat-label">พร้อมสมบูรณ์</div>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon warn"><i class="bi bi-info-circle"></i></div>
+          <div class="stat-body">
+            <div class="stat-num" id="statNote">0</div>
+            <div class="stat-label">มี Note</div>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon danger"><i class="bi bi-exclamation-triangle"></i></div>
+          <div class="stat-body">
+            <div class="stat-num" id="statNotReady">0</div>
+            <div class="stat-label">ไม่พร้อม</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Readiness % -->
+      <div class="readiness-card">
+        <div class="readiness-head">
+          <div>
+            <div class="lbl">อัตราพร้อมทำงานทั้งหมด <small>(พร้อมสมบูรณ์ + มี Note)</small></div>
+          </div>
+          <div class="readiness-pct"><span id="statPercent">0</span>%</div>
+        </div>
+        <div class="readiness-bar"><div class="readiness-bar-fill" id="statProgressBar" style="width:0%;"></div></div>
+      </div>
+
+      <!-- Calendar -->
+      <div class="panel-card">
+        <div class="panel-head">
+          <h4><i class="bi bi-calendar-event"></i> ปฏิทินการตรวจเช็คสภาพรถ</h4>
+          <div class="panel-tools">
+            <button id="btnPrevMonth" title="เดือนก่อนหน้า"><i class="bi bi-chevron-left"></i></button>
+            <select id="monthSelect"></select>
+            <select id="yearSelect"></select>
+            <button id="btnNextMonth" title="เดือนถัดไป"><i class="bi bi-chevron-right"></i></button>
+          </div>
+        </div>
+        <div class="calendar-grid" id="calendarGrid"></div>
+      </div>
+
+      <!-- Charts -->
+      <div class="charts-row">
+        <div class="panel-card">
+          <div class="panel-head">
+            <h4><i class="bi bi-pie-chart"></i> สัดส่วนสถานะ</h4>
+          </div>
+          <div class="chart-wrap">
+            <canvas id="pieChart"></canvas>
+            <div id="pieEmpty" class="chart-empty hidden">ไม่มีข้อมูล</div>
+          </div>
+        </div>
+        <div class="panel-card">
+          <div class="panel-head">
+            <h4><i class="bi bi-bar-chart"></i> แยกตามรถ</h4>
+          </div>
+          <div class="chart-wrap">
+            <canvas id="barChart"></canvas>
+            <div id="barEmpty" class="chart-empty hidden">ไม่มีข้อมูล</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Table -->
+      <div class="panel-card">
+        <div class="panel-head">
+          <h4><i class="bi bi-list-ul"></i> รายการตรวจเช็คล่าสุด</h4>
+          <div class="panel-tools">
+            <input type="text" class="table-search" id="tableSearchInput" placeholder="ค้นหา...">
+          </div>
+        </div>
+        <div style="overflow-x:auto;">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>วันที่</th>
+                <th>รถ</th>
+                <th>ผู้ตรวจ</th>
+                <th>ตำแหน่ง</th>
+                <th>สถานะ</th>
+                <th>หมายเหตุ</th>
+              </tr>
+            </thead>
+            <tbody id="tableBody"></tbody>
+          </table>
+        </div>
+        <div id="tableFooter" style="text-align:center; padding-top:12px;">
+          <button id="btnToggleTable" class="btn btn-sm btn-outline-secondary"></button>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Empty state -->
+    <div id="fleetEmpty" style="display:none; text-align:center; padding:60px 20px;">
+      <i class="bi bi-clipboard-x" style="font-size:48px; color:var(--c-text-3);"></i>
+      <h4 style="margin-top:14px; color:var(--c-text);">ยังไม่มีข้อมูล Fleet</h4>
+      <p style="color:var(--c-text-2); font-size:13px; max-width:420px; margin:8px auto 0;">
+        ระบบยังไม่ได้รับการตั้งค่า GAS endpoint หรือยังไม่มีข้อมูลตรวจเช็ครถ<br>
+        <span style="font-size:11.5px; color:var(--c-text-3);">ติดต่อ admin หรือดูคู่มือใน /docs/</span>
+      </p>
+    </div>
+  </div>
+</main>
+
+<!-- ============ RIGHT COL ============ -->
+<aside class="fleet-rc no-print">
+  <div class="rc-section-label">📅 วันนี้</div>
+  <div class="rc-group">
+    <div class="rc-row"><span class="lbl"><i class="bi bi-clipboard-check"></i> ตรวจวันนี้</span><span class="val" id="rc-today-count">0</span></div>
+    <div class="rc-row"><span class="lbl"><i class="bi bi-check-circle"></i> รถพร้อม</span><span class="val ok" id="rc-today-ready">0</span></div>
+    <div class="rc-row"><span class="lbl"><i class="bi bi-exclamation-triangle"></i> ต้องสนใจ</span><span class="val warn" id="rc-today-issues">0</span></div>
+  </div>
+
+  <div class="rc-section-label">⚠️ ปัญหาที่พบล่าสุด</div>
+  <div class="rc-group" id="rc-issues-list">
+    <div class="rc-empty">ไม่มีปัญหา</div>
+  </div>
+
+  <div class="rc-section-label">🚗 สรุปแยกรถ</div>
+  <div class="rc-group" id="rc-vehicle-summary">
+    <div class="rc-empty">รอข้อมูล</div>
+  </div>
+</aside>
+
+<!-- ============ Scripts ============ -->
+<script src="../../shared/config.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script src="../../shared/auth.js"></script>
+<script src="../shared.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
+<script>
+(function(){
+  'use strict';
+
+  // === Config ===
+  // GAS endpoint URL — set in shared/config.js as CONFIG.GAS_FLEET_API_URL
+  // If not set, fleet shows mock data (for local testing)
+  var GAS_URL = (typeof CONFIG !== 'undefined' && CONFIG.GAS_FLEET_API_URL) ? CONFIG.GAS_FLEET_API_URL : '';
+
+  // === State ===
+  var allData = [];
+  var currentMonth = new Date(); currentMonth.setDate(1);
+  var filters = { vehicle:'All', status:'All' };
+  var tableSearchQuery = '';
+  var isTableExpanded = false;
+  var pieChart = null, barChart = null;
+  var calendarRecordsByDate = {};
+  var FORM_URLS = [];
+  // Map "คันที่ 1" prefix → full GPS nickname (e.g., "คันที่ 1 (ALS)") for display
+  var _gpsNameMap = {};
+
+  var monthNames = ["มกราคม","กุมภาพันธ์","มีนาคม","เมษายน","พฤษภาคม","มิถุนายน","กรกฎาคม","สิงหาคม","กันยายน","ตุลาคม","พฤศจิกายน","ธันวาคม"];
+  var dayNames = ['อา.','จ.','อ.','พ.','พฤ.','ศ.','ส.'];
+
+  // === Auth check ===
+  if (typeof requireAuth === 'function' && !requireAuth()) return;
+
+  // === Load admin role for rail icons ===
+  function showAdminRail(){
+    try {
+      var meta = JSON.parse(localStorage.getItem('pt_user_meta') || '{}');
+      var role = (meta.role || '').toLowerCase();
+      if (role.indexOf('admin') !== -1){
+        ['rail-gps','rail-monitor','rail-admin','m-rail-gps','m-rail-monitor','m-rail-admin'].forEach(function(id){
+          var el = document.getElementById(id); if(el) el.style.display = '';
+        });
+      }
+    } catch(e){}
+  }
+  showAdminRail();
+
+  // === Toggle right col on desktop ===
+  function syncRightCol(){
+    document.body.classList.add('fleet-has-rc');
+  }
+  syncRightCol();
+
+  // === Load GPS nickname map (for display sync) ===
+  async function loadGpsNameMap(){
+    if (typeof _supabase === 'undefined') return;
+    try {
+      var res = await _supabase.from('gps_vehicles').select('nickname, device_name').eq('is_active', true);
+      var rows = res.data || [];
+      rows.forEach(function(v){
+        var nick = (v.nickname || v.device_name || '').trim();
+        if (!nick) return;
+        // Extract "คันที่ N" prefix as map key
+        var m = nick.match(/คันที่\s*(\d+)/);
+        if (m) {
+          var key = 'คันที่ ' + m[1];  // normalized
+          _gpsNameMap[key] = nick;
+        }
+      });
+    } catch(e){ console.warn('GPS name map load failed:', e); }
+  }
+
+  // Get display name for a vehicle (use GPS nickname if available)
+  function _displayName(rawVehicle){
+    if (!rawVehicle) return rawVehicle;
+    var m = String(rawVehicle).match(/คันที่\s*(\d+)/);
+    if (m) {
+      var key = 'คันที่ ' + m[1];
+      if (_gpsNameMap[key]) return _gpsNameMap[key];
+    }
+    return rawVehicle;
+  }
+
+  // === Fetch Data ===
+  async function fetchFleetData(){
+    // Load GPS nickname map first (parallel-friendly)
+    await loadGpsNameMap();
+    if (!GAS_URL){
+      console.info('GAS_FLEET_API_URL not configured — showing mock data');
+      handleData(generateMockData());
+      return;
+    }
+    try {
+      var res = await fetch(GAS_URL, {
+        method:'POST',
+        headers:{ 'Content-Type':'text/plain;charset=utf-8' },
+        body: JSON.stringify({ action:'getAmbulanceData' })
+      });
+      var json = await res.json();
+      if (json.status === 'success') handleData(json.data);
+      else throw new Error(json.message || 'Unknown error');
+    } catch(err){
+      console.warn('Fleet fetch failed:', err);
+      document.getElementById('fleetLoading').style.display = 'none';
+      document.getElementById('fleetEmpty').style.display = '';
+      document.getElementById('fleetEmpty').innerHTML = '<i class="bi bi-cloud-slash" style="font-size:48px; color:var(--c-danger);"></i><h4 style="margin-top:14px; color:var(--c-text);">โหลดข้อมูลไม่สำเร็จ</h4><p style="color:var(--c-text-2); font-size:13px;">'+ err.message +'</p>';
+    }
+  }
+
+  function generateMockData(){
+    var today = new Date();
+    var rows = function(vehicle, role, count, allReady){
+      var arr = [];
+      for(var i = 0; i < count; i++){
+        var d = new Date(today); d.setDate(d.getDate() - i);
+        var ready = allReady !== false || (i % 3 !== 0);
+        arr.push({
+          'Timestamp': d.toLocaleString('th-TH'),
+          'ชื่อ-นามสกุล': role === 'EMT' ? 'EMT '+(i%3+1) : 'คนขับ '+(i%2+1),
+          'รถพร้อมปฏิบัติการทั้งหมด': ready ? 'พร้อมใช้งาน' : 'ไม่พร้อมใช้งาน',
+          'ยานพาหนะ - สภาพทั่วไป': ready ? 'พร้อมใช้งาน' : 'ไม่พร้อมใช้งาน',
+          'ออกซิเจน': i === 1 ? 'ขัดข้อง' : 'พร้อมใช้งาน',
+          'ไฟฉุกเฉิน': 'พร้อมใช้งาน'
+        });
+      }
+      return arr;
+    };
+    return [
+      { vehicle:'คันที่ 1 (4893)', role:'EMT', rows:rows('คันที่ 1','EMT',8,true) },
+      { vehicle:'คันที่ 1 (4893)', role:'คนขับรถ', rows:rows('คันที่ 1','คนขับรถ',8,true) },
+      { vehicle:'คันที่ 2 (4944)', role:'EMT', rows:rows('คันที่ 2','EMT',6,false) },
+      { vehicle:'คันที่ 2 (4944)', role:'คนขับรถ', rows:rows('คันที่ 2','คนขับรถ',6,true) },
+      { vehicle:'คันที่ 3 (หน้ายาว)', role:'EMT', rows:rows('คันที่ 3','EMT',5,true) },
+      { vehicle:'คันที่ 3 (หน้ายาว)', role:'คนขับรถ', rows:rows('คันที่ 3','คนขับรถ',5,true) }
+    ];
+  }
+
+  function handleData(results){
+    var combined = [];
+    results.forEach(function(s){
+      var vehicle = s.vehicle, role = s.role;
+      (s.rows || []).forEach(function(row, idx){
+        var keys = Object.keys(row);
+        if (keys.length < 2) return;
+        var dateKey = keys.find(function(k){ return k.toLowerCase() === 'timestamp'; }) || keys[0];
+        var empKey = keys.find(function(k){ return k.indexOf('ชื่อ')!==-1 || k.indexOf('พนักงาน')!==-1 || k.indexOf('ผู้ตรวจ')!==-1; }) || keys[2];
+        var rawDate = row[dateKey];
+        var employee = row[empKey] || 'ไม่ระบุชื่อ';
+        if (!rawDate || String(rawDate).trim() === '') return;
+        var formattedDate = formatDateString(rawDate);
+        if (!formattedDate) return;
+        var rawTimestamp = new Date(rawDate).getTime();
+        if (isNaN(rawTimestamp)) rawTimestamp = new Date(formattedDate).getTime();
+
+        var issueParts = [];
+        for (var ki = 0; ki < keys.length; ki++){
+          var key = keys[ki];
+          var v = String(row[key] || '').trim();
+          if (v.indexOf('ไม่พร้อมใช้งาน')!==-1 || v.indexOf('ขัดข้อง')!==-1){
+            if (key.indexOf('รถพร้อมปฏิบัติการทั้งหมด')===-1 && key.indexOf('ยานพาหนะ')===-1 && key.indexOf('สิ่งที่ไม่พร้อม')===-1){
+              issueParts.push(key.replace(/\[|\]/g,'').trim());
+            }
+          }
+        }
+
+        var isReady = true;
+        if (role === 'EMT'){
+          var mainKey = keys.find(function(k){ return k.indexOf('รถพร้อมปฏิบัติการทั้งหมด')!==-1; });
+          isReady = mainKey ? (String(row[mainKey]).trim() === 'พร้อมใช้งาน') : (issueParts.length === 0);
+        } else if (role === 'คนขับรถ'){
+          var mainKey2 = keys.find(function(k){ return k.indexOf('ยานพาหนะ')!==-1 && k.indexOf('สภาพทั่วไป')!==-1; });
+          isReady = mainKey2 ? (String(row[mainKey2]).trim() === 'พร้อมใช้งาน') : (issueParts.length === 0);
+        }
+
+        var issueText = '-';
+        if (issueParts.length > 0) issueText = issueParts.join(', ');
+        else if (!isReady) issueText = 'ตรวจพบความไม่พร้อมใช้งาน';
+
+        combined.push({
+          id: vehicle + role + idx + Math.random(),
+          rawTimestamp: rawTimestamp, date: formattedDate,
+          vehicle: vehicle, employee: employee, role: role,
+          status: isReady ? 'พร้อมใช้งาน' : 'ไม่พร้อมใช้งาน',
+          issue: issueText
+        });
+      });
+    });
+
+    combined.sort(function(a,b){ return b.rawTimestamp - a.rawTimestamp; });
+    allData = combined;
+
+    document.getElementById('fleetLoading').style.display = 'none';
+    if (allData.length === 0){
+      document.getElementById('fleetEmpty').style.display = '';
+      return;
+    }
+    document.getElementById('fleetContent').style.display = '';
+    populateFormLinks();
+    populateVehicleFilters();
+    initMonthDropdowns();
+    updateAll();
+
+    var now = new Date();
+    document.getElementById('lastUpdate').textContent = 'อัปเดตล่าสุด ' + now.toLocaleTimeString('th-TH', {hour:'2-digit', minute:'2-digit'});
+  }
+
+  function formatDateString(s){
+    try {
+      var dStr = String(s).split(' ')[0].trim();
+      var d;
+      if (dStr.indexOf('/') !== -1){
+        var p = dStr.split('/');
+        if (p.length === 3){
+          var p0 = parseInt(p[0],10), p1 = parseInt(p[1],10), p2 = parseInt(p[2],10);
+          if (p2 > 2500) p2 -= 543;
+          else if (p2 < 100) p2 += 2000;
+          d = p0 > 12 ? new Date(p2, p1-1, p0) : new Date(p2, p0-1, p1);
+        }
+      } else if (dStr.indexOf('-') !== -1){ d = new Date(dStr); }
+      else { d = new Date(s); }
+      if (!d || isNaN(d.getTime())) return null;
+      return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
+    } catch(e){ return null; }
+  }
+
+  // === Subnav populators ===
+  function populateFormLinks(){
+    var container = document.getElementById('formLinksContainer');
+    if (!FORM_URLS.length){
+      // Default form URL list — same as Ambulance System config
+      FORM_URLS = [
+        { vehicle:'คันที่ 1 (4893)', role:'EMT',    url:'https://docs.google.com/forms/d/e/1FAIpQLScCbhqS9tYgbbwOO7PjUBmR7XQMG9A_TBItHDBeIk3zqT_0HA/viewform' },
+        { vehicle:'คันที่ 1 (4893)', role:'คนขับ',  url:'https://docs.google.com/forms/d/e/1FAIpQLSfn6sRQYYDHraVJCqe6qeky_oTqmeVby3X7yjktojXayhxsYg/viewform' },
+        { vehicle:'คันที่ 2 (4944)', role:'EMT',    url:'https://docs.google.com/forms/d/e/1FAIpQLSfRNVjvLVU4HpmogIudnX4A8E5fC-rfIHECA22g5CjNcVWbzQ/viewform' },
+        { vehicle:'คันที่ 2 (4944)', role:'คนขับ',  url:'https://docs.google.com/forms/d/e/1FAIpQLSdowKnQSjmEIoceauEt8Fy3IkCBXoActOlblFuuZe5X85euSQ/viewform' },
+        { vehicle:'คันที่ 3 (หน้ายาว)', role:'EMT',    url:'https://docs.google.com/forms/d/e/1FAIpQLSe4tRMR89JykwQ4p3r6sGwLfw6G_N6VcSHzEN7Bk42r_-L9TQ/viewform' },
+        { vehicle:'คันที่ 3 (หน้ายาว)', role:'คนขับ',  url:'https://docs.google.com/forms/d/e/1FAIpQLSe76zlA5tghaOiXeRKFJ5H_s5_txVOaozQkVOWQXGUsF-IQHA/viewform' }
+      ];
+    }
+    container.innerHTML = FORM_URLS.map(function(f){
+      var icon = f.role === 'EMT' ? 'bi-clipboard2-pulse' : 'bi-truck';
+      // Extract "คันที่ N" prefix; fallback to full vehicle name if pattern not found
+      var m = String(f.vehicle).match(/คันที่\s*\d+/);
+      var label = m ? m[0] : f.vehicle;
+      return '<a class="form-link" href="'+ f.url +'" target="_blank" rel="noopener"><i class="bi '+ icon +'"></i> '+ label +' · '+ f.role +'</a>';
+    }).join('');
+  }
+
+  function populateVehicleFilters(){
+    var unique = [];
+    allData.forEach(function(d){ if (unique.indexOf(d.vehicle) === -1) unique.push(d.vehicle); });
+    unique.sort();
+    var html = unique.map(function(v){
+      var cnt = allData.filter(function(d){ return d.vehicle === v; }).length;
+      var safeV = v.replace(/'/g, "\\'");
+      return '<a href="javascript:void(0)" data-filter-vehicle="'+ v +'" onclick="setFilterVehicle(\''+ safeV +'\', this)">'+
+             '<span><i class="bi bi-truck"></i> '+ _displayName(v) +'</span>'+
+             '<span class="badge-mini">'+ cnt +'</span></a>';
+    }).join('');
+    document.getElementById('vehicleFilterList').innerHTML = html;
+    document.getElementById('fv-cnt-all').textContent = allData.length;
+  }
+
+  function initMonthDropdowns(){
+    var ms = document.getElementById('monthSelect');
+    var ys = document.getElementById('yearSelect');
+    ms.innerHTML = ''; ys.innerHTML = '';
+    monthNames.forEach(function(m,i){ ms.innerHTML += '<option value="'+i+'">'+m+'</option>'; });
+    var cy = new Date().getFullYear();
+    for(var y = cy-3; y <= cy+1; y++) ys.innerHTML += '<option value="'+y+'">'+y+'</option>';
+  }
+
+  // === Filters ===
+  window.setFilterVehicle = function(v, el){
+    filters.vehicle = v;
+    document.querySelectorAll('[data-filter-vehicle]').forEach(function(a){ a.classList.remove('active'); });
+    if (el) el.classList.add('active');
+    updateAll();
+  };
+  window.setFilterStatus = function(s, el){
+    filters.status = s;
+    document.querySelectorAll('[data-filter-status]').forEach(function(a){ a.classList.remove('active'); });
+    if (el) el.classList.add('active');
+    updateAll();
+  };
+
+  function getFiltered(){
+    return allData.filter(function(item){
+      if (filters.vehicle !== 'All' && item.vehicle !== filters.vehicle) return false;
+      if (filters.status !== 'All'){
+        var ok = item.status === 'พร้อมใช้งาน';
+        var hasNote = item.issue !== '-';
+        if (filters.status === 'ready_perfect' && !(ok && !hasNote)) return false;
+        if (filters.status === 'ready_note' && !(ok && hasNote)) return false;
+        if (filters.status === 'not_ready' && ok) return false;
+      }
+      return true;
+    });
+  }
+
+  // === Update all panels ===
+  function updateAll(){
+    var data = getFiltered();
+    renderVehicleCards();
+    renderStats(data);
+    renderCalendar(data);
+    renderCharts(data);
+    renderTable(data);
+    renderRightCol();
+  }
+
+  // === Vehicle Status Cards ===
+  function renderVehicleCards(){
+    var c = document.getElementById('vehicleStatusContainer');
+    c.innerHTML = '';
+    var vehicles = [];
+    allData.forEach(function(d){ if (vehicles.indexOf(d.vehicle) === -1) vehicles.push(d.vehicle); });
+    vehicles.sort();
+
+    vehicles.forEach(function(v){
+      if (filters.vehicle !== 'All' && filters.vehicle !== v) return;
+      var latestEMT = allData.find(function(d){ return d.vehicle === v && d.role === 'EMT'; });
+      var latestDriver = allData.find(function(d){ return d.vehicle === v && d.role === 'คนขับรถ'; });
+      if (!latestEMT && !latestDriver) return;
+
+      var sev = function(rec){
+        if (!rec) return 0;
+        if (rec.status === 'ไม่พร้อมใช้งาน') return 3;
+        if (rec.issue !== '-') return 2;
+        return 1;
+      };
+      var maxSev = Math.max(sev(latestEMT), sev(latestDriver));
+      var clsMap = {1:'ok', 2:'warn', 3:'fail', 0:'empty'};
+      var cls = clsMap[maxSev];
+      var statusText = maxSev === 3 ? 'ไม่พร้อมใช้งาน' : maxSev === 2 ? 'พร้อมใช้งาน (มี Note)' : 'พร้อมใช้งานสมบูรณ์';
+      var iconName = maxSev === 3 ? 'bi-exclamation-triangle-fill' : maxSev === 2 ? 'bi-info-circle-fill' : 'bi-check-circle-fill';
+
+      var subRow = function(rec, label){
+        if (!rec) return '<div class="vh-row"><div class="vh-row-label"><span class="role-dot"></span>'+label+'</div><div class="vh-row-status" style="color:var(--c-text-3);">-</div></div>';
+        var s = sev(rec);
+        var labelCls = s === 3 ? 's-fail' : s === 2 ? 's-warn' : 's-ok';
+        var txtCls = s === 3 ? 's-fail-text' : s === 2 ? 's-warn-text' : 's-ok-text';
+        var txt = s === 3 ? 'ไม่พร้อม' : s === 2 ? 'มี Note' : 'พร้อม';
+        return '<div class="vh-row"><div class="vh-row-label '+labelCls+'"><span class="role-dot"></span>'+label+'</div><div class="vh-row-status '+txtCls+'">'+txt+' <span class="badge-date">'+rec.date+'</span></div></div>';
+      };
+
+      // Click whole card → GPS module (per user spec, no case link)
+      var safeV = encodeURIComponent(v);
+      c.innerHTML += '<div class="vehicle-card '+cls+'" onclick="window.location.href=\'../gps/?vehicle='+safeV+'\'" title="คลิกเพื่อดูตำแหน่งใน GPS">'+
+        '<div class="vh-head">'+
+          '<div class="vh-icon"><i class="bi '+iconName+'"></i></div>'+
+          '<div class="vh-head-info">'+
+            '<div class="vh-name">'+_displayName(v)+'</div>'+
+            '<span class="vh-status-badge">'+statusText+'</span>'+
+          '</div>'+
+          '<i class="bi bi-chevron-right vh-arrow"></i>'+
+        '</div>'+
+        '<div class="vh-rows">'+
+          subRow(latestDriver, 'คนขับ')+
+          subRow(latestEMT, 'EMT')+
+        '</div>'+
+      '</div>';
+    });
+
+    if (!c.innerHTML){
+      c.innerHTML = '<div class="rc-empty" style="grid-column:1/-1; padding:30px;">ไม่มีข้อมูลรถสำหรับตัวกรองนี้</div>';
+    }
+  }
+
+  // === Stats ===
+  function renderStats(data){
+    var total = data.length;
+    var rp = data.filter(function(d){ return d.status === 'พร้อมใช้งาน' && d.issue === '-'; }).length;
+    var ni = data.filter(function(d){ return d.status === 'พร้อมใช้งาน' && d.issue !== '-'; }).length;
+    var nr = data.filter(function(d){ return d.status === 'ไม่พร้อมใช้งาน'; }).length;
+    var pct = total === 0 ? 0 : Math.round(((rp+ni)/total)*100);
+    document.getElementById('statTotal').textContent = total;
+    document.getElementById('statReadyPerfect').textContent = rp;
+    document.getElementById('statNote').textContent = ni;
+    document.getElementById('statNotReady').textContent = nr;
+    document.getElementById('statPercent').textContent = pct;
+    setTimeout(function(){ document.getElementById('statProgressBar').style.width = pct + '%'; }, 100);
+  }
+
+  // === Calendar ===
+  function renderCalendar(data){
+    var grid = document.getElementById('calendarGrid');
+    var ms = document.getElementById('monthSelect');
+    var ys = document.getElementById('yearSelect');
+    ms.value = currentMonth.getMonth();
+    ys.value = currentMonth.getFullYear();
+    grid.innerHTML = '';
+    calendarRecordsByDate = {};
+    dayNames.forEach(function(d){ grid.innerHTML += '<div class="cal-header">'+d+'</div>'; });
+    var daysInMonth = new Date(currentMonth.getFullYear(), currentMonth.getMonth()+1, 0).getDate();
+    var firstDay = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), 1).getDay();
+    for (var i = 0; i < firstDay; i++) grid.innerHTML += '<div class="cal-cell"></div>';
+
+    var todayStr = new Date().toISOString().split('T')[0];
+
+    for (var day = 1; day <= daysInMonth; day++){
+      var dateStr = currentMonth.getFullYear() + '-' + String(currentMonth.getMonth()+1).padStart(2,'0') + '-' + String(day).padStart(2,'0');
+      var records = data.filter(function(d){ return d.date === dateStr; });
+      var hasRec = records.length > 0;
+      var hasFail = records.some(function(r){ return r.status === 'ไม่พร้อมใช้งาน'; });
+      var isToday = dateStr === todayStr;
+      var cellCls = 'cal-cell' + (hasRec ? ' has-data' : '') + (isToday ? ' today' : '');
+      var dotHtml = hasRec ? '<span class="cal-dot '+(hasFail?'red':'green')+'"></span>' : '';
+
+      var tags = '';
+      if (hasRec){
+        calendarRecordsByDate[dateStr] = { day:day, records:records };
+        var top = records.slice(0,2).map(function(r){
+          var ok = r.status === 'พร้อมใช้งาน';
+          var warn = ok && r.issue !== '-';
+          var tagCls = ok ? (warn ? 'warn' : 'ok') : 'fail';
+          var short = r.vehicle.match(/\d+|หน้ายาว/);
+          short = short ? short[0] : r.vehicle.substring(0,5);
+          return '<span class="cal-tag '+tagCls+'">'+ short +'</span>';
+        }).join('');
+        tags = '<div class="cal-tags">' + top + (records.length>2 ? '<span class="cal-tag" style="background:#f1f5f9;color:#64748b;">+'+(records.length-2)+'</span>' : '') + '</div>';
+      }
+      var clickAttr = hasRec ? ' onclick="window._fleetOpenPopup(\''+dateStr+'\')"' : '';
+      grid.innerHTML += '<div class="'+cellCls+'"'+clickAttr+'><div class="cal-cell-head"><span class="cal-day">'+day+'</span>'+dotHtml+'</div>'+tags+'</div>';
+    }
+  }
+
+  window._fleetOpenPopup = function(dateStr){
+    var info = calendarRecordsByDate[dateStr];
+    if (!info) return;
+    var existing = document.getElementById('fleetCalPopup');
+    if (existing) existing.remove();
+    var listHtml = info.records.map(function(r){
+      var ok = r.status === 'พร้อมใช้งาน';
+      var warn = ok && r.issue !== '-';
+      var badge = ok ? (warn ? 'badge-warning' : 'badge-success') : 'badge-danger';
+      var badgeText = ok ? (warn ? 'พร้อม (มี Note)' : 'พร้อม') : 'ไม่พร้อม';
+      var roleTag = r.role === 'EMT'
+        ? '<span class="role-tag role-tag-emt"><i class="bi bi-clipboard2-pulse"></i>EMT</span>'
+        : '<span class="role-tag role-tag-driver"><i class="bi bi-truck"></i>Driver</span>';
+      var issueHtml = r.issue !== '-' ? '<div class="pop-rec-issue">' + escapeHtml(r.issue) + '</div>' : '';
+      return '<div class="pop-rec">'+
+        '<div class="pop-rec-head"><span class="pop-rec-vh">'+ escapeHtml(_displayName(r.vehicle)) +'</span><span class="badge '+badge+'">'+badgeText+'</span></div>'+
+        '<div class="pop-rec-meta">'+ roleTag +'<span>'+ escapeHtml(r.employee) +'</span></div>'+
+        issueHtml +
+      '</div>';
+    }).join('');
+
+    var overlay = document.createElement('div');
+    overlay.className = 'pop-overlay';
+    overlay.id = 'fleetCalPopup';
+    overlay.onclick = function(e){ if (e.target === overlay) overlay.remove(); };
+    overlay.innerHTML =
+      '<div class="pop-card">'+
+        '<div class="pop-head"><h4>วันที่ '+ info.day +' '+ monthNames[currentMonth.getMonth()] +' '+ (currentMonth.getFullYear()+543) +'</h4>'+
+        '<button class="pop-close" onclick="document.getElementById(\'fleetCalPopup\').remove()"><i class="bi bi-x-lg"></i></button></div>'+
+        listHtml +
+      '</div>';
+    document.body.appendChild(overlay);
+  };
+
+  function escapeHtml(s){
+    return String(s||'').replace(/[&<>"']/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]; });
+  }
+
+  // === Charts ===
+  function renderCharts(data){
+    if (pieChart) pieChart.destroy();
+    if (barChart) barChart.destroy();
+    var total = data.length;
+    if (total === 0){
+      document.getElementById('pieEmpty').classList.remove('hidden');
+      document.getElementById('barEmpty').classList.remove('hidden');
+      return;
+    }
+    document.getElementById('pieEmpty').classList.add('hidden');
+    document.getElementById('barEmpty').classList.add('hidden');
+    var rp = data.filter(function(d){ return d.status === 'พร้อมใช้งาน' && d.issue === '-'; }).length;
+    var ni = data.filter(function(d){ return d.status === 'พร้อมใช้งาน' && d.issue !== '-'; }).length;
+    var nr = data.filter(function(d){ return d.status === 'ไม่พร้อมใช้งาน'; }).length;
+
+    Chart.defaults.font.family = "'Sarabun', sans-serif";
+    Chart.defaults.color = '#64748b';
+
+    pieChart = new Chart(document.getElementById('pieChart').getContext('2d'), {
+      type:'doughnut',
+      data:{ labels:['พร้อมสมบูรณ์','มี Note','ไม่พร้อม'],
+        datasets:[{ data:[rp,ni,nr], backgroundColor:['#16a34a','#f59e0b','#dc2626'], borderWidth:0 }] },
+      options:{ responsive:true, maintainAspectRatio:false, cutout:'66%',
+        plugins:{ legend:{ position:'bottom', labels:{ usePointStyle:true, padding:12, font:{size:11} } } } }
+    });
+
+    var vList = []; data.forEach(function(d){ if (vList.indexOf(d.vehicle) === -1) vList.push(d.vehicle); });
+    vList.sort();
+    var bRP = [], bNI = [], bNR = [];
+    vList.forEach(function(v){
+      bRP.push(data.filter(function(d){ return d.vehicle===v && d.status==='พร้อมใช้งาน' && d.issue==='-'; }).length);
+      bNI.push(data.filter(function(d){ return d.vehicle===v && d.status==='พร้อมใช้งาน' && d.issue!=='-'; }).length);
+      bNR.push(data.filter(function(d){ return d.vehicle===v && d.status==='ไม่พร้อมใช้งาน'; }).length);
+    });
+
+    barChart = new Chart(document.getElementById('barChart').getContext('2d'), {
+      type:'bar',
+      data:{ labels:vList.map(function(v){ return _displayName(v); }),
+        datasets:[
+          { label:'พร้อม', data:bRP, backgroundColor:'#16a34a', stack:'S', borderRadius:4 },
+          { label:'Note', data:bNI, backgroundColor:'#f59e0b', stack:'S', borderRadius:4 },
+          { label:'ไม่พร้อม', data:bNR, backgroundColor:'#dc2626', stack:'S', borderRadius:4 }
+        ] },
+      options:{ responsive:true, maintainAspectRatio:false,
+        scales:{ x:{ stacked:true, grid:{display:false} }, y:{ stacked:true, beginAtZero:true } },
+        plugins:{ legend:{ position:'bottom', labels:{ usePointStyle:true, padding:12, font:{size:11} } } } }
+    });
+  }
+
+  // === Table ===
+  function renderTable(data){
+    var tbody = document.getElementById('tableBody');
+    var searched = data;
+    if (tableSearchQuery.trim()){
+      var q = tableSearchQuery.toLowerCase();
+      searched = data.filter(function(r){
+        return r.vehicle.toLowerCase().indexOf(q) !== -1 ||
+               r.employee.toLowerCase().indexOf(q) !== -1 ||
+               r.role.toLowerCase().indexOf(q) !== -1 ||
+               r.date.indexOf(q) !== -1 ||
+               r.status.toLowerCase().indexOf(q) !== -1 ||
+               r.issue.toLowerCase().indexOf(q) !== -1;
+      });
+    }
+    var limit = isTableExpanded ? searched.length : 10;
+    var display = searched.slice(0, limit);
+    if (searched.length === 0){
+      tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; padding:30px; color:var(--c-text-3);">ไม่พบข้อมูล</td></tr>';
+      document.getElementById('tableFooter').style.display = 'none';
+      return;
+    }
+    tbody.innerHTML = display.map(function(r){
+      var ok = r.status === 'พร้อมใช้งาน';
+      var warn = ok && r.issue !== '-';
+      var badge = ok && !warn
+        ? '<span class="badge badge-success"><i class="bi bi-check-circle-fill"></i> พร้อม</span>'
+        : warn
+          ? '<span class="badge badge-warning"><i class="bi bi-info-circle-fill"></i> มี Note</span>'
+          : '<span class="badge badge-danger"><i class="bi bi-exclamation-triangle-fill"></i> ไม่พร้อม</span>';
+      var issue = r.issue !== '-' ? '<span style="color:var(--c-warn); font-weight:600;">'+ escapeHtml(r.issue) +'</span>' : '<span style="color:var(--c-text-3);">-</span>';
+      var roleCls = r.role === 'EMT' ? 'role-tag-emt' : 'role-tag-driver';
+      var roleLabel = r.role === 'EMT' ? 'EMT' : 'Driver';
+      return '<tr>'+
+        '<td style="font-weight:600;">'+ r.date +'</td>'+
+        '<td style="font-weight:600;">'+ escapeHtml(_displayName(r.vehicle)) +'</td>'+
+        '<td>'+ escapeHtml(r.employee) +'</td>'+
+        '<td><span class="role-tag '+roleCls+'">'+ roleLabel +'</span></td>'+
+        '<td>'+ badge +'</td>'+
+        '<td>'+ issue +'</td>'+
+      '</tr>';
+    }).join('');
+
+    var footer = document.getElementById('tableFooter');
+    var btn = document.getElementById('btnToggleTable');
+    if (searched.length > 10){
+      footer.style.display = '';
+      btn.textContent = isTableExpanded ? 'ย่อตาราง (10/'+ searched.length +')' : 'แสดงทั้งหมด ('+ searched.length +' รายการ)';
+    } else { footer.style.display = 'none'; }
+  }
+
+  // === Right Col ===
+  function renderRightCol(){
+    var todayStr = new Date().toISOString().split('T')[0];
+    var todayRecs = allData.filter(function(d){ return d.date === todayStr; });
+    var todayReady = todayRecs.filter(function(d){ return d.status === 'พร้อมใช้งาน' && d.issue === '-'; }).length;
+    var todayIssues = todayRecs.filter(function(d){ return d.status === 'ไม่พร้อมใช้งาน' || d.issue !== '-'; }).length;
+
+    document.getElementById('rc-today-count').textContent = todayRecs.length;
+    document.getElementById('rc-today-ready').textContent = todayReady;
+    document.getElementById('rc-today-issues').textContent = todayIssues;
+
+    // Recent issues (last 5 from all data)
+    var issues = allData.filter(function(d){ return d.status === 'ไม่พร้อมใช้งาน' || d.issue !== '-'; }).slice(0,5);
+    var iEl = document.getElementById('rc-issues-list');
+    if (issues.length === 0){
+      iEl.innerHTML = '<div class="rc-empty">ไม่มีปัญหา ✓</div>';
+    } else {
+      iEl.innerHTML = issues.map(function(r){
+        return '<div class="rc-issue">'+
+          '<div class="rc-issue-vh">'+ escapeHtml(_displayName(r.vehicle)) +' · '+ r.date +'</div>'+
+          '<div class="rc-issue-msg">'+ escapeHtml(r.issue !== '-' ? r.issue : 'ไม่พร้อมใช้งาน') +'</div>'+
+        '</div>';
+      }).join('');
+    }
+
+    // Vehicle summary
+    var vehicles = []; allData.forEach(function(d){ if (vehicles.indexOf(d.vehicle) === -1) vehicles.push(d.vehicle); });
+    vehicles.sort();
+    var vEl = document.getElementById('rc-vehicle-summary');
+    if (vehicles.length === 0){
+      vEl.innerHTML = '<div class="rc-empty">รอข้อมูล</div>';
+    } else {
+      vEl.innerHTML = vehicles.map(function(v){
+        var latest = allData.find(function(d){ return d.vehicle === v; });
+        if (!latest) return '';
+        var ok = latest.status === 'พร้อมใช้งาน' && latest.issue === '-';
+        var warn = latest.status === 'พร้อมใช้งาน' && latest.issue !== '-';
+        var cls = ok ? 'ok' : warn ? 'warn' : 'alert';
+        var txt = ok ? 'พร้อม' : warn ? 'Note' : 'ไม่พร้อม';
+        var short = v.match(/\d+|หน้ายาว/);
+        short = short ? short[0] : v.substring(0,8);
+        return '<div class="rc-row"><span class="lbl"><i class="bi bi-truck"></i> คันที่ '+ short +'</span><span class="val '+cls+'">'+ txt +'</span></div>';
+      }).join('');
+    }
+  }
+
+  // === Event Listeners ===
+  document.getElementById('btnPrevMonth').addEventListener('click', function(){
+    currentMonth = new Date(currentMonth.getFullYear(), currentMonth.getMonth()-1, 1); updateAll();
+  });
+  document.getElementById('btnNextMonth').addEventListener('click', function(){
+    currentMonth = new Date(currentMonth.getFullYear(), currentMonth.getMonth()+1, 1); updateAll();
+  });
+  document.getElementById('monthSelect').addEventListener('change', function(e){
+    currentMonth.setMonth(parseInt(e.target.value)); updateAll();
+  });
+  document.getElementById('yearSelect').addEventListener('change', function(e){
+    currentMonth.setFullYear(parseInt(e.target.value)); updateAll();
+  });
+  document.getElementById('tableSearchInput').addEventListener('input', function(e){
+    tableSearchQuery = e.target.value; renderTable(getFiltered());
+  });
+  document.getElementById('btnToggleTable').addEventListener('click', function(){
+    isTableExpanded = !isTableExpanded; renderTable(getFiltered());
+  });
+
+  // === Boot ===
+  fetchFleetData();
+
+})();
+</script>
+</body>
+</html>

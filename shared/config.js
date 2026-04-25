@@ -10,6 +10,9 @@ const CONFIG = {
   BASE_URL: '/pt-medical-system',
   // GAS Auth URL — NEVER expose in admin (breaks login if tampered)
   GAS_AUTH_API_URL: 'https://script.google.com/macros/s/AKfycbybpea7XetHbLnibNWUHV_Mg9CpmIWzXR_5lCKzPWoWUAjPcy-wUVAgAP_dWd0Avf4jug/exec',
+  // GAS Fleet API URL — Ambulance Checklist data source (deploy WebApi.gs as Web App)
+  // If empty, Fleet Status page shows mock data for testing.
+  GAS_FLEET_API_URL: 'https://script.google.com/macros/s/AKfycbx6LtGWP0dkekS8cUZ1wchAZlnTHmj7AbpS2ieDu2SoH-HShBqHXfe5JTeF4fO6fRRU/exec',
 
   // ===== DEFAULTS (factory fallback — admin overrides in settings table) =====
   // Each value here is used when the matching DB row is missing.

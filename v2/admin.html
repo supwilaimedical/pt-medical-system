@@ -58,6 +58,23 @@
   .v2-modrail .v2-spacer{ flex:1; }
   .v2-modrail .v2-divider{ width:32px; height:1px; background:#e2e8f0; margin:4px 0; }
   @media (max-width:768px){ .v2-modrail{ display:none; } }
+  /* Mobile-only module switcher inside admin sidebar drawer */
+  .sidebar-modswitch{ display:none; }
+  @media (max-width:768px){
+    .sidebar-modswitch{
+      display:flex; gap:6px; padding:14px 12px 10px;
+      border-bottom:1px solid #e2e8f0; background:#f8fafc;
+      flex-wrap:wrap; justify-content:center;
+    }
+    .sidebar-modswitch a{
+      width:38px; height:38px; border-radius:8px;
+      display:flex; align-items:center; justify-content:center;
+      background:#fff; border:1px solid #e2e8f0;
+      color:#475569; text-decoration:none; font-size:18px;
+      transition:all .15s;
+    }
+    .sidebar-modswitch a:hover{ background:#f1f5f9; color:#0f172a; }
+  }
   .admin-body * { box-sizing: border-box; }
   .admin-shell { display:flex; min-height:100vh; }
   .admin-topbar {
@@ -400,6 +417,7 @@
     <a href="firstaid/" title="ปฐมพยาบาล"><i class="bi bi-bandaid"></i></a>
     <a href="location/" title="พิกัดสถานที่"><i class="bi bi-geo-alt-fill"></i></a>
     <a href="gps/" title="GPS Tracking"><i class="bi bi-broadcast-pin"></i></a>
+    <a href="fleet/" title="Fleet Status"><i class="bi bi-clipboard-check"></i></a>
     <div class="v2-spacer"></div>
     <a href="monitor/" title="Monitor"><i class="bi bi-activity"></i></a>
     <a href="#" class="active" title="ตั้งค่าระบบ"><i class="bi bi-gear"></i></a>
@@ -408,6 +426,16 @@
   </aside>
 
   <aside class="admin-sidebar" id="sb-sidebar">
+    <!-- Mobile-only module switcher (mirrors v2-modrail which is hidden on mobile) -->
+    <div class="sidebar-modswitch" id="sb-modswitch">
+      <a href="transport/" title="นำส่งผู้ป่วย"><i class="bi bi-truck-flatbed"></i></a>
+      <a href="firstaid/" title="ปฐมพยาบาล"><i class="bi bi-bandaid"></i></a>
+      <a href="location/" title="พิกัดสถานที่"><i class="bi bi-geo-alt-fill"></i></a>
+      <a href="gps/" title="GPS Tracking"><i class="bi bi-broadcast-pin"></i></a>
+      <a href="fleet/" title="Fleet Status"><i class="bi bi-clipboard-check"></i></a>
+      <a href="monitor/" title="Monitor"><i class="bi bi-activity"></i></a>
+      <a href="index.html" title="หน้าหลัก"><i class="bi bi-house-door-fill"></i></a>
+    </div>
     <div class="sidebar-brand">
       <div class="brand-name">⚙️ ตั้งค่าระบบ</div>
       <div id="sb-admin-name" style="display:none;"></div>
@@ -2755,7 +2783,7 @@
       var rows = r.data || [];
       if (rows.length === 0) { el.innerHTML = '<div style="color:var(--atext-3); text-align:center; padding:18px;">ยังไม่มีการส่ง</div>'; return; }
       var statusColor = { sent:'#16a34a', failed:'#dc2626', skipped:'#94a3b8' };
-      el.innerHTML = '<div style="display:grid;grid-template-columns:140px 90px 90px 1fr 1fr;gap:6px 12px;font-size:12.5px;">' +
+      el.innerHTML = '<div style="overflow-x:auto;"><div style="display:grid;grid-template-columns:140px 90px 90px minmax(120px,1fr) minmax(120px,1fr);gap:6px 12px;font-size:12.5px;min-width:560px;">' +
         '<div style="font-weight:700;color:var(--atext-3);">เวลา</div>' +
         '<div style="font-weight:700;color:var(--atext-3);">Channel</div>' +
         '<div style="font-weight:700;color:var(--atext-3);">Status</div>' +
@@ -2772,7 +2800,7 @@
                  '<div>' + escapeHtml(r.case_id||'-') + ' / ' + escapeHtml(r.alert_type||'-') + '</div>' +
                  '<div style="color:var(--atext-3);word-break:break-word;">' + err + '</div>';
         }).join('') +
-        '</div>';
+        '</div></div>';
     } catch(e) {
       el.innerHTML = '<div style="color:var(--adanger);">โหลดไม่ได้: ' + (e.message||e) + '</div>';
     }

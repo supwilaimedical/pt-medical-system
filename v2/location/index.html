@@ -59,7 +59,7 @@
     transition:all .15s;
   }
   .v2-rail a:hover{ background:#f1f5f9; color:#0f172a; }
-  .v2-rail a.active{ background:#e0f2fe; color:#0369a1; }
+  .v2-rail a.active{ background:#fef9c3; color:#713f12; }
   .v2-rail .v2-spacer{ flex:1; }
   .v2-rail .v2-divider{ width:32px; height:1px; background:#e2e8f0; margin:4px 0; }
 
@@ -70,7 +70,7 @@
     display:flex; flex-direction:column; overflow-y:auto;
     z-index:1029; font-family:'Sarabun',sans-serif;
   }
-  @media (max-width: 991px){ .v2-subnav{ display:none; } }
+  @media (max-width: 767px){ .v2-subnav{ display:none; } }
   .v2-subnav-header{
     padding:14px 16px; border-bottom:1px solid #e2e8f0;
     background:#fff;
@@ -89,22 +89,36 @@
   }
   .v2-subnav a:hover{ background:#f1f5f9; }
   .v2-subnav a.active{
-    background:#e0f2fe; color:#0369a1; font-weight:600;
-    border-left:3px solid #0ea5e9; padding-left:13px;
+    background:#fef9c3; color:#713f12; font-weight:600;
+    border-left:3px solid #eab308; padding-left:13px;
   }
   .v2-subnav a .badge-mini{
     font-size:11px; padding:1px 7px; border-radius:999px;
     background:#e2e8f0; color:#475569; font-weight:600;
   }
-  .v2-subnav a.active .badge-mini{ background:#0ea5e9; color:#fff; }
+  .v2-subnav a.active .badge-mini{ background:#eab308; color:#fff; }
   .v2-rail a .bi, .v2-mobile-rail-strip a .bi{ font-size:18px; line-height:1; }
   .v2-subnav a .bi{ width:18px; display:inline-block; text-align:center; margin-right:6px; font-size:14px; opacity:.85; }
   .v2-subnav a.active .bi{ opacity:1; }
   .v2-subnav button .bi{ margin-right:4px; }
 
+  /* ===== Mobile: sticky form actions (always reachable above iOS keyboard) ===== */
+  @media (max-width:991px){
+    .loc-form-actions{
+      position:sticky; bottom:0; z-index:5;
+      background:#fff; padding:10px 12px;
+      margin:0 -12px -12px; /* break out of card padding */
+      border-top:1px solid #e2e8f0;
+      box-shadow:0 -4px 12px rgba(0,0,0,.04);
+      /* iOS 16.4+ keyboard awareness */
+      padding-bottom:calc(10px + env(keyboard-inset-bottom, env(safe-area-inset-bottom, 0px)));
+    }
+    .loc-form-actions .btn{ padding:10px 14px; font-size:14px; }
+  }
+
   /* ===== Mobile Hamburger Nav ===== */
   .v2-mobile-nav-toggle{ display:none; }
-  @media (max-width: 991px){
+  @media (max-width: 767px){
     .v2-mobile-nav-toggle{
       display:flex !important; position:fixed; top:8px; left:8px; z-index:1036;
       width:40px; height:40px; align-items:center; justify-content:center;
@@ -559,7 +573,8 @@
   <a href="../firstaid/" data-mod="firstaid" title="ปฐมพยาบาล"><i class="bi bi-bandaid"></i></a>
   <a href="../location/" data-mod="location" title="พิกัดสถานที่"><i class="bi bi-geo-alt-fill"></i></a>
   <a href="../gps/" data-mod="gps" id="rail-gps" title="GPS Tracking" style="display:none;"><i class="bi bi-broadcast-pin"></i></a>
-  <div class="v2-spacer"></div>
+    <a href="../fleet/" data-mod="fleet" title="Fleet Status"><i class="bi bi-clipboard-check"></i></a>
+      <div class="v2-spacer"></div>
   <a href="../monitor/" data-mod="monitor" id="rail-monitor" title="Monitor" style="display:none;"><i class="bi bi-activity"></i></a>
   <a href="../admin.html" data-mod="admin" id="rail-admin" title="Admin Settings" style="display:none;"><i class="bi bi-gear"></i></a>
   <div class="v2-divider"></div>
@@ -576,17 +591,17 @@
     <a href="../firstaid/" data-mod="firstaid" title="ปฐมพยาบาล"><i class="bi bi-bandaid"></i></a>
     <a href="../location/" data-mod="location" title="พิกัดสถานที่" class="active"><i class="bi bi-geo-alt-fill"></i></a>
     <a href="../gps/" data-mod="gps" id="m-rail-gps" title="GPS" style="display:none;"><i class="bi bi-broadcast-pin"></i></a>
-    <a href="../monitor/" data-mod="monitor" id="m-rail-monitor" title="Monitor" style="display:none;"><i class="bi bi-activity"></i></a>
+    <a href="../fleet/" data-mod="fleet" title="Fleet Status"><i class="bi bi-clipboard-check"></i></a>
+        <a href="../monitor/" data-mod="monitor" id="m-rail-monitor" title="Monitor" style="display:none;"><i class="bi bi-activity"></i></a>
     <a href="../admin.html" data-mod="admin" id="m-rail-admin" title="Admin" style="display:none;"><i class="bi bi-gear"></i></a>
     <a href="../" title="หน้าหลัก"><i class="bi bi-house-door-fill"></i></a>
   </div>
-  <!-- Header with inline [+ เพิ่ม] button -->
-  <div class="v2-subnav-header" style="display:flex; align-items:center; justify-content:space-between; gap:8px;">
-    <div style="min-width:0;">
-      <div class="title">พิกัดสถานที่</div>
-      <div class="sub">PT Location</div>
-    </div>
-    <button type="button" onclick="if(typeof loc_openFormNew==='function') loc_openFormNew();" style="flex-shrink:0; background:#0ea5e9; color:#fff; border:none; padding:5px 10px; border-radius:7px; font-size:12px; font-weight:600; cursor:pointer;">+ เพิ่ม</button>
+  <div class="v2-subnav-header">
+    <div class="title"><i class="bi bi-geo-alt-fill" style="color:#eab308;"></i> พิกัดสถานที่</div>
+    <div class="sub">PT Location</div>
+  </div>
+  <div style="padding:10px 14px; border-bottom:1px solid #e2e8f0;">
+    <button type="button" onclick="if(typeof loc_openFormNew==='function') loc_openFormNew();" style="width:100%; padding:8px; background:#eab308; color:#fff; border:none; border-radius:8px; font-weight:600; font-size:13px; cursor:pointer;"><i class="bi bi-plus-lg"></i> เพิ่มสถานที่ใหม่</button>
   </div>
 
   <!-- Section: มุมมอง -->
@@ -1060,7 +1075,7 @@
       <div id="loc-dashboard-view" class="view-section active">
         <div class="d-flex justify-content-between align-items-end mb-3 mt-2">
           <div>
-            <h3 class="dashboard-header mb-1"><i class="bi bi-map-fill text-success me-2"></i>พิกัดสถานที่</h3>
+            <h3 class="dashboard-header mb-1"><i class="bi bi-geo-alt-fill me-2" style="color:#eab308;"></i>พิกัดสถานที่</h3>
             <p class="text-muted small mb-0" id="v2-loc-dash-sub">ทั้งหมด <span id="loc-dash-total">0</span> สถานที่</p>
           </div>
         </div>
@@ -1095,7 +1110,7 @@
       <div id="loc-list-view" class="view-section">
         <div class="d-flex justify-content-between align-items-end mb-3 mt-2">
           <div>
-            <h3 class="dashboard-header mb-1"><i class="bi bi-geo-alt-fill text-success me-2"></i>ฐานข้อมูลพิกัดสถานที่</h3>
+            <h3 class="dashboard-header mb-1"><i class="bi bi-geo-alt-fill me-2" style="color:#eab308;"></i>ฐานข้อมูลพิกัดสถานที่</h3>
             <p class="text-muted small mb-0">จัดการข้อมูลพิกัดสถานที่ผู้ป่วย/ลูกค้า</p>
           </div>
           <button id="loc-backfill-btn" class="btn btn-outline-warning btn-sm rounded-pill px-3 fw-bold shadow-sm" style="display:none;" onclick="loc_backfillProvinces()" title="อัปเดตจังหวัด/อำเภอจากพิกัด สำหรับเคสที่ไม่ระบุ">
@@ -1179,7 +1194,7 @@
                 </div>
               </div>
               <div class="mb-3"><label class="form-label fw-bold small">รายละเอียด / จุดสังเกต</label><textarea id="loc-form-details" class="form-control" rows="3"></textarea></div>
-              <div class="d-flex gap-2">
+              <div class="d-flex gap-2 loc-form-actions">
                 <button type="button" class="btn btn-light border flex-fill" onclick="loc_switchTab('customers')">ยกเลิก</button>
                 <button type="submit" class="btn btn-success flex-fill fw-bold" id="loc-form-submit-btn"><i class="bi bi-save me-1"></i> บันทึก</button>
               </div>
@@ -1192,7 +1207,7 @@
       <div id="loc-tokens-view" class="view-section">
         <div class="d-flex justify-content-between align-items-end mb-3 mt-2 flex-wrap gap-2">
           <div>
-            <h3 class="dashboard-header mb-1"><i class="bi bi-link-45deg text-success me-2"></i>จัดการลิงก์แชร์</h3>
+            <h3 class="dashboard-header mb-1"><i class="bi bi-link-45deg me-2" style="color:#eab308;"></i>จัดการลิงก์แชร์</h3>
             <p class="text-muted small mb-0">ควบคุมและยกเลิกสิทธิ์ลิงก์แชร์ · กรองและลบข้อมูลเก่าได้</p>
           </div>
           <div class="d-flex gap-2 align-items-center flex-wrap">

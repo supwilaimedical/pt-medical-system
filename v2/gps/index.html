@@ -3,7 +3,7 @@
 <head>
   <title>PT-System | GPS Tracking</title>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="description" content="PT Medical System — ระบบติดตามตำแหน่งรถ GPS">
   <meta name="theme-color" content="#0ea5e9">
   <meta name="color-scheme" content="light">
@@ -545,6 +545,10 @@
       backdrop-filter: blur(4px);
       box-shadow: 0 4px 14px rgba(14,165,233,0.25);
     }
+    @media (max-width:991px){
+      /* Mobile: bottom sheet covers bottom-left, lift indicator above peek state (140px) */
+      .live-indicator{ bottom:auto; top:60px; left:auto; right:12px; }
+    }
     .live-dot {
       width: 7px; height: 7px; border-radius: 50%; background: var(--red-500);
       animation: pulseRed 1.5s infinite;
@@ -686,7 +690,7 @@
     transition:all .15s;
   }
   .v2-rail a:hover{ background:#f1f5f9; color:#0f172a; }
-  .v2-rail a.active{ background:#e0f2fe; color:#0369a1; }
+  .v2-rail a.active{ background:#ffe4e6; color:#9f1239; }
   .v2-rail .v2-spacer{ flex:1; }
   .v2-rail .v2-divider{ width:32px; height:1px; background:#e2e8f0; margin:4px 0; }
 
@@ -716,8 +720,8 @@
   }
   .v2-subnav a:hover{ background:#f1f5f9; }
   .v2-subnav a.active{
-    background:#e0f2fe; color:#0369a1; font-weight:600;
-    border-left:3px solid #0ea5e9; padding-left:13px;
+    background:#ffe4e6; color:#9f1239; font-weight:600;
+    border-left:3px solid #e11d48; padding-left:13px;
   }
 
   /* ===== Mobile Hamburger Nav ===== */
@@ -771,7 +775,7 @@
     font-size:11px; padding:1px 7px; border-radius:999px;
     background:#e2e8f0; color:#475569; font-weight:600;
   }
-  .v2-subnav a.active .badge-mini{ background:#0ea5e9; color:#fff; }
+  .v2-subnav a.active .badge-mini{ background:#e11d48; color:#fff; }
   .v2-subnav-header-flex{ display:flex; align-items:center; justify-content:space-between; gap:8px; }
   .v2-subnav-btn{
     width:28px; height:28px; border-radius:7px; border:1px solid #e2e8f0;
@@ -1004,7 +1008,8 @@
   <a href="../firstaid/" data-mod="firstaid" title="ปฐมพยาบาล"><i class="bi bi-bandaid"></i></a>
   <a href="../location/" data-mod="location" title="พิกัดสถานที่"><i class="bi bi-geo-alt-fill"></i></a>
   <a href="../gps/" data-mod="gps" id="rail-gps" title="GPS Tracking" style="display:none;"><i class="bi bi-broadcast-pin"></i></a>
-  <div class="v2-spacer"></div>
+    <a href="../fleet/" data-mod="fleet" title="Fleet Status"><i class="bi bi-clipboard-check"></i></a>
+      <div class="v2-spacer"></div>
   <a href="../monitor/" data-mod="monitor" id="rail-monitor" title="Monitor" style="display:none;"><i class="bi bi-activity"></i></a>
   <a href="../admin.html" data-mod="admin" id="rail-admin" title="Admin Settings" style="display:none;"><i class="bi bi-gear"></i></a>
   <div class="v2-divider"></div>
@@ -1019,14 +1024,15 @@
     <a href="../firstaid/" data-mod="firstaid" title="ปฐมพยาบาล"><i class="bi bi-bandaid"></i></a>
     <a href="../location/" data-mod="location" title="พิกัดสถานที่"><i class="bi bi-geo-alt-fill"></i></a>
     <a href="../gps/" data-mod="gps" id="m-rail-gps" title="GPS" style="display:none;" class="active"><i class="bi bi-broadcast-pin"></i></a>
-    <a href="../monitor/" data-mod="monitor" id="m-rail-monitor" title="Monitor" style="display:none;"><i class="bi bi-activity"></i></a>
+    <a href="../fleet/" data-mod="fleet" title="Fleet Status"><i class="bi bi-clipboard-check"></i></a>
+        <a href="../monitor/" data-mod="monitor" id="m-rail-monitor" title="Monitor" style="display:none;"><i class="bi bi-activity"></i></a>
     <a href="../admin.html" data-mod="admin" id="m-rail-admin" title="Admin" style="display:none;"><i class="bi bi-gear"></i></a>
     <a href="../" title="หน้าหลัก"><i class="bi bi-house-door-fill"></i></a>
   </div>
   <div class="v2-subnav-header">
     <div class="v2-subnav-header-flex">
       <div>
-        <div class="title">🛰️ GPS Tracking</div>
+        <div class="title"><i class="bi bi-broadcast-pin" style="color:#e11d48;"></i> GPS Tracking</div>
         <div class="sub">Live Fleet</div>
       </div>
       <button type="button" class="v2-subnav-btn" title="รีเฟรช" onclick="if(typeof manualRefresh==='function') manualRefresh();">
@@ -1153,7 +1159,7 @@
     colHeader.className = 'v2-gps-colheader';
     colHeader.innerHTML =
       '<div class="v2-gps-colheader-left">' +
-        '<h3 class="title">🛰️ GPS Tracking</h3>' +
+        '<h3 class="title"><i class="bi bi-broadcast-pin" style="color:#e11d48;"></i> GPS Tracking</h3>' +
         '<p class="sub">' +
           '<strong id="v2gps-stat-total">0</strong> คัน' +
           '<span class="sep">·</span>' +
@@ -1851,6 +1857,9 @@
       // Initial status fetch
       await fetchAllStatuses();
 
+      // Auto-focus vehicle if ?vehicle= param present (deep link from Fleet)
+      _autoFocusFromUrl();
+
       // Auto refresh ON by default
       toggleAutoRefresh();
 
@@ -2179,6 +2188,58 @@
     // =============================================
     // FOCUS VEHICLE
     // =============================================
+    // Deep-link from Fleet: ?vehicle=คันที่+1+(4893) → auto focus matching vehicle
+    // GPS nickname pattern: "คันที่ 1 (ALS)" — match by "คันที่ N" prefix only
+    function _autoFocusFromUrl() {
+      try {
+        var qp = new URLSearchParams(location.search);
+        var vRaw = qp.get('vehicle');
+        if (!vRaw) return;
+        var needle = String(vRaw).toLowerCase().trim();
+
+        // Strategy 1 (PRIMARY): match "คันที่ N" pattern — most reliable
+        // Fleet "คันที่ 1 (4893)" + GPS "คันที่ 1 (ALS)" → both have "คันที่ 1"
+        var phraseMatch = needle.match(/คันที่\s*(\d+)/);
+        var match = null;
+        if (phraseMatch) {
+          var num = phraseMatch[1];
+          // Build flexible regex that matches "คันที่N", "คันที่ N", "คันที่  N" etc.
+          var re = new RegExp('คันที่\\s*' + num + '\\b');
+          match = _vehicles.find(function(x){
+            var hay = ((x.nickname||'') + ' ' + (x.device_name||'')).toLowerCase();
+            return re.test(hay);
+          });
+        }
+        // Strategy 2: keyword match for non-numbered names (e.g., "หน้ายาว")
+        if (!match) {
+          var kw = needle.replace(/คันที่\s*\d+/g, '').replace(/[()]/g, '').trim();
+          if (kw && kw.length >= 2) {
+            match = _vehicles.find(function(x){
+              var hay = ((x.nickname||'') + ' ' + (x.device_name||'')).toLowerCase();
+              return hay.indexOf(kw) !== -1;
+            });
+          }
+        }
+        // Strategy 3: full substring match (last resort)
+        if (!match) {
+          match = _vehicles.find(function(x){
+            var hay = ((x.nickname||'') + ' ' + (x.device_name||'') + ' ' + (x.device_id||'')).toLowerCase();
+            return hay.indexOf(needle) !== -1;
+          });
+        }
+
+        if (match) {
+          var key = match.device_id + '_' + match.provider;
+          // Wait briefly so map markers are rendered before focusing
+          setTimeout(function(){
+            if (typeof focusVehicle === 'function') focusVehicle(key);
+          }, 400);
+        } else {
+          console.info('Fleet deep-link: no GPS vehicle matched "' + vRaw + '"');
+        }
+      } catch(e){ console.warn('autoFocusFromUrl err:', e); }
+    }
+
     function focusVehicle(key) {
       // Switching vehicle → drop any previous nearby-search result from the
       // map so dispatcher doesn't see stale route for a different vehicle

@@ -2,7 +2,7 @@
 <html lang="th">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="theme-color" content="#0ea5e9">
 <title>PT Medical V2</title>
 <link rel="manifest" href="manifest.json">
@@ -154,6 +154,7 @@
     padding:30px 24px 18px; max-width:1280px; margin:0 auto;
     display:flex; align-items:flex-end; justify-content:space-between; gap:24px; flex-wrap:wrap;
   }
+  @media (max-width:640px){ .l-hero-center{ align-items:flex-start; } }
   .l-eyebrow{
     font-size:11px; font-weight:700; letter-spacing:.18em;
     color:rgba(125,211,252,.9); text-transform:uppercase;
@@ -192,6 +193,7 @@
     backdrop-filter:blur(12px) saturate(180%);
     -webkit-backdrop-filter:blur(12px) saturate(180%);
     transition:transform .15s, background .15s, border-color .15s;
+    display:flex; flex-direction:column; min-height:96px; /* even card heights */
   }
   .l-kpi-card:hover{
     transform:translateY(-2px);
@@ -368,6 +370,7 @@
   .l-card[href^="firstaid"]{ --acc:#16a34a; --acc-soft:#dcfce7; }
   .l-card[href^="location"]{ --acc:#eab308; --acc-soft:#fef9c3; }
   .l-card[href^="gps"]{      --acc:#e11d48; --acc-soft:#ffe4e6; }
+  .l-card[href^="fleet"]{    --acc:#0d9488; --acc-soft:#ccfbf1; }
   .l-card[href^="monitor"]{  --acc:#7c3aed; --acc-soft:#ede9fe; }
   .l-card[href^="admin"]{    --acc:#475569; --acc-soft:#f1f5f9; }
 
@@ -597,6 +600,14 @@
             <div class="l-card-body">
               <div class="l-card-name">ติดตามรถ <span class="badge-mini live">Live</span></div>
               <div class="l-card-desc">GPS Live · ประวัติ · ดูกล้อง</div>
+            </div>
+            <i class="bi bi-chevron-right l-card-arrow"></i>
+          </a>
+          <a class="l-card" href="fleet/">
+            <div class="l-card-icon"><i class="bi bi-clipboard-check"></i></div>
+            <div class="l-card-body">
+              <div class="l-card-name">Fleet Status</div>
+              <div class="l-card-desc">สถานะทั่วไปของรถ · Daily checklist</div>
             </div>
             <i class="bi bi-chevron-right l-card-arrow"></i>
           </a>

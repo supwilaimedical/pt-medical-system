@@ -3,7 +3,7 @@
 <head>
   <title>PT-System | Patient Transport</title>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="description" content="PT Medical System — ระบบบันทึกการนำส่งผู้ป่วย">
   <meta name="theme-color" content="#0ea5e9">
   <meta name="color-scheme" content="light">
@@ -189,6 +189,15 @@
     .v2-tb-btn.v2-tb-icon i{ font-size:15px; }
     .v2-tb-btn.v2-tb-icon.primary{ color:#0ea5e9; background:#fff; border-color:#bae6fd; }
     .v2-tb-btn.v2-tb-icon.primary:hover{ background:#f0f9ff; color:#0369a1; border-color:#7dd3fc; }
+    /* Mobile: hide button labels, show icons only — keeps topbar 1 row */
+    @media (max-width:767px){
+      .v2-form-topbar .v2-tb-row1{ padding:8px 10px 8px 56px; gap:6px; }
+      .v2-form-topbar .v2-tb-row1 .right{ gap:4px; }
+      .v2-tb-btn{ padding:7px 10px; min-width:36px; justify-content:center; }
+      .v2-tb-btn .v2-tb-label{ display:none; }
+      .v2-tb-btn i{ font-size:15px; margin:0; }
+      .v2-form-topbar .v2-tb-row1 #display-case-id{ font-size:12.5px; }
+    }
     /* Hide V1 bottom action bars entirely — all actions moved to Static Topbar + Subnav Steps */
     #step2-panel > .mt-4.mb-5.no-print,
     #step3-panel > .mt-4.mb-4.no-print{ display:none !important; }
@@ -483,6 +492,28 @@
 
     /* ===== Bottom Step Navigation — shown on mobile + tablet/PC in single view (<1400px) ===== */
     .v2-bottom-nav{ display:none !important; }
+
+    /* ===== Mobile Timeline: 2-col grid (compact 4-input EMS / 2-input Refer) ===== */
+    @media (max-width:767px){
+      #tl-ems > .d-flex.flex-wrap,
+      #tl-refer > .d-flex.flex-wrap{
+        display:grid !important;
+        grid-template-columns:1fr 1fr;
+        gap:0;
+      }
+      /* Timeline label spans full width as header */
+      #tl-ems > .d-flex.flex-wrap > div:first-child,
+      #tl-refer > .d-flex.flex-wrap > div:first-child{
+        grid-column:1 / -1; justify-content:center;
+        background:#dbeafe; border-end:none;
+      }
+      /* Duration badges row spans full width */
+      #tl-ems-durations,
+      #tl-refer-durations{ grid-column:1 / -1; }
+      /* Inputs slightly larger on mobile (touch) */
+      .tl-time-input{ width:60px !important; font-size:14px !important; }
+      .tl-btn{ font-size:14px !important; padding:4px 6px !important; }
+    }
     @media (max-width: 1399px){
       .v2-bottom-nav.v2-bn-show{
         display:flex !important; position:fixed; left:0; right:0; bottom:0;
@@ -982,6 +1013,7 @@
   <a href="../firstaid/" title="ปฐมพยาบาล"><i class="bi bi-bandaid"></i></a>
   <a href="../location/" title="พิกัดสถานที่"><i class="bi bi-geo-alt-fill"></i></a>
   <a href="../gps/" id="rail-gps" title="GPS Tracking" style="display:none;"><i class="bi bi-broadcast-pin"></i></a>
+    <a href="../fleet/" title="Fleet Status"><i class="bi bi-clipboard-check"></i></a>
   <div class="v2-spacer"></div>
   <a href="../monitor/" id="rail-monitor" title="Monitor" style="display:none;"><i class="bi bi-activity"></i></a>
   <a href="../admin.html" id="rail-admin" title="Admin Settings" style="display:none;"><i class="bi bi-gear"></i></a>
@@ -998,12 +1030,13 @@
     <a href="../firstaid/" data-mod="firstaid" title="ปฐมพยาบาล"><i class="bi bi-bandaid"></i></a>
     <a href="../location/" data-mod="location" title="พิกัดสถานที่"><i class="bi bi-geo-alt-fill"></i></a>
     <a href="../gps/" data-mod="gps" id="m-rail-gps" title="GPS" style="display:none;"><i class="bi bi-broadcast-pin"></i></a>
-    <a href="../monitor/" data-mod="monitor" id="m-rail-monitor" title="Monitor" style="display:none;"><i class="bi bi-activity"></i></a>
+    <a href="../fleet/" data-mod="fleet" title="Fleet Status"><i class="bi bi-clipboard-check"></i></a>
+        <a href="../monitor/" data-mod="monitor" id="m-rail-monitor" title="Monitor" style="display:none;"><i class="bi bi-activity"></i></a>
     <a href="../admin.html" data-mod="admin" id="m-rail-admin" title="Admin" style="display:none;"><i class="bi bi-gear"></i></a>
     <a href="../" title="หน้าหลัก"><i class="bi bi-house-door-fill"></i></a>
   </div>
   <div class="v2-subnav-header">
-    <div class="title">นำส่งผู้ป่วย</div>
+    <div class="title"><i class="bi bi-truck-flatbed" style="color:#0ea5e9;"></i> นำส่งผู้ป่วย</div>
     <div class="sub">Transport</div>
   </div>
 
@@ -1917,7 +1950,7 @@
         <div id="dashboard-view" class="view-section active">
           <div class="d-flex justify-content-between align-items-end mb-3 mt-2">
               <div class="tr-colhead-left">
-                  <h3 class="dashboard-header mb-1">🚑 นำส่งผู้ป่วย</h3>
+                  <h3 class="dashboard-header mb-1"><i class="bi bi-truck-flatbed" style="color:#0ea5e9;"></i> นำส่งผู้ป่วย</h3>
                   <p class="text-muted small mb-0" id="v2-tr-dash-sub">กำลังดำเนินการ <span id="v2-tr-sub-active">0</span> · ปิดแล้ว <span id="v2-tr-sub-closed">0</span></p>
               </div>
           </div>
@@ -2057,7 +2090,7 @@
               <div class="right">
                 <button type="button" id="v2-tb-close-btn" class="v2-tb-btn v2-tb-icon" onclick="if(typeof confirmCloseCase==='function') confirmCloseCase()" title="ปิดเคส" style="display:none;"><i class="bi bi-check-circle"></i></button>
                 <button type="button" id="v2-tb-edit-btn" class="v2-tb-btn v2-tb-icon" onclick="if(typeof openEditModal==='function') openEditModal()" title="แก้ไขข้อมูลทั่วไป" style="display:none;"><i class="bi bi-pencil-square"></i></button>
-                <button type="button" id="v2-tb-save-btn" class="v2-tb-btn success" data-next="1" onclick="v2SaveOrNext()" title="บันทึก"><i class="bi bi-save"></i> บันทึก → ต่อไป</button>
+                <button type="button" id="v2-tb-save-btn" class="v2-tb-btn success" data-next="1" onclick="v2SaveOrNext()" title="บันทึก → ต่อไป"><i class="bi bi-save"></i><span class="v2-tb-label"> บันทึก → ต่อไป</span></button>
                 <button type="button" id="v2-tb-print-btn" class="v2-tb-btn v2-tb-icon primary" onclick="if(typeof handlePrint==='function') handlePrint(); else window.print();" title="พิมพ์ใบนำส่ง" style="display:none;"><i class="bi bi-printer"></i></button>
                 <span id="display-status" class="v2-tb-status">Active</span>
               </div>
