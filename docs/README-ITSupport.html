@@ -204,28 +204,41 @@
 
   <!-- COVER -->
   <div class="cover">
-    <div class="badge">IT Support Manual · v5.5</div>
+    <div class="badge">IT Support Manual · v6.0</div>
     <h1>PT Medical <span class="accent">System</span></h1>
     <div class="sub">คู่มือการติดตั้ง บำรุงรักษา และแก้ไขปัญหา สำหรับเจ้าหน้าที่ IT</div>
     <div class="meta">
-      <b>ระบบ:</b> PT Medical — Transport + First Aid + Location + GPS + Monitor<br>
-      <b>Stack:</b> HTML/JS · Supabase · Cloudinary · Google Apps Script · CMSV6 · Google Maps Platform<br>
+      <b>ระบบ:</b> PT Medical — Transport + First Aid + Location + GPS + Monitor (V2 canonical)<br>
+      <b>Stack:</b> HTML/JS · Supabase · Cloudinary · Google Apps Script · CMSV6 · Google Maps Platform · Bootstrap Icons<br>
       <b>Repo:</b> github.com/supwilaimedical/pt-medical-system<br>
-      <b>Version:</b> 5.5 — ปรับปรุงล่าสุด 2026-04-17
+      <b>Version:</b> 6.0 — ปรับปรุงล่าสุด 2026-04-25 (post-V2 migration)
     </div>
   </div>
 
-  <!-- What's New in v5.5 -->
+  <!-- What's New in v6.0 -->
   <div class="callout info" style="margin-top:8mm;">
-    <strong>🆕 What's new in v5.5 (Apr 2026):</strong>
+    <strong>🆕 What's new in v6.0 (Apr 2026 — V2 Migration):</strong>
     <ul style="margin:2mm 0 0;">
-      <li><b>Admin Overview</b> ปรับปรุงใหม่ — ย้ายไปขวาสุด, ตั้งค่า เป็น default, มี "ฟีเจอร์เด่น", System Health เพิ่ม Google Maps probe</li>
-      <li><b>ปุ่ม "เช็ค API ทั้งหมด"</b> — ทดสอบ 5 Google APIs (Maps JS / Places New / Directions / Distance Matrix / Geocoding) พร้อมผลแยกแต่ละตัว</li>
-      <li><b>Landing Page mobile fix</b> — แก้ logo หายบนมือถือ + card ไม่เต็ม (เปลี่ยนจาก flex center เป็น wrap scroll)</li>
-      <li><b>24-hour time</b> — บังคับทุก <code>&lt;input type="time"&gt;</code> ใช้ 24 ชั่วโมง (lang="en-GB")</li>
-      <li><b>Phase 1-4 Maps</b>: ค้นหาสถานที่ใกล้สุด, Directions + ETA, Distance Matrix ranking, Overspeed ≥120 km/h</li>
-      <li><b>DNR Policy</b>: ภาพบัตร ปชช./Passport/เอกสารราชการ + ลายเซ็นพยาน (i18n 4 ภาษา)</li>
-      <li><b>Share Link</b>: admin ลบ token หมดอายุได้</li>
+      <li><b>V2 เป็น canonical แล้ว</b> — URL หลัก = <code>/pt-medical-system/v2/...</code> (root + V1 module path เก่าจะ redirect ไปหา V2 อัตโนมัติ)</li>
+      <li><b>V1 archived</b> — ย้ายไป <code>/v1/</code> มี banner เตือนว่าเป็น legacy (จะลบหลัง 3-6 เดือน)</li>
+      <li><b>Command Center landing</b> — หน้าแรก dark hero + glass KPI + mini-map + asymmetric grid</li>
+      <li><b>V2 Share & Consent self-contained</b> — <code>v2/gps/share.html</code> + <code>v2/transport/consent-prototype.html</code> มี auth bypass + DOM scrub สำหรับ public viewer</li>
+      <li><b>Right-col active shares</b> — Transport แสดง list shares ฝั่งขวา</li>
+      <li><b>Bootstrap Icons unified</b> — แทน emoji ทั้งระบบ (look ทันสมัย consistent)</li>
+      <li><b>Company logo (APP_LOGO_URL)</b> — แทน "PT" placeholder ทุกที่ ตั้งใน Admin Settings</li>
+      <li><b>Notification system LIVE</b> — Activity Log + Line/TG ผ่าน Supabase DB webhook → worker /notify/check (refire-on-worse, ack reset debounce)</li>
+    </ul>
+  </div>
+
+  <!-- V2 Migration Notes -->
+  <div class="callout warn">
+    <strong>📌 V2 Migration Notes (สำคัญสำหรับ IT):</strong>
+    <ul style="margin:2mm 0 0;">
+      <li><b>URL หลักทั้งหมด</b> ใช้ prefix <code>/v2/</code> — เช่น <code>/v2/transport/</code>, <code>/v2/firstaid/</code>, <code>/v2/gps/</code>, <code>/v2/location/</code>, <code>/v2/monitor/</code></li>
+      <li><b>V1 paths เก่า</b> (<code>/transport/</code>, <code>/firstaid/</code> ฯลฯ ที่ root) ตอนนี้เป็น redirect stub → ส่งต่อไป V2</li>
+      <li><b>V1 archive</b> ที่ <code>/v1/</code> ยังเปิดอยู่ — มี banner เตือน, ไว้สำหรับเทียบเท่านั้น (ห้ามใช้งานจริง)</li>
+      <li><b>Bookmark เก่าของผู้ใช้</b> ไม่ต้องอัปเดต — root + V1 path จะ redirect ให้</li>
+      <li><b>Share link เก่า</b> (gps/share, location/share) ก็ redirect → V2 share viewer ใหม่</li>
     </ul>
   </div>
 
@@ -281,7 +294,8 @@
     <tr><td>Map (Leaflet)</td><td>Leaflet 1.9.4 + MarkerCluster</td><td>Default — ฟรี, Tile จาก OSM/CartoDB</td></tr>
     <tr><td>Map (Google) <i>optional</i></td><td>Google Maps Platform — Maps JS, Places (New), Directions, Distance Matrix, Geocoding</td><td>เปิดใน Admin → ต้องใส่ API key (ต้องเปิดทั้ง 5 API + ตั้ง referrer)</td></tr>
     <tr><td>PDF</td><td>PDF.js 2.16.105</td><td>แสดงผล PDF ใน browser</td></tr>
-    <tr><td>Config file</td><td><code>shared/config.js</code></td><td><code>window.APP_VERSION</code> = "5.5" (อัพเดตทุก release)</td></tr>
+    <tr><td>Icons</td><td>Bootstrap Icons</td><td>Unified ทั้งระบบหลัง V2 migration (แทน emoji)</td></tr>
+    <tr><td>Config file</td><td><code>shared/config.js</code></td><td><code>window.APP_VERSION</code> = "6.0" (อัพเดตทุก release)</td></tr>
   </table>
 
   <h2 id="s3"><span class="num">3</span>การเข้าถึง / Login</h2>
@@ -310,13 +324,16 @@
 │   ├── cloudinary.js       ← Upload
 │   ├── gps-providers.js    ← Adapter GPS (CMSV6...)
 │   └── styles.css          ← CSS รวม
-├── transport/index.html    ← โมดูล Transport
-├── firstaid/index.html     ← โมดูล First Aid
-├── gps/
-│   ├── index.html          ← Dashboard GPS (Admin)
-│   └── share.html          ← หน้าแชร์สาธารณะ (no auth)
-├── location/index.html     ← โมดูล Location
-├── monitor/index.html      ← Dashboard Monitor
+├── v2/                     ← **CANONICAL** (URL หลัก: /pt-medical-system/v2/...)
+│   ├── transport/index.html
+│   ├── transport/consent-prototype.html  ← V2 self-contained consent
+│   ├── firstaid/index.html
+│   ├── gps/index.html
+│   ├── gps/share.html      ← V2 public share viewer (auth bypass + DOM scrub)
+│   ├── location/index.html
+│   └── monitor/index.html
+├── v1/                     ← Archive (banner + redirect, จะลบหลัง 3-6 เดือน)
+├── transport/, firstaid/, gps/, location/, monitor/  ← redirect stubs → /v2/...
 ├── migration/*.sql         ← SQL สำหรับ Supabase
 ├── cloudflare/             ← Cloudflare Worker code
 └── docs/                   ← เอกสาร</code></pre>
@@ -551,8 +568,8 @@
 
   <!-- Footer -->
   <div style="margin-top: 15mm; padding-top: 5mm; border-top: 2px solid #e2e8f0; text-align: center; color: #94a3b8; font-size: 9pt;">
-    © PT Medical System · IT Support Manual v1.0 · ปรับปรุง 2026-04-15<br>
-    <i>สำหรับใช้ภายในองค์กรเท่านั้น</i>
+    © PT Medical System · IT Support Manual v6.0 · ปรับปรุง 2026-04-25 — post-V2 migration<br>
+    <i>สำหรับใช้ภายในองค์กรเท่านั้น · screenshots ใน manual-screenshots/ อาจเก่า รอ refresh รอบถัดไป</i>
   </div>
 
 </div>

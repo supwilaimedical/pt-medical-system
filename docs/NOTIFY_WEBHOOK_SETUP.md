@@ -1,5 +1,8 @@
 # Notification Webhook Setup
 
+> **Status: ✅ LIVE in production (since 2026-04-22)** — Supwilai deployed, Thegood follows in 2-4 weeks.  
+> **Version 6.0 — Updated 2026-04-25 (post-V2 migration).** Worker URL paths and payload format unchanged by V2 migration.
+
 Server-side critical-event detection via Supabase Database Webhook → Cloudflare Worker.
 
 ---
@@ -90,7 +93,7 @@ One merged message per case, aggregating all active alerts:
 จาก: รพ. A → รพ. B
 รถ: ALS / 1
 ⚠️ SpO2 80% · HR 145 · GCS 7
-https://.../monitor/?case=CASE-20260422-405
+https://.../v2/monitor/?case=CASE-20260422-405
 ```
 
 ---
@@ -99,7 +102,7 @@ https://.../monitor/?case=CASE-20260422-405
 
 When a user opens the case in Monitor (`monitorPreviewCase`) or Transport (`openCase`), `notifyAck(caseId)` runs and sets `acknowledged=true`. After ack, the next worsening will send a fresh alert.
 
-The deep link in the message opens Monitor with `?case=CASE-xxx` — auto-acks on load.
+The deep link in the message opens Monitor (V2: `/v2/monitor/?case=CASE-xxx`) — auto-acks on load. The `PUBLIC_BASE_URL` worker secret should point at the canonical V2 root (e.g. `https://supwilaimedical.github.io/pt-medical-system/v2`).
 
 ---
 
@@ -116,3 +119,7 @@ The deep link in the message opens Monitor with `?case=CASE-xxx` — auto-acks o
 
 **Notification sent but fails at Line:**
 - Check `notification_log.error` — `"Line 400: Failed to send"` usually means bot not in that group / user hasn't added OA as friend. Use `/notify/test` from admin to verify channel independently.
+
+---
+
+_Updated 2026-04-25 — post-V2 migration. Note `PUBLIC_BASE_URL` should now end with `/v2` so deep links open V2 Monitor directly (root + V1 paths still redirect, but pointing direct avoids one hop)._

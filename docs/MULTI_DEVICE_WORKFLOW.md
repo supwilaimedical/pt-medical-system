@@ -1,5 +1,9 @@
 # คู่มือการทำงานหลายอุปกรณ์ (Multi-Device Workflow)
 
+> **v6.0 — Updated 2026-04-25 (post-V2 migration)**  
+> URL หลักของระบบตอนนี้คือ `/v2/transport/` และ `/v2/transport/consent-prototype.html` (V2 canonical).  
+> Bookmark เก่าของผู้ใช้ยังใช้ได้ — root + V1 paths redirect ไป V2 อัตโนมัติ.
+
 ## สถานการณ์ที่ครอบคลุม
 - **Device A** (เจ้าหน้าที่) บันทึก V/S, IV, timeline ระหว่างนำส่ง
 - **Device B** (แท็บเล็ตสำหรับญาติ) ให้ญาติ/ผู้ป่วยเซ็น Consent
@@ -128,3 +132,7 @@ Device B: เฉพาะ Consent (modal ไม่ touch main form)
   - ย้าย V/S / IV ไปตารางแยกที่ append-only (เช่น `case_vitals_log`)
   - หรือใช้ Supabase Realtime subscribe ให้ Device A รับ event เมื่อ `cases` ถูก update โดยเครื่องอื่น → prompt Refresh
   - หรือ merge แบบ JSON patch แทน upsert
+
+---
+
+_Updated 2026-04-25 — post-V2 migration_

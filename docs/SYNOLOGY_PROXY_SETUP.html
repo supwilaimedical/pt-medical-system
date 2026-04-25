@@ -161,7 +161,7 @@
 <div class="page">
 
   <div class="cover">
-    <div class="badge">SYNOLOGY DSM + UNIFI · v5.6</div>
+    <div class="badge">SYNOLOGY DSM + UNIFI · v6.0 (post-V2)</div>
     <h1>Synology Reverse Proxy<br>(Port-split approach)</h1>
     <div class="sub">ตั้งค่า NAS Synology + UniFi ให้เป็น HTTPS proxy สำหรับ CMSV6 GPS API</div>
   </div>
@@ -343,7 +343,7 @@
 
   <div class="step-box">
     <div class="step-title">Step 6.1 — ทดสอบจาก browser console</div>
-    <p>เปิด <code>https://supwilaimedical.github.io/pt-medical-system/</code> → กด F12 → tab Console → รัน:</p>
+    <p>เปิด <code>https://supwilaimedical.github.io/pt-medical-system/v2/</code> → กด F12 → tab Console → รัน:</p>
 <pre><code>fetch('https://staff.supwilai.com:8443/StandardApiAction_login.action?account=supwilai&password=1234')
   .then(r =&gt; r.json())
   .then(d =&gt; console.log('✅ Synology proxy OK:', d))
@@ -448,6 +448,10 @@ Tier 3 (Last):      GAS (?url=... query-param, no timeout)</code></pre>
     <strong>📞 ต้องการความช่วยเหลือเพิ่ม?</strong>
     <br>ดู architecture overview ใน <a href="README-ITSupport.html">README-ITSupport.html</a>
     หรือตรวจ proxy chain code ใน <code>shared/gps-providers.js</code> (function <code>gpsFetch</code>)
+  </div>
+
+  <div style="margin-top: 12mm; padding-top: 4mm; border-top: 1px solid #e2e8f0; text-align: center; color: #94a3b8; font-size: 9pt;">
+    Updated 2026-04-25 — post-V2 migration · infrastructure unchanged (proxy serves both V1 archive และ V2 canonical)
   </div>
 
 </div>

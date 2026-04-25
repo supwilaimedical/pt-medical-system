@@ -178,21 +178,22 @@
 <div class="page">
 
   <div class="cover">
-    <div class="badge">MULTI-DEVICE GUIDE · v5.5</div>
+    <div class="badge">MULTI-DEVICE GUIDE · v6.0 (post-V2)</div>
     <h1>Multi-Device Workflow</h1>
     <div class="sub">คู่มือการทำงานหลายอุปกรณ์พร้อมกัน — Transport + Consent + DNR + GPS</div>
     <div style="margin-top:6mm; font-size:10pt; color:#64748b;">
-      Version 5.5 · ปรับปรุงล่าสุด 2026-04-17
+      Version 6.0 · ปรับปรุงล่าสุด 2026-04-25 (post-V2 migration)
     </div>
   </div>
 
   <div class="callout info">
-    <strong>🆕 Updates in v5.5:</strong>
+    <strong>🆕 Updates in v6.0 (V2 Migration):</strong>
     <ul style="margin:2mm 0 0;">
-      <li><b>DNR workflow</b> — เพิ่มการถ่ายภาพบัตร ปชช./Passport + ลายเซ็นพยาน (กรณี DNR = Active)</li>
-      <li><b>24-hour time</b> — ทุกช่องเวลาบังคับ 24 ชั่วโมง (ทั้งระบบ)</li>
-      <li><b>GPS share link</b> — admin สามารถลบ token ที่หมดอายุได้</li>
-      <li><b>Nearby search</b> — หน้า GPS/Monitor ค้นหาโรงพยาบาล/ปั๊ม/ตำรวจ ที่ใกล้รถ + road route + ETA (ต้องเปิด Google Maps)</li>
+      <li><b>V2 canonical URLs</b> — ใช้ <code>/v2/transport/</code> และ <code>/v2/transport/consent-prototype.html</code> สำหรับ Device B (V2 self-contained, auth bypass + DOM scrub)</li>
+      <li><b>Realtime sync ดีขึ้น</b> — V2 subscribe Postgres changes เร็วขึ้น sync ข้ามอุปกรณ์เนียนขึ้น</li>
+      <li><b>Bookmark เก่า</b> ยังใช้ได้ — root + V1 path เก่า redirect ไป V2 อัตโนมัติ</li>
+      <li><b>DNR workflow</b> — บัตร ปชช./Passport + ลายเซ็นพยาน (กรณี DNR = Active)</li>
+      <li><b>24-hour time</b> ทั้งระบบ · <b>GPS share link</b> admin ลบ token หมดอายุได้</li>
     </ul>
   </div>
 
@@ -398,7 +399,7 @@ Device B: เฉพาะ Consent (modal ไม่ touch main form)</code></pre>
 
   <!-- Footer -->
   <div style="margin-top: 15mm; padding-top: 5mm; border-top: 2px solid #e2e8f0; text-align: center; color: #94a3b8; font-size: 9pt;">
-    © PT Medical System · Multi-Device Workflow Guide v1.0<br>
+    © PT Medical System · Multi-Device Workflow Guide v6.0 · Updated 2026-04-25 — post-V2 migration<br>
     <i>เอกสารสำหรับเจ้าหน้าที่และทีมพัฒนา</i>
   </div>
 

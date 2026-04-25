@@ -217,21 +217,68 @@
 
   <!-- Executive Summary -->
   <div class="exec-summary">
-    <h3>🎯 สรุปสำหรับผู้บริหาร</h3>
+    <h3>🎯 สรุปสำหรับผู้บริหาร (Updated 2026-04-25 — post-V2 migration)</h3>
     <p>
       ระบบ PT Medical System ปัจจุบันครอบคลุม 5 โมดูลหลัก
-      (Transport / First Aid / GPS / Location / Monitor) และใช้งานจริงทั้งบนคอม แท็บเล็ต และมือถือ
-      โดยมี Real-time sync ข้ามอุปกรณ์ — เป็นพื้นฐานที่แข็งแรง
+      (Transport / First Aid / GPS / Location / Monitor) บน <strong>V2 canonical</strong>
+      (URL = <code>/v2/...</code>) ใช้งานจริงทั้งคอม แท็บเล็ต มือถือ พร้อม Real-time sync
     </p>
     <p>
-      เอกสารนี้ร่างข้อเสนอ <strong>17 รายการ</strong> ใน <strong>5 ด้าน</strong>
-      (คุณภาพการรักษา / ความปลอดภัยผู้ป่วย / การจัดการ / เทคโนโลยี / บุคลากร)
-      จัดลำดับตาม <strong>ผลกระทบ × ความจำเป็น</strong> เพื่อวางแผน roadmap 12 เดือน
+      <strong>Q1 2026 ที่ผ่านมา ทำสำเร็จแล้ว:</strong> V2 redesign ทุกโมดูล, Command Center landing,
+      Bootstrap Icons unified, public share viewer (auth bypass + DOM scrub),
+      <strong>Notification system LIVE</strong> (Line/TG via DB webhook + refire-on-worse + ack debounce),
+      Company logo replace placeholder
     </p>
     <p>
-      <strong>3 เรื่องเร่งด่วนสุด (P0):</strong> (1) ระบบสิทธิ์ผู้ใช้ระดับหน่วยงาน
-      (2) Audit trail แยกตาม user (3) Auto-backup + Disaster recovery plan
+      <strong>3 เรื่องเร่งด่วนถัดไป (P0):</strong> (1) RBAC ระดับหน่วยงาน
+      (2) RLS policy verification สำหรับ public share access
+      (3) Auto-backup + Disaster recovery plan
     </p>
+  </div>
+
+  <!-- ========== RECENTLY COMPLETED (Q1 2026) ========== -->
+  <h2 id="s0"><span class="num">0</span>✅ Recently Completed (Q1 2026)</h2>
+  <div class="callout success">
+    <strong>รายการที่ส่งมอบแล้วใน Q1 2026 — เป็น baseline ใหม่ของระบบ:</strong>
+    <ul style="margin:2mm 0 0;">
+      <li><b>V2 Redesign</b> ครบทุกโมดูล — pattern rail + subnav + col-header stacked + right column</li>
+      <li><b>Command Center landing</b> — dark hero, glass KPI cards, mini-map, asymmetric grid</li>
+      <li><b>Bootstrap Icons unified</b> — แทน emoji site-wide ดู professional ขึ้น</li>
+      <li><b>Public share viewer</b> — V2 self-contained <code>v2/gps/share.html</code> + <code>v2/transport/consent-prototype.html</code> (auth bypass + DOM scrub)</li>
+      <li><b>Right-col active shares</b> — Transport list shares ฝั่งขวา</li>
+      <li><b>V1 archived</b> — ย้ายไป <code>/v1/</code> มี banner, root + V1 module path = redirect stub</li>
+      <li><b>Company logo (APP_LOGO_URL)</b> — replace "PT" placeholder ทุกที่ ตั้งใน Admin Settings</li>
+      <li><b>Notification system LIVE (2026-04-22)</b> — Activity Log + Line/TG via Supabase DB webhook → worker /notify/check, refire-on-worse, ack resets debounce</li>
+      <li><b>Phase 1-4 Maps</b>: nearby search, Directions+ETA, Distance Matrix, Overspeed ≥120 km/h</li>
+      <li><b>DNR Policy</b>: ภาพบัตร ปชช./Passport + ลายเซ็นพยาน (i18n 4 ภาษา)</li>
+    </ul>
+  </div>
+
+  <!-- ========== KNOWN ISSUES / IN-PROGRESS ========== -->
+  <h2 id="s0b"><span class="num">!</span>⚠️ Known Issues · 🔧 In Progress · 📋 Pending</h2>
+  <div class="callout warn">
+    <strong>⚠️ Known Issues:</strong>
+    <ul style="margin:2mm 0 0;">
+      <li><b>iOS PWA support disabled</b> — currently turned off (was in original plan, ต้องกลับมาทำอีกที)</li>
+      <li><b>RLS policies for public share</b> — ต้อง verify ครอบคลุม edge cases (anon access ไม่ leak ข้อมูลอื่น)</li>
+      <li><b>Screenshots in <code>manual-screenshots/</code> stale</b> — ถ่ายก่อน V2 redesign, รอ refresh รอบถัดไป</li>
+    </ul>
+  </div>
+  <div class="callout info">
+    <strong>📋 Pending (รอ external dependency):</strong>
+    <ul style="margin:2mm 0 0;">
+      <li><b>Hikvision Mobile NVR adapter</b> — extend <code>shared/gps-providers.js</code> with <code>hikvision_mobile</code> (รอ user signup ที่ open.hik-connect.com → AppKey)</li>
+      <li><b>Unified Camera Viewer</b> (Synology + Dahua via go2rtc) — รอ UniFi Site Magic ระหว่าง home/office</li>
+      <li><b>Thegood deployment</b> — จะ follow Supwilai V2 ใน 2-4 สัปดาห์</li>
+    </ul>
+  </div>
+  <div class="callout success">
+    <strong>💡 Wishlist (future, ไม่ urgent):</strong>
+    <ul style="margin:2mm 0 0;">
+      <li>Move <code>/v1/</code> → archive branch หลัง 3-6 เดือน (ถ้าไม่มี user ใช้แล้ว)</li>
+      <li>Eventually rename <code>/v2/</code> → <code>/</code> (canonical move, optional cleanup)</li>
+      <li>Hikvision integration เมื่อ AppKey มาถึง</li>
+    </ul>
   </div>
 
   <!-- TOC -->
@@ -255,13 +302,15 @@
 
   <!-- 1 Current State -->
   <h2 id="s1"><span class="num">1</span>สถานะปัจจุบัน (Current State)</h2>
-  <h3>จุดแข็ง</h3>
+  <h3>จุดแข็ง (post-V2)</h3>
   <ul>
-    <li>✅ <b>ครอบคลุมภารกิจหลัก</b> — Transport, First Aid, GPS, Location, Monitor</li>
-    <li>✅ <b>Real-time multi-device</b> — แพทย์ + พยาบาล + คนขับ ทำงานพร้อมกันได้</li>
-    <li>✅ <b>Consent 2 ขั้นตอน</b> — แยก device A (บันทึก) / B (เซ็นยินยอม) พร้อม witness</li>
-    <li>✅ <b>GPS + กล้อง</b> ที่แชร์ลิงก์สาธารณะได้ (มี expiry + สิทธิ์กล้อง)</li>
-    <li>✅ <b>ใช้งานฟรี</b> — Cloud-based, ไม่ต้องซื้อ server, ไม่ต้องติดตั้ง</li>
+    <li>✅ <b>ครอบคลุมภารกิจหลัก</b> — Transport, First Aid, GPS, Location, Monitor (V2 canonical)</li>
+    <li>✅ <b>Real-time multi-device</b> — sync เนียนขึ้นใน V2</li>
+    <li>✅ <b>Consent 2 ขั้นตอน</b> — V2 self-contained, auth bypass + DOM scrub สำหรับ public viewer</li>
+    <li>✅ <b>GPS + กล้อง</b> share link สาธารณะ (expiry + camera permission)</li>
+    <li>✅ <b>Notification system LIVE</b> — Line/TG critical alert + ack debounce</li>
+    <li>✅ <b>Bootstrap Icons unified</b> + Company logo replace placeholder</li>
+    <li>✅ <b>ใช้งานฟรี</b> — Cloud-based, ไม่ต้องซื้อ server</li>
   </ul>
   <h3>ช่องว่างที่ตรวจพบ</h3>
   <ul>
@@ -704,7 +753,7 @@
 
   <!-- Footer -->
   <div style="margin-top: 15mm; padding-top: 5mm; border-top: 2px solid #e2e8f0; text-align: center; color: #94a3b8; font-size: 9pt;">
-    © PT Medical System · Improvement Plan v1.0 · ร่างเสนอ 2026-04-15<br>
+    © PT Medical System · Improvement Plan v6.0 · Updated 2026-04-25 — post-V2 migration<br>
     <i>เอกสารภายใน — สำหรับการวางแผนเท่านั้น ยังไม่มีผลผูกพัน</i>
   </div>
 
