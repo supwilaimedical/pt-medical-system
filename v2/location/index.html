@@ -2263,7 +2263,7 @@
     // Copy share link from table
     function loc_copyTokenLink(token) {
       var base = window.location.origin + (CONFIG.BASE_URL || '');
-      var url = base + '/location/share.html?token=' + encodeURIComponent(token);
+      var url = base + '/v2/location/share.html?token=' + encodeURIComponent(token);
       navigator.clipboard.writeText(url).then(function() {
         Swal.fire({ icon:'success', title:'คัดลอกลิงก์แล้ว', timer:1200, showConfirmButton:false });
       }).catch(function() {
@@ -2494,7 +2494,7 @@
 
         // Build share URL
         var base = window.location.origin + (CONFIG.BASE_URL || '');
-        var shareUrl = base + '/location/share.html?token=' + encodeURIComponent(token);
+        var shareUrl = base + '/v2/location/share.html?token=' + encodeURIComponent(token);
 
         // Close create modal, open result modal
         bootstrap.Modal.getOrCreateInstance(document.getElementById('locShareModal')).hide();

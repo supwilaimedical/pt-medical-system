@@ -2286,7 +2286,7 @@
           allow_camera: allowCamera
         });
 
-        var shareUrl = window.location.origin + CONFIG.BASE_URL + '/gps/share.html?token=' + token;
+        var shareUrl = window.location.origin + CONFIG.BASE_URL + '/v2/gps/share.html?token=' + token;
         document.getElementById('share-url').value = shareUrl;
         document.getElementById('share-result').style.display = '';
 
@@ -2382,7 +2382,7 @@
     }
 
     function copyTokenLink(token) {
-      var url = window.location.origin + CONFIG.BASE_URL + '/gps/share.html?token=' + token;
+      var url = window.location.origin + CONFIG.BASE_URL + '/v2/gps/share.html?token=' + token;
       navigator.clipboard.writeText(url).then(function() {
         Swal.fire({ icon: 'success', title: 'Copied!', text: url, timer: 1500, showConfirmButton: false });
       }).catch(function() {
