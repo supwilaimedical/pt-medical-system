@@ -16,12 +16,18 @@
   <link rel="stylesheet" href="../../shared/styles.css">
   <style>
     /* FA Module specific styles */
-    /* Auto-fill grid — cards fit based on available space, no more shrinking card in wide whitespace */
+    /* Auto-fill grid — cards 260–340px each (no 1fr, so single card never balloons to fill width) */
     #fa-events-container{
       display:grid !important;
-      grid-template-columns:repeat(auto-fill, minmax(260px, 1fr)) !important;
+      grid-template-columns:repeat(auto-fill, minmax(260px, 340px)) !important;
+      justify-content:start !important;
       gap:14px !important;
       margin:0 !important;
+    }
+    @media (max-width:575px){
+      #fa-events-container{
+        grid-template-columns:1fr !important;
+      }
     }
     #fa-events-container > [class*="col-"]{
       width:auto !important; max-width:none !important; flex:none !important;
