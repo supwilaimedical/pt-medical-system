@@ -358,6 +358,22 @@
       cursor:pointer; background:#f8fafc; border-top:1px solid #f1f5f9;
     }
     .tr-dash-right .tr-rc-more:hover{ background:#e0f2fe; }
+
+    /* Public share mode — hide all private UI, show only print preview */
+    body.public-share-mode .v2-rail,
+    body.public-share-mode .v2-subnav,
+    body.public-share-mode .v2-mobile-nav-toggle,
+    body.public-share-mode .v2-form-topbar,
+    body.public-share-mode .tr-dash-right,
+    body.public-share-mode #v2-bottom-nav,
+    body.public-share-mode .fab-actions,
+    body.public-share-mode #dashboard-view,
+    body.public-share-mode .v2-tr-quick-panel,
+    body.public-share-mode #navbar,
+    body.public-share-mode .v2-tr-kebab-menu{ display:none !important; }
+    body.public-share-mode{ padding-left:0 !important; }
+    body.public-share-mode #form-view{ display:block !important; }
+    body.public-share-mode #app-main-wrapper{ padding-left:0 !important; padding-top:0 !important; }
     /* Empty state — dim everything except section labels */
     .tr-dash-right.tr-dash-right-empty{ opacity:.45; filter:grayscale(.4); }
     .tr-dash-right.tr-dash-right-empty::before{
@@ -1327,6 +1343,60 @@
       var daysElapsed = Math.max(1, now.getDay() + 1);
       set('tr-rc-week-total', weekCount);
       set('tr-rc-week-avg', (weekCount / daysElapsed).toFixed(1));
+
+      // --- Active Shares (is_public = true, not expired) ---
+      var allCases = actives.concat(closed);
+      var shared = allCases.filter(function(c){
+        if (!c.isPublic) return false;
+        if (c.publicExpiry){
+          try { if (new Date(c.publicExpiry) < now) return false; } catch(e){}
+        }
+        return true;
+      });
+      // Sort: permanent first, then by closest expiry
+      shared.sort(function(a,b){
+        if (!a.publicExpiry && b.publicExpiry) return -1;
+        if (a.publicExpiry && !b.publicExpiry) return 1;
+        if (!a.publicExpiry && !b.publicExpiry) return 0;
+        return new Date(a.publicExpiry) - new Date(b.publicExpiry);
+      });
+      var shareCountEl = document.getElementById('tr-rc-shares-count');
+      if (shareCountEl) shareCountEl.textContent = shared.length;
+      var shareList = document.getElementById('tr-rc-shares-list');
+      if (shareList){
+        if (shared.length === 0){
+          shareList.innerHTML = '<div class="tr-rc-empty"><i class="bi bi-link-45deg"></i>ไม่มีเคสที่แชร์</div>';
+        } else {
+          var top = shared.slice(0, 8);
+          var rows = top.map(function(c){
+            var pi = c.patientInfo || c.patient_info || {};
+            var name = pi.name || 'ไม่ระบุชื่อ';
+            var expCls = '', expTxt = '';
+            if (c.publicExpiry){
+              try {
+                var exp = new Date(c.publicExpiry);
+                var hLeft = (exp - now) / 3600000;
+                if (hLeft < 24){ expCls = 'warn'; expTxt = '~' + Math.max(1, Math.round(hLeft)) + ' ชม.'; }
+                else { expTxt = exp.toLocaleDateString('th-TH', {day:'numeric', month:'short'}); }
+              } catch(e){ expTxt = '–'; }
+            } else {
+              expCls = 'permanent'; expTxt = 'ถาวร';
+            }
+            var safeId = String(c.id || '').replace(/'/g, "\\'");
+            return '<div class="tr-rc-share-row" onclick="if(typeof openCase===\'function\') openCase(\''+safeId+'\')" title="คลิกเพื่อเปิดเคส">' +
+                   '<div class="sh-main">' +
+                     '<div class="sh-id"><i class="bi bi-share-fill"></i>'+ String(c.id || '–').replace(/[<>]/g,'') +'</div>' +
+                     '<div class="sh-name">'+ String(name).replace(/[<>]/g,'') +'</div>' +
+                   '</div>' +
+                   '<div class="sh-exp '+expCls+'">'+expTxt+'</div>' +
+                   '</div>';
+          }).join('');
+          if (shared.length > 8){
+            rows += '<div class="tr-rc-more" onclick="v2SetListTab(\'all\'); window.scrollTo(0,0);">+'+ (shared.length - 8) +' รายการเพิ่มเติม →</div>';
+          }
+          shareList.innerHTML = rows;
+        }
+      }
     } catch(e){ console.warn('computeDashRightStats err', e); }
   };
 
@@ -1925,6 +1995,15 @@
               <span class="lbl">🟠 ค้างเกิน 48 ชม.</span>
               <span class="val" id="tr-rc-stale">0</span>
             </div>
+          </div>
+
+          <!-- Active Shares -->
+          <div class="tr-rc-section-label">
+            <i class="bi bi-share"></i> เคสที่แชร์ลิงก์อยู่
+            <span class="tr-rc-count" id="tr-rc-shares-count">0</span>
+          </div>
+          <div class="tr-rc-group" id="tr-rc-shares-list">
+            <div class="tr-rc-empty"><i class="bi bi-link-45deg"></i>ไม่มีเคสที่แชร์</div>
           </div>
 
           <!-- Today stats -->
@@ -6307,9 +6386,90 @@
         showDashboard();
     }
 
+    // ===== Public share view (no login required) =====
+    async function initPublicShareView(caseId, token){
+      try { hideSplash(); } catch(e){}
+      document.body.classList.add('public-share-mode');
+      try {
+        var resp = await _supabase.from('cases')
+          .select('*')
+          .eq('case_id', caseId)
+          .eq('is_public', true)
+          .eq('public_token', token)
+          .maybeSingle();
+        if (resp.error) throw resp.error;
+        if (!resp.data){
+          return _showPublicError('ลิงก์ไม่ถูกต้อง', 'เคสนี้อาจถูกปิดการแชร์แล้ว หรือ token ไม่ตรง');
+        }
+        var rec = resp.data;
+        if (rec.public_expiry && new Date(rec.public_expiry) < new Date()){
+          return _showPublicError('ลิงก์หมดอายุแล้ว', 'กรุณาติดต่อเจ้าหน้าที่เพื่อขอลิงก์ใหม่');
+        }
+        // Populate form (mirrors printFromDashboard logic)
+        isPopulating = true;
+        loadedCaseStatus = rec.status || 'Completed';
+        if (typeof resetFormState === 'function') resetFormState();
+        var caseIdEl = document.getElementById('caseId');
+        if (caseIdEl) caseIdEl.value = rec.case_id;
+        var dispEl = document.getElementById('display-case-id');
+        if (dispEl) dispEl.innerText = rec.case_id;
+        var statusEl = document.getElementById('display-status');
+        if (statusEl) statusEl.innerText = rec.status || '';
+        var formStatus = document.getElementById('formStatus');
+        if (formStatus) formStatus.value = rec.status || '';
+        if (rec.raw_data && rec.raw_data.rawSnapshot) {
+          try {
+            var snapshot = typeof rec.raw_data.rawSnapshot === 'string' ? JSON.parse(rec.raw_data.rawSnapshot) : rec.raw_data.rawSnapshot;
+            var f = document.forms['main-form'];
+            for (var key in snapshot) {
+              if (key === 'caseId') continue;
+              var el = f.elements[key];
+              if (el) { if (el instanceof RadioNodeList) el.value = snapshot[key]; else if (el.type === 'checkbox') el.checked = snapshot[key]; else el.value = snapshot[key]; }
+            }
+          } catch(e){ console.error("snapshot parse:", e); }
+        }
+        var ivData = rec.raw_data && rec.raw_data.ivJson;
+        if (ivData) {
+          try { var ivArr = typeof ivData === 'string' ? JSON.parse(ivData) : ivData; ivArr.forEach(function(item) { var targetId = item.context === 'Initial' ? 'initial-iv-lines-container' : 'iv-lines-container'; addIvLine(item, null, targetId, item.context || 'Transport'); }); } catch(e){}
+        }
+        var vitalsData = rec.raw_data && rec.raw_data.vitalsJson;
+        if (vitalsData) {
+          try { var vArr = typeof vitalsData === 'string' ? JSON.parse(vitalsData) : vitalsData; vArr.forEach(function(v) { if (v.type === 'arrest') addArrestLog(false, v); else addVitalLog(false, v); }); } catch(e){}
+        }
+        try { if (typeof toggleArrest === 'function') toggleArrest('pre'); } catch(e){}
+        try { if (typeof toggleArrestOutcome === 'function') toggleArrestOutcome('pre'); } catch(e){}
+        try { if (typeof updateO2Detail === 'function') updateO2Detail(); } catch(e){}
+        try { if (typeof refreshInitVitalsDisplay === 'function') refreshInitVitalsDisplay(); } catch(e){}
+        try { if (typeof restoreTimelineFromSnapshot === 'function') restoreTimelineFromSnapshot(); } catch(e){}
+        isPopulating = false; formDirty = false;
+        // Render print preview
+        setTimeout(function(){ if (typeof handlePrint === 'function') handlePrint(); }, 250);
+      } catch(e){
+        console.error('public view error:', e);
+        _showPublicError('เกิดข้อผิดพลาด', e.message || 'ไม่สามารถโหลดข้อมูลได้');
+      }
+    }
+    function _showPublicError(title, msg){
+      document.body.innerHTML = '<div style="display:flex; min-height:100vh; align-items:center; justify-content:center; background:#f8fafc; font-family:Sarabun,system-ui,sans-serif; padding:24px;">'+
+        '<div style="text-align:center; max-width:420px;">'+
+          '<div style="width:72px; height:72px; border-radius:18px; background:#fee2e2; color:#b91c1c; display:inline-flex; align-items:center; justify-content:center; font-size:36px; margin-bottom:18px;"><i class="bi bi-shield-lock"></i></div>'+
+          '<h2 style="color:#0f172a; font-weight:700; margin:0 0 8px; font-size:20px;">'+title+'</h2>'+
+          '<p style="color:#64748b; font-size:14px; line-height:1.5;">'+msg+'</p>'+
+        '</div>'+
+      '</div>';
+    }
+
     window.addEventListener('load', function() {
         var modalEl = document.getElementById('editPatientModal');
         if (modalEl && window.bootstrap) editModal = new bootstrap.Modal(modalEl);
+
+        // Public share mode — bypass auth, render print-only view
+        try {
+          var qp = new URLSearchParams(location.search);
+          if (qp.get('mode') === 'public' && qp.get('caseId') && qp.get('token')){
+            return initPublicShareView(qp.get('caseId'), qp.get('token'));
+          }
+        } catch(e){}
 
         if (!requireAuth()) return;
         onLoginSuccess();
