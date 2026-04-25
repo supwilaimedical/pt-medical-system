@@ -4,8 +4,8 @@
     {
       "name": "pt-medical",
       "runtimeExecutable": "npx",
-      "runtimeArgs": ["http-server", "F:/@Coding/pt-medical-system", "-p", "8080", "-c-1", "--cors"],
-      "port": 8080
+      "runtimeArgs": ["http-server", "F:/@Coding/pt-medical-system", "-p", "9876", "-c-1", "--cors"],
+      "port": 9876
     }
   ]
 }

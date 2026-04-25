@@ -1,7 +1,11 @@
 {
   "permissions": {
     "allow": [
-      "mcp__Claude_Preview__preview_start"
+      "mcp__Claude_Preview__preview_start",
+      "Bash(curl -s \"https://nominatim.openstreetmap.org/reverse?lat=13.7563&lon=100.4874&format=json&accept-language=th&zoom=10\" -H \"User-Agent: PTMedical-Test/1.0\")",
+      "mcp__mcp-registry__search_mcp_registry",
+      "Bash(ls -la \"F:\\\\\\\\@Coding\\\\\\\\pt-medical-system\\\\\\\\migration\\\\\\\\gps_*.sql\")",
+      "Bash(xargs grep *)"
     ]
   }
 }

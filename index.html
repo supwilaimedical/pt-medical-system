@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta http-equiv="refresh" content="0; url=/v2/">
+<meta http-equiv="refresh" content="0; url=/pt-medical-system/v2/">
 <title>PT Medical System</title>
 <link rel="icon" href="/assets/icon.svg" type="image/svg+xml">
 <style>
@@ -21,7 +21,7 @@
   <div class="logo">PT</div>
   <h1>PT Medical System</h1>
   <p>กำลังเปิดระบบ...</p>
-  <p class="small"><a href="/v2/">เข้าระบบ V2</a> · <a href="/v1/" style="color:#94a3b8;">ใช้ V1 (เก่า)</a></p>
+  <p class="small"><a href="/pt-medical-system/v2/">เข้าระบบ V2</a> · <a href="/pt-medical-system/v1/" style="color:#94a3b8;">ใช้ V1 (เก่า)</a></p>
 </div>
 <script>
 // Unregister V1 service worker (was at root scope) — prevents stale cache
@@ -30,7 +30,7 @@ if ('serviceWorker' in navigator) {
     navigator.serviceWorker.getRegistrations().then(function(regs){
       regs.forEach(function(r){
         // Old V1 SW was scoped to /pt-medical-system/ — unregister so V2 PWA can take over cleanly
-        if (r.scope && (r.scope.endsWith('/pt-medical-system/') || r.scope.endsWith('/')) && !r.scope.includes('/v2/')) {
+        if (r.scope && (r.scope.endsWith('/pt-medical-system/') || r.scope.endsWith('/')) && !r.scope.includes('/pt-medical-system/v2/')) {
           r.unregister();
         }
       });
@@ -39,7 +39,7 @@ if ('serviceWorker' in navigator) {
 }
 // Small delay so unregister can fire before navigating
 setTimeout(function(){
-  location.replace('/v2/' + (location.search || '') + (location.hash || ''));
+  location.replace('/pt-medical-system/v2/' + (location.search || '') + (location.hash || ''));
 }, 50);
 </script>
 </body>
