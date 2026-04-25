@@ -669,7 +669,7 @@ function showView(id){
 }
 
 function init(){
-  loadCompanyLogo();  // async, non-blocking
+  // Logo loader runs from v2/shared.js on DOMContentLoaded — no manual call needed
   try {
     if(typeof isLoggedIn === 'function' && isLoggedIn()){
       var meta = (typeof getUserMeta === 'function') ? getUserMeta() : null;
@@ -680,21 +680,6 @@ function init(){
     console.error('init failed', e);
     showView('view-login');
   }
-}
-
-// Load company logo from settings table (key: APP_LOGO_URL)
-async function loadCompanyLogo(){
-  if(typeof _supabase === 'undefined') return;
-  try {
-    var res = await _supabase.from('settings').select('value').eq('key', 'APP_LOGO_URL').maybeSingle();
-    var url = res && res.data && res.data.value ? String(res.data.value).trim() : '';
-    if(!url) return;
-    var imgHtml = '<img src="' + url.replace(/"/g,'&quot;') + '" alt="logo">';
-    ['brand-splash','brand-login','brand-landing'].forEach(function(id){
-      var el = document.getElementById(id);
-      if(el) el.innerHTML = imgHtml;
-    });
-  } catch(e){ /* silent — keep default PT */ }
 }
 
 async function doLogin(e){

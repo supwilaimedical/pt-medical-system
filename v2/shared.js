@@ -134,6 +134,37 @@
     return '+' + Math.floor(mins/60) + 'h ' + (mins%60) + 'm';
   };
 
+  // ============ COMPANY LOGO (from settings.APP_LOGO_URL) ============
+  // Replaces all "PT" placeholder logos with company logo if configured.
+  // Targets: .splash-logo, .l-brand, .v2-rail .v2-logo, .v2-modrail .v2-logo
+  window.loadCompanyLogo = async function(){
+    if(typeof _supabase === 'undefined') return;
+    try {
+      var res = await _supabase.from('settings').select('value').eq('key', 'APP_LOGO_URL').maybeSingle();
+      var url = res && res.data && res.data.value ? String(res.data.value).trim() : '';
+      if(!url) return;
+      var safe = url.replace(/"/g,'&quot;');
+      var imgHtml = '<img src="' + safe + '" alt="logo" style="width:100%;height:100%;object-fit:contain;background:#fff;padding:3px;box-sizing:border-box;border-radius:inherit;">';
+      var sels = ['.splash-logo', '.l-brand', '.v2-rail .v2-logo', '.v2-modrail .v2-logo'];
+      sels.forEach(function(sel){
+        document.querySelectorAll(sel).forEach(function(el){
+          // Skip if already replaced (re-runs)
+          if(el.querySelector('img')) return;
+          el.innerHTML = imgHtml;
+          el.style.overflow = 'hidden';
+        });
+      });
+    } catch(e){ /* silent — keep PT default */ }
+  };
+  // Auto-run when supabase is ready
+  document.addEventListener('DOMContentLoaded', function(){
+    var tryLoad = function(retries){
+      if(typeof _supabase !== 'undefined'){ window.loadCompanyLogo(); return; }
+      if(retries > 0) setTimeout(function(){ tryLoad(retries - 1); }, 200);
+    };
+    tryLoad(20);  // wait up to 4 sec for supabase init
+  });
+
   // ============ SERVICE WORKER REGISTRATION ============
   if('serviceWorker' in navigator){
     window.addEventListener('load', function(){
