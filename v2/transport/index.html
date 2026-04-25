@@ -368,12 +368,14 @@
     body.public-share-mode #v2-bottom-nav,
     body.public-share-mode .fab-actions,
     body.public-share-mode #dashboard-view,
+    body.public-share-mode #form-view,
     body.public-share-mode .v2-tr-quick-panel,
     body.public-share-mode #navbar,
     body.public-share-mode .v2-tr-kebab-menu{ display:none !important; }
     body.public-share-mode{ padding-left:0 !important; }
-    body.public-share-mode #form-view{ display:block !important; }
-    body.public-share-mode #app-main-wrapper{ padding-left:0 !important; padding-top:0 !important; }
+    body.public-share-mode #app-main-wrapper{ padding-left:0 !important; padding-top:0 !important; display:none !important; }
+    /* Hide the "back" button in print view (only show print button) */
+    body.public-share-mode .btn-c{ display:none !important; }
     /* Empty state — dim everything except section labels */
     .tr-dash-right.tr-dash-right-empty{ opacity:.45; filter:grayscale(.4); }
     .tr-dash-right.tr-dash-right-empty::before{
@@ -6442,6 +6444,14 @@
         try { if (typeof refreshInitVitalsDisplay === 'function') refreshInitVitalsDisplay(); } catch(e){}
         try { if (typeof restoreTimelineFromSnapshot === 'function') restoreTimelineFromSnapshot(); } catch(e){}
         isPopulating = false; formDirty = false;
+        // Override "back" button — in public mode it should never expose the form
+        window.transport_closePrintView = function(){
+          // No-op: keep print view visible. User closes tab to leave.
+          if (typeof handlePrint === 'function') {
+            // Re-render print view to be safe
+            try { handlePrint(); } catch(e){}
+          }
+        };
         // Render print preview
         setTimeout(function(){ if (typeof handlePrint === 'function') handlePrint(); }, 250);
       } catch(e){
