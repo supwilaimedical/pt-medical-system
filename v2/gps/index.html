@@ -1,10 +1,10 @@
 <!DOCTYPE html>
 <html lang="th">
 <head>
-  <title>PT-System | GPS Tracking</title>
+  <title>Supwilai PT-Amb | GPS Tracking</title>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="PT Medical System — ระบบติดตามตำแหน่งรถ GPS">
+  <meta name="description" content="Supwilai PT-Amb — ระบบติดตามตำแหน่งรถ GPS">
   <meta name="theme-color" content="#0ea5e9">
   <meta name="color-scheme" content="light">
   <link rel="manifest" href="../manifest.json">
@@ -1433,7 +1433,7 @@
       <a class="navbar-brand mb-0 h1 d-flex align-items-center gap-2" href="../">
         <img id="navbar-logo" src="" alt="" style="height:36px; display:none;" class="bg-white rounded-circle p-1 shadow-sm">
         <i class="bi bi-grid-fill fs-5" id="navbar-icon"></i>
-        <span class="d-none d-sm-inline fw-semibold" style="font-size:1rem;">PT-System</span>
+        <span class="d-none d-sm-inline fw-semibold" style="font-size:1rem;">Supwilai PT-Amb</span>
       </a>
       <div class="d-flex align-items-center gap-2 gap-md-3">
         <div class="d-none d-lg-flex align-items-center text-light bg-white bg-opacity-10 px-3 py-1 rounded-pill">
@@ -1704,6 +1704,7 @@
   <!-- ==================== JAVASCRIPT ==================== -->
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <script src="../../shared/config.js"></script>
+  <script src="../../shared/favicon.js"></script>
   <script src="../../shared/settings.js"></script>
   <script src="../../shared/auth.js"></script>
   <script src="../shared.js"></script>
@@ -1848,6 +1849,7 @@
           var logo = document.getElementById('navbar-logo');
           if (logo) { logo.src = res.data.value; logo.style.display = ''; }
           document.getElementById('navbar-icon').style.display = 'none';
+          if (window.setFaviconFromLogo) window.setFaviconFromLogo(res.data.value);
         }
       } catch(e) {}
 

@@ -1,10 +1,10 @@
 <!DOCTYPE html>
 <html lang="th">
 <head>
-  <title>PT-System | First Aid</title>
+  <title>Supwilai PT-Amb | First Aid</title>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="PT Medical System — ระบบบันทึกปฐมพยาบาล">
+  <meta name="description" content="Supwilai PT-Amb — ระบบบันทึกปฐมพยาบาล">
   <meta name="theme-color" content="#0ea5e9">
   <meta name="color-scheme" content="light">
   <link rel="manifest" href="../manifest.json">
@@ -758,6 +758,7 @@
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
   <script src="../../shared/config.js"></script>
+  <script src="../../shared/favicon.js"></script>
   <script src="../../shared/auth.js"></script>
   <script src="../shared.js"></script>
   <script src="../../shared/realtime.js"></script>
@@ -769,7 +770,7 @@
       <div class="mb-3">
         <div style="width:64px; height:64px; border:4px solid #dee2e6; border-top-color:#0d6efd; border-radius:50%; animation: splash-spin 0.8s linear infinite; margin:0 auto;"></div>
       </div>
-      <h5 style="font-family:'Sarabun',sans-serif; font-weight:600; color:#495057; margin-bottom:4px;">PT-System</h5>
+      <h5 style="font-family:'Sarabun',sans-serif; font-weight:600; color:#495057; margin-bottom:4px;">Supwilai PT-Amb</h5>
       <p style="font-family:'Sarabun',sans-serif; font-size:0.85rem; color:#6c757d; margin:0;" id="splash-status">กำลังเชื่อมต่อระบบ...</p>
     </div>
   </div>
@@ -784,7 +785,7 @@
           <a class="navbar-brand mb-0 h1 d-flex align-items-center gap-2" href="../">
             <img id="navbar-logo" src="" alt="" style="height: 36px; display: none;" class="bg-white rounded-circle p-1 shadow-sm">
             <i class="bi bi-grid-fill fs-5" id="navbar-icon"></i>
-            <span class="d-none d-sm-inline fw-semibold" style="font-size: 1rem;">PT-System</span>
+            <span class="d-none d-sm-inline fw-semibold" style="font-size: 1rem;">Supwilai PT-Amb</span>
           </a>
           <div class="d-flex align-items-center gap-2 gap-md-3">
             <div class="d-none d-lg-flex align-items-center text-light bg-white bg-opacity-10 px-3 py-1 rounded-pill">
@@ -3580,6 +3581,7 @@
                         if (logo) { logo.src = s.value; logo.style.display = ''; }
                         var icon = document.getElementById('navbar-icon');
                         if (icon) icon.style.display = 'none';
+                        if (window.setFaviconFromLogo) window.setFaviconFromLogo(s.value);
                     }
                     if (s.key === 'GPS_ENABLED' && s.value === '1') {
                         var gpsBtn = document.getElementById('sys-tog-gps');

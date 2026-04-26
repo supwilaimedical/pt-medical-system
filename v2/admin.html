@@ -1,10 +1,10 @@
 <!DOCTYPE html>
 <html lang="th">
 <head>
-  <title>Admin Settings — PT-System</title>
+  <title>Admin Settings — Supwilai PT-Amb</title>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="PT Medical System — Admin Settings">
+  <meta name="description" content="Supwilai PT-Amb — Admin Settings">
   <meta name="theme-color" content="#0ea5e9">
   <meta name="color-scheme" content="light">
   <link rel="manifest" href="manifest.json">
@@ -439,7 +439,7 @@
     <div class="sidebar-brand">
       <div class="brand-name">⚙️ ตั้งค่าระบบ</div>
       <div id="sb-admin-name" style="display:none;"></div>
-      <div class="brand-sub" id="sb-company">PT-System</div>
+      <div class="brand-sub" id="sb-company">Supwilai PT-Amb</div>
     </div>
 
     <nav>
@@ -1119,7 +1119,7 @@
           <div class="ov-hero-accent"></div>
           <div class="ov-hero-body">
             <div class="ov-hero-head">
-              <h2><i class="bi bi-info-circle-fill"></i> PT Medical System</h2>
+              <h2><i class="bi bi-info-circle-fill"></i> Supwilai PT-Amb</h2>
               <span class="ov-version"><i class="bi bi-tag-fill"></i> Version <span id="ov-version-number">--</span></span>
             </div>
             <p class="ov-hero-sub">ระบบจัดการผู้ป่วยฉุกเฉิน + ปฐมพยาบาล + ติดตามรถ — Web-based, Real-time, Multi-device</p>
@@ -1196,7 +1196,7 @@
         </div>
 
         <div style="text-align:center; color:var(--atext-3); font-size:12px; padding:20px 0 10px;" id="ov-build-info">
-          PT Medical System · Built with <i class="bi bi-heart-fill" style="color:var(--adanger);"></i> for healthcare
+          Supwilai PT-Amb · Built with <i class="bi bi-heart-fill" style="color:var(--adanger);"></i> for healthcare
         </div>
       </div>
 
@@ -1339,6 +1339,7 @@
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="../shared/config.js"></script>
+<script src="../shared/favicon.js"></script>
 <script src="../shared/settings.js"></script>
 <script src="../shared/notify.js"></script>
 <script src="../shared/auth.js"></script>
@@ -1453,6 +1454,7 @@
       if (logoUrl && /^https?:\/\//.test(logoUrl)) {
         document.getElementById('admin-logo-img').src = logoUrl;
         document.getElementById('admin-logo-preview').style.display = 'block';
+        if (window.setFaviconFromLogo) window.setFaviconFromLogo(logoUrl);
       }
       document.getElementById('admin-cloudinary-cloud').value = ov('CLOUDINARY_CLOUD_NAME');
       document.getElementById('admin-cloudinary-preset').value = ov('CLOUDINARY_UPLOAD_PRESET');
@@ -1559,7 +1561,7 @@
         else { wrap.style.display = 'none'; }
       }
       if (key === 'FA_COMPANY_NAME') {
-        document.getElementById('sb-company').textContent = v || 'PT-System';
+        document.getElementById('sb-company').textContent = v || 'Supwilai PT-Amb';
       }
       Swal.fire({ icon:'success', title:'บันทึกสำเร็จ', timer:1200, showConfirmButton:false });
     } catch(err) {
@@ -2673,7 +2675,7 @@
     var bi = document.getElementById('ov-build-info');
     if (bi) {
       var now = new Date().toLocaleString('th-TH');
-      bi.innerHTML = 'PT Medical System v' + (window.APP_VERSION||'--') +
+      bi.innerHTML = 'Supwilai PT-Amb v' + (window.APP_VERSION||'--') +
         (window.APP_VERSION_DATE ? ' (' + window.APP_VERSION_DATE + ')' : '') +
         ' · ตรวจสถานะล่าสุด ' + now + ' · <i class="bi bi-heart-fill" style="color:var(--adanger);"></i> for healthcare';
     }

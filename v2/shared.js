@@ -143,6 +143,8 @@
       var res = await _supabase.from('settings').select('value').eq('key', 'APP_LOGO_URL').maybeSingle();
       var url = res && res.data && res.data.value ? String(res.data.value).trim() : '';
       if(!url) return;
+      // Apply as browser favicon
+      if(window.setFaviconFromLogo) window.setFaviconFromLogo(url);
       var safe = url.replace(/"/g,'&quot;');
       var imgHtml = '<img src="' + safe + '" alt="logo" style="width:100%;height:100%;object-fit:contain;background:#fff;padding:3px;box-sizing:border-box;border-radius:inherit;">';
       var sels = ['.splash-logo', '.l-brand', '.v2-rail .v2-logo', '.v2-modrail .v2-logo'];

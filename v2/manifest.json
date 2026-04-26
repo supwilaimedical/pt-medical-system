@@ -1,6 +1,6 @@
 {
-  "name": "PT Medical System V2",
-  "short_name": "PT-V2",
+  "name": "Supwilai PT-Amb",
+  "short_name": "PT-Amb",
   "description": "ระบบนำส่งผู้ป่วย ปฐมพยาบาล พิกัดสถานที่ — V2",
   "start_url": "/pt-medical-system/v2/",
   "scope": "/pt-medical-system/v2/",
