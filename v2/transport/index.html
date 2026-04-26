@@ -965,7 +965,7 @@
 
     /* Closed list — row layout (no table, grid-based) */
     .closed-list {
-      background:#fff; border-radius:12px; overflow:hidden;
+      background:#fff; border-radius:12px; overflow:visible;
       box-shadow:0 1px 3px rgba(0,0,0,0.05);
     }
     .closed-row {
@@ -1385,9 +1385,38 @@
   // Close any open kebab on outside click (parallel Location)
   document.addEventListener('click', function(ev){
     if(!ev.target.closest('.v2-tr-kebab-wrap')){
-      document.querySelectorAll('.v2-tr-kebab-menu.open').forEach(function(x){ x.classList.remove('open'); });
+      document.querySelectorAll('.v2-tr-kebab-menu.open').forEach(function(x){ x.classList.remove('open'); _trKebabResetFlip(x); });
     }
   });
+  // Close on scroll/resize so the menu doesn't stay misplaced
+  window.addEventListener('scroll', function(){
+    document.querySelectorAll('.v2-tr-kebab-menu.open').forEach(function(x){ x.classList.remove('open'); _trKebabResetFlip(x); });
+  }, true);
+  window.addEventListener('resize', function(){
+    document.querySelectorAll('.v2-tr-kebab-menu.open').forEach(function(x){ x.classList.remove('open'); _trKebabResetFlip(x); });
+  });
+  // Flip kebab menu upward when there's not enough space below the trigger button
+  window._trKebabFlipIfNeeded = function(menu, btn){
+    if(!menu || !btn) return;
+    var r = btn.getBoundingClientRect();
+    var mh = menu.offsetHeight || 220;
+    var spaceBelow = window.innerHeight - r.bottom;
+    if(spaceBelow < mh + 12){
+      menu.style.top = 'auto';
+      menu.style.bottom = '100%';
+      menu.style.marginTop = '0';
+      menu.style.marginBottom = '4px';
+    } else {
+      _trKebabResetFlip(menu);
+    }
+  };
+  window._trKebabResetFlip = function(menu){
+    if(!menu) return;
+    menu.style.top = '';
+    menu.style.bottom = '';
+    menu.style.marginTop = '';
+    menu.style.marginBottom = '';
+  };
   // Compute + paint right col stats (alerts, today, triage, week)
   window.computeDashRightStats = function(){
     try {
@@ -3735,8 +3764,11 @@
                 var menu = card.querySelector('.v2-tr-kebab-menu');
                 if (!menu) return;
                 var wasOpen = menu.classList.contains('open');
-                document.querySelectorAll('.v2-tr-kebab-menu.open').forEach(function(x){ x.classList.remove('open'); });
-                if (!wasOpen) menu.classList.add('open');
+                document.querySelectorAll('.v2-tr-kebab-menu.open').forEach(function(x){ x.classList.remove('open'); _trKebabResetFlip(x); });
+                if (!wasOpen) {
+                    menu.classList.add('open');
+                    _trKebabFlipIfNeeded(menu, tgt);
+                }
                 return;
             }
             // Close any open kebab on action
@@ -3852,8 +3884,11 @@
                     var menu = tr.querySelector('.v2-tr-kebab-menu');
                     if (!menu) return;
                     var wasOpen = menu.classList.contains('open');
-                    document.querySelectorAll('.v2-tr-kebab-menu.open').forEach(function(x){ x.classList.remove('open'); });
-                    if (!wasOpen) menu.classList.add('open');
+                    document.querySelectorAll('.v2-tr-kebab-menu.open').forEach(function(x){ x.classList.remove('open'); _trKebabResetFlip(x); });
+                    if (!wasOpen) {
+                        menu.classList.add('open');
+                        _trKebabFlipIfNeeded(menu, tgt);
+                    }
                     return;
                 }
                 document.querySelectorAll('.v2-tr-kebab-menu.open').forEach(function(x){ x.classList.remove('open'); });
