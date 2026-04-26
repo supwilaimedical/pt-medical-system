@@ -548,7 +548,7 @@
   .v2-loc-kebab-btn:hover{ background:#f1f5f9; color:#0f172a; }
   .v2-loc-kebab-btn i{ font-size:18px; }
   .v2-loc-kebab-menu{
-    position:absolute; right:0; top:100%; margin-top:4px; z-index:1050;
+    position:fixed; z-index:9999;
     min-width:180px; padding:4px;
     background:#fff; border:1px solid #e2e8f0; border-radius:10px;
     box-shadow:0 8px 24px rgba(15,23,42,.12); display:none;
@@ -883,12 +883,35 @@
     var wasOpen = m.classList.contains('open');
     // Close all other kebabs first
     document.querySelectorAll('.v2-loc-kebab-menu.open').forEach(function(x){ x.classList.remove('open'); });
-    if(!wasOpen) m.classList.add('open');
+    if(wasOpen) return;
+    // Position fixed near the button; flip up if not enough space below
+    var btn = ev.currentTarget || ev.target.closest('.v2-loc-kebab-btn');
+    if(btn){
+      var r = btn.getBoundingClientRect();
+      m.classList.add('open'); // measure after open
+      var mw = m.offsetWidth || 180;
+      var mh = m.offsetHeight || 200;
+      var vh = window.innerHeight, vw = window.innerWidth;
+      var spaceBelow = vh - r.bottom;
+      var top = (spaceBelow >= mh + 8) ? (r.bottom + 4) : Math.max(8, r.top - mh - 4);
+      var left = Math.min(vw - mw - 8, Math.max(8, r.right - mw));
+      m.style.top = top + 'px';
+      m.style.left = left + 'px';
+    } else {
+      m.classList.add('open');
+    }
   };
   document.addEventListener('click', function(ev){
     if(!ev.target.closest('.v2-loc-kebab-wrap')){
       document.querySelectorAll('.v2-loc-kebab-menu.open').forEach(function(x){ x.classList.remove('open'); });
     }
+  });
+  // Close on scroll/resize to avoid stale positioning
+  window.addEventListener('scroll', function(){
+    document.querySelectorAll('.v2-loc-kebab-menu.open').forEach(function(x){ x.classList.remove('open'); });
+  }, true);
+  window.addEventListener('resize', function(){
+    document.querySelectorAll('.v2-loc-kebab-menu.open').forEach(function(x){ x.classList.remove('open'); });
   });
 
   // Map Tools
