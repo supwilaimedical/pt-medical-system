@@ -882,10 +882,26 @@
     if(!m) return;
     var wasOpen = m.classList.contains('open');
     // Close all other kebabs first
-    document.querySelectorAll('.v2-loc-kebab-menu.open').forEach(function(x){ x.classList.remove('open'); });
+    document.querySelectorAll('.v2-loc-kebab-menu.open').forEach(function(x){
+      x.classList.remove('open');
+      // Restore to original parent if previously moved to body
+      var origSel = x.getAttribute('data-orig-parent');
+      if(origSel){
+        var orig = document.querySelector(origSel);
+        if(orig && x.parentNode !== orig) orig.appendChild(x);
+      }
+    });
     if(wasOpen) return;
-    // Position fixed near the button; flip up if not enough space below
+    // Move menu to <body> so no ancestor's overflow/transform can clip it
     var btn = ev.currentTarget || ev.target.closest('.v2-loc-kebab-btn');
+    var wrap = btn ? btn.closest('.v2-loc-kebab-wrap') : null;
+    if(wrap && !m.getAttribute('data-orig-parent')){
+      // Tag wrap so we can restore later
+      if(!wrap.id) wrap.id = 'kbwrap-' + id;
+      m.setAttribute('data-orig-parent', '#' + wrap.id);
+    }
+    if(m.parentNode !== document.body) document.body.appendChild(m);
+    // Position fixed near the button; flip up if not enough space below
     if(btn){
       var r = btn.getBoundingClientRect();
       m.classList.add('open'); // measure after open
@@ -902,7 +918,8 @@
     }
   };
   document.addEventListener('click', function(ev){
-    if(!ev.target.closest('.v2-loc-kebab-wrap')){
+    // Don't close when clicking inside the wrap (toggle button) or inside the open menu itself
+    if(!ev.target.closest('.v2-loc-kebab-wrap') && !ev.target.closest('.v2-loc-kebab-menu')){
       document.querySelectorAll('.v2-loc-kebab-menu.open').forEach(function(x){ x.classList.remove('open'); });
     }
   });
