@@ -970,11 +970,20 @@
     }
     .closed-row {
       display:grid; align-items:center;
-      /* Fixed last-two columns so pin in c-route always lines up across rows */
-      grid-template-columns:4px 130px 1fr 1.4fr 170px 130px;
+      /* Last two columns size to content so the name column can grow on narrow viewports */
+      grid-template-columns:4px 130px minmax(0, 1.5fr) minmax(0, 1.4fr) minmax(0, max-content) auto;
       gap:10px; padding:10px 14px;
       border-top:1px solid #f1f5f9;
       cursor:pointer; transition:background 0.12s;
+    }
+    /* Medium desktop: tighten meta + actions so name has more room */
+    @media (min-width: 769px) and (max-width: 1199px) {
+      .closed-row {
+        grid-template-columns:4px 110px minmax(0, 1.6fr) minmax(0, 1.3fr) minmax(0, max-content) auto;
+        gap:8px; padding:10px 12px;
+      }
+      .closed-row .c-meta .team { font-size:0.74rem; }
+      .closed-row .c-actions .btn-ico { width:28px; height:28px; }
     }
     .closed-row:first-child { border-top:0; }
     .closed-row:hover { background:#f8fafc; }
