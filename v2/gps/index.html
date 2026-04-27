@@ -226,6 +226,14 @@
     .filter-tabs {
       display: flex; gap: 4px; margin-top: 10px;
     }
+
+    /* Search + filter on the same row to save vertical space */
+    .panel-search-filter-row{
+      display:flex; align-items:center; gap:8px; margin-top:10px;
+    }
+    .panel-search-filter-row .panel-search{ flex:1 1 auto; min-width:0; margin:0; }
+    .panel-search-filter-row .filter-tabs{ flex:0 0 auto; margin:0; }
+    .panel-search-filter-row .filter-tab{ flex:0 0 auto; padding:6px 10px; }
     .filter-tab {
       flex: 1;
       padding: 5px 0;
@@ -369,6 +377,29 @@
     .v-action.action-cam:hover { background: var(--red-600); border-color: var(--red-600); }
     .v-action.action-share:hover { background: var(--navy-500); border-color: var(--navy-500); }
     .v-action i { font-size: 0.85rem; }
+
+    /* ===== Mobile-only: shrink vehicle cards (PC/tablet untouched) ===== */
+    @media (max-width: 767px){
+      .vehicle-list{ padding:6px 10px 10px; }
+      .v-card{ padding:8px 10px; margin-bottom:6px; border-radius:8px; }
+      .v-top{ gap:6px; }
+      .v-plate{ font-size:0.88rem; gap:6px; }
+      .v-plate-dot{ width:7px; height:7px; }
+      .v-sub{ font-size:0.66rem; margin-top:1px; }
+      .v-speed-value{ font-size:0.95rem; }
+      .v-speed-unit{ font-size:0.6rem; margin-top:1px; }
+      .v-status-label{ font-size:0.58rem; padding:1px 5px; margin-top:2px; }
+      .v-address{ font-size:0.68rem; margin-top:5px; padding-top:5px; }
+      .v-address i{ font-size:0.68rem; }
+      .v-actions{ gap:4px; margin-top:6px; }
+      .v-action{ padding:5px 6px; font-size:0.66rem; border-radius:6px; }
+      .v-action i{ font-size:0.78rem; }
+      /* Search + filter row tighter on mobile */
+      .panel-search-filter-row{ gap:6px; margin-top:8px; }
+      .panel-search-filter-row .filter-tab{ padding:5px 8px; font-size:0.7rem; }
+      .panel-search input{ padding:7px 10px 7px 30px; font-size:0.8rem; }
+      .panel-search i{ left:9px; font-size:0.82rem; }
+    }
 
     /* ==================== SHARE TOKENS SECTION ==================== */
     .tokens-section {
@@ -1495,14 +1526,16 @@
             <i class="bi bi-link-45deg"></i> Shared <span class="pv-badge" id="pv-shared-count">0</span>
           </button>
         </div>
-        <div class="panel-search" id="panelSearchWrap">
-          <i class="bi bi-search"></i>
-          <input type="text" id="vehicleSearch" placeholder="ค้นหาทะเบียน / ชื่อรถ..." oninput="filterVehicles()">
-        </div>
-        <div class="filter-tabs" id="panelFilterTabs">
-          <button class="filter-tab active" data-filter="all" onclick="setVehicleFilter('all')">ทั้งหมด</button>
-          <button class="filter-tab" data-filter="online" onclick="setVehicleFilter('online')">Online</button>
-          <button class="filter-tab" data-filter="offline" onclick="setVehicleFilter('offline')">Offline</button>
+        <div class="panel-search-filter-row">
+          <div class="panel-search" id="panelSearchWrap">
+            <i class="bi bi-search"></i>
+            <input type="text" id="vehicleSearch" placeholder="ค้นหาทะเบียน / ชื่อรถ..." oninput="filterVehicles()">
+          </div>
+          <div class="filter-tabs" id="panelFilterTabs">
+            <button class="filter-tab active" data-filter="all" onclick="setVehicleFilter('all')">ทั้งหมด</button>
+            <button class="filter-tab" data-filter="online" onclick="setVehicleFilter('online')">Online</button>
+            <button class="filter-tab" data-filter="offline" onclick="setVehicleFilter('offline')">Offline</button>
+          </div>
         </div>
       </div>
 
