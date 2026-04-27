@@ -26,12 +26,43 @@
         .blink-badge { animation: blink-badge-anim 1.2s ease-in-out infinite; }
         @keyframes blink-badge-anim { 0%,100% { opacity: 1; } 50% { opacity: 0.4; } }
 
+        /* ===== Page header (matches v2-colheader pattern across modules) ===== */
+        .monitor-page-header{
+            display:flex; align-items:center; gap:12px;
+            background:#fff; border-bottom:1px solid #e2e8f0;
+            padding:14px 16px; margin:0 -12px 16px;
+            position:-webkit-sticky; position:sticky; top:0; z-index:20;
+        }
+        .monitor-page-header .mph-left{ flex:1; min-width:0; }
+        .monitor-page-header h3{
+            margin:0; font-size:18px; font-weight:700; color:#0f172a;
+            display:flex; align-items:center; gap:10px;
+        }
+        .monitor-page-header h3 .bi{ color:#7c3aed; }
+        .monitor-page-header .sub{ font-size:12px; color:#64748b; margin-top:3px; }
+        .monitor-page-header .mph-live{
+            display:inline-flex; align-items:center; gap:6px;
+            padding:5px 11px; border-radius:999px;
+            background:#dcfce7; color:#166534;
+            font-size:11.5px; font-weight:600;
+        }
+        .monitor-page-header .mph-live .dot{
+            width:7px; height:7px; border-radius:50%; background:#16a34a;
+            box-shadow:0 0 0 3px rgba(22,163,74,.25);
+            animation:mph-pulse 1.5s infinite;
+        }
+        @keyframes mph-pulse{ 0%,100%{opacity:1;} 50%{opacity:.45;} }
+        @media (max-width:991px){
+            .monitor-page-header{ padding:12px 12px 12px 60px; /* hamburger clearance */ }
+            .monitor-page-header h3{ font-size:16px; }
+            .monitor-page-header .mph-live{ font-size:10.5px; padding:4px 9px; }
+        }
+
         /* ===== Section header (match v2 col-header pattern) ===== */
         .monitor-section-header {
             display:flex; align-items:center; gap:10px;
             background:#fff; border-bottom:1px solid #e2e8f0;
             padding:10px 16px; margin:0 -12px 12px;
-            position:sticky; top:0; z-index:9;
         }
         .monitor-section-header h5 {
             margin:0; font-weight:700; font-size:15px; color:#0f172a;
@@ -44,7 +75,6 @@
         }
         .monitor-section-header .line-filler { flex:1; }
         @media (max-width:991px){
-            .monitor-section-header{ padding-left:60px; /* hamburger clearance */ }
             .monitor-section-header h5{ font-size:14px; }
         }
 
@@ -578,9 +608,18 @@
                     <button id="monitor-refresh-btn" onclick="loadMonitor()"><i id="monitor-refresh-icon"></i></button>
                 </div>
 
+                <!-- Page header (matches other modules' v2-colheader pattern) -->
+                <div class="monitor-page-header">
+                    <div class="mph-left">
+                        <h3><i class="bi bi-activity"></i> ศูนย์ควบคุม</h3>
+                        <div class="sub">Monitor · เรียลไทม์</div>
+                    </div>
+                    <span class="mph-live"><span class="dot"></span> LIVE</span>
+                </div>
+
                 <!-- Transport Section -->
                 <div class="monitor-section-header">
-                    <h5><span>🚑</span> นำส่งผู้ป่วย · กำลังดำเนินการ</h5>
+                    <h5><i class="bi bi-truck-flatbed"></i> นำส่งผู้ป่วย · กำลังดำเนินการ</h5>
                     <span class="count-pill" style="background:#0ea5e9;" id="monitor-transport-count">0</span>
                     <span class="line-filler"></span>
                 </div>
@@ -590,7 +629,7 @@
 
                 <!-- First Aid Section -->
                 <div class="monitor-section-header">
-                    <h5><span>🩹</span> ปฐมพยาบาล · เหตุการณ์ที่เปิดอยู่</h5>
+                    <h5><i class="bi bi-bandaid-fill"></i> ปฐมพยาบาล · เหตุการณ์ที่เปิดอยู่</h5>
                     <span class="count-pill" style="background:#dc2626;" id="monitor-fa-count">0</span>
                     <span class="line-filler"></span>
                 </div>
