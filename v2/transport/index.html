@@ -218,12 +218,14 @@
     /* Hide V1 FAB on dashboard — "+ เคสใหม่" already in subnav */
     body .fab-btn{ display:none !important; }
 
-    /* ===== Dashboard view header (match Location style — flush edge-to-edge) ===== */
+    /* ===== Dashboard view header (Location pattern — container padding:0, edge-to-edge) ===== */
+    body:has(#dashboard-view.active) #app-main-wrapper > .container{
+      padding:0 !important; max-width:none !important;
+    }
     #dashboard-view > .d-flex.justify-content-between.align-items-end{
       background:#fff; border-bottom:1px solid #e2e8f0;
-      padding:10px 18px !important; margin:0 -18px !important;
+      padding:10px 18px !important; margin:0 !important;
       position:-webkit-sticky; position:sticky; top:0; z-index:1020;
-      margin-top:0 !important;
     }
     #dashboard-view .tr-colhead-left{ min-width:0; flex:1; }
     #dashboard-view .dashboard-header{
@@ -237,12 +239,12 @@
     /* Search panel flush + compact */
     #dashboard-view .search-panel{
       background:#fff; border-bottom:1px solid #e2e8f0;
-      padding:10px 18px !important; margin:0 -18px !important;
+      padding:10px 18px !important; margin:0 !important;
       border-radius:0 !important; box-shadow:none !important;
     }
     /* Section dividers (กำลังดำเนินการ / ปิดเคสแล้ว) tighter */
     #dashboard-view .dash-section-header{
-      padding:14px 18px 6px !important; margin:0 -18px !important;
+      padding:14px 18px 6px !important; margin:0 !important;
       border-bottom:1px solid #f1f5f9 !important;
     }
     /* Card container padding */
@@ -287,12 +289,13 @@
     .closed-row{ overflow:visible !important; }
     .closed-row:has(.v2-tr-kebab-menu.open){ z-index:1050; position:relative; }
 
-    /* Mobile: sticky header + search-panel hamburger spacing */
-    @media (max-width: 991px){
-      #dashboard-view > .d-flex.justify-content-between.align-items-end{ padding-left:60px !important; }
-      #dashboard-view .search-panel{ padding-left:16px !important; }
-      #active-cards-container, #closed-table-container{ padding:10px 12px !important; }
-      #dashboard-view .dash-section-header{ padding:10px 12px 4px !important; }
+    /* Mobile: topbar gets hamburger clearance only; other blocks keep flush 12-14px padding */
+    @media (max-width: 767px){
+      #dashboard-view > .d-flex.justify-content-between.align-items-end{ padding:10px 14px 10px 60px !important; }
+      #dashboard-view .search-panel{ padding:10px 14px !important; }
+      #active-cards-container{ padding:12px 14px !important; }
+      #closed-table-container{ padding:6px 14px 12px !important; }
+      #dashboard-view .dash-section-header{ padding:12px 14px 4px !important; }
     }
 
     /* ===== Dashboard Right Column (PC ≥1200px only) ===== */
@@ -413,14 +416,14 @@
       body.tr-dash-has-rc #app-main-wrapper > .container{
         max-width:none !important; width:auto !important;
         margin-right:280px !important;
-        padding:0 18px !important;
+        padding:0 !important;
       }
     }
     @media (min-width:768px) and (max-width:1199px){
       /* No right col — still use full width in dashboard view (tablet portrait + PC small) */
       body:has(#dashboard-view.active) #app-main-wrapper > .container{
         max-width:none !important; width:auto !important;
-        padding:0 18px !important;
+        padding:0 !important;
       }
     }
     /* Form view — full width on tablet+ (≥768px, no max-w constraint) */
@@ -430,9 +433,8 @@
         padding:0 18px !important;
       }
     }
-    /* Tablet portrait: offset content past rail strip (56px) */
+    /* Tablet portrait: form-view needs offset past rail strip (56px); dashboard already flush */
     @media (min-width:768px) and (max-width:991px){
-      body:has(#dashboard-view.active) #app-main-wrapper > .container,
       body:has(#form-view.active) #app-main-wrapper > .container{
         padding-left:66px !important;
       }

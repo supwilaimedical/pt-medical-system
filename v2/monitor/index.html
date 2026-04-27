@@ -30,7 +30,7 @@
         .monitor-page-header{
             display:flex; align-items:center; gap:12px;
             background:#fff; border-bottom:1px solid #e2e8f0;
-            padding:14px 16px; margin:0 -12px 16px;
+            padding:14px 18px; margin:0 0 16px;
             position:-webkit-sticky; position:sticky; top:0; z-index:20;
         }
         .monitor-page-header .mph-left{ flex:1; min-width:0; }
@@ -52,8 +52,8 @@
             animation:mph-pulse 1.5s infinite;
         }
         @keyframes mph-pulse{ 0%,100%{opacity:1;} 50%{opacity:.45;} }
-        @media (max-width:991px){
-            .monitor-page-header{ padding:12px 12px 12px 60px; /* hamburger clearance */ }
+        @media (max-width:767px){
+            .monitor-page-header{ padding:12px 14px 12px 60px; /* hamburger clearance */ }
             .monitor-page-header h3{ font-size:16px; }
             .monitor-page-header .mph-live{ font-size:10.5px; padding:4px 9px; }
         }
@@ -62,7 +62,7 @@
         .monitor-section-header {
             display:flex; align-items:center; gap:10px;
             background:#fff; border-bottom:1px solid #e2e8f0;
-            padding:10px 16px; margin:0 -12px 12px;
+            padding:10px 18px; margin:0 0 12px;
         }
         .monitor-section-header h5 {
             margin:0; font-weight:700; font-size:15px; color:#0f172a;
@@ -596,7 +596,7 @@
         </div>
 
         <!-- ==================== MONITOR VIEW ==================== -->
-        <div class="container-fluid" style="max-width:100%; padding:0 12px;">
+        <div class="container-fluid" style="max-width:100%; padding:0;">
             <div id="monitor-view" class="view-section active">
                 <!-- Hidden legacy header (kept for V1 JS compatibility — controls moved to subnav) -->
                 <div style="display:none;">
