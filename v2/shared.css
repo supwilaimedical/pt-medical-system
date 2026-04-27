@@ -379,6 +379,29 @@ img{ max-width:100%; display:block; }
 .modal-body{ padding:16px 20px; font-size:14px; line-height:1.6; }
 .modal-footer{ padding:12px 20px; border-top:1px solid var(--c-border); display:flex; gap:8px; justify-content:flex-end; }
 
+/* ============ MOBILE TOUCH/TYPO TWEAKS (≤768px) ============ */
+/* Safer touch targets and Thai text wrapping. Desktop is untouched. */
+@media (max-width: 768px){
+  /* Touch target ≥40×40px for icon-only buttons */
+  .kebab-btn{ width:40px; height:40px; }
+  .kebab-menu{ min-width:220px; }
+  .kebab-item{ padding:12px 14px; font-size:14px; }
+
+  /* Patient name allows wrapping for long Thai names */
+  .case-name{ word-break:break-word; overflow-wrap:anywhere; }
+
+  /* Slightly larger form inputs (closer to 44px height) */
+  .field input, .field select, .field textarea{
+    padding:11px 12px; font-size:15px;
+  }
+}
+/* Extra-small phones — login form & cards */
+@media (max-width: 480px){
+  .field input, .field select, .field textarea{
+    padding:12px 12px; font-size:16px; /* 16px prevents iOS zoom on focus */
+  }
+}
+
 /* ============ PRINT ============ */
 @media print {
   @page { size: A4; margin: 12mm; }

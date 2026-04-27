@@ -565,6 +565,12 @@
   .v2-loc-kebab-item.danger{ color:#991b1b; }
   .v2-loc-kebab-item.danger:hover{ background:#fef2f2; color:#7f1d1d; }
   .v2-loc-kebab-divider{ height:1px; background:#f1f5f9; margin:4px 0; }
+  /* Mobile: bigger touch targets + Thai text wrap */
+  @media (max-width:768px){
+    .v2-loc-kebab-btn{ width:40px; height:40px; }
+    .v2-loc-kebab-item{ padding:12px 14px; font-size:14px; }
+    .v2-loc-kebab-menu{ min-width:220px; }
+  }
 </style>
 
 <aside class="v2-rail no-print">

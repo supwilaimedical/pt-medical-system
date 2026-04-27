@@ -1101,7 +1101,12 @@
         grid-area:actions; align-self:center;
         display:grid; grid-template-columns:repeat(2,1fr); gap:2px;
       }
-      .closed-row .c-actions .btn-ico { width:30px; height:30px; font-size:0.82rem; }
+      .closed-row .c-actions .btn-ico { width:40px; height:40px; font-size:0.95rem; }
+      .v2-tr-kebab-btn { width:40px !important; height:40px !important; }
+      .v2-tr-kebab-item { padding:12px 14px !important; font-size:14px !important; }
+      /* Patient names wrap on long Thai text */
+      .closed-row .c-name { white-space:normal; word-break:break-word; overflow-wrap:anywhere; }
+      .active-card .patient-name { word-break:break-word; overflow-wrap:anywhere; }
 
       /* Shrink FAB on mobile so it doesn't overlap table actions */
       .fab-btn { bottom:16px; right:16px; width:48px; height:48px; font-size:1.2rem; }
