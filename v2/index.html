@@ -386,6 +386,19 @@
     padding:14px 16px 10px;
   }
   .l-map-head .ttl{ font-size:13.5px; font-weight:700; color:var(--c-text); }
+  .l-map-head .l-map-updated{
+    font-size:11px; color:var(--c-text-2); font-variant-numeric:tabular-nums;
+    background:#f1f5f9; padding:2px 7px; border-radius:6px;
+  }
+  .l-map-head .l-map-refresh{
+    border:1px solid var(--c-border); background:#fff; cursor:pointer;
+    width:26px; height:26px; border-radius:6px; color:var(--c-text-2);
+    display:inline-flex; align-items:center; justify-content:center;
+    font-size:13px; transition:all .15s;
+  }
+  .l-map-head .l-map-refresh:hover{ background:#f1f5f9; color:var(--c-primary); border-color:var(--c-primary); }
+  .l-map-head .l-map-refresh.spinning .bi{ animation:lmap-spin .8s linear infinite; }
+  @keyframes lmap-spin{ to { transform:rotate(360deg); } }
   .l-map-head .more{
     margin-left:auto; font-size:12px; color:var(--c-primary);
     text-decoration:none; font-weight:500;
@@ -643,6 +656,8 @@
           <div class="l-map-head">
             <i class="bi bi-map" style="color:#0ea5e9;"></i>
             <span class="ttl">แผนที่รถ GPS</span>
+            <span class="l-map-updated" id="l-map-updated" title="อัปเดตล่าสุด">—</span>
+            <button type="button" class="l-map-refresh" id="l-map-refresh" onclick="refreshMiniMapMarkers()" title="รีเฟรช"><i class="bi bi-arrow-clockwise"></i></button>
             <a class="more" href="gps/">เปิดเต็มจอ <i class="bi bi-arrow-right"></i></a>
           </div>
           <div class="l-map-wrap">
@@ -845,6 +860,10 @@ function _classifyVehicle(s){
 }
 
 // Mini Leaflet map (admin only) — fetches REAL live GPS positions
+var _miniRefreshTimer = null;
+var _miniRefreshing = false;
+var MINI_REFRESH_MS = 60000; // 60s auto-refresh
+
 async function initMiniMap(){
   if(typeof L === 'undefined') return;
   var el = document.getElementById('l-mini-map');
@@ -860,8 +879,8 @@ async function initMiniMap(){
     // Click → GPS module
     el.style.cursor = 'pointer';
     el.addEventListener('click', function(e){
-      // Don't navigate if clicking the popup
-      if(e.target && e.target.closest('.leaflet-popup')) return;
+      // Don't navigate if clicking the popup or the refresh button
+      if(e.target && (e.target.closest('.leaflet-popup') || e.target.closest('.l-map-refresh'))) return;
       window.location.href = 'gps/';
     });
 
@@ -870,10 +889,28 @@ async function initMiniMap(){
       try { await gpsLoadProxyConfig(_supabase); } catch(e){ console.warn('proxy config:', e.message); }
     }
 
+    // Initial markers + start auto-refresh
+    await refreshMiniMapMarkers();
+    if(_miniRefreshTimer) clearInterval(_miniRefreshTimer);
+    _miniRefreshTimer = setInterval(refreshMiniMapMarkers, MINI_REFRESH_MS);
+  } catch(e){ console.warn('mini map init failed:', e); }
+}
+
+// Re-fetch GPS positions and redraw markers (manual or auto)
+async function refreshMiniMapMarkers(){
+  if(!_miniMap || _miniRefreshing) return;
+  _miniRefreshing = true;
+  var refreshBtn = document.getElementById('l-map-refresh');
+  if(refreshBtn) refreshBtn.classList.add('spinning');
+  try {
     // Fetch active providers + vehicles
     var pRes = await _supabase.from('gps_providers').select('*').eq('is_active', true);
     var providers = pRes.data || [];
-    if(!providers.length){ console.info('No active GPS providers — map empty'); return; }
+    if(!providers.length){
+      console.info('No active GPS providers — map empty');
+      _setMiniMapUpdatedNow();
+      return;
+    }
 
     // Fetch real-time statuses from each provider
     var allStatuses = [];
@@ -883,6 +920,10 @@ async function initMiniMap(){
         (statuses || []).forEach(function(s){ s._providerId = providers[i].id; allStatuses.push(s); });
       } catch(e){ console.warn('gps status fail:', providers[i].name, e.message); }
     }
+
+    // Clear existing markers before re-plotting
+    _miniMarkers.forEach(function(m){ try { _miniMap.removeLayer(m); } catch(e){} });
+    _miniMarkers = [];
 
     // Plot markers + tally classes
     var bounds = [];
@@ -924,8 +965,26 @@ async function initMiniMap(){
       var total = online + counts.offline;
       kpiSub.innerHTML = total > 0 ? 'ออนไลน์ '+online+'/'+total : 'ไม่มีรถออนไลน์';
     }
-  } catch(e){ console.warn('mini map init failed:', e); }
+
+    _setMiniMapUpdatedNow();
+  } catch(e){
+    console.warn('mini map refresh failed:', e);
+  } finally {
+    _miniRefreshing = false;
+    if(refreshBtn) refreshBtn.classList.remove('spinning');
+  }
 }
+
+function _setMiniMapUpdatedNow(){
+  var el = document.getElementById('l-map-updated');
+  if(!el) return;
+  var now = new Date();
+  var hh = String(now.getHours()).padStart(2,'0');
+  var mm = String(now.getMinutes()).padStart(2,'0');
+  var ss = String(now.getSeconds()).padStart(2,'0');
+  el.textContent = hh+':'+mm+':'+ss;
+}
+window.refreshMiniMapMarkers = refreshMiniMapMarkers;
 
 // Critical alerts (admin only) — pulls from Monitor system data
 async function loadCriticalAlerts(){
@@ -1023,6 +1082,7 @@ function relativeTime(iso){
 function doLogout(){
   try { localStorage.removeItem('pt_user_meta'); } catch(e){}
   if(_clockTimer){ clearInterval(_clockTimer); _clockTimer = null; }
+  if(_miniRefreshTimer){ clearInterval(_miniRefreshTimer); _miniRefreshTimer = null; }
   if(_miniMap){ try{ _miniMap.remove(); } catch(e){} _miniMap = null; _miniMarkers = []; }
   resetLoginForm();
   showView('view-login');
