@@ -339,6 +339,14 @@
     async function init() {
       _supabase = supabase.createClient(CONFIG.SUPABASE_URL, CONFIG.SUPABASE_ANON_KEY);
 
+      // Guard: respect GPS_ENABLED admin toggle (block public share when GPS module is disabled)
+      try {
+        var gr = await _supabase.from('settings').select('value').eq('key','GPS_ENABLED').maybeSingle();
+        if (!(gr && gr.data && gr.data.value === '1')) {
+          return showError('GPS ปิดใช้งานอยู่', 'ผู้ดูแลระบบได้ปิดบริการ GPS Tracking ลิงก์แชร์ทั้งหมดถูกระงับชั่วคราว');
+        }
+      } catch(e){ console.warn('GPS_ENABLED check:', e.message); }
+
       var params = new URLSearchParams(window.location.search);
       var token = params.get('token');
 
