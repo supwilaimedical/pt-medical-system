@@ -416,7 +416,7 @@
     <a href="transport/" title="นำส่งผู้ป่วย"><i class="bi bi-truck-flatbed"></i></a>
     <a href="firstaid/" title="ปฐมพยาบาล"><i class="bi bi-bandaid"></i></a>
     <a href="location/" title="พิกัดสถานที่"><i class="bi bi-geo-alt-fill"></i></a>
-    <a href="gps/" title="GPS Tracking"><i class="bi bi-broadcast-pin"></i></a>
+    <a href="gps/" id="rail-gps" title="GPS Tracking"><i class="bi bi-broadcast-pin"></i></a>
     <a href="fleet/" title="Fleet Status"><i class="bi bi-clipboard-check"></i></a>
     <div class="v2-spacer"></div>
     <a href="monitor/" title="Monitor"><i class="bi bi-activity"></i></a>
@@ -431,7 +431,7 @@
       <a href="transport/" title="นำส่งผู้ป่วย"><i class="bi bi-truck-flatbed"></i></a>
       <a href="firstaid/" title="ปฐมพยาบาล"><i class="bi bi-bandaid"></i></a>
       <a href="location/" title="พิกัดสถานที่"><i class="bi bi-geo-alt-fill"></i></a>
-      <a href="gps/" title="GPS Tracking"><i class="bi bi-broadcast-pin"></i></a>
+      <a href="gps/" id="m-rail-gps" title="GPS Tracking"><i class="bi bi-broadcast-pin"></i></a>
       <a href="fleet/" title="Fleet Status"><i class="bi bi-clipboard-check"></i></a>
       <a href="monitor/" title="Monitor"><i class="bi bi-activity"></i></a>
       <a href="index.html" title="หน้าหลัก"><i class="bi bi-house-door-fill"></i></a>
@@ -1464,6 +1464,11 @@
       document.getElementById('admin-gps-enabled').checked = gpsEnabled;
       document.getElementById('gps-enabled-text').textContent = gpsEnabled ? 'เปิดใช้งานแล้ว' : 'ปิดอยู่';
       toggleGpsConfig();
+      // Hide GPS rail icons when disabled (matches behavior of other modules)
+      ['rail-gps','m-rail-gps'].forEach(function(id){
+        var el = document.getElementById(id);
+        if (el) el.style.display = gpsEnabled ? '' : 'none';
+      });
 
       // GPS Proxy URLs (fallback to DEFAULTS if DB empty)
       document.getElementById('admin-gps-synology').value = s['GPS_PROXY_SYNOLOGY'] || '';

@@ -771,6 +771,20 @@
   }
   showAdminRail();
 
+  // === Honor GPS_ENABLED toggle — hide GPS rail icons when disabled ===
+  async function applyFleetGpsEnabledFlag(){
+    if (typeof _supabase === 'undefined') return;
+    try {
+      var r = await _supabase.from('settings').select('value').eq('key','GPS_ENABLED').maybeSingle();
+      var enabled = r && r.data && r.data.value === '1';
+      ['rail-gps','m-rail-gps'].forEach(function(id){
+        var el = document.getElementById(id);
+        if (el && !enabled) el.style.display = 'none';
+      });
+    } catch(e){ console.warn('GPS_ENABLED check:', e.message); }
+  }
+  applyFleetGpsEnabledFlag();
+
   // === Toggle right col on desktop ===
   function syncRightCol(){
     document.body.classList.add('fleet-has-rc');
