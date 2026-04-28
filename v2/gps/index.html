@@ -1851,6 +1851,32 @@
     });
 
     // =============================================
+    // GPS DISABLED SCREEN — shown when admin has GPS_ENABLED=0
+    // =============================================
+    function _showGpsDisabledScreen(){
+      var layout = document.querySelector('.gps-layout');
+      if (layout) layout.style.display = 'none';
+      var nav = document.querySelector('nav.navbar');
+      // keep navbar so user can navigate away
+      var msg = document.createElement('div');
+      msg.id = 'gps-disabled-screen';
+      msg.style.cssText = 'min-height:60vh; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:14px; padding:40px 20px; text-align:center;';
+      msg.innerHTML =
+        '<i class="bi bi-broadcast-pin" style="font-size:56px; color:#cbd5e1;"></i>' +
+        '<h3 style="margin:0; font-size:20px; color:#0f172a; font-weight:700;">GPS Tracking ปิดใช้งานอยู่</h3>' +
+        '<p style="margin:0; color:#64748b; font-size:14px; max-width:420px; line-height:1.6;">ผู้ดูแลระบบยังไม่ได้เปิดใช้งานโมดูลนี้<br>' +
+        (_isAdmin ? 'คุณสามารถเปิดได้ที่ <strong>Admin Settings → GPS Tracking</strong>' : 'กรุณาติดต่อ Admin หากต้องการใช้งาน') + '</p>' +
+        '<div style="display:flex; gap:8px; margin-top:8px;">' +
+          '<a href="../" class="btn btn-primary btn-sm rounded-pill px-3">' +
+            '<i class="bi bi-house-door-fill"></i> กลับหน้าหลัก' +
+          '</a>' +
+          (_isAdmin ? '<a href="../admin.html#gps" class="btn btn-warning btn-sm rounded-pill px-3"><i class="bi bi-gear-fill"></i> ไปที่ตั้งค่า</a>' : '') +
+        '</div>';
+      var wrap = document.getElementById('app-main-wrapper') || document.body;
+      wrap.appendChild(msg);
+    }
+
+    // =============================================
     // INIT
     // =============================================
     async function init() {
@@ -1867,6 +1893,16 @@
           document.getElementById('panelViewTabs').style.display = '';
         }
       }
+
+      // Guard: if GPS module is disabled in admin settings, block access
+      try {
+        var gr = await _supabase.from('settings').select('value').eq('key','GPS_ENABLED').maybeSingle();
+        var gpsOn = gr && gr.data && gr.data.value === '1';
+        if (!gpsOn) {
+          _showGpsDisabledScreen();
+          return; // stop init — don't load providers, vehicles, polling, etc.
+        }
+      } catch(e){ console.warn('GPS_ENABLED check:', e.message); }
 
       // Bootstrap settings cache (populates settingsGet/_on used by gps-providers.js)
       // Without this, Synology tier is skipped because settingsGet('GPS_PROXY_SYNOLOGY')
