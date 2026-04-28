@@ -186,6 +186,8 @@
     display:grid; grid-template-columns:repeat(4,1fr); gap:14px;
     max-width:1280px; margin:24px auto 0; padding:0 24px;
   }
+  /* Reflow to 3 cols when GPS module is disabled (admin toggle off) */
+  body.gps-disabled .l-kpi{ grid-template-columns:repeat(3,1fr); }
   .l-kpi-card{
     background:rgba(255,255,255,.06);
     border:1px solid rgba(255,255,255,.12);
@@ -553,7 +555,7 @@
         <div class="l-kpi-num" id="kpi-loc-total">–</div>
         <div class="l-kpi-sub" id="kpi-loc-sub">&nbsp;</div>
       </div>
-      <div class="l-kpi-card">
+      <div class="l-kpi-card" id="kpi-card-gps">
         <div class="l-kpi-head"><i class="bi bi-broadcast-pin"></i> รถในระบบ GPS</div>
         <div class="l-kpi-num" id="kpi-gps-total">–</div>
         <div class="l-kpi-sub" id="kpi-gps-sub">&nbsp;</div>
@@ -799,15 +801,20 @@ async function applyGpsEnabledFlag(){
 
   var cardGps = document.getElementById('card-gps');
   var railSide = document.getElementById('rail-side');
+  var kpiGps = document.getElementById('kpi-card-gps');
   if(!enabled){
+    document.body.classList.add('gps-disabled');
     if(cardGps) cardGps.style.display = 'none';
     if(railSide) railSide.style.display = 'none';
+    if(kpiGps) kpiGps.style.display = 'none';
     // Stop any running mini-map
     if(_miniRefreshTimer){ clearInterval(_miniRefreshTimer); _miniRefreshTimer = null; }
     if(_miniMap){ try{ _miniMap.remove(); }catch(e){} _miniMap = null; _miniMarkers = []; }
     return;
   }
-  // Enabled — init mini map (slight delay so DOM is settled)
+  // Enabled — show KPI + init mini map
+  document.body.classList.remove('gps-disabled');
+  if(kpiGps) kpiGps.style.display = '';
   setTimeout(initMiniMap, 100);
 }
 
