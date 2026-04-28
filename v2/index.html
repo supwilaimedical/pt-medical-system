@@ -851,10 +851,15 @@ async function loadKPIs(){
 
 // Classify vehicle by speed (matches GPS module convention)
 function _classifyVehicle(s){
-  if(!s) return 'idle';
-  var spd = Number(s.speed) || 0;
-  var online = (s.online === true) || (s.status && /online|moving|run/i.test(s.status));
+  if(!s) return 'offline';
+  // Lenient online check — matches GPS page behavior:
+  // - boolean true, "true", 1, "1"
+  // - status string containing "online|moving|run|live|active"
+  var ov = s.online;
+  var online = (ov === true || ov === 1 || ov === '1' || (typeof ov === 'string' && /^(true|online|on)$/i.test(ov)))
+            || (s.status && /online|moving|run|live|active/i.test(s.status));
   if(!online) return 'offline';
+  var spd = Number(s.speed) || 0;
   if(spd > 5) return 'moving';
   return 'idle';
 }
