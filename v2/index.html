@@ -783,9 +783,32 @@ function showLanding(user){
   loadKPIs();
   loadActiveCases();
   if(isAdmin){
-    setTimeout(initMiniMap, 100);
+    // Honor GPS_ENABLED admin toggle — hide GPS card + mini-map when disabled
+    applyGpsEnabledFlag();
     loadCriticalAlerts();
   }
+}
+
+// Read GPS_ENABLED from settings and toggle GPS UI accordingly
+async function applyGpsEnabledFlag(){
+  var enabled = false;
+  try {
+    var r = await _supabase.from('settings').select('value').eq('key','GPS_ENABLED').maybeSingle();
+    enabled = r && r.data && r.data.value === '1';
+  } catch(e){ console.warn('GPS_ENABLED check:', e.message); }
+
+  var cardGps = document.getElementById('card-gps');
+  var railSide = document.getElementById('rail-side');
+  if(!enabled){
+    if(cardGps) cardGps.style.display = 'none';
+    if(railSide) railSide.style.display = 'none';
+    // Stop any running mini-map
+    if(_miniRefreshTimer){ clearInterval(_miniRefreshTimer); _miniRefreshTimer = null; }
+    if(_miniMap){ try{ _miniMap.remove(); }catch(e){} _miniMap = null; _miniMarkers = []; }
+    return;
+  }
+  // Enabled — init mini map (slight delay so DOM is settled)
+  setTimeout(initMiniMap, 100);
 }
 
 // Live clock

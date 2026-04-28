@@ -1495,11 +1495,17 @@
               if (window.setFaviconFromLogo) window.setFaviconFromLogo(logoUrl);
             }
           }
-          if (s.key === 'GPS_ENABLED' && s.value === '1') {
+          if (s.key === 'GPS_ENABLED') {
+            var gpsEnabled = s.value === '1';
             var gpsBtn = document.getElementById('sys-tog-gps');
-            if (gpsBtn) gpsBtn.style.display = '';
+            var mRailGps = document.getElementById('m-rail-gps');
             var locBtn = document.getElementById('sys-tog-location');
-            if (locBtn) locBtn.classList.remove('rounded-pill-end');
+            if (gpsBtn) gpsBtn.style.display = gpsEnabled ? '' : 'none';
+            if (mRailGps) mRailGps.style.display = gpsEnabled ? '' : 'none';
+            if (locBtn) {
+              if (gpsEnabled) locBtn.classList.remove('rounded-pill-end');
+              else locBtn.classList.add('rounded-pill-end');
+            }
           }
         });
       } catch(e) { /* ignore */ }
