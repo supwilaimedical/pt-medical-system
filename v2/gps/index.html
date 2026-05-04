@@ -2232,12 +2232,12 @@
       // even when idle/offline so user sees last facing direction.
       var arrow = '';
       if (heading !== null && heading !== undefined) {
-        // Arrow rotates inside a 56x56 box. Triangle is bigger now (~18px tall, ~14px wide)
-        // and sits clearly OUTSIDE the dot (which is now 28px centered inside 40px box).
+        // Clean isosceles triangle pointing up (no V-notch). Sits just above the dot.
+        // SVG box 56x56 with -8px inset so triangle tip extends above the 40x40 marker box.
         arrow =
           '<div class="gps-arrow-wrap" style="position:absolute; inset:-8px; pointer-events:none; transform:rotate(' + heading + 'deg); transition:transform .5s ease-out;">' +
-            '<svg width="56" height="56" viewBox="0 0 56 56" style="display:block;">' +
-              '<polygon points="28,0 36,18 28,14 20,18" fill="' + ringColor + '" stroke="#fff" stroke-width="1.5" stroke-linejoin="round"/>' +
+            '<svg width="56" height="56" viewBox="0 0 56 56" style="display:block; overflow:visible;">' +
+              '<polygon points="28,2 36,14 20,14" fill="' + ringColor + '" stroke="#fff" stroke-width="2" stroke-linejoin="round"/>' +
             '</svg>' +
           '</div>';
       }
