@@ -88,31 +88,13 @@
       .vehicle-panel.sheet-peek { height: 64px; min-height: 64px; }
       .vehicle-panel.sheet-half { height: 45vh; }
       .vehicle-panel.sheet-full { height: 88vh; }
-      /* PEEK MODE: hide everything inside the panel, show only handle + status counters */
+      /* PEEK MODE: hide all panel chrome — show only the drag handle (~64px tall) */
       .vehicle-panel.sheet-peek .panel-section-header,
       .vehicle-panel.sheet-peek .panel-search-filter-row,
       .vehicle-panel.sheet-peek .panel-search,
       .vehicle-panel.sheet-peek .filter-tabs,
       .vehicle-panel.sheet-peek .panel-view-tabs,
       .vehicle-panel.sheet-peek .vehicle-list { display: none !important; }
-      .vehicle-panel .sheet-peek-counters { display: none; }
-      .vehicle-panel.sheet-peek .sheet-peek-counters {
-        display: flex; align-items: center; justify-content: space-around;
-        padding: 4px 14px 10px; gap: 8px;
-      }
-      .sheet-peek-counters .pc-pill {
-        flex: 1; display: flex; align-items: center; justify-content: center; gap: 5px;
-        padding: 6px 4px; border-radius: 8px; background: var(--slate-50);
-        font-size: 0.78rem; font-weight: 700; color: var(--slate-700);
-      }
-      .sheet-peek-counters .pc-pill .pc-dot {
-        width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0;
-      }
-      .sheet-peek-counters .pc-pill.online .pc-dot { background: #16a34a; }
-      .sheet-peek-counters .pc-pill.idle .pc-dot { background: #f59e0b; }
-      .sheet-peek-counters .pc-pill.offline .pc-dot { background: #94a3b8; }
-      .sheet-peek-counters .pc-pill.overspeed .pc-dot { background: #dc2626; }
-      .sheet-peek-counters .pc-pill.overspeed { background: #fee2e2; color: #991b1b; }
       .sheet-handle {
         display: flex; justify-content: center; align-items: center;
         padding: 8px 0 4px; cursor: grab; touch-action: none;
@@ -303,43 +285,9 @@
     .v-card.idle:hover{ border-left-color: #d97706; }
     .v-card.overspeed:hover{ border-left-color: #b91c1c; }
 
-    .v-top {
-      display: flex; align-items: flex-start; justify-content: space-between;
-      gap: 8px;
-    }
-    .v-identity { flex: 1; min-width: 0; }
-    .v-plate {
-      display: flex; align-items: center; gap: 8px;
-      font-size: 1rem; font-weight: 700;
-      color: var(--navy-900);
-      letter-spacing: -0.01em;
-    }
-    .v-plate-dot {
-      width: 8px; height: 8px; border-radius: 50%;
-      background: var(--slate-400); flex-shrink: 0;
-    }
-    .v-card.online .v-plate-dot {
-      background: var(--green-600);
-      box-shadow: 0 0 0 0 rgba(22,163,74,0.6);
-      animation: pulseGreen 2s infinite;
-    }
-    .v-card.idle .v-plate-dot { background: var(--amber-500); }
-    .v-card.overspeed {
-      border-color: #dc2626;
-      background: #fef2f2;
-      box-shadow: 0 0 0 2px rgba(220,38,38,0.15);
-    }
-    .v-card.overspeed.active {
-      background: #fee2e2;
-      box-shadow: 0 0 0 3px rgba(220,38,38,0.25);
-    }
-    .v-card.overspeed .v-plate-dot {
-      background: #dc2626;
-      animation: pulseRed 1s infinite;
-    }
-    .v-card.overspeed .v-speed-value {
-      color: #dc2626;
-    }
+    /* (Old .v-top / .v-plate / .v-plate-dot / .v-metric / .v-speed-value styles removed —
+       2-line layout uses .v-line + .v-name + .v-speed-inline instead. Pulse animations kept
+       below for use on .v-card itself if needed.) */
 
     @keyframes pulseGreen {
       0%   { box-shadow: 0 0 0 0 rgba(22,163,74,0.55); }
@@ -352,70 +300,75 @@
       100% { box-shadow: 0 0 0 0 rgba(220,38,38,0); }
     }
 
-    .v-sub {
-      font-size: 0.72rem; color: var(--slate-500); margin-top: 3px;
-      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-    }
-
-    .v-metric { text-align: right; flex-shrink: 0; }
-    .v-speed-value {
-      font-size: 1.1rem; font-weight: 700;
-      color: var(--navy-900);
-      line-height: 1;
-      font-variant-numeric: tabular-nums;
-    }
-    .v-speed-unit {
-      font-size: 0.65rem; color: var(--slate-400);
-      font-weight: 600; margin-top: 2px;
-    }
     /* Status text label hidden — color stripe on left of card now conveys status. */
     .v-status-label { display: none !important; }
 
-    .v-address {
-      font-size: 0.74rem; color: var(--slate-600);
-      margin-top: 8px; padding-top: 8px;
-      border-top: 1px dashed var(--slate-200);
-      display: flex; align-items: center; gap: 6px;
+    /* ===== 2-line inline card layout ===== */
+    .v-card{ padding: 9px 12px; }
+    .v-line{
+      display: flex; align-items: center; gap: 8px;
+      min-width: 0; /* allow ellipsis on children */
+    }
+    .v-line-primary{
+      font-size: 0.92rem;
+    }
+    .v-line-primary .v-name{
+      font-weight: 700; color: var(--navy-900);
       white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+      max-width: 60%;
     }
-    .v-address i { color: var(--slate-400); font-size: 0.75rem; flex-shrink: 0; }
+    .v-line-primary .v-plate-id{
+      font-family: ui-monospace, SFMono-Regular, monospace;
+      font-size: 0.72rem; color: var(--slate-500);
+      background: var(--slate-100); padding: 1px 6px; border-radius: 4px;
+      white-space: nowrap;
+    }
+    .v-line-primary .v-spacer{ flex: 1; }
+    .v-line-primary .v-speed-inline{
+      font-weight: 700; color: var(--navy-900);
+      font-size: 0.95rem; font-variant-numeric: tabular-nums;
+      white-space: nowrap;
+    }
+    .v-line-primary .v-speed-inline small{
+      font-size: 0.6rem; color: var(--slate-400);
+      margin-left: 3px; font-weight: 600;
+    }
+    .v-card.overspeed .v-line-primary .v-speed-inline{ color: #dc2626; }
 
-    .v-actions {
-      display: flex; gap: 6px; margin-top: 10px;
+    .v-icon-btn{
+      width: 28px; height: 28px; padding: 0;
+      display: inline-flex; align-items: center; justify-content: center;
+      background: transparent; border: 1px solid var(--slate-200);
+      border-radius: 6px; color: var(--slate-600);
+      cursor: pointer; transition: all .12s; flex-shrink: 0;
     }
-    .v-action {
-      flex: 1;
-      display: flex; align-items: center; justify-content: center; gap: 4px;
-      padding: 6px 8px;
-      background: var(--slate-50);
-      border: 1px solid var(--slate-200);
-      border-radius: 7px;
-      color: var(--slate-700);
-      font-size: 0.72rem; font-weight: 600;
-      cursor: pointer;
-      transition: all 0.12s;
-    }
-    .v-action:hover { background: var(--navy-700); color: #fff; border-color: var(--navy-700); }
-    .v-action.action-cam:hover { background: var(--red-600); border-color: var(--red-600); }
-    .v-action.action-share:hover { background: var(--navy-500); border-color: var(--navy-500); }
-    .v-action i { font-size: 0.85rem; }
+    .v-icon-btn:hover{ background: var(--navy-700); color: #fff; border-color: var(--navy-700); }
+    .v-icon-btn.cam:hover{ background: var(--red-600); border-color: var(--red-600); }
+    .v-icon-btn.share:hover{ background: var(--navy-500); border-color: var(--navy-500); }
+    .v-icon-btn i{ font-size: 0.85rem; }
 
-    /* ===== Mobile-only: shrink vehicle cards (PC/tablet untouched) ===== */
+    .v-line-secondary{
+      margin-top: 4px;
+      font-size: 0.72rem; color: var(--slate-500);
+    }
+    .v-line-secondary i{ font-size: 0.72rem; color: var(--slate-400); flex-shrink: 0; }
+    .v-line-secondary span{
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+      min-width: 0; flex: 1;
+    }
+
+    /* ===== Mobile-only: even tighter (PC/tablet untouched) ===== */
     @media (max-width: 767px){
-      .vehicle-list{ padding:6px 10px 10px; }
-      .v-card{ padding:8px 10px; margin-bottom:6px; border-radius:8px; }
-      .v-top{ gap:6px; }
-      .v-plate{ font-size:0.88rem; gap:6px; }
-      .v-plate-dot{ width:7px; height:7px; }
-      .v-sub{ font-size:0.66rem; margin-top:1px; }
-      .v-speed-value{ font-size:0.95rem; }
-      .v-speed-unit{ font-size:0.6rem; margin-top:1px; }
-      .v-status-label{ font-size:0.58rem; padding:1px 5px; margin-top:2px; }
-      .v-address{ font-size:0.68rem; margin-top:5px; padding-top:5px; }
-      .v-address i{ font-size:0.68rem; }
-      .v-actions{ gap:4px; margin-top:6px; }
-      .v-action{ padding:5px 6px; font-size:0.66rem; border-radius:6px; }
-      .v-action i{ font-size:0.78rem; }
+      .vehicle-list{ padding: 6px 10px 10px; }
+      .v-card{ padding: 7px 10px; margin-bottom: 6px; border-radius: 8px; border-left-width: 5px; }
+      .v-line{ gap: 6px; }
+      .v-line-primary{ font-size: 0.86rem; }
+      .v-line-primary .v-plate-id{ font-size: 0.66rem; padding: 1px 5px; }
+      .v-line-primary .v-speed-inline{ font-size: 0.88rem; }
+      .v-line-primary .v-speed-inline small{ font-size: 0.55rem; }
+      .v-icon-btn{ width: 30px; height: 30px; }
+      .v-icon-btn i{ font-size: 0.9rem; }
+      .v-line-secondary{ margin-top: 2px; font-size: 0.66rem; }
       /* Search + filter row tighter on mobile */
       .panel-search-filter-row{ gap:6px; margin-top:8px; }
       .panel-search-filter-row .filter-tab{ padding:5px 8px; font-size:0.7rem; }
@@ -1463,14 +1416,6 @@
     setTxt('v2gps-rc-total', c.all);
     setTxt('v2gps-rc-online', c.online + c.idle);
 
-    // Mobile bottom-sheet PEEK counters
-    setTxt('pc-online', c.online);
-    setTxt('pc-idle', c.idle);
-    setTxt('pc-offline', c.offline);
-    setTxt('pc-overspeed', c.overspeed);
-    var pcOver = document.getElementById('pc-pill-overspeed');
-    if(pcOver) pcOver.style.display = c.overspeed > 0 ? '' : 'none';
-
     // Auto-refresh label sync
     var autoLabel = document.getElementById('autoLabel');
     var mini = document.getElementById('gps-auto-label');
@@ -1535,13 +1480,6 @@
     <div class="vehicle-panel" id="vehiclePanel">
       <!-- Drag handle (mobile only) -->
       <div class="sheet-handle" id="sheetHandle" aria-hidden="true"><span class="sheet-handle-bar"></span></div>
-      <!-- Status counters — only visible in sheet-peek collapsed mode (mobile) -->
-      <div class="sheet-peek-counters" id="sheetPeekCounters" onclick="sheetSnap('half')">
-        <span class="pc-pill online"><span class="pc-dot"></span><span id="pc-online">0</span> online</span>
-        <span class="pc-pill idle"><span class="pc-dot"></span><span id="pc-idle">0</span> จอด</span>
-        <span class="pc-pill offline"><span class="pc-dot"></span><span id="pc-offline">0</span> offline</span>
-        <span class="pc-pill overspeed" id="pc-pill-overspeed" style="display:none;"><span class="pc-dot"></span><span id="pc-overspeed">0</span></span>
-      </div>
       <div class="panel-section-header">
         <div class="panel-title">
           <h5><i class="bi bi-broadcast-pin" style="color:var(--red-600);"></i> Fleet <span class="count-pill" id="vehicle-count">0</span></h5>
@@ -2144,21 +2082,16 @@
         if (geoLabel) addr = geoLabel;
 
         html += '<div class="v-card ' + statusClass + (_selectedKey === key ? ' active' : '') + '" onclick="focusVehicle(\'' + key + '\')">' +
-          '<div class="v-top">' +
-            '<div class="v-identity">' +
-              '<div class="v-plate"><span class="v-plate-dot"></span>' + esc(displayName) + '</div>' +
-              '<div class="v-sub">' + esc(v.device_id) + '</div>' +
-            '</div>' +
-            '<div class="v-metric">' +
-              '<div class="v-speed-value">' + speed + '</div>' +
-              '<div class="v-speed-unit">km/h</div>' +
-              '<div class="v-status-label ' + statusLabelClass + '">' + statusLabel + '</div>' +
-            '</div>' +
+          '<div class="v-line v-line-primary">' +
+            '<span class="v-name">' + esc(displayName) + '</span>' +
+            '<span class="v-plate-id">' + esc(v.device_id) + '</span>' +
+            '<span class="v-spacer"></span>' +
+            '<span class="v-speed-inline">' + speed + '<small>km/h</small></span>' +
+            '<button class="v-icon-btn cam" onclick="event.stopPropagation(); openCamera(\'' + v.provider + '\',\'' + v.device_id + '\')" title="เปิดกล้อง"><i class="bi bi-camera-video-fill"></i></button>' +
+            (_isAdmin ? '<button class="v-icon-btn share" onclick="event.stopPropagation(); showShareModal(\'' + v.provider + '\',\'' + v.device_id + '\',\'' + esc(displayName) + '\')" title="สร้างลิงก์แชร์"><i class="bi bi-share-fill"></i></button>' : '') +
           '</div>' +
-          '<div class="v-address" title="' + esc(addr) + '" data-vkey="' + esc(key) + '"><i class="bi bi-geo-alt"></i><span>' + esc(addr) + '</span></div>' +
-          '<div class="v-actions">' +
-            '<button class="v-action action-cam" onclick="event.stopPropagation(); openCamera(\'' + v.provider + '\',\'' + v.device_id + '\')" title="เปิดกล้อง"><i class="bi bi-camera-video-fill"></i><span>กล้อง</span></button>' +
-            (_isAdmin ? '<button class="v-action action-share" onclick="event.stopPropagation(); showShareModal(\'' + v.provider + '\',\'' + v.device_id + '\',\'' + esc(displayName) + '\')" title="สร้างลิงก์แชร์"><i class="bi bi-share-fill"></i><span>แชร์</span></button>' : '') +
+          '<div class="v-line v-line-secondary" title="' + esc(addr) + '" data-vkey="' + esc(key) + '">' +
+            '<i class="bi bi-geo-alt"></i><span>' + esc(addr) + '</span>' +
           '</div>' +
         '</div>';
       });
@@ -2681,7 +2614,7 @@
     // Skips if Google Maps not enabled. Runs async; cached results are instant.
     function enrichVehicleAddresses() {
       if (!window.PlacesAPI || !window.MapConfig || !MapConfig.useGoogle()) return;
-      document.querySelectorAll('.v-address[data-vkey]').forEach(function(div) {
+      document.querySelectorAll('.v-line-secondary[data-vkey]').forEach(function(div) {
         var key = div.getAttribute('data-vkey');
         var s = _statuses[key];
         if (!s || !s.lat || !s.lng || (s.lat === 0 && s.lng === 0)) return;
