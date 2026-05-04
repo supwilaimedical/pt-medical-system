@@ -180,11 +180,15 @@ const GPS_ADAPTERS = {
         });
       }
       return all.map(function(s) {
+        // CMSV6 heading: field `hx`, JT/T 808 spec = 0-359 degrees (compass)
+        var hx = (typeof s.hx === 'number') ? s.hx : null;
+        if (hx !== null && (hx < 0 || hx > 360)) hx = null; // sanity guard
         return {
           deviceId: String(s.id || s.did),
           lat: s.mlat || (s.lat ? s.lat / 1000000 : 0),
           lng: s.mlng || (s.lng ? s.lng / 1000000 : 0),
           speed: (s.sp || 0) / 10,
+          heading: hx, // 0-359 degrees, or null if not provided
           online: s.ol === 1,
           address: s.ps || '',
           gpsTime: s.gt || '',
