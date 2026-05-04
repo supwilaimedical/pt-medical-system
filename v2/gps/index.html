@@ -88,34 +88,13 @@
       .vehicle-panel.sheet-peek { height: 64px; min-height: 64px; }
       .vehicle-panel.sheet-half { height: 45vh; }
       .vehicle-panel.sheet-full { height: 88vh; }
-      /* PEEK MODE: hide all panel chrome — show only handle + tap hint (~64px tall) */
+      /* PEEK MODE: hide all panel chrome — only the drag handle remains (drag up to expand) */
       .vehicle-panel.sheet-peek .panel-section-header,
       .vehicle-panel.sheet-peek .panel-search-filter-row,
       .vehicle-panel.sheet-peek .panel-search,
       .vehicle-panel.sheet-peek .filter-tabs,
       .vehicle-panel.sheet-peek .panel-view-tabs,
       .vehicle-panel.sheet-peek .vehicle-list { display: none !important; }
-      /* Tap hint — only visible in peek mode */
-      .vehicle-panel .sheet-peek-hint{ display: none; }
-      .vehicle-panel.sheet-peek .sheet-peek-hint{
-        display: flex; align-items: center; gap: 8px;
-        padding: 6px 18px 8px;
-        font-size: 0.88rem; font-weight: 600; color: var(--navy-900);
-        cursor: pointer; user-select: none;
-      }
-      .vehicle-panel.sheet-peek .sheet-peek-hint i.bi-truck{ font-size: 0.95rem; color: var(--navy-700); }
-      .vehicle-panel.sheet-peek .sheet-peek-count{
-        background: var(--navy-700); color: #fff; font-size: 0.7rem; font-weight: 700;
-        padding: 2px 8px; border-radius: 10px; min-width: 22px; text-align: center;
-      }
-      .vehicle-panel.sheet-peek .sheet-peek-chev{
-        margin-left: auto; color: var(--slate-400); font-size: 1rem;
-        animation: peekChevBounce 1.6s ease-in-out infinite;
-      }
-      @keyframes peekChevBounce{
-        0%, 100%{ transform: translateY(0); }
-        50%{ transform: translateY(-3px); }
-      }
       .sheet-handle {
         display: flex; justify-content: center; align-items: center;
         padding: 8px 0 4px; cursor: grab; touch-action: none;
@@ -1493,9 +1472,6 @@
     setTxt('v2gps-rc-total', c.all);
     setTxt('v2gps-rc-online', c.online + c.idle);
 
-    // Mobile bottom-sheet PEEK count badge
-    setTxt('sheetPeekCount', c.all);
-
     // Auto-refresh label sync
     var autoLabel = document.getElementById('autoLabel');
     var mini = document.getElementById('gps-auto-label');
@@ -1560,13 +1536,6 @@
     <div class="vehicle-panel" id="vehiclePanel">
       <!-- Drag handle (mobile only) -->
       <div class="sheet-handle" id="sheetHandle" aria-hidden="true"><span class="sheet-handle-bar"></span></div>
-      <!-- Visible hint in peek mode so user knows the panel is interactive -->
-      <div class="sheet-peek-hint" onclick="sheetSnap('half')">
-        <i class="bi bi-truck"></i>
-        <span>list รถ</span>
-        <span id="sheetPeekCount" class="sheet-peek-count">0</span>
-        <i class="bi bi-chevron-up sheet-peek-chev"></i>
-      </div>
       <div class="panel-section-header">
         <div class="panel-title">
           <h5><i class="bi bi-broadcast-pin" style="color:var(--red-600);"></i> Fleet <span class="count-pill" id="vehicle-count">0</span></h5>
@@ -3273,9 +3242,9 @@
       var panel  = document.getElementById('vehiclePanel');
       var handle = document.getElementById('sheetHandle');
       if (!panel || !handle) return;
-      // Default to peek (collapsed) on mobile so map gets max real estate.
-      // User taps/drags handle to expand into half / full list.
-      if (_isMobile()) panel.classList.add('sheet-peek');
+      // Default to half on mobile so vehicle list is visible immediately.
+      // User can drag down to peek (handle only) for max map view.
+      if (_isMobile()) panel.classList.add('sheet-half');
 
       var startY = 0, startH = 0, dragging = false;
       function px(v){ return parseFloat(v) || 0; }
@@ -3338,7 +3307,7 @@
           panel.classList.remove('sheet-peek','sheet-half','sheet-full','sheet-dragging');
           panel.style.height = '';
         } else if (!panel.classList.contains('sheet-peek') && !panel.classList.contains('sheet-half') && !panel.classList.contains('sheet-full')) {
-          panel.classList.add('sheet-peek');
+          panel.classList.add('sheet-half');
         }
         // Re-render vehicle list if breakpoint crossed (PC ↔ mobile use different HTML)
         var nowMobile = _isMobile();
