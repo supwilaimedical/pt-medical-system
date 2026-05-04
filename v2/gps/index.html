@@ -2232,26 +2232,28 @@
       // even when idle/offline so user sees last facing direction.
       var arrow = '';
       if (heading !== null && heading !== undefined) {
-        // Arrow rotates inside a 56x56 box (bigger than 40 dot so arrow sits OUTSIDE the ring)
+        // Arrow rotates inside a 56x56 box. Triangle is bigger now (~18px tall, ~14px wide)
+        // and sits clearly OUTSIDE the dot (which is now 28px centered inside 40px box).
         arrow =
           '<div class="gps-arrow-wrap" style="position:absolute; inset:-8px; pointer-events:none; transform:rotate(' + heading + 'deg); transition:transform .5s ease-out;">' +
             '<svg width="56" height="56" viewBox="0 0 56 56" style="display:block;">' +
-              '<polygon points="28,2 33,12 28,9 23,12" fill="' + ringColor + '" stroke="#fff" stroke-width="1.2" stroke-linejoin="round"/>' +
+              '<polygon points="28,0 36,18 28,14 20,18" fill="' + ringColor + '" stroke="#fff" stroke-width="1.5" stroke-linejoin="round"/>' +
             '</svg>' +
           '</div>';
       }
+      // Dot is centered & smaller (28x28) — leaves visual room for the arrow above it
       return L.divIcon({
         className: '',
         html:
           '<div style="position:relative; width:40px; height:40px;">' +
             pulse +
             arrow +
-            '<div style="position:absolute; inset:0; background:linear-gradient(135deg,#0ea5e9 0%,#075985 100%); border:3px solid ' + ringColor + '; border-radius:50%; display:flex; align-items:center; justify-content:center; box-shadow: 0 4px 12px rgba(14,165,233,0.35);">' +
-              '<i class="bi bi-truck-front-fill" style="color:#fff; font-size:16px;"></i>' +
+            '<div style="position:absolute; top:6px; left:6px; width:28px; height:28px; background:linear-gradient(135deg,#0ea5e9 0%,#075985 100%); border:2.5px solid ' + ringColor + '; border-radius:50%; display:flex; align-items:center; justify-content:center; box-shadow: 0 4px 12px rgba(14,165,233,0.35);">' +
+              '<i class="bi bi-truck-front-fill" style="color:#fff; font-size:12px;"></i>' +
             '</div>' +
             badge +
           '</div>',
-        iconSize: [40, 40], iconAnchor: [20, 20], popupAnchor: [0, -24]
+        iconSize: [40, 40], iconAnchor: [20, 20], popupAnchor: [0, -20]
       });
     }
 
