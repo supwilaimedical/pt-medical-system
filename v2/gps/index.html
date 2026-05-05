@@ -3318,16 +3318,11 @@
       });
     })();
 
-    // Auto-peek the sheet when a vehicle is focused (tap card)
-    (function hookFocusVehicle(){
-      if (typeof window.focusVehicle !== 'function') return;
-      var orig = window.focusVehicle;
-      window.focusVehicle = function(key) {
-        var r = orig.apply(this, arguments);
-        if (_isMobile()) sheetSnap('peek');
-        return r;
-      };
-    })();
+    // Note: previously this hook auto-snapped the sheet to 'peek' on focus, but
+    // peek mode now shows an empty white bar (no hint label) — confusing for users
+    // arriving via ?vehicle=… deep link from Fleet. Removed; the follow-chip at
+    // the top of the map already indicates which vehicle is being tracked, and
+    // half-state lets the user see both the focused card (highlighted) and the map.
 
     // =============================================
     // START
