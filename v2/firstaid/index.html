@@ -1888,9 +1888,21 @@
             document.getElementById('fa-qWound').value = ev.qWound || 0;
         }
 
-        // Realtime: subscribe to registry for this event
+        // Realtime: subscribe to registry + events + tokens for this event.
+        // Multi-admin scenario: when ANY of these change in DB, refresh the affected UI.
         RT.unsubscribe('fa-events');
-        RT.subscribeMulti('fa-registry', ['fa_registry', 'fa_events'], function() {
+        RT.unsubscribe('fa-tokens');
+        RT.subscribeMulti('fa-registry', ['fa_registry', 'fa_events', 'fa_event_tokens'], function(payload) {
+            var tbl = payload && payload.table;
+            if (tbl === 'fa_event_tokens') {
+                fa_loadTokens();
+                return;
+            }
+            if (tbl === 'fa_events') {
+                // Re-pull the supply counters in case another admin/staff bumped them
+                fa_refreshSupplyCounters();
+                // Don't return — fa_events change might also affect status/header
+            }
             fa_refreshPatientList();
         });
 
@@ -1904,6 +1916,35 @@
             tokenCard.style.display = (isAdmin && ev && ev.status === 'Active') ? '' : 'none';
             if (isAdmin && ev && ev.status === 'Active') fa_loadTokens();
         }
+    }
+
+    // Pulls the latest supply counters for the currently-open event and
+    // refreshes the inputs. Called from Realtime callback so concurrent
+    // edits by another admin or by a staff worker show up live.
+    async function fa_refreshSupplyCounters() {
+        if (!fa_currentViewedEventId) return;
+        try {
+            var { data, error } = await _supabase.from('fa_events')
+                .select('q_ammonia,q_plaster,q_spray,q_wound,q_meds')
+                .eq('event_id', fa_currentViewedEventId)
+                .maybeSingle();
+            if (error || !data) return;
+            // Don't overwrite while a +/- click is in flight (would clobber its optimistic UI)
+            if (!_faAdjustBusy['fa-qAmmonia']) document.getElementById('fa-qAmmonia').value = data.q_ammonia || 0;
+            if (!_faAdjustBusy['fa-qPlaster']) document.getElementById('fa-qPlaster').value = data.q_plaster || 0;
+            if (!_faAdjustBusy['fa-qSpray'])   document.getElementById('fa-qSpray').value   = data.q_spray   || 0;
+            if (!_faAdjustBusy['fa-qWound'])   document.getElementById('fa-qWound').value   = data.q_wound   || 0;
+            var medsEl = document.getElementById('fa-qMeds');
+            if (medsEl && !_faAdjustBusy['fa-qMeds']) medsEl.value = data.q_meds || 0;
+            // Sync cached event
+            var ev = fa_allEvents.find(function(e){ return e.id === fa_currentViewedEventId; });
+            if (ev) {
+                ev.qAmmonia = data.q_ammonia || 0;
+                ev.qPlaster = data.q_plaster || 0;
+                ev.qSpray   = data.q_spray   || 0;
+                ev.qWound   = data.q_wound   || 0;
+            }
+        } catch(e) { /* silent */ }
     }
 
     // ============================================
@@ -2067,12 +2108,58 @@
         fa_showDashboard();
     }
 
-    function fa_adjustCount(id, delta) {
+    // Map input id → DB field name (used by atomic RPC bump)
+    var FA_SUPPLY_FIELD_MAP = {
+        'fa-qAmmonia': 'q_ammonia',
+        'fa-qPlaster': 'q_plaster',
+        'fa-qSpray':   'q_spray',
+        'fa-qWound':   'q_wound',
+        'fa-qMeds':    'q_meds'
+    };
+
+    // Race-safe supply increment — calls Postgres RPC fa_bump_supply()
+    // so two concurrent +/- clicks (admin & staff) can't lose updates.
+    // Falls back to optimistic UI on RPC failure but warns the user.
+    var _faAdjustBusy = {};
+    async function fa_adjustCount(id, delta) {
         var input = document.getElementById(id);
-        var val = parseInt(input.value) || 0;
-        val += delta;
-        if (val < 0) val = 0;
-        input.value = val;
+        if (!input) return;
+        var field = FA_SUPPLY_FIELD_MAP[id];
+        if (!field || !fa_currentViewedEventId) {
+            // No event context (e.g., create-event modal) — fall back to local-only
+            var val = (parseInt(input.value) || 0) + delta;
+            input.value = Math.max(0, val);
+            return;
+        }
+        if (_faAdjustBusy[id]) return; // debounce double-clicks
+        _faAdjustBusy[id] = true;
+        var prev = parseInt(input.value) || 0;
+        // Optimistic update so the click feels instant
+        input.value = Math.max(0, prev + delta);
+        try {
+            var { data, error } = await _supabase.rpc('fa_bump_supply', {
+                p_event_id: fa_currentViewedEventId,
+                p_field: field,
+                p_delta: delta
+            });
+            if (error) throw error;
+            // Echo authoritative server value (handles concurrent updates from others)
+            if (typeof data === 'number') input.value = data;
+            // Sync cached event obj
+            var ev = fa_allEvents.find(function(e){ return e.id === fa_currentViewedEventId; });
+            if (ev) ev[field.replace(/_./, function(m){ return m.charAt(1).toUpperCase(); })] = parseInt(input.value);
+        } catch(err) {
+            // Rollback optimistic UI
+            input.value = prev;
+            console.warn('fa_adjustCount RPC failed:', err);
+            if (Swal && Swal.fire) {
+                Swal.fire({ icon: 'error', title: 'อัปเดตไม่สำเร็จ',
+                    text: (err.message || err) + '\n(ตรวจ DB ว่ารัน sql/add_fa_event_tokens.sql แล้วหรือยัง)',
+                    timer: 3500, showConfirmButton: true });
+            }
+        } finally {
+            _faAdjustBusy[id] = false;
+        }
     }
 
     async function fa_saveQuickDispense() {

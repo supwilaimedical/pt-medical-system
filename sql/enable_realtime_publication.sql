@@ -31,6 +31,7 @@ DECLARE
     'transport_consents',
     'fa_events',
     'fa_registry',
+    'fa_event_tokens',
     'loc_customers',
     'loc_shared_tokens',
     'settings',

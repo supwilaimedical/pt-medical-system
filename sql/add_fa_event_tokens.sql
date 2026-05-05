@@ -34,3 +34,47 @@ CREATE POLICY "anon_all_fa_event_tokens" ON fa_event_tokens
 DROP POLICY IF EXISTS "auth_all_fa_event_tokens" ON fa_event_tokens;
 CREATE POLICY "auth_all_fa_event_tokens" ON fa_event_tokens
   FOR ALL TO authenticated USING (true) WITH CHECK (true);
+
+-- =============================================
+-- Atomic supply counter — fixes race condition between admin & staff
+-- =============================================
+-- Without this RPC, every "+/-" click does:  read → +1 → write
+-- → if 2 users click at the same time, one increment is LOST.
+--
+-- This RPC does the increment AT THE DATABASE inside one statement —
+-- safe under any concurrency. Returns the new value so the UI can
+-- echo it without re-fetching.
+--
+-- Allowed fields (whitelisted to prevent SQL injection via dynamic SQL):
+--   q_ammonia, q_plaster, q_spray, q_wound, q_meds
+-- =============================================
+CREATE OR REPLACE FUNCTION fa_bump_supply(
+  p_event_id TEXT,
+  p_field    TEXT,
+  p_delta    INT
+)
+RETURNS INT
+LANGUAGE plpgsql
+SECURITY DEFINER
+AS $$
+DECLARE
+  new_val INT;
+BEGIN
+  -- Whitelist field names — never trust caller string in dynamic SQL
+  IF p_field NOT IN ('q_ammonia','q_plaster','q_spray','q_wound','q_meds') THEN
+    RAISE EXCEPTION 'Invalid field: %', p_field;
+  END IF;
+
+  EXECUTE format(
+    'UPDATE fa_events SET %1$I = GREATEST(0, COALESCE(%1$I,0) + $1) WHERE event_id = $2 RETURNING %1$I',
+    p_field
+  )
+  USING p_delta, p_event_id
+  INTO new_val;
+
+  RETURN COALESCE(new_val, 0);
+END;
+$$;
+
+-- Allow anon + authenticated to call (mirrors RLS model on fa_events)
+GRANT EXECUTE ON FUNCTION fa_bump_supply(TEXT, TEXT, INT) TO anon, authenticated;
