@@ -62,6 +62,11 @@
         transition:transform .25s ease; z-index:1050;
       }
       body.v2-nav-open .v2-subnav{ transform:translateX(0); }
+      /* Backdrop overlay — appears when drawer open; tap dismisses (handled by JS too) */
+      body.v2-nav-open::before{
+        content:''; position:fixed; inset:0; background:rgba(15,23,42,.45);
+        z-index:1040; backdrop-filter:blur(2px);
+      }
     }
     .v2-subnav-header{
       padding:18px 16px 12px; border-bottom:1px solid var(--c-border);
@@ -770,6 +775,23 @@
     } catch(e){}
   }
   showAdminRail();
+
+  // === Close mobile drawer on outside-tap (or when tapping a subnav link) ===
+  document.addEventListener('click', function(ev){
+    if (!document.body.classList.contains('v2-nav-open')) return;
+    var sn = document.querySelector('.v2-subnav');
+    if (sn && sn.contains(ev.target)) {
+      // Inside drawer: close only if user clicked a link (navigation)
+      if (ev.target.tagName === 'A' || ev.target.closest('a')) {
+        setTimeout(function(){ document.body.classList.remove('v2-nav-open'); }, 100);
+      }
+      return;
+    }
+    // Outside drawer: ignore the toggle button itself; otherwise dismiss
+    var toggle = document.querySelector('.v2-mobile-nav-toggle');
+    if (toggle && toggle.contains(ev.target)) return;
+    document.body.classList.remove('v2-nav-open');
+  });
 
   // === Honor GPS_ENABLED toggle — hide GPS rail icons when disabled ===
   async function applyFleetGpsEnabledFlag(){
