@@ -462,47 +462,8 @@
   // ===== HTML escape =====
   function esc(s){ return String(s||'').replace(/[&<>"']/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]; }); }
 
-  // ===== Modal helpers — works with OR without bootstrap.Modal
-  // (Some browsers block jsdelivr CDN, so don't hard-depend on bootstrap JS) =====
-  function showModal(id) {
-    var el = document.getElementById(id); if (!el) return;
-    if (window.bootstrap && window.bootstrap.Modal) {
-      try { window.bootstrap.Modal.getOrCreateInstance(el).show(); return; } catch(e) {}
-    }
-    el.classList.add('show');
-    el.style.display = 'block';
-    el.setAttribute('aria-hidden', 'false');
-    document.body.classList.add('modal-open');
-    if (!document.getElementById(id + '-backdrop')) {
-      var bd = document.createElement('div');
-      bd.className = 'modal-backdrop fade show';
-      bd.id = id + '-backdrop';
-      bd.addEventListener('click', function(){ hideModal(id); });
-      document.body.appendChild(bd);
-    }
-  }
-  function hideModal(id) {
-    var el = document.getElementById(id); if (!el) return;
-    if (window.bootstrap && window.bootstrap.Modal) {
-      try {
-        var inst = window.bootstrap.Modal.getOrCreateInstance(el);
-        inst.hide(); return;
-      } catch(e) {}
-    }
-    el.classList.remove('show');
-    el.style.display = 'none';
-    el.setAttribute('aria-hidden', 'true');
-    document.body.classList.remove('modal-open');
-    var bd = document.getElementById(id + '-backdrop');
-    if (bd) bd.remove();
-  }
-  // Wire all data-bs-dismiss="modal" buttons (works without bootstrap JS)
-  document.addEventListener('click', function(ev) {
-    var btn = ev.target.closest('[data-bs-dismiss="modal"]');
-    if (!btn) return;
-    var modal = btn.closest('.modal');
-    if (modal) hideModal(modal.id);
-  });
+  // (showModal/hideModal helpers removed — registry modal is driven by reg-form.js
+  // via bootstrap.Modal directly. data-bs-dismiss buttons handled by Bootstrap natively.)
 
   // ===== TOKEN VERIFY FLOW =====
   async function staffVerifyToken(token) {
@@ -576,13 +537,17 @@
             // locationLock: if Token has location_tx, force the dropdown to that value + disable
             locationLock: state.section || null,
             allEvents: [],
-            registryRecords: null
+            // BUG FIX: must pass live state.registryRecords (populated by staffRefreshMyList).
+            // Was hard-coded null → reg-form.js couldn't find record → edit form opened empty.
+            registryRecords: state.registryRecords || null
           };
         },
         hooks: {
-          // Edit guard — staff can only open OWN records for editing
+          // Edit guard — staff can only open OWN records for editing.
+          // BUG FIX: cached records use camelCase 'recordedBy' (per _toRecordShape mapping
+          // line ~717), NOT snake_case 'recorded_by'. Was always undefined → blocked all edits.
           onCanEdit: function(record) {
-            return record && record.recorded_by === state.workerName;
+            return record && record.recordedBy === state.workerName;
           },
           // After save — refresh staff's own list
           onAfterSave: function() {
@@ -596,11 +561,18 @@
     subscribeRealtime();
   }
 
+  // User-initiated logout — confirm before clearing
   window.staffLogout = function(){
     if (!confirm('ออกจากระบบและล้าง Token?')) return;
     clearState();
     location.href = location.pathname; // strip ?t=
   };
+  // System-initiated forced logout — no confirm (event closed / token revoked).
+  // Always clears state. User cannot dismiss.
+  function staffForceLogout(){
+    clearState();
+    location.href = location.pathname;
+  }
 
   // ===== AUTO-LOGIN from URL ?t= or saved state =====
   async function bootstrap() {
@@ -816,7 +788,8 @@
         // Token may have been revoked by admin — re-verify
         staffVerifyToken(state.token).then(function(v){
           if (!v.ok) {
-            Swal.fire({ icon: 'warning', title: 'Token ถูกระงับ', text: v.msg, allowOutsideClick: false }).then(function(){ staffLogout(); });
+            // Forced logout — no confirm so user can't dismiss + remain stuck
+            Swal.fire({ icon: 'warning', title: 'Token ถูกระงับ', text: v.msg, allowOutsideClick: false }).then(staffForceLogout);
           }
         });
         return;
@@ -827,7 +800,7 @@
           .eq('event_id', state.eventId).maybeSingle().then(function(r){
             if (r.data) {
               if (r.data.status !== 'Active') {
-                Swal.fire({ icon: 'info', title: 'Event ถูกปิดแล้ว', allowOutsideClick: false }).then(function(){ staffLogout(); });
+                Swal.fire({ icon: 'info', title: 'Event ถูกปิดแล้ว', allowOutsideClick: false }).then(staffForceLogout);
                 return;
               }
               ['q_ammonia','q_plaster','q_spray','q_wound'].forEach(function(f){

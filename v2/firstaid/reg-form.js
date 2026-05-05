@@ -493,17 +493,23 @@
             allergy = detail ? 'มี (' + detail + ')' : 'มี';
         }
 
-        // Vitals
-        var vitals = {
-            bp: document.getElementById('reg-v-bp').value.trim(),
-            hr: document.getElementById('reg-v-hr').value.trim(),
-            rr: document.getElementById('reg-v-rr').value.trim(),
-            spo2: document.getElementById('reg-v-spo2').value.trim(),
-            temp: document.getElementById('reg-v-temp').value.trim(),
-            gcs: document.getElementById('reg-v-gcs').value.trim(),
+        // Vitals — only include fields that are actually filled, so admin's reports
+        // don't show empty {bp:'', hr:'', ...} for every record. NULL if nothing filled.
+        var vitalsRaw = {
+            bp:      document.getElementById('reg-v-bp').value.trim(),
+            hr:      document.getElementById('reg-v-hr').value.trim(),
+            rr:      document.getElementById('reg-v-rr').value.trim(),
+            spo2:    document.getElementById('reg-v-spo2').value.trim(),
+            temp:    document.getElementById('reg-v-temp').value.trim(),
+            gcs:     document.getElementById('reg-v-gcs').value.trim(),
             glucose: document.getElementById('reg-v-glucose').value.trim(),
-            pain: document.getElementById('reg-v-pain').value.trim()
+            pain:    document.getElementById('reg-v-pain').value.trim()
         };
+        var vitals = {};
+        Object.keys(vitalsRaw).forEach(function(k){
+            if (vitalsRaw[k]) vitals[k] = vitalsRaw[k];
+        });
+        if (Object.keys(vitals).length === 0) vitals = null;
 
         // Result
         var resultType = document.getElementById('reg-result-type').value;
