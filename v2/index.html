@@ -871,11 +871,8 @@ async function loadKPIs(){
       if(b){ b.textContent = r[0].count + ' เคส'; b.style.display = ''; }
     }
 
-    // Map legend (placeholder breakdown until live status fetched)
-    var emerg = 0, move = 0, idle = r[3].count || 0;
-    var lge = document.getElementById('lg-emerg'); if(lge) lge.textContent = emerg;
-    var lgm = document.getElementById('lg-move'); if(lgm) lgm.textContent = move;
-    var lgi = document.getElementById('lg-idle'); if(lgi) lgi.textContent = idle;
+    // (Map legend lg-online / lg-offline is populated by refreshMiniMapMarkers()
+    //  once live GPS statuses are fetched — no placeholder needed here.)
   } catch(e){ console.warn('KPI load failed:', e); }
 }
 

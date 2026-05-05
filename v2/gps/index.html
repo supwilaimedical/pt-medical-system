@@ -1238,10 +1238,9 @@
     main.appendChild(mapWrap);
 
     var rightCol = document.createElement('div');
-    // Mobile default = sheet-full so user sees full list immediately; can drag down to reveal map
-    // Mobile default = sheet-half so user sees map + list (drag up for full, down for peek)
-    var _initSheet = (window.innerWidth <= 991) ? 'sheet-half' : 'sheet-half';
-    rightCol.className = 'v2-gps-rightcol ' + _initSheet;
+    // Default state = sheet-half (mobile sees map + list split; desktop layout uses
+    // its own CSS so this class doesn't visually matter on >991px).
+    rightCol.className = 'v2-gps-rightcol sheet-half';
     rightCol.id = 'v2-gps-rightcol';
 
     // Drag handle (only visible on mobile)
