@@ -83,7 +83,7 @@
       gap: 10px; padding: 10px 12px; background: #fff;
       border-radius: 8px; margin-bottom: 6px;
       box-shadow: 0 1px 2px rgba(0,0,0,.04);
-      cursor: pointer; transition: background .12s;
+      transition: background .12s;
     }
     .pt-row:hover { background: #f8fafc; }
     .pt-row .strip { border-radius: 3px; }
@@ -91,13 +91,11 @@
     .pt-row.tri-emerg .strip { background: #d63384; }
     .pt-row.tri-urgent .strip { background: #f59e0b; }
     .pt-row.tri-nonurg .strip { background: #16a34a; }
-    .pt-row .name { font-weight: 700; font-size: 0.92rem; }
-    .pt-row .sub { font-size: 0.72rem; color: #64748b; margin-top: 2px; }
-    .pt-row .right { text-align: right; }
-    .pt-row .time { font-size: 0.7rem; color: #94a3b8; font-variant-numeric: tabular-nums; }
-    .pt-row .pill { display: inline-block; font-size: 0.65rem; font-weight: 700; padding: 1px 6px; border-radius: 4px; margin-top: 4px; }
-    .pt-row .pill.in { background: #dbeafe; color: #1e40af; }
-    .pt-row .pill.out { background: #dcfce7; color: #15803d; }
+    .pt-row .pt-row-body { cursor: pointer; min-width: 0; }
+    .pt-row .name { font-weight: 700; font-size: 0.9rem; color: #0f172a; }
+    .pt-row .time { font-variant-numeric: tabular-nums; }
+    .pt-row-actions { display: flex; align-items: flex-start; gap: 4px; flex-shrink: 0; }
+    .pt-row-actions .btn { width: 32px; height: 32px; padding: 0; display: inline-flex; align-items: center; justify-content: center; }
 
     .gate-wrap {
       max-width: 380px; margin: 60px auto; background: #fff;
@@ -685,6 +683,41 @@
   // shared/reg-form.js which mirrors admin 1:1. Save/load handled by the module.)
 
   // ===== MY PATIENT LIST =====
+  // Maps DB row → cached record shape (matches admin's fa_currentRegistryRecords).
+  // Shared reg-form.js looks up records by `id` from this cache when editing.
+  function _toRecordShape(r) {
+    var vitals = {};
+    if (r.vitals_json) {
+      if (typeof r.vitals_json === 'string') { try { vitals = JSON.parse(r.vitals_json); } catch(e) {} }
+      else { vitals = r.vitals_json; }
+    }
+    return {
+      id: r.reg_id,
+      triage: r.triage || 'A',
+      gender: r.gender || '',
+      age: r.age || '',
+      name: r.name || '',
+      phone: String(r.phone || ''),
+      category: r.category || '',
+      locationTx: r.location_tx || '',
+      timeIn: (r.time_in || '').replace(/^'/, ''),
+      timeOut: (r.time_out || '').replace(/^'/, ''),
+      etiology: r.etiology || '',
+      cc: r.cc || '',
+      ccOther: r.cc_other || '',
+      problem: r.problem || '',
+      problemOther: r.problem_other || '',
+      treatment: r.treatment || '',
+      allergy: r.allergy || '',
+      vitals: vitals,
+      result: r.result || '',
+      note: r.note || '',
+      image: r.image_url || '',
+      gps: r.gps || '',
+      recordedBy: r.recorded_by || '-'
+    };
+  }
+
   window.staffRefreshMyList = async function() {
     var listEl = document.getElementById('my-list');
     var countEl = document.getElementById('my-count');
@@ -697,28 +730,80 @@
       var { data, error } = await q;
       if (error) throw error;
       countEl.textContent = (data || []).length;
+
+      // Cache records in shape that shared reg-form.js expects.
+      // CRITICAL: without this cache, edit opens an empty form (record lookup fails).
+      state.registryRecords = (data || []).map(_toRecordShape);
+
       if (!data || data.length === 0) {
         listEl.innerHTML = '<div class="empty-state"><i class="bi bi-clipboard2"></i><div>ยังไม่มีบันทึก กดปุ่ม + ด้านล่างเพื่อเพิ่มผู้ป่วย</div></div>';
         return;
       }
       listEl.innerHTML = data.map(function(r){
-        // AVPU → strip color: A=green, V=amber, P=orange, U=red (matches admin)
+        // AVPU triage → colored strip (A=green, V=amber, P=orange, U=red)
         var triCls = r.triage === 'U' ? 'tri-resus' : r.triage === 'P' ? 'tri-emerg' : r.triage === 'V' ? 'tri-urgent' : 'tri-nonurg';
-        var status = r.time_out ? '<span class="pill out">ออกแล้ว ' + esc(r.time_out) + '</span>' : '<span class="pill in">กำลังดูแล</span>';
-        return '<div class="pt-row ' + triCls + '" onclick="staffOpenForm(\'' + esc(r.reg_id) + '\')">' +
+        var triBadge = r.triage === 'U' ? 'bg-danger text-white' : r.triage === 'P' ? 'bg-danger-subtle text-danger' : r.triage === 'V' ? 'bg-warning-subtle text-warning' : 'bg-success-subtle text-success';
+        var etiPill = r.etiology === 'Trauma'
+          ? '<span class="badge bg-danger-subtle text-danger me-1">Trauma</span>'
+          : (r.etiology === 'Med' ? '<span class="badge bg-primary-subtle text-primary me-1">Med</span>' : '');
+        // Result pill — same colors as admin's table
+        var resultPill = '';
+        if (r.result) {
+          if (r.result.indexOf('transfer') === 0) resultPill = '<span class="badge bg-warning-subtle text-warning">Transfer</span>';
+          else if (r.result === 'cancel') resultPill = '<span class="badge bg-secondary-subtle text-secondary">Cancel</span>';
+          else if (r.result === 'observe') resultPill = '<span class="badge bg-info-subtle text-info">สังเกตอาการ</span>';
+          else resultPill = '<span class="badge bg-success-subtle text-success">D/C</span>';
+        }
+        var nameDisplay = esc(r.name || '(ไม่ระบุชื่อ)');
+        var demo = esc(r.gender || '-') + ' · ' + esc(r.age || '-') + ' ปี';
+        var locDisplay = r.location_tx ? '<span class="text-muted small">📍 ' + esc(r.location_tx) + '</span>' : '';
+        return '<div class="pt-row ' + triCls + '" data-reg-id="' + esc(r.reg_id) + '">' +
           '<div class="strip"></div>' +
-          '<div>' +
-            '<div class="name">' + esc(r.name || '(ไม่ระบุชื่อ)') + '</div>' +
-            '<div class="sub">' + esc(r.gender||'-') + ' · ' + esc(r.age||'-') + ' ปี · ' + esc(r.cc || '-') + '</div>' +
+          '<div class="pt-row-body" onclick="staffOpenForm(\'' + esc(r.reg_id) + '\')">' +
+            '<div class="d-flex align-items-center gap-2 mb-1">' +
+              '<span class="badge ' + triBadge + ' rounded-pill" style="font-size:.65rem;">' + esc(r.triage || 'A') + '</span>' +
+              '<span class="name fw-bold">' + nameDisplay + '</span>' +
+              '<span class="text-muted small">' + demo + '</span>' +
+            '</div>' +
+            '<div class="d-flex align-items-center flex-wrap gap-1 mb-1">' +
+              etiPill +
+              '<span class="text-muted small">' + esc(r.cc || '-') + '</span>' +
+            '</div>' +
+            (r.problem ? '<div class="text-muted small mb-1">📝 ' + esc(r.problem) + '</div>' : '') +
+            '<div class="d-flex align-items-center gap-2 flex-wrap">' +
+              '<span class="time small text-muted">⏱ ' + esc(r.time_in || '--:--') + (r.time_out ? ' → ' + esc(r.time_out) : '') + '</span>' +
+              resultPill +
+              locDisplay +
+            '</div>' +
           '</div>' +
-          '<div class="right">' +
-            '<div class="time">' + esc(r.time_in || '--:--') + '</div>' +
-            status +
+          '<div class="pt-row-actions">' +
+            '<button type="button" class="btn btn-sm btn-outline-warning rounded-circle me-1" onclick="staffOpenForm(\'' + esc(r.reg_id) + '\')" title="แก้ไข"><i class="bi bi-pencil"></i></button>' +
+            '<button type="button" class="btn btn-sm btn-outline-danger rounded-circle" onclick="staffDeleteRecord(\'' + esc(r.reg_id) + '\')" title="ลบ"><i class="bi bi-trash"></i></button>' +
           '</div>' +
         '</div>';
       }).join('');
     } catch(err) {
       listEl.innerHTML = '<div class="empty-state text-danger"><i class="bi bi-exclamation-triangle"></i><div>โหลดไม่สำเร็จ: ' + esc(err.message || err) + '</div></div>';
+    }
+  };
+
+  // Delete with confirm + ownership re-check at DB level (defense)
+  window.staffDeleteRecord = async function(regId) {
+    var confirm = await Swal.fire({
+      icon: 'warning', title: 'ลบรายการนี้?',
+      text: 'ลบแล้วเรียกคืนไม่ได้',
+      showCancelButton: true, confirmButtonText: 'ลบ', cancelButtonText: 'ยกเลิก',
+      confirmButtonColor: '#dc2626'
+    });
+    if (!confirm.isConfirmed) return;
+    try {
+      var { error } = await _supabase.from('fa_registry').delete()
+        .eq('reg_id', regId).eq('recorded_by', state.workerName);
+      if (error) throw error;
+      Swal.fire({ icon: 'success', title: 'ลบแล้ว', timer: 1000, showConfirmButton: false });
+      staffRefreshMyList();
+    } catch(err) {
+      Swal.fire({ icon: 'error', title: 'ลบไม่สำเร็จ', text: err.message || err });
     }
   };
 
