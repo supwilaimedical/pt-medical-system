@@ -483,14 +483,7 @@
       <span class="badge-status active" id="v2-fa-evt-status">🟢 กำลังดำเนินการ</span>
     </div>
 
-    <div class="v2-subnav-section">ข้ามไปที่</div>
-    <a onclick="v2FaScroll('fa-evt-info')"><i class="bi bi-info-circle"></i> ข้อมูลงาน</a>
-    <a onclick="v2FaScroll('fa-evt-dispense')"><i class="bi bi-lightning-fill"></i> แจกจ่ายด่วน</a>
-    <a onclick="v2FaScroll('fa-registry-stats')"><i class="bi bi-bar-chart"></i> สรุปสถิติ</a>
-    <a onclick="v2FaScroll('fa-evt-patients')">
-      <span><i class="bi bi-people"></i> รายชื่อผู้ป่วย</span>
-      <span class="badge-mini" id="v2-fa-evt-pt-count">0</span>
-    </a>
+    <!-- Removed "ข้ามไปที่" section per user request 2026-05-05 (not used) -->
 
     <div class="v2-subnav-section">การดำเนินการ</div>
     <a class="v2-subnav-cta" onclick="if(typeof reg_openForm==='function') reg_openForm(fa_currentViewedEventId)"><i class="bi bi-plus-lg"></i> เพิ่มผู้ป่วย</a>
@@ -586,7 +579,7 @@
         st.textContent = isActive ? '🟢 กำลังดำเนินการ' : '✅ เสร็จสิ้น';
         if(tog) tog.textContent = isActive ? '🏁 ปิดงาน' : '↩️ เปิดงานอีกครั้ง';
       }
-      if(cntEl) document.getElementById('v2-fa-evt-pt-count').textContent = cntEl.textContent || '0';
+      // (v2-fa-evt-pt-count was inside the removed "ข้ามไปที่" subnav section — leave as no-op)
     } else {
       listSN.style.display = '';
       evtSN.style.display = 'none';
