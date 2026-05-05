@@ -1,0 +1,654 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#0ea5e9">
+  <title>เจ้าหน้าที่ปฐมพยาบาล — Supwilai PT-Amb</title>
+  <meta name="description" content="หน้าบันทึกข้อมูลผู้ป่วยสำหรับเจ้าหน้าที่ part-time ที่ได้รับ Token จาก admin">
+  <link rel="icon" href="../../assets/icon.svg" type="image/svg+xml">
+  <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="../../shared/styles.css">
+  <style>
+    body { font-family: 'Sarabun', sans-serif; background: #f8fafc; color: #0f172a; padding-bottom: 80px; }
+    .staff-topbar {
+      position: sticky; top: 0; z-index: 1020;
+      background: linear-gradient(135deg, #0ea5e9 0%, #075985 100%);
+      color: #fff; padding: 12px 16px;
+      box-shadow: 0 2px 8px rgba(15,23,42,.12);
+    }
+    .staff-topbar .worker-name { font-weight: 700; font-size: 1rem; display: flex; align-items: center; gap: 6px; }
+    .staff-topbar .meta { font-size: 0.78rem; opacity: 0.92; margin-top: 2px; line-height: 1.4; }
+    .staff-topbar .meta .badge-section { background: rgba(255,255,255,.2); padding: 2px 8px; border-radius: 4px; margin-left: 4px; }
+    .staff-topbar .btn-logout {
+      width: 36px; height: 36px; border-radius: 50%; border: none;
+      background: rgba(255,255,255,.18); color: #fff; flex-shrink: 0;
+      display: inline-flex; align-items: center; justify-content: center;
+    }
+    .staff-card {
+      background: #fff; border-radius: 12px; padding: 16px;
+      margin-bottom: 12px; box-shadow: 0 1px 3px rgba(0,0,0,.05);
+    }
+    .staff-card .ttl { font-weight: 700; font-size: 0.92rem; color: #0f172a; margin-bottom: 10px; display: flex; align-items: center; gap: 6px; }
+    .staff-card .ttl .bi { color: #0ea5e9; }
+
+    .supply-row { display: grid; grid-template-columns: 1fr auto auto auto; gap: 6px; align-items: center; padding: 8px 0; border-bottom: 1px dashed #e2e8f0; }
+    .supply-row:last-child { border-bottom: none; }
+    .supply-row .name { font-size: 0.88rem; font-weight: 600; }
+    .supply-row .qty-btn {
+      width: 38px; height: 38px; border-radius: 8px; border: 1px solid #e2e8f0;
+      background: #f8fafc; font-size: 1.1rem; font-weight: 700;
+      display: inline-flex; align-items: center; justify-content: center; cursor: pointer;
+      transition: all .12s;
+    }
+    .supply-row .qty-btn:active { transform: scale(.94); }
+    .supply-row .qty-btn.minus { color: #dc2626; }
+    .supply-row .qty-btn.plus { color: #15803d; background: #f0fdf4; border-color: #bbf7d0; }
+    .supply-row .qty-val {
+      min-width: 44px; text-align: center; font-weight: 700; font-size: 1rem;
+      font-variant-numeric: tabular-nums; padding: 6px 4px;
+      background: #f1f5f9; border-radius: 6px;
+    }
+
+    .pt-row {
+      display: grid; grid-template-columns: 6px 1fr auto;
+      gap: 10px; padding: 10px 12px; background: #fff;
+      border-radius: 8px; margin-bottom: 6px;
+      box-shadow: 0 1px 2px rgba(0,0,0,.04);
+      cursor: pointer; transition: background .12s;
+    }
+    .pt-row:hover { background: #f8fafc; }
+    .pt-row .strip { border-radius: 3px; }
+    .pt-row.tri-resus .strip { background: #dc2626; }
+    .pt-row.tri-emerg .strip { background: #d63384; }
+    .pt-row.tri-urgent .strip { background: #f59e0b; }
+    .pt-row.tri-nonurg .strip { background: #16a34a; }
+    .pt-row .name { font-weight: 700; font-size: 0.92rem; }
+    .pt-row .sub { font-size: 0.72rem; color: #64748b; margin-top: 2px; }
+    .pt-row .right { text-align: right; }
+    .pt-row .time { font-size: 0.7rem; color: #94a3b8; font-variant-numeric: tabular-nums; }
+    .pt-row .pill { display: inline-block; font-size: 0.65rem; font-weight: 700; padding: 1px 6px; border-radius: 4px; margin-top: 4px; }
+    .pt-row .pill.in { background: #dbeafe; color: #1e40af; }
+    .pt-row .pill.out { background: #dcfce7; color: #15803d; }
+
+    .gate-wrap {
+      max-width: 380px; margin: 60px auto; background: #fff;
+      border-radius: 16px; padding: 28px 24px;
+      box-shadow: 0 8px 24px rgba(15,23,42,.08);
+    }
+    .gate-wrap h3 { font-weight: 800; color: #075985; margin-bottom: 6px; }
+    .gate-wrap p { color: #64748b; font-size: 0.88rem; }
+    .gate-wrap input { letter-spacing: 0.2em; text-align: center; font-weight: 700; font-size: 1.2rem; }
+
+    /* Lightweight modal for add/edit patient */
+    .form-grid { display: grid; gap: 10px; }
+    .form-grid label { font-size: 0.78rem; font-weight: 600; color: #475569; margin-bottom: 2px; display: block; }
+    .triage-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; }
+    .triage-btn {
+      padding: 10px 4px; border-radius: 8px; border: 2px solid #e2e8f0;
+      background: #fff; font-weight: 700; font-size: 0.78rem;
+      cursor: pointer; transition: all .12s;
+    }
+    .triage-btn[data-tri="Resus"].active { background: #dc2626; color: #fff; border-color: #dc2626; }
+    .triage-btn[data-tri="Emerg"].active { background: #d63384; color: #fff; border-color: #d63384; }
+    .triage-btn[data-tri="Urgent"].active { background: #f59e0b; color: #fff; border-color: #f59e0b; }
+    .triage-btn[data-tri="Non-Urgent"].active { background: #16a34a; color: #fff; border-color: #16a34a; }
+    .gender-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 6px; }
+    .gender-btn {
+      padding: 8px 4px; border-radius: 8px; border: 2px solid #e2e8f0;
+      background: #fff; font-weight: 600; font-size: 0.85rem; cursor: pointer;
+    }
+    .gender-btn.active { background: #0ea5e9; color: #fff; border-color: #0ea5e9; }
+
+    .fab-add {
+      position: fixed; right: 16px; bottom: 16px; z-index: 1015;
+      width: 56px; height: 56px; border-radius: 50%; border: none;
+      background: linear-gradient(135deg, #0ea5e9, #0284c7); color: #fff;
+      box-shadow: 0 6px 18px rgba(14,165,233,.4);
+      font-size: 1.5rem; display: inline-flex; align-items: center; justify-content: center;
+    }
+    .fab-add:active { transform: scale(.95); }
+
+    .empty-state { text-align: center; padding: 32px 16px; color: #94a3b8; }
+    .empty-state .bi { font-size: 2.5rem; opacity: 0.5; margin-bottom: 8px; }
+
+    @media (max-width: 480px) {
+      .staff-card { padding: 12px; }
+      .form-grid input, .form-grid select, .form-grid textarea { font-size: 16px; } /* prevent iOS zoom */
+    }
+  </style>
+</head>
+<body>
+
+<!-- ===== TOKEN GATE (shown before token verified) ===== -->
+<div id="gate-view">
+  <div class="gate-wrap">
+    <div class="text-center mb-3">
+      <div style="width:56px; height:56px; border-radius:14px; background:linear-gradient(135deg,#0ea5e9,#0284c7); color:#fff; font-weight:800; display:inline-flex; align-items:center; justify-content:center; font-size:24px;">
+        <i class="bi bi-bandaid-fill"></i>
+      </div>
+    </div>
+    <h3 class="text-center">เจ้าหน้าที่ part-time</h3>
+    <p class="text-center mb-4">กรุณาใส่ Token ที่ได้รับจาก admin</p>
+    <div class="mb-3">
+      <input type="text" id="gate-token" class="form-control form-control-lg" maxlength="6" placeholder="XXXXXX" autocomplete="off" autocorrect="off" autocapitalize="characters" spellcheck="false">
+    </div>
+    <button class="btn btn-primary w-100 rounded-pill py-2 fw-bold" onclick="staffVerifyTokenInput()">
+      <i class="bi bi-key-fill me-1"></i> เข้าใช้งาน
+    </button>
+    <div id="gate-error" class="alert alert-danger mt-3 small" style="display:none;"></div>
+  </div>
+</div>
+
+<!-- ===== MAIN VIEW (shown after token verified) ===== -->
+<div id="main-view" style="display:none;">
+
+  <!-- Topbar -->
+  <div class="staff-topbar d-flex align-items-start gap-2">
+    <div style="flex:1; min-width:0;">
+      <div class="worker-name"><i class="bi bi-person-badge-fill"></i> <span id="ui-worker-name">—</span></div>
+      <div class="meta">
+        <span id="ui-event-name">—</span>
+        <span id="ui-section-wrap" style="display:none;"><span class="badge-section">📍 <span id="ui-section">—</span></span></span>
+      </div>
+    </div>
+    <button class="btn-logout" onclick="staffLogout()" title="ออกจากระบบ"><i class="bi bi-box-arrow-right"></i></button>
+  </div>
+
+  <div class="container-fluid p-3" style="max-width: 720px;">
+
+    <!-- Quick Supply Counters -->
+    <div class="staff-card">
+      <div class="ttl"><i class="bi bi-box-seam"></i> แจกจ่ายอุปกรณ์ (กด +/- ได้เลย)</div>
+      <div id="supply-rows">
+        <div class="supply-row" data-field="q_ammonia"><span class="name">🧴 แอมโมเนีย</span>
+          <button class="qty-btn minus" onclick="staffBumpSupply('q_ammonia',-1)">−</button>
+          <span class="qty-val" id="qv-q_ammonia">0</span>
+          <button class="qty-btn plus" onclick="staffBumpSupply('q_ammonia',1)">+</button>
+        </div>
+        <div class="supply-row" data-field="q_plaster"><span class="name">🩹 พลาสเตอร์</span>
+          <button class="qty-btn minus" onclick="staffBumpSupply('q_plaster',-1)">−</button>
+          <span class="qty-val" id="qv-q_plaster">0</span>
+          <button class="qty-btn plus" onclick="staffBumpSupply('q_plaster',1)">+</button>
+        </div>
+        <div class="supply-row" data-field="q_spray"><span class="name">💨 สเปรย์</span>
+          <button class="qty-btn minus" onclick="staffBumpSupply('q_spray',-1)">−</button>
+          <span class="qty-val" id="qv-q_spray">0</span>
+          <button class="qty-btn plus" onclick="staffBumpSupply('q_spray',1)">+</button>
+        </div>
+        <div class="supply-row" data-field="q_wound"><span class="name">🩺 อุปกรณ์ทำแผล</span>
+          <button class="qty-btn minus" onclick="staffBumpSupply('q_wound',-1)">−</button>
+          <span class="qty-val" id="qv-q_wound">0</span>
+          <button class="qty-btn plus" onclick="staffBumpSupply('q_wound',1)">+</button>
+        </div>
+        <div class="supply-row" data-field="q_meds"><span class="name">💊 ยา</span>
+          <button class="qty-btn minus" onclick="staffBumpSupply('q_meds',-1)">−</button>
+          <span class="qty-val" id="qv-q_meds">0</span>
+          <button class="qty-btn plus" onclick="staffBumpSupply('q_meds',1)">+</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- My Patient List -->
+    <div class="staff-card">
+      <div class="ttl d-flex align-items-center justify-content-between">
+        <span><i class="bi bi-clipboard2-pulse"></i> ผู้ป่วยที่ฉันบันทึก <span class="badge bg-primary rounded-pill ms-1" id="my-count">0</span></span>
+        <button class="btn btn-sm btn-link p-0" onclick="staffRefreshMyList()" title="รีเฟรช"><i class="bi bi-arrow-clockwise"></i></button>
+      </div>
+      <div id="my-list">
+        <div class="empty-state"><i class="bi bi-clipboard2"></i><div>ยังไม่มีบันทึก กดปุ่ม + ด้านล่างเพื่อเพิ่มผู้ป่วย</div></div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- FAB add patient -->
+  <button class="fab-add" onclick="staffOpenForm()" title="เพิ่มผู้ป่วย"><i class="bi bi-plus-lg"></i></button>
+</div>
+
+<!-- ===== ADD/EDIT PATIENT MODAL ===== -->
+<div class="modal fade" id="ptModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable modal-fullscreen-sm-down">
+    <div class="modal-content border-0 shadow-lg rounded-4">
+      <div class="modal-header bg-light border-bottom-0 pb-2">
+        <h5 class="modal-title fw-bold" id="pt-modal-title"><i class="bi bi-clipboard2-pulse text-primary me-2"></i> บันทึกผู้ป่วย</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <form id="pt-form" class="form-grid">
+          <input type="hidden" id="f-reg-id">
+          <div>
+            <label>Triage <span class="text-danger">*</span></label>
+            <div class="triage-grid">
+              <button type="button" class="triage-btn" data-tri="Resus" onclick="staffSetTriage('Resus')">🔴 Resus</button>
+              <button type="button" class="triage-btn" data-tri="Emerg" onclick="staffSetTriage('Emerg')">🟣 Emerg</button>
+              <button type="button" class="triage-btn" data-tri="Urgent" onclick="staffSetTriage('Urgent')">🟡 Urgent</button>
+              <button type="button" class="triage-btn active" data-tri="Non-Urgent" onclick="staffSetTriage('Non-Urgent')">🟢 Non-Urgent</button>
+            </div>
+            <input type="hidden" id="f-triage" value="Non-Urgent">
+          </div>
+          <div>
+            <label>เพศ <span class="text-danger">*</span></label>
+            <div class="gender-grid">
+              <button type="button" class="gender-btn active" data-g="ช" onclick="staffSetGender('ช')">♂ ชาย</button>
+              <button type="button" class="gender-btn" data-g="ญ" onclick="staffSetGender('ญ')">♀ หญิง</button>
+            </div>
+            <input type="hidden" id="f-gender" value="ช">
+          </div>
+          <div class="row g-2">
+            <div class="col-4"><label>อายุ</label><input type="number" id="f-age" class="form-control" min="0"></div>
+            <div class="col-8"><label>ชื่อ</label><input type="text" id="f-name" class="form-control" placeholder="ชื่อ-สกุล หรือ ID"></div>
+          </div>
+          <div><label>โทร</label><input type="tel" id="f-phone" class="form-control" placeholder="0xx-xxx-xxxx"></div>
+          <div><label>หมวด</label><select id="f-category" class="form-select"><option value="">— เลือก —</option></select></div>
+          <div>
+            <label>จุดรักษา <span id="f-location-locked-hint" class="text-warning small" style="display:none;">(ถูกจำกัด)</span></label>
+            <select id="f-location" class="form-select"><option value="">— เลือก —</option></select>
+          </div>
+          <div class="row g-2">
+            <div class="col-6"><label>เวลามา (Time In)</label><input type="time" id="f-time-in" class="form-control"></div>
+            <div class="col-6"><label>เวลาออก (Time Out)</label><input type="time" id="f-time-out" class="form-control"></div>
+          </div>
+          <div><label>อาการสำคัญ (CC)</label><textarea id="f-cc" class="form-control" rows="2" placeholder="ปวดท้อง, แผลถลอก..."></textarea></div>
+          <div><label>การรักษา (Treatment)</label><textarea id="f-treatment" class="form-control" rows="2" placeholder="ทำแผล + ammonia..."></textarea></div>
+          <div>
+            <label>ผลการรักษา</label>
+            <select id="f-result" class="form-select">
+              <option value="">— เลือก —</option>
+              <option value="discharge">Discharge (กลับบ้าน)</option>
+              <option value="transfer-rs">Transfer — รพ.</option>
+              <option value="transfer-clinic">Transfer — คลินิก</option>
+              <option value="cancel">Cancel (ไม่รักษา)</option>
+              <option value="observe">สังเกตอาการ</option>
+            </select>
+          </div>
+          <div><label>หมายเหตุ</label><textarea id="f-note" class="form-control" rows="2"></textarea></div>
+        </form>
+      </div>
+      <div class="modal-footer border-0 px-3 pb-3 pt-0">
+        <button type="button" class="btn btn-light rounded-pill px-4" data-bs-dismiss="modal">ยกเลิก</button>
+        <button type="button" class="btn btn-primary rounded-pill px-4 fw-bold" onclick="staffSavePatient()"><i class="bi bi-check-lg me-1"></i> บันทึก</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script src="../../shared/config.js"></script>
+<script src="../../shared/realtime.js"></script>
+
+<script>
+(function(){
+  // ===== STATE (sessionStorage so refresh keeps the worker logged in) =====
+  var STATE_KEY = 'staff_fa_state';
+  var state = (function(){
+    try { return JSON.parse(sessionStorage.getItem(STATE_KEY) || '{}'); } catch(e) { return {}; }
+  })();
+  function saveState(){ try { sessionStorage.setItem(STATE_KEY, JSON.stringify(state)); } catch(e){} }
+  function clearState(){ try { sessionStorage.removeItem(STATE_KEY); } catch(e){} state = {}; }
+
+  // ===== Supabase client (own — does not share with admin auth) =====
+  var _supabase = supabase.createClient(CONFIG.SUPABASE_URL, CONFIG.SUPABASE_ANON_KEY);
+  window._supabase = _supabase; // realtime.js uses global _supabase
+
+  // ===== Stub auth helpers so any shared code that calls these doesn't blow up =====
+  window.getUserName = function(){ return state.workerName || 'Staff'; };
+  window.getUserRole = function(){ return 'Staff'; }; // not Admin — gates admin-only UI
+
+  // ===== HTML escape =====
+  function esc(s){ return String(s||'').replace(/[&<>"']/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]; }); }
+
+  // ===== TOKEN VERIFY FLOW =====
+  async function staffVerifyToken(token) {
+    token = (token || '').trim().toUpperCase();
+    if (!/^[A-Z0-9]{6}$/.test(token)) {
+      return { ok: false, msg: 'Token ต้องเป็น 6 ตัวอักษร/ตัวเลข' };
+    }
+    try {
+      var { data: tokenRow, error: tokErr } = await _supabase.from('fa_event_tokens')
+        .select('*').eq('token', token).maybeSingle();
+      if (tokErr) throw tokErr;
+      if (!tokenRow) return { ok: false, msg: 'ไม่พบ Token นี้ — ตรวจสอบกับ admin' };
+      if (tokenRow.status !== 'Active') return { ok: false, msg: 'Token ถูกระงับแล้ว — ติดต่อ admin' };
+      // Verify event still Active
+      var { data: ev, error: evErr } = await _supabase.from('fa_events')
+        .select('event_id,event_name,status,event_config,q_ammonia,q_plaster,q_spray,q_wound,q_meds')
+        .eq('event_id', tokenRow.event_id).maybeSingle();
+      if (evErr) throw evErr;
+      if (!ev) return { ok: false, msg: 'ไม่พบ Event ที่ผูกกับ Token นี้' };
+      if (ev.status !== 'Active') return { ok: false, msg: 'Event ถูกปิดแล้ว — Token ใช้งานไม่ได้' };
+      return { ok: true, token: tokenRow, event: ev };
+    } catch(e) {
+      return { ok: false, msg: 'เชื่อมต่อ DB ไม่ได้: ' + (e.message || e) };
+    }
+  }
+
+  window.staffVerifyTokenInput = async function() {
+    var input = document.getElementById('gate-token');
+    var errEl = document.getElementById('gate-error');
+    errEl.style.display = 'none';
+    var v = await staffVerifyToken(input.value);
+    if (!v.ok) {
+      errEl.textContent = v.msg; errEl.style.display = '';
+      return;
+    }
+    enterApp(v.token, v.event);
+  };
+
+  function enterApp(tokenRow, ev) {
+    state.token = tokenRow.token;
+    state.eventId = tokenRow.event_id;
+    state.workerName = tokenRow.worker_name;
+    state.section = tokenRow.location_tx || null;
+    state.eventName = ev.event_name;
+    state.eventConfig = ev.event_config || {};
+    saveState();
+
+    // Update UI
+    document.getElementById('ui-worker-name').textContent = state.workerName;
+    document.getElementById('ui-event-name').textContent = state.eventName;
+    if (state.section) {
+      document.getElementById('ui-section-wrap').style.display = '';
+      document.getElementById('ui-section').textContent = state.section;
+    }
+    setSupplyValues(ev);
+
+    document.getElementById('gate-view').style.display = 'none';
+    document.getElementById('main-view').style.display = '';
+
+    populateFormDropdowns();
+    staffRefreshMyList();
+    subscribeRealtime();
+  }
+
+  window.staffLogout = function(){
+    if (!confirm('ออกจากระบบและล้าง Token?')) return;
+    clearState();
+    location.href = location.pathname; // strip ?t=
+  };
+
+  // ===== AUTO-LOGIN from URL ?t= or saved state =====
+  async function bootstrap() {
+    // Wire input — uppercase + auto-submit on 6 chars
+    var input = document.getElementById('gate-token');
+    if (input) {
+      input.addEventListener('input', function(){
+        this.value = (this.value || '').toUpperCase().replace(/[^A-Z0-9]/g, '');
+        if (this.value.length === 6) staffVerifyTokenInput();
+      });
+      input.addEventListener('keydown', function(e){
+        if (e.key === 'Enter') staffVerifyTokenInput();
+      });
+    }
+
+    var url = new URL(location.href);
+    var urlToken = (url.searchParams.get('t') || '').trim();
+    if (urlToken) {
+      // Verify URL token
+      var v = await staffVerifyToken(urlToken);
+      if (v.ok) { enterApp(v.token, v.event); return; }
+      // Fall through to gate w/ error
+      document.getElementById('gate-error').textContent = v.msg;
+      document.getElementById('gate-error').style.display = '';
+      input.value = urlToken;
+      return;
+    }
+    // Saved state? re-verify
+    if (state.token) {
+      var v2 = await staffVerifyToken(state.token);
+      if (v2.ok) { enterApp(v2.token, v2.event); return; }
+      // Stale — clear
+      clearState();
+    }
+  }
+
+  // ===== SUPPLIES =====
+  function setSupplyValues(ev) {
+    ['q_ammonia','q_plaster','q_spray','q_wound','q_meds'].forEach(function(f){
+      var el = document.getElementById('qv-' + f);
+      if (el) el.textContent = ev[f] || 0;
+    });
+  }
+
+  var _bumpBusy = {};
+  window.staffBumpSupply = async function(field, delta) {
+    if (_bumpBusy[field]) return;
+    _bumpBusy[field] = true;
+    var el = document.getElementById('qv-' + field);
+    var prev = parseInt(el.textContent) || 0;
+    // Optimistic UI
+    el.textContent = Math.max(0, prev + delta);
+    try {
+      var { data, error } = await _supabase.rpc('fa_bump_supply', {
+        p_event_id: state.eventId, p_field: field, p_delta: delta
+      });
+      if (error) throw error;
+      if (typeof data === 'number') el.textContent = data;
+    } catch(err) {
+      el.textContent = prev; // rollback
+      Swal.fire({ icon: 'error', title: 'อัปเดตไม่สำเร็จ', text: (err.message || err), timer: 2500, showConfirmButton: false });
+    } finally {
+      _bumpBusy[field] = false;
+    }
+  };
+
+  // ===== FORM DROPDOWNS (categories + locations) from event_config =====
+  function populateFormDropdowns() {
+    var cfg = state.eventConfig || {};
+    var cats = cfg.categories || [];
+    if (typeof cats === 'string') cats = cats.split(',').map(function(s){ return s.trim(); }).filter(Boolean);
+    var catSel = document.getElementById('f-category');
+    catSel.innerHTML = '<option value="">— เลือก —</option>' + cats.map(function(c){ return '<option value="' + esc(c) + '">' + esc(c) + '</option>'; }).join('');
+
+    var locs = cfg.locations || [];
+    if (typeof locs === 'string') locs = locs.split(',').map(function(s){ return s.trim(); }).filter(Boolean);
+    var locSel = document.getElementById('f-location');
+    if (state.section) {
+      // Locked to one section
+      locSel.innerHTML = '<option value="' + esc(state.section) + '" selected>' + esc(state.section) + '</option>';
+      locSel.disabled = true;
+      document.getElementById('f-location-locked-hint').style.display = '';
+    } else {
+      locSel.innerHTML = '<option value="">— เลือก —</option>' + locs.map(function(l){ return '<option value="' + esc(l) + '">' + esc(l) + '</option>'; }).join('');
+      locSel.disabled = false;
+    }
+  }
+
+  // ===== TRIAGE / GENDER PICKERS =====
+  window.staffSetTriage = function(t) {
+    document.getElementById('f-triage').value = t;
+    document.querySelectorAll('.triage-btn').forEach(function(b){ b.classList.toggle('active', b.dataset.tri === t); });
+  };
+  window.staffSetGender = function(g) {
+    document.getElementById('f-gender').value = g;
+    document.querySelectorAll('.gender-btn').forEach(function(b){ b.classList.toggle('active', b.dataset.g === g); });
+  };
+
+  // ===== ADD / EDIT PATIENT =====
+  window.staffOpenForm = function(regId) {
+    document.getElementById('f-reg-id').value = regId || '';
+    document.getElementById('pt-modal-title').innerHTML = regId
+      ? '<i class="bi bi-pencil text-warning me-2"></i> แก้ไขผู้ป่วย'
+      : '<i class="bi bi-clipboard2-pulse text-primary me-2"></i> เพิ่มผู้ป่วย';
+
+    if (regId) {
+      // Load existing record
+      _supabase.from('fa_registry').select('*').eq('reg_id', regId).maybeSingle().then(function(r){
+        if (r.error || !r.data) {
+          Swal.fire({ icon: 'error', title: 'โหลดข้อมูลไม่สำเร็จ' }); return;
+        }
+        var rec = r.data;
+        // Edit guard — staff can only edit OWN records
+        if (rec.recorded_by !== state.workerName) {
+          Swal.fire({ icon: 'error', title: 'ไม่อนุญาต', text: 'แก้ไขได้เฉพาะรายการที่คุณเพิ่มเอง' });
+          return;
+        }
+        staffSetTriage(rec.triage || 'Non-Urgent');
+        staffSetGender(rec.gender || 'ช');
+        document.getElementById('f-age').value = rec.age || '';
+        document.getElementById('f-name').value = rec.name || '';
+        document.getElementById('f-phone').value = rec.phone || '';
+        document.getElementById('f-category').value = rec.category || '';
+        if (!state.section) document.getElementById('f-location').value = rec.location_tx || '';
+        document.getElementById('f-time-in').value = rec.time_in || '';
+        document.getElementById('f-time-out').value = rec.time_out || '';
+        document.getElementById('f-cc').value = rec.cc || '';
+        document.getElementById('f-treatment').value = rec.treatment || '';
+        document.getElementById('f-result').value = rec.result || '';
+        document.getElementById('f-note').value = rec.note || '';
+        new bootstrap.Modal(document.getElementById('ptModal')).show();
+      });
+    } else {
+      // New record — reset form
+      document.getElementById('pt-form').reset();
+      staffSetTriage('Non-Urgent');
+      staffSetGender('ช');
+      // Auto-fill time-in with current
+      var d = new Date(); var hh = String(d.getHours()).padStart(2,'0'); var mm = String(d.getMinutes()).padStart(2,'0');
+      document.getElementById('f-time-in').value = hh + ':' + mm;
+      // Re-disable section select if locked (form.reset() un-disables it)
+      if (state.section) {
+        document.getElementById('f-location').disabled = true;
+        document.getElementById('f-location').value = state.section;
+      }
+      new bootstrap.Modal(document.getElementById('ptModal')).show();
+    }
+  };
+
+  window.staffSavePatient = async function() {
+    var regId = document.getElementById('f-reg-id').value || ('REG-' + Date.now() + '-' + Math.random().toString(36).substr(2,5));
+    var loc = state.section || document.getElementById('f-location').value || '';
+
+    // Defense: section enforcement (DOM tampering guard)
+    if (state.section && loc !== state.section) {
+      Swal.fire({ icon: 'error', title: 'จุดรักษาผิด', text: 'Token นี้ถูกล็อคที่ ' + state.section });
+      return;
+    }
+
+    var rec = {
+      reg_id: regId,
+      event_id: state.eventId,
+      triage: document.getElementById('f-triage').value,
+      gender: document.getElementById('f-gender').value,
+      age: parseInt(document.getElementById('f-age').value) || null,
+      name: document.getElementById('f-name').value || null,
+      phone: document.getElementById('f-phone').value || null,
+      category: document.getElementById('f-category').value || null,
+      location_tx: loc || null,
+      time_in: document.getElementById('f-time-in').value || null,
+      time_out: document.getElementById('f-time-out').value || null,
+      cc: document.getElementById('f-cc').value || null,
+      treatment: document.getElementById('f-treatment').value || null,
+      result: document.getElementById('f-result').value || null,
+      note: document.getElementById('f-note').value || null,
+      recorded_by: state.workerName
+    };
+
+    try {
+      Swal.fire({ title: 'กำลังบันทึก...', didOpen: function(){ Swal.showLoading(); } });
+      var existing = !!document.getElementById('f-reg-id').value;
+      if (existing) {
+        // Update: also re-check ownership at DB query time (defense)
+        var { error } = await _supabase.from('fa_registry').update(rec)
+          .eq('reg_id', regId).eq('recorded_by', state.workerName);
+        if (error) throw error;
+      } else {
+        var { error } = await _supabase.from('fa_registry').insert(rec);
+        if (error) throw error;
+      }
+      Swal.close();
+      bootstrap.Modal.getInstance(document.getElementById('ptModal')).hide();
+      Swal.fire({ icon: 'success', title: 'บันทึกแล้ว', timer: 1200, showConfirmButton: false });
+      staffRefreshMyList();
+    } catch(err) {
+      Swal.fire({ icon: 'error', title: 'บันทึกไม่สำเร็จ', text: err.message || err });
+    }
+  };
+
+  // ===== MY PATIENT LIST =====
+  window.staffRefreshMyList = async function() {
+    var listEl = document.getElementById('my-list');
+    var countEl = document.getElementById('my-count');
+    try {
+      var q = _supabase.from('fa_registry').select('*')
+        .eq('event_id', state.eventId)
+        .eq('recorded_by', state.workerName)
+        .order('time_in', { ascending: false });
+      if (state.section) q = q.eq('location_tx', state.section);
+      var { data, error } = await q;
+      if (error) throw error;
+      countEl.textContent = (data || []).length;
+      if (!data || data.length === 0) {
+        listEl.innerHTML = '<div class="empty-state"><i class="bi bi-clipboard2"></i><div>ยังไม่มีบันทึก กดปุ่ม + ด้านล่างเพื่อเพิ่มผู้ป่วย</div></div>';
+        return;
+      }
+      listEl.innerHTML = data.map(function(r){
+        var triKey = (r.triage || 'Non-Urgent').toLowerCase().replace(/[^a-z]/g,'');
+        var triCls = triKey === 'resus' ? 'tri-resus' : triKey === 'emerg' ? 'tri-emerg' : triKey === 'urgent' ? 'tri-urgent' : 'tri-nonurg';
+        var status = r.time_out ? '<span class="pill out">ออกแล้ว ' + esc(r.time_out) + '</span>' : '<span class="pill in">กำลังดูแล</span>';
+        return '<div class="pt-row ' + triCls + '" onclick="staffOpenForm(\'' + esc(r.reg_id) + '\')">' +
+          '<div class="strip"></div>' +
+          '<div>' +
+            '<div class="name">' + esc(r.name || '(ไม่ระบุชื่อ)') + '</div>' +
+            '<div class="sub">' + esc(r.gender||'-') + ' · ' + esc(r.age||'-') + ' ปี · ' + esc(r.cc || '-') + '</div>' +
+          '</div>' +
+          '<div class="right">' +
+            '<div class="time">' + esc(r.time_in || '--:--') + '</div>' +
+            status +
+          '</div>' +
+        '</div>';
+      }).join('');
+    } catch(err) {
+      listEl.innerHTML = '<div class="empty-state text-danger"><i class="bi bi-exclamation-triangle"></i><div>โหลดไม่สำเร็จ: ' + esc(err.message || err) + '</div></div>';
+    }
+  };
+
+  // ===== REALTIME — refresh supplies + my list when changes happen =====
+  function subscribeRealtime() {
+    if (!window.RT || typeof RT.subscribeMulti !== 'function') return;
+    RT.subscribeMulti('staff-fa', ['fa_registry','fa_events','fa_event_tokens'], function(payload){
+      var t = payload && payload.table;
+      if (t === 'fa_event_tokens') {
+        // Token may have been revoked by admin — re-verify
+        staffVerifyToken(state.token).then(function(v){
+          if (!v.ok) {
+            Swal.fire({ icon: 'warning', title: 'Token ถูกระงับ', text: v.msg, allowOutsideClick: false }).then(function(){ staffLogout(); });
+          }
+        });
+        return;
+      }
+      if (t === 'fa_events') {
+        // Re-pull supplies + check event status
+        _supabase.from('fa_events').select('event_id,status,q_ammonia,q_plaster,q_spray,q_wound,q_meds')
+          .eq('event_id', state.eventId).maybeSingle().then(function(r){
+            if (r.data) {
+              if (r.data.status !== 'Active') {
+                Swal.fire({ icon: 'info', title: 'Event ถูกปิดแล้ว', allowOutsideClick: false }).then(function(){ staffLogout(); });
+                return;
+              }
+              ['q_ammonia','q_plaster','q_spray','q_wound','q_meds'].forEach(function(f){
+                if (!_bumpBusy[f]) {
+                  var el = document.getElementById('qv-' + f);
+                  if (el) el.textContent = r.data[f] || 0;
+                }
+              });
+            }
+          });
+        return;
+      }
+      // fa_registry — could be my own change or admin's; just refresh my list
+      staffRefreshMyList();
+    });
+  }
+
+  // Init
+  bootstrap();
+})();
+</script>
+
+</body>
+</html>
