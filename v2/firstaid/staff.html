@@ -12,27 +12,53 @@
   <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
   <link rel="stylesheet" href="../../shared/styles.css">
   <style>
-    body { font-family: 'Sarabun', sans-serif; background: #f8fafc; color: #0f172a; padding-bottom: 80px; }
+    /* === Match V2 main pages: bg-modern-primary navbar + island-card body === */
+    body { font-family: 'Sarabun', sans-serif; background: #f0f2f5; color: #0f172a; padding-bottom: 80px; }
+    .bg-modern-primary {
+      background: linear-gradient(135deg, #1e3a5f 0%, #0d6efd 100%);
+      box-shadow: 0 4px 20px rgba(13, 110, 253, 0.15);
+    }
+    /* Topbar = navbar style of admin/employee pages */
     .staff-topbar {
       position: sticky; top: 0; z-index: 1020;
-      background: linear-gradient(135deg, #0ea5e9 0%, #075985 100%);
-      color: #fff; padding: 12px 16px;
-      box-shadow: 0 2px 8px rgba(15,23,42,.12);
+      color: #fff; padding: 14px 16px;
     }
-    .staff-topbar .worker-name { font-weight: 700; font-size: 1rem; display: flex; align-items: center; gap: 6px; }
-    .staff-topbar .meta { font-size: 0.78rem; opacity: 0.92; margin-top: 2px; line-height: 1.4; }
-    .staff-topbar .meta .badge-section { background: rgba(255,255,255,.2); padding: 2px 8px; border-radius: 4px; margin-left: 4px; }
+    .staff-topbar .brand { display: flex; align-items: center; gap: 10px; min-width: 0; flex: 1; }
+    .staff-topbar .brand .icon-wrap {
+      width: 36px; height: 36px; border-radius: 8px;
+      background: rgba(255,255,255,.15); display: inline-flex;
+      align-items: center; justify-content: center; flex-shrink: 0;
+      font-size: 1.1rem;
+    }
+    .staff-topbar .worker-name { font-weight: 700; font-size: 1rem; line-height: 1.15; display: flex; align-items: center; gap: 6px; min-width: 0; }
+    .staff-topbar .worker-name span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .staff-topbar .meta { font-size: 0.78rem; opacity: 0.92; margin-top: 2px; line-height: 1.35; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .staff-topbar .meta .badge-section { background: rgba(255,255,255,.22); padding: 2px 8px; border-radius: 4px; margin-left: 4px; font-weight: 600; }
     .staff-topbar .btn-logout {
-      width: 36px; height: 36px; border-radius: 50%; border: none;
+      width: 38px; height: 38px; border-radius: 50%; border: none;
       background: rgba(255,255,255,.18); color: #fff; flex-shrink: 0;
       display: inline-flex; align-items: center; justify-content: center;
+      transition: background .15s;
     }
+    .staff-topbar .btn-logout:hover { background: rgba(255,255,255,.28); }
+
+    /* Island card — same visual language as admin */
     .staff-card {
-      background: #fff; border-radius: 12px; padding: 16px;
-      margin-bottom: 12px; box-shadow: 0 1px 3px rgba(0,0,0,.05);
+      background: #fff; border-radius: 16px;
+      margin-bottom: 14px; overflow: hidden;
+      box-shadow: 0 2px 10px rgba(15,23,42,.06);
+      border: 1px solid #e9ecef;
     }
-    .staff-card .ttl { font-weight: 700; font-size: 0.92rem; color: #0f172a; margin-bottom: 10px; display: flex; align-items: center; gap: 6px; }
-    .staff-card .ttl .bi { color: #0ea5e9; }
+    .staff-card .card-head {
+      padding: 12px 16px; border-bottom: 1px solid #f1f3f5;
+      display: flex; align-items: center; justify-content: space-between; gap: 10px;
+    }
+    .staff-card .card-head.head-success { background: rgba(25, 135, 84, .08); }
+    .staff-card .card-head.head-primary { background: rgba(13, 110, 253, .08); }
+    .staff-card .card-head .ttl { font-weight: 700; font-size: 0.95rem; color: #0f172a; display: flex; align-items: center; gap: 6px; margin: 0; }
+    .staff-card .card-head.head-success .ttl { color: #146c43; }
+    .staff-card .card-head.head-primary .ttl { color: #084298; }
+    .staff-card .card-body { padding: 14px 16px; }
 
     .supply-row { display: grid; grid-template-columns: 1fr auto auto auto; gap: 6px; align-items: center; padding: 8px 0; border-bottom: 1px dashed #e2e8f0; }
     .supply-row:last-child { border-bottom: none; }
@@ -145,13 +171,16 @@
 <!-- ===== MAIN VIEW (shown after token verified) ===== -->
 <div id="main-view" style="display:none;">
 
-  <!-- Topbar -->
-  <div class="staff-topbar d-flex align-items-start gap-2">
-    <div style="flex:1; min-width:0;">
-      <div class="worker-name"><i class="bi bi-person-badge-fill"></i> <span id="ui-worker-name">—</span></div>
-      <div class="meta">
-        <span id="ui-event-name">—</span>
-        <span id="ui-section-wrap" style="display:none;"><span class="badge-section">📍 <span id="ui-section">—</span></span></span>
+  <!-- Topbar (matches V2 admin's bg-modern-primary navbar) -->
+  <div class="staff-topbar bg-modern-primary d-flex align-items-center gap-2">
+    <div class="brand">
+      <div class="icon-wrap"><i class="bi bi-bandaid-fill"></i></div>
+      <div style="min-width:0; flex:1;">
+        <div class="worker-name"><span id="ui-worker-name">—</span></div>
+        <div class="meta">
+          <span id="ui-event-name">—</span>
+          <span id="ui-section-wrap" style="display:none;"><span class="badge-section">📍 <span id="ui-section">—</span></span></span>
+        </div>
       </div>
     </div>
     <button class="btn-logout" onclick="staffLogout()" title="ออกจากระบบ"><i class="bi bi-box-arrow-right"></i></button>
@@ -159,10 +188,12 @@
 
   <div class="container-fluid p-3" style="max-width: 720px;">
 
-    <!-- Quick Supply Counters -->
+    <!-- Quick Supply Counters (matches admin's "แจกจ่ายด่วน" green-header card) -->
     <div class="staff-card">
-      <div class="ttl"><i class="bi bi-box-seam"></i> แจกจ่ายอุปกรณ์ (กด +/- ได้เลย)</div>
-      <div id="supply-rows">
+      <div class="card-head head-success">
+        <h6 class="ttl">⚡ แจกจ่ายอุปกรณ์ <span class="text-muted fw-normal small">(กด +/- ได้เลย)</span></h6>
+      </div>
+      <div class="card-body" id="supply-rows">
         <div class="supply-row" data-field="q_ammonia"><span class="name">🧴 แอมโมเนีย</span>
           <button class="qty-btn minus" onclick="staffBumpSupply('q_ammonia',-1)">−</button>
           <span class="qty-val" id="qv-q_ammonia">0</span>
@@ -188,11 +219,11 @@
 
     <!-- My Patient List -->
     <div class="staff-card">
-      <div class="ttl d-flex align-items-center justify-content-between">
-        <span><i class="bi bi-clipboard2-pulse"></i> ผู้ป่วยที่ฉันบันทึก <span class="badge bg-primary rounded-pill ms-1" id="my-count">0</span></span>
-        <button class="btn btn-sm btn-link p-0" onclick="staffRefreshMyList()" title="รีเฟรช"><i class="bi bi-arrow-clockwise"></i></button>
+      <div class="card-head head-primary">
+        <h6 class="ttl"><i class="bi bi-clipboard2-pulse"></i> ผู้ป่วยที่ฉันบันทึก <span class="badge bg-primary rounded-pill ms-1" id="my-count">0</span></h6>
+        <button class="btn btn-sm btn-link p-0 text-secondary" onclick="staffRefreshMyList()" title="รีเฟรช"><i class="bi bi-arrow-clockwise"></i></button>
       </div>
-      <div id="my-list">
+      <div class="card-body" id="my-list">
         <div class="empty-state"><i class="bi bi-clipboard2"></i><div>ยังไม่มีบันทึก กดปุ่ม + ด้านล่างเพื่อเพิ่มผู้ป่วย</div></div>
       </div>
     </div>
@@ -237,6 +268,14 @@
             <div class="col-8"><label>ชื่อ</label><input type="text" id="f-name" class="form-control" placeholder="ชื่อ-สกุล หรือ ID"></div>
           </div>
           <div><label>โทร</label><input type="tel" id="f-phone" class="form-control" placeholder="0xx-xxx-xxxx"></div>
+          <div>
+            <label>ประเภทเหตุ <span class="text-danger">*</span></label>
+            <div class="row g-2">
+              <div class="col-6"><button type="button" id="f-eti-med" class="btn btn-outline-primary w-100 active" onclick="staffSetEtiology('Med')">🩺 Med (เจ็บป่วย)</button></div>
+              <div class="col-6"><button type="button" id="f-eti-trauma" class="btn btn-outline-danger w-100" onclick="staffSetEtiology('Trauma')">🩹 Trauma (บาดเจ็บ)</button></div>
+            </div>
+            <input type="hidden" id="f-etiology" value="Med">
+          </div>
           <div><label>หมวด</label><select id="f-category" class="form-select"><option value="">— เลือก —</option></select></div>
           <div>
             <label>จุดรักษา <span id="f-location-locked-hint" class="text-warning small" style="display:none;">(ถูกจำกัด)</span></label>
@@ -247,6 +286,14 @@
             <div class="col-6"><label>เวลาออก (Time Out)</label><input type="time" id="f-time-out" class="form-control"></div>
           </div>
           <div><label>อาการสำคัญ (CC)</label><textarea id="f-cc" class="form-control" rows="2" placeholder="ปวดท้อง, แผลถลอก..."></textarea></div>
+          <div><label>แพ้ยา/แพ้อาหาร (Allergy)</label><input type="text" id="f-allergy" class="form-control" placeholder="ไม่มี / ระบุ..."></div>
+          <div><label>Vital signs</label>
+            <div class="row g-2">
+              <div class="col-4"><input type="text" id="f-bp" class="form-control form-control-sm" placeholder="BP (120/80)"></div>
+              <div class="col-4"><input type="number" id="f-hr" class="form-control form-control-sm" placeholder="HR" min="0"></div>
+              <div class="col-4"><input type="number" id="f-spo2" class="form-control form-control-sm" placeholder="SpO₂" min="0" max="100"></div>
+            </div>
+          </div>
           <div><label>การรักษา (Treatment)</label><textarea id="f-treatment" class="form-control" rows="2" placeholder="ทำแผล + ammonia..."></textarea></div>
           <div>
             <label>ผลการรักษา</label>
@@ -296,6 +343,48 @@
 
   // ===== HTML escape =====
   function esc(s){ return String(s||'').replace(/[&<>"']/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]; }); }
+
+  // ===== Modal helpers — works with OR without bootstrap.Modal
+  // (Some browsers block jsdelivr CDN, so don't hard-depend on bootstrap JS) =====
+  function showModal(id) {
+    var el = document.getElementById(id); if (!el) return;
+    if (window.bootstrap && window.bootstrap.Modal) {
+      try { window.bootstrap.Modal.getOrCreateInstance(el).show(); return; } catch(e) {}
+    }
+    el.classList.add('show');
+    el.style.display = 'block';
+    el.setAttribute('aria-hidden', 'false');
+    document.body.classList.add('modal-open');
+    if (!document.getElementById(id + '-backdrop')) {
+      var bd = document.createElement('div');
+      bd.className = 'modal-backdrop fade show';
+      bd.id = id + '-backdrop';
+      bd.addEventListener('click', function(){ hideModal(id); });
+      document.body.appendChild(bd);
+    }
+  }
+  function hideModal(id) {
+    var el = document.getElementById(id); if (!el) return;
+    if (window.bootstrap && window.bootstrap.Modal) {
+      try {
+        var inst = window.bootstrap.Modal.getOrCreateInstance(el);
+        inst.hide(); return;
+      } catch(e) {}
+    }
+    el.classList.remove('show');
+    el.style.display = 'none';
+    el.setAttribute('aria-hidden', 'true');
+    document.body.classList.remove('modal-open');
+    var bd = document.getElementById(id + '-backdrop');
+    if (bd) bd.remove();
+  }
+  // Wire all data-bs-dismiss="modal" buttons (works without bootstrap JS)
+  document.addEventListener('click', function(ev) {
+    var btn = ev.target.closest('[data-bs-dismiss="modal"]');
+    if (!btn) return;
+    var modal = btn.closest('.modal');
+    if (modal) hideModal(modal.id);
+  });
 
   // ===== TOKEN VERIFY FLOW =====
   async function staffVerifyToken(token) {
@@ -462,6 +551,11 @@
     document.getElementById('f-gender').value = g;
     document.querySelectorAll('.gender-btn').forEach(function(b){ b.classList.toggle('active', b.dataset.g === g); });
   };
+  window.staffSetEtiology = function(e) {
+    document.getElementById('f-etiology').value = e;
+    document.getElementById('f-eti-med').classList.toggle('active', e === 'Med');
+    document.getElementById('f-eti-trauma').classList.toggle('active', e === 'Trauma');
+  };
 
   // ===== ADD / EDIT PATIENT =====
   window.staffOpenForm = function(regId) {
@@ -484,6 +578,7 @@
         }
         staffSetTriage(rec.triage || 'Non-Urgent');
         staffSetGender(rec.gender || 'ช');
+        staffSetEtiology(rec.etiology || 'Med');
         document.getElementById('f-age').value = rec.age || '';
         document.getElementById('f-name').value = rec.name || '';
         document.getElementById('f-phone').value = rec.phone || '';
@@ -492,16 +587,24 @@
         document.getElementById('f-time-in').value = rec.time_in || '';
         document.getElementById('f-time-out').value = rec.time_out || '';
         document.getElementById('f-cc').value = rec.cc || '';
+        document.getElementById('f-allergy').value = rec.allergy || '';
         document.getElementById('f-treatment').value = rec.treatment || '';
         document.getElementById('f-result').value = rec.result || '';
         document.getElementById('f-note').value = rec.note || '';
-        new bootstrap.Modal(document.getElementById('ptModal')).show();
+        // Restore vitals from JSONB
+        var vit = rec.vitals_json || {};
+        if (typeof vit === 'string') { try { vit = JSON.parse(vit); } catch(e) { vit = {}; } }
+        document.getElementById('f-bp').value = vit.bp || '';
+        document.getElementById('f-hr').value = vit.hr || '';
+        document.getElementById('f-spo2').value = vit.spo2 || '';
+        showModal('ptModal');
       });
     } else {
       // New record — reset form
       document.getElementById('pt-form').reset();
       staffSetTriage('Non-Urgent');
       staffSetGender('ช');
+      staffSetEtiology('Med');
       // Auto-fill time-in with current
       var d = new Date(); var hh = String(d.getHours()).padStart(2,'0'); var mm = String(d.getMinutes()).padStart(2,'0');
       document.getElementById('f-time-in').value = hh + ':' + mm;
@@ -510,12 +613,13 @@
         document.getElementById('f-location').disabled = true;
         document.getElementById('f-location').value = state.section;
       }
-      new bootstrap.Modal(document.getElementById('ptModal')).show();
+      showModal('ptModal');
     }
   };
 
   window.staffSavePatient = async function() {
-    var regId = document.getElementById('f-reg-id').value || ('REG-' + Date.now() + '-' + Math.random().toString(36).substr(2,5));
+    // reg_id format matches admin (firstaid index.html line ~3158): 'R-' + timestamp
+    var regId = document.getElementById('f-reg-id').value || ('R-' + Date.now());
     var loc = state.section || document.getElementById('f-location').value || '';
 
     // Defense: section enforcement (DOM tampering guard)
@@ -524,11 +628,21 @@
       return;
     }
 
+    // Build vitals JSONB (only include filled fields so admin Reports stay clean)
+    var bp   = (document.getElementById('f-bp').value || '').trim();
+    var hr   = parseInt(document.getElementById('f-hr').value);
+    var spo2 = parseInt(document.getElementById('f-spo2').value);
+    var vitals = {};
+    if (bp) vitals.bp = bp;
+    if (!isNaN(hr) && hr > 0) vitals.hr = hr;
+    if (!isNaN(spo2) && spo2 > 0) vitals.spo2 = spo2;
+
     var rec = {
       reg_id: regId,
       event_id: state.eventId,
       triage: document.getElementById('f-triage').value,
       gender: document.getElementById('f-gender').value,
+      etiology: document.getElementById('f-etiology').value,
       age: parseInt(document.getElementById('f-age').value) || null,
       name: document.getElementById('f-name').value || null,
       phone: document.getElementById('f-phone').value || null,
@@ -537,6 +651,8 @@
       time_in: document.getElementById('f-time-in').value || null,
       time_out: document.getElementById('f-time-out').value || null,
       cc: document.getElementById('f-cc').value || null,
+      allergy: document.getElementById('f-allergy').value || null,
+      vitals_json: Object.keys(vitals).length > 0 ? vitals : null,
       treatment: document.getElementById('f-treatment').value || null,
       result: document.getElementById('f-result').value || null,
       note: document.getElementById('f-note').value || null,
@@ -556,7 +672,7 @@
         if (error) throw error;
       }
       Swal.close();
-      bootstrap.Modal.getInstance(document.getElementById('ptModal')).hide();
+      hideModal('ptModal');
       Swal.fire({ icon: 'success', title: 'บันทึกแล้ว', timer: 1200, showConfirmButton: false });
       staffRefreshMyList();
     } catch(err) {
