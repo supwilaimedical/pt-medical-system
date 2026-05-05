@@ -222,128 +222,194 @@
   <button class="fab-add" onclick="staffOpenForm()" title="เพิ่มผู้ป่วย"><i class="bi bi-plus-lg"></i></button>
 </div>
 
-<!-- ===== ADD/EDIT PATIENT MODAL — copies admin's faRegistryModal styling ===== -->
-<div class="modal fade" id="ptModal" tabindex="-1" aria-hidden="true">
+<!-- ===== Medical Registry Modal — IDENTICAL HTML to admin's faRegistryModal =====
+     Driven by shared module v2/firstaid/_reg-form.js so behavior matches admin 1:1.
+     DO NOT diverge from admin's HTML — IDs and onclick handlers are wired by the shared module. -->
+<div class="modal fade" id="faRegistryModal" tabindex="-1" aria-hidden="true">
   <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable modal-fullscreen-sm-down">
     <div class="modal-content border-0 shadow-lg rounded-4">
       <div class="modal-header bg-light border-bottom-0 pb-0">
-        <h5 class="modal-title fw-bold" id="pt-modal-title"><i class="bi bi-clipboard2-pulse text-success me-2"></i> บันทึก Medical Registry</h5>
+        <h5 class="modal-title fw-bold" id="reg-modal-title"><i class="bi bi-clipboard2-pulse text-success me-2"></i> บันทึก Medical Registry</h5>
         <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
       </div>
       <div class="modal-body pt-3">
-        <form id="pt-form">
-          <input type="hidden" id="f-reg-id">
+        <form id="reg-form">
+          <input type="hidden" id="reg-form-event-id">
+          <input type="hidden" id="reg-form-reg-id">
+          <input type="hidden" id="reg-form-existing-image">
+          <input type="hidden" id="reg-etiology-value" value="Med">
+          <input type="hidden" id="reg-result-type" value="dc">
 
-          <!-- Section 1: Triage + Gender -->
+          <!-- Section 1: Demographics -->
           <div class="row g-2 mb-3 border-bottom pb-3">
-            <div class="col-auto">
-              <label class="form-label fw-bold small">Triage <span class="text-danger">*</span></label>
-              <input type="hidden" id="f-triage" value="A">
-              <div class="btn-group" role="group">
-                <button type="button" class="btn btn-sm reg-triage-btn active" data-value="A" onclick="staffSetTriage('A')" title="Alert" style="--tc:#198754;">A</button>
-                <button type="button" class="btn btn-sm reg-triage-btn" data-value="V" onclick="staffSetTriage('V')" title="Verbal" style="--tc:#f59e0b;">V</button>
-                <button type="button" class="btn btn-sm reg-triage-btn" data-value="P" onclick="staffSetTriage('P')" title="Pain" style="--tc:#e85d04;">P</button>
-                <button type="button" class="btn btn-sm reg-triage-btn" data-value="U" onclick="staffSetTriage('U')" title="Unresponsive" style="--tc:#dc3545;">U</button>
+              <div class="col-auto">
+                <label class="form-label fw-bold small">Triage <span class="text-danger">*</span></label>
+                <input type="hidden" id="reg-triage" value="A">
+                <div class="btn-group" role="group" id="reg-triage-toggle">
+                  <button type="button" class="btn btn-sm reg-triage-btn active" data-value="A" onclick="reg_setTriage('A')" title="Alert" style="--tc:#198754;">A</button>
+                  <button type="button" class="btn btn-sm reg-triage-btn" data-value="V" onclick="reg_setTriage('V')" title="Verbal" style="--tc:#f59e0b;">V</button>
+                  <button type="button" class="btn btn-sm reg-triage-btn" data-value="P" onclick="reg_setTriage('P')" title="Pain" style="--tc:#e85d04;">P</button>
+                  <button type="button" class="btn btn-sm reg-triage-btn" data-value="U" onclick="reg_setTriage('U')" title="Unresponsive" style="--tc:#dc3545;">U</button>
+                </div>
+              </div>
+              <div class="col-auto">
+                <label class="form-label fw-bold small">เพศ <span class="text-danger">*</span></label>
+                <input type="hidden" id="reg-gender" value="">
+                <div class="btn-group" role="group" id="reg-gender-toggle">
+                  <button type="button" class="btn btn-sm reg-gender-btn" data-value="ชาย" onclick="reg_setGender('ชาย')" title="ชาย" style="--gc:#0d6efd;">M</button>
+                  <button type="button" class="btn btn-sm reg-gender-btn" data-value="หญิง" onclick="reg_setGender('หญิง')" title="หญิง" style="--gc:#d63384;">F</button>
+                  <button type="button" class="btn btn-sm reg-gender-btn" data-value="ไม่ระบุ" onclick="reg_setGender('ไม่ระบุ')" title="ไม่ระบุ" style="--gc:#f59e0b;">U</button>
+                </div>
               </div>
             </div>
-            <div class="col-auto">
-              <label class="form-label fw-bold small">เพศ <span class="text-danger">*</span></label>
-              <input type="hidden" id="f-gender" value="">
-              <div class="btn-group" role="group">
-                <button type="button" class="btn btn-sm reg-gender-btn" data-value="ชาย" onclick="staffSetGender('ชาย')" title="ชาย" style="--gc:#0d6efd;">M</button>
-                <button type="button" class="btn btn-sm reg-gender-btn" data-value="หญิง" onclick="staffSetGender('หญิง')" title="หญิง" style="--gc:#d63384;">F</button>
-                <button type="button" class="btn btn-sm reg-gender-btn" data-value="ไม่ระบุ" onclick="staffSetGender('ไม่ระบุ')" title="ไม่ระบุ" style="--gc:#f59e0b;">U</button>
+          <div class="row g-2 mb-3">
+              <div class="col">
+                <label class="form-label fw-bold small">ชื่อ-สกุล</label>
+                <input type="text" id="reg-name" class="form-control form-control-sm" placeholder="ชื่อ-สกุล (BIB)">
               </div>
-            </div>
+              <div class="col-3" style="max-width:80px;">
+                <label class="form-label fw-bold small">อายุ</label>
+                <input type="number" id="reg-age" class="form-control form-control-sm" min="1" max="120">
+              </div>
           </div>
 
-          <!-- Section 2: Demographics -->
           <div class="row g-2 mb-3">
-            <div class="col"><label class="form-label fw-bold small">ชื่อ-สกุล</label>
-              <input type="text" id="f-name" class="form-control form-control-sm" placeholder="ชื่อ-สกุล (BIB)">
-            </div>
-            <div class="col-3" style="max-width:80px;"><label class="form-label fw-bold small">อายุ</label>
-              <input type="number" id="f-age" class="form-control form-control-sm" min="1" max="120">
-            </div>
+              <div class="col-6 col-md-4">
+                <label class="form-label fw-bold small">เบอร์โทร</label>
+                <input type="tel" id="reg-phone" class="form-control form-control-sm">
+              </div>
+              <div class="col-6 col-md-4 d-none" id="reg-category-div">
+                <label class="form-label fw-bold small">หมวดหมู่</label>
+                <select id="reg-category" class="form-select form-select-sm"><option value="">-</option></select>
+              </div>
+              <div class="col-6 col-md-4">
+                <label class="form-label fw-bold small">จุดรักษา <span class="text-danger">*</span></label>
+                <select id="reg-location-tx" class="form-select form-select-sm" required><option value="">-- เลือก --</option></select>
+              </div>
           </div>
-          <div class="row g-2 mb-3">
-            <div class="col-6 col-md-4"><label class="form-label fw-bold small">เบอร์โทร</label>
-              <input type="tel" id="f-phone" class="form-control form-control-sm">
-            </div>
-            <div class="col-6 col-md-4"><label class="form-label fw-bold small">หมวดหมู่</label>
-              <select id="f-category" class="form-select form-select-sm"><option value="">-</option></select>
-            </div>
-            <div class="col-12 col-md-4">
-              <label class="form-label fw-bold small">จุดรักษา <span class="text-danger">*</span> <span id="f-location-locked-hint" class="text-warning small" style="display:none;">(ถูกจำกัด)</span></label>
-              <select id="f-location" class="form-select form-select-sm" required><option value="">-- เลือก --</option></select>
-            </div>
-          </div>
+
           <div class="row g-2 mb-3 border-bottom pb-3">
-            <div class="col-6"><label class="form-label fw-bold small">เวลารับ <span class="text-danger">*</span> <span class="text-muted fw-normal">(24 ชม.)</span></label>
-              <input type="time" id="f-time-in" class="form-control form-control-sm" required>
-            </div>
-            <div class="col-6"><label class="form-label fw-bold small">เวลาจำหน่าย <span class="text-muted fw-normal">(24 ชม.)</span></label>
-              <input type="time" id="f-time-out" class="form-control form-control-sm">
-            </div>
+              <div class="col-6">
+                <label class="form-label fw-bold small">เวลารับ <span class="text-danger">*</span> <span class="text-muted fw-normal">(24 ชม.)</span></label>
+                <input type="tel" id="reg-time-in" class="form-control form-control-sm" inputmode="numeric" placeholder="HH:MM" pattern="([01]?\d|2[0-3]):[0-5]\d" maxlength="5" required oninput="fa_autoFormatTime(this)">
+              </div>
+              <div class="col-6">
+                <label class="form-label fw-bold small">เวลาจำหน่าย <span class="text-muted fw-normal">(24 ชม.)</span></label>
+                <input type="tel" id="reg-time-out" class="form-control form-control-sm" inputmode="numeric" placeholder="HH:MM" pattern="([01]?\d|2[0-3]):[0-5]\d" maxlength="5" oninput="fa_autoFormatTime(this)">
+              </div>
           </div>
 
-          <!-- Section 3: Etiology -->
+          <!-- Section 2: Clinical -->
           <div class="mb-3">
             <label class="form-label fw-bold small">Etiology <span class="text-danger">*</span></label>
-            <input type="hidden" id="f-etiology" value="Med">
             <div class="btn-group w-100" role="group">
-              <button type="button" class="btn btn-primary btn-sm" id="f-eti-med" onclick="staffSetEtiology('Med')"><i class="bi bi-heart-pulse me-1"></i>Medicine</button>
-              <button type="button" class="btn btn-outline-danger btn-sm" id="f-eti-trauma" onclick="staffSetEtiology('Trauma')"><i class="bi bi-bandaid me-1"></i>Trauma</button>
+              <button type="button" class="btn btn-primary btn-sm" id="reg-etiology-med" onclick="reg_toggleEtiology('Med')"><i class="bi bi-heart-pulse me-1"></i>Medicine</button>
+              <button type="button" class="btn btn-outline-danger btn-sm" id="reg-etiology-trauma" onclick="reg_toggleEtiology('Trauma')"><i class="bi bi-bandaid me-1"></i>Trauma</button>
             </div>
           </div>
 
-          <!-- Section 4: Clinical -->
-          <div class="mb-3">
-            <label class="form-label fw-bold small">Chief Complaint (CC)</label>
-            <textarea id="f-cc" class="form-control form-control-sm" rows="2" placeholder="อาการสำคัญที่มาพบ..."></textarea>
+          <div class="row g-2 mb-3">
+            <div class="col-12">
+              <label class="form-label fw-bold small">Chief Complaint (CC)</label>
+              <select id="reg-cc" class="form-select form-select-sm" onchange="reg_onCCChange()"><option value="">-- เลือก CC --</option></select>
+            </div>
+            <div class="col-12 d-none" id="reg-cc-other-div">
+              <input type="text" id="reg-cc-other" class="form-control form-control-sm" placeholder="ระบุ CC อื่นๆ...">
+            </div>
           </div>
 
-          <!-- Section 5: Allergy + Vitals (bg-light card same as admin's Treatment) -->
+          <div class="row g-2 mb-3">
+            <div class="col-12">
+              <label class="form-label fw-bold small">Problem / Diagnosis</label>
+              <select id="reg-problem" class="form-select form-select-sm" onchange="reg_onProblemChange()"><option value="">-- เลือก Problem --</option></select>
+            </div>
+            <div class="col-12 d-none" id="reg-problem-other-div">
+              <input type="text" id="reg-problem-other" class="form-control form-control-sm" placeholder="ระบุ Problem อื่นๆ...">
+            </div>
+          </div>
+
+          <!-- Treatment Grid (generated from REG_TREATMENTS array) -->
           <div class="card p-3 mb-3 bg-light border-0">
-            <label class="form-label fw-bold small mb-2">Allergy / Vital signs</label>
-            <div class="mb-2">
-              <input type="text" id="f-allergy" class="form-control form-control-sm" placeholder="แพ้ยา/แพ้อาหาร — ไม่มี / ระบุ...">
-            </div>
-            <div class="row g-2">
-              <div class="col-4"><input type="text" id="f-bp" class="form-control form-control-sm" placeholder="BP (120/80)"></div>
-              <div class="col-4"><input type="number" id="f-hr" class="form-control form-control-sm" placeholder="HR" min="0"></div>
-              <div class="col-4"><input type="number" id="f-spo2" class="form-control form-control-sm" placeholder="SpO₂" min="0" max="100"></div>
+            <label class="form-label fw-bold small mb-2">Treatment (เลือกได้หลายข้อ)</label>
+            <div class="d-flex flex-wrap gap-1" id="reg-treatment-grid"></div>
+            <div class="d-flex flex-wrap gap-1 mt-2 pt-2 border-top">
+              <button type="button" class="btn btn-sm reg-tx-btn" data-value="จ่ายยา" onclick="this.classList.toggle('active'); reg_toggleMedDetail()">💊 จ่ายยา</button>
+              <input type="text" id="reg-treatment-med-detail" class="form-control form-control-sm d-none" style="max-width:200px;" placeholder="ระบุชื่อยา...">
+              <input type="text" id="reg-treatment-other-text" class="form-control form-control-sm" style="max-width:200px;" placeholder="อื่นๆ ระบุ...">
             </div>
           </div>
 
-          <!-- Section 6: Treatment -->
-          <div class="mb-3">
-            <label class="form-label fw-bold small">Treatment</label>
-            <textarea id="f-treatment" class="form-control form-control-sm" rows="2" placeholder="ทำแผล + ammonia..."></textarea>
+          <!-- Allergy -->
+          <div class="row g-2 mb-3">
+            <div class="col-4"><label class="form-label fw-bold small text-danger">แพ้ยา</label><select id="reg-allergy" class="form-select form-select-sm" onchange="reg_toggleAllergy()"><option value="ไม่มี">ไม่มี</option><option value="มี">มี</option></select></div>
+            <div class="col-8 d-none" id="reg-allergy-detail-div"><label class="form-label fw-bold small text-danger">ระบุ</label><input type="text" id="reg-allergy-detail" class="form-control form-control-sm"></div>
           </div>
 
-          <!-- Section 7: Result -->
-          <div class="mb-3">
-            <label class="form-label fw-bold small">ผลการรักษา</label>
-            <select id="f-result" class="form-select form-select-sm">
-              <option value="">— เลือก —</option>
-              <option value="discharge">Discharge (กลับบ้าน)</option>
-              <option value="transfer-rs">Transfer — โรงพยาบาล</option>
-              <option value="transfer-clinic">Transfer — คลินิก</option>
-              <option value="cancel">Cancel (ไม่รักษา)</option>
-              <option value="observe">สังเกตอาการ</option>
-            </select>
+          <!-- Vital Signs -->
+          <div class="card mb-3 border-0">
+            <div class="card-header bg-info bg-opacity-10 border-0 py-2 px-3" style="cursor:pointer;" onclick="reg_toggleVitals()">
+              <div class="d-flex justify-content-between align-items-center">
+                <span class="fw-bold small"><i class="bi bi-activity me-1"></i>Vital Signs (ไม่บังคับ)</span>
+                <i class="bi bi-chevron-down" id="reg-vitals-toggle-icon"></i>
+              </div>
+            </div>
+            <div class="card-body p-3 d-none" id="reg-vitals-body">
+              <div class="row g-2">
+                <div class="col-6 col-md-3"><label class="form-label small text-muted mb-0">BP</label><input type="text" id="reg-v-bp" class="form-control form-control-sm" placeholder="120/80"></div>
+                <div class="col-6 col-md-3"><label class="form-label small text-muted mb-0">HR</label><input type="number" id="reg-v-hr" class="form-control form-control-sm" placeholder="bpm"></div>
+                <div class="col-6 col-md-3"><label class="form-label small text-muted mb-0">RR</label><input type="number" id="reg-v-rr" class="form-control form-control-sm" placeholder="/min"></div>
+                <div class="col-6 col-md-3"><label class="form-label small text-muted mb-0">SpO2</label><input type="number" id="reg-v-spo2" class="form-control form-control-sm" placeholder="%"></div>
+                <div class="col-6 col-md-3"><label class="form-label small text-muted mb-0">Temp</label><input type="text" id="reg-v-temp" class="form-control form-control-sm" placeholder="&deg;C"></div>
+                <div class="col-6 col-md-3"><label class="form-label small text-muted mb-0">GCS</label><input type="number" id="reg-v-gcs" class="form-control form-control-sm" min="3" max="15" placeholder="3-15"></div>
+                <div class="col-6 col-md-3"><label class="form-label small text-muted mb-0">Glucose</label><input type="number" id="reg-v-glucose" class="form-control form-control-sm" placeholder="mg/dL"></div>
+                <div class="col-6 col-md-3"><label class="form-label small text-muted mb-0">Pain</label><input type="number" id="reg-v-pain" class="form-control form-control-sm" min="0" max="10" placeholder="0-10"></div>
+              </div>
+            </div>
           </div>
 
-          <div class="mb-2">
-            <label class="form-label fw-bold small">หมายเหตุ</label>
-            <textarea id="f-note" class="form-control form-control-sm" rows="2"></textarea>
+          <!-- Result -->
+          <div class="mb-3">
+            <label class="form-label fw-bold small">Result</label>
+            <div class="btn-group w-100 mb-2" role="group">
+              <button type="button" class="btn btn-success btn-sm" id="reg-result-dc" onclick="reg_toggleResult('dc')"><i class="bi bi-check-circle me-1"></i>D/C (จำหน่าย)</button>
+              <button type="button" class="btn btn-outline-warning btn-sm" id="reg-result-transfer" onclick="reg_toggleResult('transfer')"><i class="bi bi-ambulance me-1"></i>Transfer</button>
+            </div>
+            <div id="reg-result-dc-sub">
+              <select id="reg-dc-sub" class="form-select form-select-sm">
+                <option value="finished">D/C จำหน่าย</option>
+                <option value="rtp">Return to Play (กลับเข้าแข่ง)</option>
+                <option value="dnf">DNF (Did Not Finish)</option>
+              </select>
+            </div>
+            <div id="reg-result-transfer-sub" class="d-none">
+              <div class="row g-2">
+                <div class="col-5">
+                  <select id="reg-transfer-method" class="form-select form-select-sm">
+                    <option value="team">ทีมไปส่ง</option>
+                    <option value="self">ไปเอง</option>
+                  </select>
+                </div>
+                <div class="col-7">
+                  <input type="text" id="reg-transfer-hospital" class="form-control form-control-sm" placeholder="ชื่อ รพ.">
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Note, Image, GPS -->
+          <div class="mb-2"><label class="form-label fw-bold small">หมายเหตุ</label><input type="text" id="reg-note" class="form-control form-control-sm"></div>
+          <div class="mb-2"><label class="form-label fw-bold small"><i class="bi bi-image me-1"></i>แนบรูป</label><input type="file" id="reg-image" accept="image/*" class="form-control form-control-sm"></div>
+          <div class="card p-2 bg-light border-0">
+            <div class="input-group input-group-sm">
+              <button type="button" class="btn btn-warning btn-sm" onclick="reg_getLocation()"><i class="bi bi-pin-map-fill"></i> GPS</button>
+              <input type="text" id="reg-gps" class="form-control" readonly placeholder="คลิกปุ่มเพื่อดึงพิกัด">
+            </div>
           </div>
         </form>
       </div>
-      <div class="modal-footer bg-light border-top-0 pt-2">
+      <div class="modal-footer border-top-0 pt-0">
         <button type="button" class="btn btn-light rounded-pill px-4" data-bs-dismiss="modal">ยกเลิก</button>
-        <button type="button" class="btn btn-success rounded-pill px-4 fw-bold" onclick="staffSavePatient()"><i class="bi bi-check-lg me-1"></i> บันทึก</button>
+        <button type="button" class="btn btn-success rounded-pill px-4 fw-bold shadow-sm" onclick="reg_submitForm()"><i class="bi bi-save me-1"></i> บันทึก</button>
       </div>
     </div>
   </div>
@@ -353,7 +419,10 @@
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 <script src="../../shared/config.js"></script>
+<script src="../../shared/cloudinary.js"></script>
 <script src="../../shared/realtime.js"></script>
+<!-- Shared registry form module — same as admin's index.html -->
+<script src="_reg-form.js"></script>
 
 <script>
 (function(){
@@ -367,11 +436,22 @@
 
   // ===== Supabase client (own — does not share with admin auth) =====
   var _supabase = supabase.createClient(CONFIG.SUPABASE_URL, CONFIG.SUPABASE_ANON_KEY);
-  window._supabase = _supabase; // realtime.js uses global _supabase
+  window._supabase = _supabase; // realtime.js + _reg-form.js use global _supabase
 
-  // ===== Stub auth helpers so any shared code that calls these doesn't blow up =====
+  // ===== Stub auth helpers so shared/admin code that calls these doesn't blow up =====
   window.getUserName = function(){ return state.workerName || 'Staff'; };
   window.getUserRole = function(){ return 'Staff'; }; // not Admin — gates admin-only UI
+
+  // ===== Time auto-format (HH:MM) — copy of admin's helper, used by reg-time-in/out =====
+  window.fa_autoFormatTime = function(el) {
+    var v = el.value.replace(/[^\d]/g, '');
+    if (v.length >= 3) {
+      v = v.substring(0, 4);
+      el.value = v.substring(0, 2) + ':' + v.substring(2);
+    } else {
+      el.value = v;
+    }
+  };
 
   // ===== HTML escape =====
   function esc(s){ return String(s||'').replace(/[&<>"']/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]; }); }
@@ -476,7 +556,36 @@
     document.getElementById('gate-view').style.display = 'none';
     document.getElementById('main-view').style.display = '';
 
-    populateFormDropdowns();
+    // Wire shared registry form module — exact same form as admin's faRegistryModal.
+    // Hooks enforce staff-specific rules: section lock + edit own only + filter list refresh.
+    if (window.regForm && typeof regForm.init === 'function') {
+      regForm.init({
+        supabase: _supabase,
+        ctx: function() {
+          return {
+            eventId: state.eventId,
+            eventConfig: state.eventConfig,
+            eventType: 'general',
+            recordedBy: state.workerName,
+            // locationLock: if Token has location_tx, force the dropdown to that value + disable
+            locationLock: state.section || null,
+            allEvents: [],
+            registryRecords: null
+          };
+        },
+        hooks: {
+          // Edit guard — staff can only open OWN records for editing
+          onCanEdit: function(record) {
+            return record && record.recorded_by === state.workerName;
+          },
+          // After save — refresh staff's own list
+          onAfterSave: function() {
+            staffRefreshMyList();
+          }
+        }
+      });
+    }
+
     staffRefreshMyList();
     subscribeRealtime();
   }
@@ -552,181 +661,20 @@
     }
   };
 
-  // ===== FORM DROPDOWNS (categories + locations) from event_config =====
-  function populateFormDropdowns() {
-    var cfg = state.eventConfig || {};
-    var cats = cfg.categories || [];
-    if (typeof cats === 'string') cats = cats.split(',').map(function(s){ return s.trim(); }).filter(Boolean);
-    var catSel = document.getElementById('f-category');
-    catSel.innerHTML = '<option value="">— เลือก —</option>' + cats.map(function(c){ return '<option value="' + esc(c) + '">' + esc(c) + '</option>'; }).join('');
+  // (Form dropdowns + Triage/Gender/Etiology pickers are now handled by shared _reg-form.js
+  //  via reg_setTriage / reg_setGender / reg_toggleEtiology + reg_populateEventConfigDropdowns.)
 
-    var locs = cfg.locations || [];
-    if (typeof locs === 'string') locs = locs.split(',').map(function(s){ return s.trim(); }).filter(Boolean);
-    var locSel = document.getElementById('f-location');
-    if (state.section) {
-      // Locked to one section
-      locSel.innerHTML = '<option value="' + esc(state.section) + '" selected>' + esc(state.section) + '</option>';
-      locSel.disabled = true;
-      document.getElementById('f-location-locked-hint').style.display = '';
-    } else {
-      locSel.innerHTML = '<option value="">— เลือก —</option>' + locs.map(function(l){ return '<option value="' + esc(l) + '">' + esc(l) + '</option>'; }).join('');
-      locSel.disabled = false;
-    }
-  }
-
-  // ===== TRIAGE / GENDER / ETIOLOGY PICKERS — match admin's data values =====
-  // Triage: A/V/P/U (AVPU consciousness scale, NOT severity)
-  // Gender: ชาย/หญิง/ไม่ระบุ (Thai full words, NOT abbreviations)
-  window.staffSetTriage = function(t) {
-    document.getElementById('f-triage').value = t;
-    document.querySelectorAll('.reg-triage-btn').forEach(function(b){ b.classList.toggle('active', b.getAttribute('data-value') === t); });
-  };
-  window.staffSetGender = function(g) {
-    document.getElementById('f-gender').value = g;
-    document.querySelectorAll('.reg-gender-btn').forEach(function(b){ b.classList.toggle('active', b.getAttribute('data-value') === g); });
-  };
-  window.staffSetEtiology = function(e) {
-    document.getElementById('f-etiology').value = e;
-    var med = document.getElementById('f-eti-med');
-    var tra = document.getElementById('f-eti-trauma');
-    // Bootstrap pattern: active = btn-primary/btn-danger filled, inactive = btn-outline-*
-    if (e === 'Med') {
-      med.className = 'btn btn-primary btn-sm';
-      tra.className = 'btn btn-outline-danger btn-sm';
-    } else {
-      med.className = 'btn btn-outline-primary btn-sm';
-      tra.className = 'btn btn-danger btn-sm';
-    }
-  };
-
-  // ===== ADD / EDIT PATIENT =====
+  // ===== ADD / EDIT PATIENT — delegates to shared regForm module =====
   window.staffOpenForm = function(regId) {
-    document.getElementById('f-reg-id').value = regId || '';
-    document.getElementById('pt-modal-title').innerHTML = regId
-      ? '<i class="bi bi-pencil text-warning me-2"></i> แก้ไขผู้ป่วย'
-      : '<i class="bi bi-clipboard2-pulse text-primary me-2"></i> เพิ่มผู้ป่วย';
-
-    if (regId) {
-      // Load existing record
-      _supabase.from('fa_registry').select('*').eq('reg_id', regId).maybeSingle().then(function(r){
-        if (r.error || !r.data) {
-          Swal.fire({ icon: 'error', title: 'โหลดข้อมูลไม่สำเร็จ' }); return;
-        }
-        var rec = r.data;
-        // Edit guard — staff can only edit OWN records
-        if (rec.recorded_by !== state.workerName) {
-          Swal.fire({ icon: 'error', title: 'ไม่อนุญาต', text: 'แก้ไขได้เฉพาะรายการที่คุณเพิ่มเอง' });
-          return;
-        }
-        staffSetTriage(rec.triage || 'A');
-        staffSetGender(rec.gender || '');
-        staffSetEtiology(rec.etiology || 'Med');
-        document.getElementById('f-age').value = rec.age || '';
-        document.getElementById('f-name').value = rec.name || '';
-        document.getElementById('f-phone').value = rec.phone || '';
-        document.getElementById('f-category').value = rec.category || '';
-        if (!state.section) document.getElementById('f-location').value = rec.location_tx || '';
-        document.getElementById('f-time-in').value = rec.time_in || '';
-        document.getElementById('f-time-out').value = rec.time_out || '';
-        document.getElementById('f-cc').value = rec.cc || '';
-        document.getElementById('f-allergy').value = rec.allergy || '';
-        document.getElementById('f-treatment').value = rec.treatment || '';
-        document.getElementById('f-result').value = rec.result || '';
-        document.getElementById('f-note').value = rec.note || '';
-        // Restore vitals from JSONB
-        var vit = rec.vitals_json || {};
-        if (typeof vit === 'string') { try { vit = JSON.parse(vit); } catch(e) { vit = {}; } }
-        document.getElementById('f-bp').value = vit.bp || '';
-        document.getElementById('f-hr').value = vit.hr || '';
-        document.getElementById('f-spo2').value = vit.spo2 || '';
-        showModal('ptModal');
-      });
-    } else {
-      // New record — reset form
-      document.getElementById('pt-form').reset();
-      staffSetTriage('A');
-      staffSetGender('');
-      staffSetEtiology('Med');
-      // Auto-fill time-in with current
-      var d = new Date(); var hh = String(d.getHours()).padStart(2,'0'); var mm = String(d.getMinutes()).padStart(2,'0');
-      document.getElementById('f-time-in').value = hh + ':' + mm;
-      // Re-disable section select if locked (form.reset() un-disables it)
-      if (state.section) {
-        document.getElementById('f-location').disabled = true;
-        document.getElementById('f-location').value = state.section;
-      }
-      showModal('ptModal');
-    }
-  };
-
-  window.staffSavePatient = async function() {
-    // reg_id format matches admin (firstaid index.html line ~3158): 'R-' + timestamp
-    var regId = document.getElementById('f-reg-id').value || ('R-' + Date.now());
-    var loc = state.section || document.getElementById('f-location').value || '';
-
-    // Defense: section enforcement (DOM tampering guard)
-    if (state.section && loc !== state.section) {
-      Swal.fire({ icon: 'error', title: 'จุดรักษาผิด', text: 'Token นี้ถูกล็อคที่ ' + state.section });
+    if (window.regForm && typeof regForm.open === 'function') {
+      regForm.open(regId || null);
       return;
     }
-    // Required field validation (matches admin)
-    var gender = document.getElementById('f-gender').value;
-    if (!gender) { Swal.fire({ icon: 'warning', title: 'กรุณาเลือกเพศ', timer: 1800 }); return; }
-    if (!loc) { Swal.fire({ icon: 'warning', title: 'กรุณาเลือกจุดรักษา', timer: 1800 }); return; }
-    var timeIn = document.getElementById('f-time-in').value;
-    if (!timeIn) { Swal.fire({ icon: 'warning', title: 'กรุณาระบุเวลารับ', timer: 1800 }); return; }
-
-    // Build vitals JSONB (only include filled fields so admin Reports stay clean)
-    var bp   = (document.getElementById('f-bp').value || '').trim();
-    var hr   = parseInt(document.getElementById('f-hr').value);
-    var spo2 = parseInt(document.getElementById('f-spo2').value);
-    var vitals = {};
-    if (bp) vitals.bp = bp;
-    if (!isNaN(hr) && hr > 0) vitals.hr = hr;
-    if (!isNaN(spo2) && spo2 > 0) vitals.spo2 = spo2;
-
-    var rec = {
-      reg_id: regId,
-      event_id: state.eventId,
-      triage: document.getElementById('f-triage').value,
-      gender: document.getElementById('f-gender').value,
-      etiology: document.getElementById('f-etiology').value,
-      age: parseInt(document.getElementById('f-age').value) || null,
-      name: document.getElementById('f-name').value || null,
-      phone: document.getElementById('f-phone').value || null,
-      category: document.getElementById('f-category').value || null,
-      location_tx: loc || null,
-      time_in: document.getElementById('f-time-in').value || null,
-      time_out: document.getElementById('f-time-out').value || null,
-      cc: document.getElementById('f-cc').value || null,
-      allergy: document.getElementById('f-allergy').value || null,
-      vitals_json: Object.keys(vitals).length > 0 ? vitals : null,
-      treatment: document.getElementById('f-treatment').value || null,
-      result: document.getElementById('f-result').value || null,
-      note: document.getElementById('f-note').value || null,
-      recorded_by: state.workerName
-    };
-
-    try {
-      Swal.fire({ title: 'กำลังบันทึก...', didOpen: function(){ Swal.showLoading(); } });
-      var existing = !!document.getElementById('f-reg-id').value;
-      if (existing) {
-        // Update: also re-check ownership at DB query time (defense)
-        var { error } = await _supabase.from('fa_registry').update(rec)
-          .eq('reg_id', regId).eq('recorded_by', state.workerName);
-        if (error) throw error;
-      } else {
-        var { error } = await _supabase.from('fa_registry').insert(rec);
-        if (error) throw error;
-      }
-      Swal.close();
-      hideModal('ptModal');
-      Swal.fire({ icon: 'success', title: 'บันทึกแล้ว', timer: 1200, showConfirmButton: false });
-      staffRefreshMyList();
-    } catch(err) {
-      Swal.fire({ icon: 'error', title: 'บันทึกไม่สำเร็จ', text: err.message || err });
-    }
+    Swal.fire({ icon: 'error', title: 'ระบบยังไม่พร้อม', text: 'reg-form module ยังโหลดไม่เสร็จ' });
   };
+
+  // (Legacy staff form code removed — registry form is now driven entirely by
+  // shared/_reg-form.js which mirrors admin 1:1. Save/load handled by the module.)
 
   // ===== MY PATIENT LIST =====
   window.staffRefreshMyList = async function() {
