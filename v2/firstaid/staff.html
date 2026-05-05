@@ -168,25 +168,20 @@
           <span class="qty-val" id="qv-q_ammonia">0</span>
           <button class="qty-btn plus" onclick="staffBumpSupply('q_ammonia',1)">+</button>
         </div>
-        <div class="supply-row" data-field="q_plaster"><span class="name">🩹 พลาสเตอร์</span>
+        <div class="supply-row" data-field="q_plaster"><span class="name">🩹 พลาสเตอร์ยา</span>
           <button class="qty-btn minus" onclick="staffBumpSupply('q_plaster',-1)">−</button>
           <span class="qty-val" id="qv-q_plaster">0</span>
           <button class="qty-btn plus" onclick="staffBumpSupply('q_plaster',1)">+</button>
         </div>
-        <div class="supply-row" data-field="q_spray"><span class="name">💨 สเปรย์</span>
+        <div class="supply-row" data-field="q_spray"><span class="name">💨 ยานวด/สเปรย์</span>
           <button class="qty-btn minus" onclick="staffBumpSupply('q_spray',-1)">−</button>
           <span class="qty-val" id="qv-q_spray">0</span>
           <button class="qty-btn plus" onclick="staffBumpSupply('q_spray',1)">+</button>
         </div>
-        <div class="supply-row" data-field="q_wound"><span class="name">🩺 อุปกรณ์ทำแผล</span>
+        <div class="supply-row" data-field="q_wound"><span class="name">❄️ ประคบเย็น</span>
           <button class="qty-btn minus" onclick="staffBumpSupply('q_wound',-1)">−</button>
           <span class="qty-val" id="qv-q_wound">0</span>
           <button class="qty-btn plus" onclick="staffBumpSupply('q_wound',1)">+</button>
-        </div>
-        <div class="supply-row" data-field="q_meds"><span class="name">💊 ยา</span>
-          <button class="qty-btn minus" onclick="staffBumpSupply('q_meds',-1)">−</button>
-          <span class="qty-val" id="qv-q_meds">0</span>
-          <button class="qty-btn plus" onclick="staffBumpSupply('q_meds',1)">+</button>
         </div>
       </div>
     </div>
@@ -316,7 +311,7 @@
       if (tokenRow.status !== 'Active') return { ok: false, msg: 'Token ถูกระงับแล้ว — ติดต่อ admin' };
       // Verify event still Active
       var { data: ev, error: evErr } = await _supabase.from('fa_events')
-        .select('event_id,event_name,status,event_config,q_ammonia,q_plaster,q_spray,q_wound,q_meds')
+        .select('event_id,event_name,status,event_config,q_ammonia,q_plaster,q_spray,q_wound')
         .eq('event_id', tokenRow.event_id).maybeSingle();
       if (evErr) throw evErr;
       if (!ev) return { ok: false, msg: 'ไม่พบ Event ที่ผูกกับ Token นี้' };
@@ -408,7 +403,7 @@
 
   // ===== SUPPLIES =====
   function setSupplyValues(ev) {
-    ['q_ammonia','q_plaster','q_spray','q_wound','q_meds'].forEach(function(f){
+    ['q_ammonia','q_plaster','q_spray','q_wound'].forEach(function(f){
       var el = document.getElementById('qv-' + f);
       if (el) el.textContent = ev[f] || 0;
     });
@@ -623,14 +618,14 @@
       }
       if (t === 'fa_events') {
         // Re-pull supplies + check event status
-        _supabase.from('fa_events').select('event_id,status,q_ammonia,q_plaster,q_spray,q_wound,q_meds')
+        _supabase.from('fa_events').select('event_id,status,q_ammonia,q_plaster,q_spray,q_wound')
           .eq('event_id', state.eventId).maybeSingle().then(function(r){
             if (r.data) {
               if (r.data.status !== 'Active') {
                 Swal.fire({ icon: 'info', title: 'Event ถูกปิดแล้ว', allowOutsideClick: false }).then(function(){ staffLogout(); });
                 return;
               }
-              ['q_ammonia','q_plaster','q_spray','q_wound','q_meds'].forEach(function(f){
+              ['q_ammonia','q_plaster','q_spray','q_wound'].forEach(function(f){
                 if (!_bumpBusy[f]) {
                   var el = document.getElementById('qv-' + f);
                   if (el) el.textContent = r.data[f] || 0;
