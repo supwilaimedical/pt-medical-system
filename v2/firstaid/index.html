@@ -767,7 +767,7 @@
   <script src="../../shared/realtime.js"></script>
   <script src="../../shared/cloudinary.js"></script>
   <!-- Shared reg form module (used by both admin here AND v2/firstaid/staff.html) -->
-  <script src="_reg-form.js"></script>
+  <script src="reg-form.js"></script>
 
   <!-- shared_splash.html — Splash/Loading Screen -->
   <div id="splash-screen" style="position:fixed; inset:0; z-index:9999; display:flex; align-items:center; justify-content:center; flex-direction:column; background:linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%); transition: opacity 0.4s ease;">
@@ -1426,7 +1426,7 @@
         });
 
         // Wire shared reg-form module (also used by v2/firstaid/staff.html).
-        // Admin's inline reg_* function bodies still exist below — _reg-form.js
+        // Admin's inline reg_* function bodies still exist below — reg-form.js
         // overrides them with identical behavior + ctx hooks. Either path works.
         if (window.regForm && typeof regForm.init === 'function') {
             regForm.init({

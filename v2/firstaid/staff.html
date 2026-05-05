@@ -223,7 +223,7 @@
 </div>
 
 <!-- ===== Medical Registry Modal — IDENTICAL HTML to admin's faRegistryModal =====
-     Driven by shared module v2/firstaid/_reg-form.js so behavior matches admin 1:1.
+     Driven by shared module v2/firstaid/reg-form.js so behavior matches admin 1:1.
      DO NOT diverge from admin's HTML — IDs and onclick handlers are wired by the shared module. -->
 <div class="modal fade" id="faRegistryModal" tabindex="-1" aria-hidden="true">
   <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable modal-fullscreen-sm-down">
@@ -422,7 +422,7 @@
 <script src="../../shared/cloudinary.js"></script>
 <script src="../../shared/realtime.js"></script>
 <!-- Shared registry form module — same as admin's index.html -->
-<script src="_reg-form.js"></script>
+<script src="reg-form.js"></script>
 
 <script>
 (function(){
@@ -436,7 +436,7 @@
 
   // ===== Supabase client (own — does not share with admin auth) =====
   var _supabase = supabase.createClient(CONFIG.SUPABASE_URL, CONFIG.SUPABASE_ANON_KEY);
-  window._supabase = _supabase; // realtime.js + _reg-form.js use global _supabase
+  window._supabase = _supabase; // realtime.js + reg-form.js use global _supabase
 
   // ===== Stub auth helpers so shared/admin code that calls these doesn't blow up =====
   window.getUserName = function(){ return state.workerName || 'Staff'; };
@@ -661,7 +661,7 @@
     }
   };
 
-  // (Form dropdowns + Triage/Gender/Etiology pickers are now handled by shared _reg-form.js
+  // (Form dropdowns + Triage/Gender/Etiology pickers are now handled by shared reg-form.js
   //  via reg_setTriage / reg_setGender / reg_toggleEtiology + reg_populateEventConfigDropdowns.)
 
   // ===== ADD / EDIT PATIENT — delegates to shared regForm module =====
@@ -674,7 +674,7 @@
   };
 
   // (Legacy staff form code removed — registry form is now driven entirely by
-  // shared/_reg-form.js which mirrors admin 1:1. Save/load handled by the module.)
+  // shared/reg-form.js which mirrors admin 1:1. Save/load handled by the module.)
 
   // ===== MY PATIENT LIST =====
   window.staffRefreshMyList = async function() {
