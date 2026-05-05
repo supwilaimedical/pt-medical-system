@@ -166,6 +166,16 @@
     font-size:11px; font-weight:600; font-variant-numeric:tabular-nums;
   }
   .v2-subnav a.active .badge-mini{ background:#16a34a; color:#fff; }
+  /* CTA — emphasized "+ เพิ่มผู้ป่วย" so it stands out from regular subnav links */
+  .v2-subnav a.v2-subnav-cta{
+    background:#16a34a; color:#fff !important; font-weight:700;
+    margin:6px 12px; border-radius:8px; padding:10px 14px;
+    box-shadow:0 2px 6px rgba(22,163,74,.25);
+    transition:all .15s;
+  }
+  .v2-subnav a.v2-subnav-cta:hover{ background:#15803d; box-shadow:0 4px 10px rgba(22,163,74,.35); transform:translateY(-1px); }
+  .v2-subnav a.v2-subnav-cta::before{ display:none !important; }
+  .v2-subnav a.v2-subnav-cta .bi{ color:#fff; opacity:1; }
   .v2-subnav .badge-mini.danger{ background:#fee2e2; color:#991b1b; }
   .v2-rail a .bi, .v2-mobile-rail-strip a .bi{ font-size:18px; line-height:1; }
   .v2-subnav a .bi{ width:18px; display:inline-block; text-align:center; margin-right:6px; font-size:14px; opacity:.85; }
@@ -483,7 +493,7 @@
     </a>
 
     <div class="v2-subnav-section">การดำเนินการ</div>
-    <a onclick="if(typeof reg_openForm==='function') reg_openForm(fa_currentViewedEventId)"><i class="bi bi-plus-lg"></i> เพิ่มผู้ป่วย</a>
+    <a class="v2-subnav-cta" onclick="if(typeof reg_openForm==='function') reg_openForm(fa_currentViewedEventId)"><i class="bi bi-plus-lg"></i> เพิ่มผู้ป่วย</a>
     <a onclick="if(typeof fa_printReport==='function') fa_printReport(fa_currentViewedEventId)"><i class="bi bi-printer"></i> พิมพ์รายงาน</a>
     <a onclick="if(typeof fa_openEditEventForm==='function') fa_openEditEventForm(fa_currentViewedEventId)"><i class="bi bi-pencil"></i> แก้ไขงาน</a>
     <a id="v2-fa-toggle-status" onclick="v2FaToggleStatus()"><i class="bi bi-flag-fill"></i> ปิดงาน</a>

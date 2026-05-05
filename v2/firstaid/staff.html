@@ -108,25 +108,13 @@
     .gate-wrap p { color: #64748b; font-size: 0.88rem; }
     .gate-wrap input { letter-spacing: 0.2em; text-align: center; font-weight: 700; font-size: 1.2rem; }
 
-    /* Lightweight modal for add/edit patient */
-    .form-grid { display: grid; gap: 10px; }
-    .form-grid label { font-size: 0.78rem; font-weight: 600; color: #475569; margin-bottom: 2px; display: block; }
-    .triage-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; }
-    .triage-btn {
-      padding: 10px 4px; border-radius: 8px; border: 2px solid #e2e8f0;
-      background: #fff; font-weight: 700; font-size: 0.78rem;
-      cursor: pointer; transition: all .12s;
-    }
-    .triage-btn[data-tri="Resus"].active { background: #dc2626; color: #fff; border-color: #dc2626; }
-    .triage-btn[data-tri="Emerg"].active { background: #d63384; color: #fff; border-color: #d63384; }
-    .triage-btn[data-tri="Urgent"].active { background: #f59e0b; color: #fff; border-color: #f59e0b; }
-    .triage-btn[data-tri="Non-Urgent"].active { background: #16a34a; color: #fff; border-color: #16a34a; }
-    .gender-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 6px; }
-    .gender-btn {
-      padding: 8px 4px; border-radius: 8px; border: 2px solid #e2e8f0;
-      background: #fff; font-weight: 600; font-size: 0.85rem; cursor: pointer;
-    }
-    .gender-btn.active { background: #0ea5e9; color: #fff; border-color: #0ea5e9; }
+    /* Triage / Gender buttons — copied from admin's reg form for visual consistency */
+    .reg-triage-btn { width:36px; height:36px; font-weight:700; font-size:1rem; border:2px solid #dee2e6; color:#6c757d; background:#fff; transition:all 0.15s; }
+    .reg-triage-btn:hover { border-color: var(--tc); color: var(--tc); }
+    .reg-triage-btn.active { border-color: var(--tc); background: var(--tc); color:#fff; box-shadow: 0 2px 6px rgba(0,0,0,0.15); }
+    .reg-gender-btn { width:36px; height:36px; font-size:1.1rem; border:2px solid #dee2e6; color:#6c757d; background:#fff; transition:all 0.15s; }
+    .reg-gender-btn:hover { border-color: var(--gc); color: var(--gc); }
+    .reg-gender-btn.active { border-color: var(--gc); background: var(--gc); color:#fff; box-shadow: 0 2px 6px rgba(0,0,0,0.15); }
 
     .fab-add {
       position: fixed; right: 16px; bottom: 16px; z-index: 1015;
@@ -234,84 +222,128 @@
   <button class="fab-add" onclick="staffOpenForm()" title="เพิ่มผู้ป่วย"><i class="bi bi-plus-lg"></i></button>
 </div>
 
-<!-- ===== ADD/EDIT PATIENT MODAL ===== -->
+<!-- ===== ADD/EDIT PATIENT MODAL — copies admin's faRegistryModal styling ===== -->
 <div class="modal fade" id="ptModal" tabindex="-1" aria-hidden="true">
-  <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable modal-fullscreen-sm-down">
+  <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable modal-fullscreen-sm-down">
     <div class="modal-content border-0 shadow-lg rounded-4">
-      <div class="modal-header bg-light border-bottom-0 pb-2">
-        <h5 class="modal-title fw-bold" id="pt-modal-title"><i class="bi bi-clipboard2-pulse text-primary me-2"></i> บันทึกผู้ป่วย</h5>
+      <div class="modal-header bg-light border-bottom-0 pb-0">
+        <h5 class="modal-title fw-bold" id="pt-modal-title"><i class="bi bi-clipboard2-pulse text-success me-2"></i> บันทึก Medical Registry</h5>
         <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
       </div>
-      <div class="modal-body">
-        <form id="pt-form" class="form-grid">
+      <div class="modal-body pt-3">
+        <form id="pt-form">
           <input type="hidden" id="f-reg-id">
-          <div>
-            <label>Triage <span class="text-danger">*</span></label>
-            <div class="triage-grid">
-              <button type="button" class="triage-btn" data-tri="Resus" onclick="staffSetTriage('Resus')">🔴 Resus</button>
-              <button type="button" class="triage-btn" data-tri="Emerg" onclick="staffSetTriage('Emerg')">🟣 Emerg</button>
-              <button type="button" class="triage-btn" data-tri="Urgent" onclick="staffSetTriage('Urgent')">🟡 Urgent</button>
-              <button type="button" class="triage-btn active" data-tri="Non-Urgent" onclick="staffSetTriage('Non-Urgent')">🟢 Non-Urgent</button>
+
+          <!-- Section 1: Triage + Gender -->
+          <div class="row g-2 mb-3 border-bottom pb-3">
+            <div class="col-auto">
+              <label class="form-label fw-bold small">Triage <span class="text-danger">*</span></label>
+              <input type="hidden" id="f-triage" value="A">
+              <div class="btn-group" role="group">
+                <button type="button" class="btn btn-sm reg-triage-btn active" data-value="A" onclick="staffSetTriage('A')" title="Alert" style="--tc:#198754;">A</button>
+                <button type="button" class="btn btn-sm reg-triage-btn" data-value="V" onclick="staffSetTriage('V')" title="Verbal" style="--tc:#f59e0b;">V</button>
+                <button type="button" class="btn btn-sm reg-triage-btn" data-value="P" onclick="staffSetTriage('P')" title="Pain" style="--tc:#e85d04;">P</button>
+                <button type="button" class="btn btn-sm reg-triage-btn" data-value="U" onclick="staffSetTriage('U')" title="Unresponsive" style="--tc:#dc3545;">U</button>
+              </div>
             </div>
-            <input type="hidden" id="f-triage" value="Non-Urgent">
-          </div>
-          <div>
-            <label>เพศ <span class="text-danger">*</span></label>
-            <div class="gender-grid">
-              <button type="button" class="gender-btn active" data-g="ช" onclick="staffSetGender('ช')">♂ ชาย</button>
-              <button type="button" class="gender-btn" data-g="ญ" onclick="staffSetGender('ญ')">♀ หญิง</button>
+            <div class="col-auto">
+              <label class="form-label fw-bold small">เพศ <span class="text-danger">*</span></label>
+              <input type="hidden" id="f-gender" value="">
+              <div class="btn-group" role="group">
+                <button type="button" class="btn btn-sm reg-gender-btn" data-value="ชาย" onclick="staffSetGender('ชาย')" title="ชาย" style="--gc:#0d6efd;">M</button>
+                <button type="button" class="btn btn-sm reg-gender-btn" data-value="หญิง" onclick="staffSetGender('หญิง')" title="หญิง" style="--gc:#d63384;">F</button>
+                <button type="button" class="btn btn-sm reg-gender-btn" data-value="ไม่ระบุ" onclick="staffSetGender('ไม่ระบุ')" title="ไม่ระบุ" style="--gc:#f59e0b;">U</button>
+              </div>
             </div>
-            <input type="hidden" id="f-gender" value="ช">
           </div>
-          <div class="row g-2">
-            <div class="col-4"><label>อายุ</label><input type="number" id="f-age" class="form-control" min="0"></div>
-            <div class="col-8"><label>ชื่อ</label><input type="text" id="f-name" class="form-control" placeholder="ชื่อ-สกุล หรือ ID"></div>
-          </div>
-          <div><label>โทร</label><input type="tel" id="f-phone" class="form-control" placeholder="0xx-xxx-xxxx"></div>
-          <div>
-            <label>ประเภทเหตุ <span class="text-danger">*</span></label>
-            <div class="row g-2">
-              <div class="col-6"><button type="button" id="f-eti-med" class="btn btn-outline-primary w-100 active" onclick="staffSetEtiology('Med')">🩺 Med (เจ็บป่วย)</button></div>
-              <div class="col-6"><button type="button" id="f-eti-trauma" class="btn btn-outline-danger w-100" onclick="staffSetEtiology('Trauma')">🩹 Trauma (บาดเจ็บ)</button></div>
+
+          <!-- Section 2: Demographics -->
+          <div class="row g-2 mb-3">
+            <div class="col"><label class="form-label fw-bold small">ชื่อ-สกุล</label>
+              <input type="text" id="f-name" class="form-control form-control-sm" placeholder="ชื่อ-สกุล (BIB)">
             </div>
+            <div class="col-3" style="max-width:80px;"><label class="form-label fw-bold small">อายุ</label>
+              <input type="number" id="f-age" class="form-control form-control-sm" min="1" max="120">
+            </div>
+          </div>
+          <div class="row g-2 mb-3">
+            <div class="col-6 col-md-4"><label class="form-label fw-bold small">เบอร์โทร</label>
+              <input type="tel" id="f-phone" class="form-control form-control-sm">
+            </div>
+            <div class="col-6 col-md-4"><label class="form-label fw-bold small">หมวดหมู่</label>
+              <select id="f-category" class="form-select form-select-sm"><option value="">-</option></select>
+            </div>
+            <div class="col-12 col-md-4">
+              <label class="form-label fw-bold small">จุดรักษา <span class="text-danger">*</span> <span id="f-location-locked-hint" class="text-warning small" style="display:none;">(ถูกจำกัด)</span></label>
+              <select id="f-location" class="form-select form-select-sm" required><option value="">-- เลือก --</option></select>
+            </div>
+          </div>
+          <div class="row g-2 mb-3 border-bottom pb-3">
+            <div class="col-6"><label class="form-label fw-bold small">เวลารับ <span class="text-danger">*</span> <span class="text-muted fw-normal">(24 ชม.)</span></label>
+              <input type="time" id="f-time-in" class="form-control form-control-sm" required>
+            </div>
+            <div class="col-6"><label class="form-label fw-bold small">เวลาจำหน่าย <span class="text-muted fw-normal">(24 ชม.)</span></label>
+              <input type="time" id="f-time-out" class="form-control form-control-sm">
+            </div>
+          </div>
+
+          <!-- Section 3: Etiology -->
+          <div class="mb-3">
+            <label class="form-label fw-bold small">Etiology <span class="text-danger">*</span></label>
             <input type="hidden" id="f-etiology" value="Med">
+            <div class="btn-group w-100" role="group">
+              <button type="button" class="btn btn-primary btn-sm" id="f-eti-med" onclick="staffSetEtiology('Med')"><i class="bi bi-heart-pulse me-1"></i>Medicine</button>
+              <button type="button" class="btn btn-outline-danger btn-sm" id="f-eti-trauma" onclick="staffSetEtiology('Trauma')"><i class="bi bi-bandaid me-1"></i>Trauma</button>
+            </div>
           </div>
-          <div><label>หมวด</label><select id="f-category" class="form-select"><option value="">— เลือก —</option></select></div>
-          <div>
-            <label>จุดรักษา <span id="f-location-locked-hint" class="text-warning small" style="display:none;">(ถูกจำกัด)</span></label>
-            <select id="f-location" class="form-select"><option value="">— เลือก —</option></select>
+
+          <!-- Section 4: Clinical -->
+          <div class="mb-3">
+            <label class="form-label fw-bold small">Chief Complaint (CC)</label>
+            <textarea id="f-cc" class="form-control form-control-sm" rows="2" placeholder="อาการสำคัญที่มาพบ..."></textarea>
           </div>
-          <div class="row g-2">
-            <div class="col-6"><label>เวลามา (Time In)</label><input type="time" id="f-time-in" class="form-control"></div>
-            <div class="col-6"><label>เวลาออก (Time Out)</label><input type="time" id="f-time-out" class="form-control"></div>
-          </div>
-          <div><label>อาการสำคัญ (CC)</label><textarea id="f-cc" class="form-control" rows="2" placeholder="ปวดท้อง, แผลถลอก..."></textarea></div>
-          <div><label>แพ้ยา/แพ้อาหาร (Allergy)</label><input type="text" id="f-allergy" class="form-control" placeholder="ไม่มี / ระบุ..."></div>
-          <div><label>Vital signs</label>
+
+          <!-- Section 5: Allergy + Vitals (bg-light card same as admin's Treatment) -->
+          <div class="card p-3 mb-3 bg-light border-0">
+            <label class="form-label fw-bold small mb-2">Allergy / Vital signs</label>
+            <div class="mb-2">
+              <input type="text" id="f-allergy" class="form-control form-control-sm" placeholder="แพ้ยา/แพ้อาหาร — ไม่มี / ระบุ...">
+            </div>
             <div class="row g-2">
               <div class="col-4"><input type="text" id="f-bp" class="form-control form-control-sm" placeholder="BP (120/80)"></div>
               <div class="col-4"><input type="number" id="f-hr" class="form-control form-control-sm" placeholder="HR" min="0"></div>
               <div class="col-4"><input type="number" id="f-spo2" class="form-control form-control-sm" placeholder="SpO₂" min="0" max="100"></div>
             </div>
           </div>
-          <div><label>การรักษา (Treatment)</label><textarea id="f-treatment" class="form-control" rows="2" placeholder="ทำแผล + ammonia..."></textarea></div>
-          <div>
-            <label>ผลการรักษา</label>
-            <select id="f-result" class="form-select">
+
+          <!-- Section 6: Treatment -->
+          <div class="mb-3">
+            <label class="form-label fw-bold small">Treatment</label>
+            <textarea id="f-treatment" class="form-control form-control-sm" rows="2" placeholder="ทำแผล + ammonia..."></textarea>
+          </div>
+
+          <!-- Section 7: Result -->
+          <div class="mb-3">
+            <label class="form-label fw-bold small">ผลการรักษา</label>
+            <select id="f-result" class="form-select form-select-sm">
               <option value="">— เลือก —</option>
               <option value="discharge">Discharge (กลับบ้าน)</option>
-              <option value="transfer-rs">Transfer — รพ.</option>
+              <option value="transfer-rs">Transfer — โรงพยาบาล</option>
               <option value="transfer-clinic">Transfer — คลินิก</option>
               <option value="cancel">Cancel (ไม่รักษา)</option>
               <option value="observe">สังเกตอาการ</option>
             </select>
           </div>
-          <div><label>หมายเหตุ</label><textarea id="f-note" class="form-control" rows="2"></textarea></div>
+
+          <div class="mb-2">
+            <label class="form-label fw-bold small">หมายเหตุ</label>
+            <textarea id="f-note" class="form-control form-control-sm" rows="2"></textarea>
+          </div>
         </form>
       </div>
-      <div class="modal-footer border-0 px-3 pb-3 pt-0">
+      <div class="modal-footer bg-light border-top-0 pt-2">
         <button type="button" class="btn btn-light rounded-pill px-4" data-bs-dismiss="modal">ยกเลิก</button>
-        <button type="button" class="btn btn-primary rounded-pill px-4 fw-bold" onclick="staffSavePatient()"><i class="bi bi-check-lg me-1"></i> บันทึก</button>
+        <button type="button" class="btn btn-success rounded-pill px-4 fw-bold" onclick="staffSavePatient()"><i class="bi bi-check-lg me-1"></i> บันทึก</button>
       </div>
     </div>
   </div>
@@ -542,19 +574,29 @@
     }
   }
 
-  // ===== TRIAGE / GENDER PICKERS =====
+  // ===== TRIAGE / GENDER / ETIOLOGY PICKERS — match admin's data values =====
+  // Triage: A/V/P/U (AVPU consciousness scale, NOT severity)
+  // Gender: ชาย/หญิง/ไม่ระบุ (Thai full words, NOT abbreviations)
   window.staffSetTriage = function(t) {
     document.getElementById('f-triage').value = t;
-    document.querySelectorAll('.triage-btn').forEach(function(b){ b.classList.toggle('active', b.dataset.tri === t); });
+    document.querySelectorAll('.reg-triage-btn').forEach(function(b){ b.classList.toggle('active', b.getAttribute('data-value') === t); });
   };
   window.staffSetGender = function(g) {
     document.getElementById('f-gender').value = g;
-    document.querySelectorAll('.gender-btn').forEach(function(b){ b.classList.toggle('active', b.dataset.g === g); });
+    document.querySelectorAll('.reg-gender-btn').forEach(function(b){ b.classList.toggle('active', b.getAttribute('data-value') === g); });
   };
   window.staffSetEtiology = function(e) {
     document.getElementById('f-etiology').value = e;
-    document.getElementById('f-eti-med').classList.toggle('active', e === 'Med');
-    document.getElementById('f-eti-trauma').classList.toggle('active', e === 'Trauma');
+    var med = document.getElementById('f-eti-med');
+    var tra = document.getElementById('f-eti-trauma');
+    // Bootstrap pattern: active = btn-primary/btn-danger filled, inactive = btn-outline-*
+    if (e === 'Med') {
+      med.className = 'btn btn-primary btn-sm';
+      tra.className = 'btn btn-outline-danger btn-sm';
+    } else {
+      med.className = 'btn btn-outline-primary btn-sm';
+      tra.className = 'btn btn-danger btn-sm';
+    }
   };
 
   // ===== ADD / EDIT PATIENT =====
@@ -576,8 +618,8 @@
           Swal.fire({ icon: 'error', title: 'ไม่อนุญาต', text: 'แก้ไขได้เฉพาะรายการที่คุณเพิ่มเอง' });
           return;
         }
-        staffSetTriage(rec.triage || 'Non-Urgent');
-        staffSetGender(rec.gender || 'ช');
+        staffSetTriage(rec.triage || 'A');
+        staffSetGender(rec.gender || '');
         staffSetEtiology(rec.etiology || 'Med');
         document.getElementById('f-age').value = rec.age || '';
         document.getElementById('f-name').value = rec.name || '';
@@ -602,8 +644,8 @@
     } else {
       // New record — reset form
       document.getElementById('pt-form').reset();
-      staffSetTriage('Non-Urgent');
-      staffSetGender('ช');
+      staffSetTriage('A');
+      staffSetGender('');
       staffSetEtiology('Med');
       // Auto-fill time-in with current
       var d = new Date(); var hh = String(d.getHours()).padStart(2,'0'); var mm = String(d.getMinutes()).padStart(2,'0');
@@ -627,6 +669,12 @@
       Swal.fire({ icon: 'error', title: 'จุดรักษาผิด', text: 'Token นี้ถูกล็อคที่ ' + state.section });
       return;
     }
+    // Required field validation (matches admin)
+    var gender = document.getElementById('f-gender').value;
+    if (!gender) { Swal.fire({ icon: 'warning', title: 'กรุณาเลือกเพศ', timer: 1800 }); return; }
+    if (!loc) { Swal.fire({ icon: 'warning', title: 'กรุณาเลือกจุดรักษา', timer: 1800 }); return; }
+    var timeIn = document.getElementById('f-time-in').value;
+    if (!timeIn) { Swal.fire({ icon: 'warning', title: 'กรุณาระบุเวลารับ', timer: 1800 }); return; }
 
     // Build vitals JSONB (only include filled fields so admin Reports stay clean)
     var bp   = (document.getElementById('f-bp').value || '').trim();
@@ -698,8 +746,8 @@
         return;
       }
       listEl.innerHTML = data.map(function(r){
-        var triKey = (r.triage || 'Non-Urgent').toLowerCase().replace(/[^a-z]/g,'');
-        var triCls = triKey === 'resus' ? 'tri-resus' : triKey === 'emerg' ? 'tri-emerg' : triKey === 'urgent' ? 'tri-urgent' : 'tri-nonurg';
+        // AVPU → strip color: A=green, V=amber, P=orange, U=red (matches admin)
+        var triCls = r.triage === 'U' ? 'tri-resus' : r.triage === 'P' ? 'tri-emerg' : r.triage === 'V' ? 'tri-urgent' : 'tri-nonurg';
         var status = r.time_out ? '<span class="pill out">ออกแล้ว ' + esc(r.time_out) + '</span>' : '<span class="pill in">กำลังดูแล</span>';
         return '<div class="pt-row ' + triCls + '" onclick="staffOpenForm(\'' + esc(r.reg_id) + '\')">' +
           '<div class="strip"></div>' +
