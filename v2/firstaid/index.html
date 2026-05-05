@@ -1019,6 +1019,32 @@
               </div>
           </div>
 
+          <!-- Staff Tokens (admin only — for part-time first-aid workers) -->
+          <div class="card mb-4 island-card overflow-hidden" id="fa-evt-tokens" style="display:none;">
+            <div class="card-header bg-warning bg-opacity-10 border-0 d-flex flex-column flex-md-row justify-content-between align-items-center gap-2 py-3 px-4">
+              <h6 class="fw-bold text-warning-emphasis m-0"><i class="bi bi-key-fill me-1"></i> Token เจ้าหน้าที่ part-time</h6>
+              <button class="btn btn-warning btn-sm rounded-pill px-3 fw-bold shadow-sm" onclick="fa_openTokenModal()"><i class="bi bi-plus-lg me-1"></i> สร้าง Token</button>
+            </div>
+            <div class="card-body p-0">
+              <div class="table-responsive">
+                <table class="table table-sm table-hover mb-0">
+                  <thead class="table-light">
+                    <tr>
+                      <th class="ps-3">ชื่อ</th>
+                      <th>จุดรักษา</th>
+                      <th>Token</th>
+                      <th>สถานะ</th>
+                      <th class="text-end pe-3">จัดการ</th>
+                    </tr>
+                  </thead>
+                  <tbody id="fa-token-table-body">
+                    <tr><td colspan="5" class="text-center text-muted py-3 small">กำลังโหลด...</td></tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+
           </div><!-- /fa-evt-main -->
 
           <!-- Right column: stats (PC) / stacked below (mobile) -->
@@ -1107,6 +1133,38 @@
         <div class="modal-footer border-top-0 pt-0">
           <button type="button" class="btn btn-light rounded-pill px-4" data-bs-dismiss="modal">ยกเลิก</button>
           <button type="button" class="btn btn-primary rounded-pill px-4 fw-bold shadow-sm" onclick="fa_submitEvent()">บันทึก Event</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- FA: Create Staff Token Modal -->
+  <div class="modal fade" id="faTokenModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content border-0 shadow-lg rounded-4">
+        <div class="modal-header bg-warning bg-opacity-10 border-0 px-4 py-3">
+          <h5 class="modal-title fw-bold text-warning-emphasis"><i class="bi bi-key-fill me-2"></i>สร้าง Token เจ้าหน้าที่ part-time</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body p-4">
+          <div class="mb-3">
+            <label class="form-label fw-bold small">ชื่อเจ้าหน้าที่ <span class="text-danger">*</span></label>
+            <input type="text" id="fa-token-worker-name" class="form-control" placeholder="เช่น สมชาย ใจดี">
+          </div>
+          <div class="mb-3">
+            <label class="form-label fw-bold small">จุดรักษา (จำกัด)</label>
+            <select id="fa-token-location" class="form-select">
+              <option value="">— ทุกจุด —</option>
+            </select>
+            <small class="text-muted">ถ้าเลือก เจ้าหน้าที่จะบันทึกได้เฉพาะจุดนั้น</small>
+          </div>
+          <div class="alert alert-info py-2 small mb-0">
+            <i class="bi bi-info-circle"></i> Token จะถูก revoke อัตโนมัติเมื่อปิด event
+          </div>
+        </div>
+        <div class="modal-footer border-0 px-4 pb-4 pt-0">
+          <button type="button" class="btn btn-light rounded-pill px-4" data-bs-dismiss="modal">ยกเลิก</button>
+          <button type="button" class="btn btn-warning rounded-pill px-4 fw-bold" onclick="fa_createToken()"><i class="bi bi-key me-1"></i> สร้างและคัดลอกลิงก์</button>
         </div>
       </div>
     </div>
@@ -1613,6 +1671,15 @@
                     var status = actionType === 'close' ? 'Complete' : 'Active';
                     var { error } = await _supabase.from('fa_events').update({ status: status }).eq('event_id', eventId);
                     if (error) throw error;
+                    // Auto-revoke all active staff tokens when event closes
+                    if (actionType === 'close') {
+                        try {
+                            await _supabase.from('fa_event_tokens')
+                                .update({ status: 'Revoked' })
+                                .eq('event_id', eventId)
+                                .eq('status', 'Active');
+                        } catch(revokeErr) { console.warn('Token auto-revoke failed:', revokeErr); }
+                    }
                 }
                 Swal.close();
                 fa_fetchAllEvents();
@@ -1828,7 +1895,171 @@
         });
 
         fa_refreshPatientList();
+
+        // Token mgmt — admin only, only for Active events
+        var tokenCard = document.getElementById('fa-evt-tokens');
+        var role = (typeof getUserRole === 'function') ? getUserRole() : '';
+        var isAdmin = (role === 'Admin' || role === 'admin');
+        if (tokenCard) {
+            tokenCard.style.display = (isAdmin && ev && ev.status === 'Active') ? '' : 'none';
+            if (isAdmin && ev && ev.status === 'Active') fa_loadTokens();
+        }
     }
+
+    // ============================================
+    // Staff Tokens (part-time first-aid workers)
+    // ============================================
+    async function fa_loadTokens() {
+        var tbody = document.getElementById('fa-token-table-body');
+        if (!tbody || !fa_currentViewedEventId) return;
+        try {
+            var { data, error } = await _supabase.from('fa_event_tokens')
+                .select('*')
+                .eq('event_id', fa_currentViewedEventId)
+                .order('created_at', { ascending: false });
+            if (error) throw error;
+            if (!data || data.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="5" class="text-center text-muted py-3 small">ยังไม่มี Token — กดปุ่ม "สร้าง Token" เพื่อเพิ่ม</td></tr>';
+                return;
+            }
+            var origin = window.location.origin + window.location.pathname.replace(/\/index\.html$|\/$/, '');
+            tbody.innerHTML = data.map(function(t) {
+                var link = origin + '/staff.html?t=' + encodeURIComponent(t.token);
+                var statusBadge = t.status === 'Active'
+                    ? '<span class="badge bg-success-subtle text-success">Active</span>'
+                    : '<span class="badge bg-secondary-subtle text-secondary">Revoked</span>';
+                var loc = t.location_tx ? escapeHtml(t.location_tx) : '<span class="text-muted">ทุกจุด</span>';
+                var actions = t.status === 'Active'
+                    ? '<button class="btn btn-sm btn-outline-primary me-1" onclick="fa_copyTokenLink(\'' + escapeHtml(link) + '\')" title="คัดลอกลิงก์"><i class="bi bi-clipboard"></i></button>' +
+                      '<button class="btn btn-sm btn-outline-danger" onclick="fa_revokeToken(\'' + escapeHtml(t.token) + '\')" title="Revoke"><i class="bi bi-x-circle"></i></button>'
+                    : '<span class="text-muted small">—</span>';
+                return '<tr>' +
+                    '<td class="ps-3 fw-bold">' + escapeHtml(t.worker_name || '—') + '</td>' +
+                    '<td class="small">' + loc + '</td>' +
+                    '<td><code class="bg-light px-2 py-1 rounded">' + escapeHtml(t.token) + '</code></td>' +
+                    '<td>' + statusBadge + '</td>' +
+                    '<td class="text-end pe-3">' + actions + '</td>' +
+                '</tr>';
+            }).join('');
+        } catch(err) {
+            console.warn('fa_loadTokens error:', err);
+            tbody.innerHTML = '<tr><td colspan="5" class="text-center text-danger py-3 small">โหลด Token ไม่สำเร็จ: ' + escapeHtml(err.message || err) + '</td></tr>';
+        }
+    }
+
+    function fa_openTokenModal() {
+        var inp = document.getElementById('fa-token-worker-name');
+        var sel = document.getElementById('fa-token-location');
+        if (inp) inp.value = '';
+        if (sel) {
+            // Build dropdown from event_config.locations
+            var html = '<option value="">— ทุกจุด —</option>';
+            var cfg = fa_currentEventConfig || {};
+            var locs = cfg.locations || [];
+            if (typeof locs === 'string') locs = locs.split(',').map(function(s){ return s.trim(); }).filter(Boolean);
+            locs.forEach(function(loc) {
+                html += '<option value="' + escapeHtml(loc) + '">' + escapeHtml(loc) + '</option>';
+            });
+            sel.innerHTML = html;
+        }
+        var modal = new bootstrap.Modal(document.getElementById('faTokenModal'));
+        modal.show();
+        setTimeout(function(){ if (inp) inp.focus(); }, 250);
+    }
+
+    function _fa_genTokenStr() {
+        // 6 chars, A-Z minus O/I, 2-9 minus 0/1 (no ambiguous chars)
+        var chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+        var s = '';
+        for (var i = 0; i < 6; i++) s += chars.charAt(Math.floor(Math.random() * chars.length));
+        return s;
+    }
+
+    async function fa_createToken() {
+        var name = (document.getElementById('fa-token-worker-name').value || '').trim();
+        var loc = document.getElementById('fa-token-location').value || null;
+        if (!name) {
+            Swal.fire({ icon: 'warning', title: 'กรุณาระบุชื่อเจ้าหน้าที่', timer: 2000 });
+            return;
+        }
+        var meta = {};
+        try { meta = JSON.parse(localStorage.getItem('pt_user_meta') || '{}'); } catch(e) {}
+        var createdBy = meta.full_name || meta.username || 'Admin';
+
+        // Generate with retry on PK collision
+        var token = null, lastErr = null;
+        for (var attempt = 0; attempt < 5; attempt++) {
+            var candidate = _fa_genTokenStr();
+            try {
+                var { error } = await _supabase.from('fa_event_tokens').insert({
+                    token: candidate,
+                    event_id: fa_currentViewedEventId,
+                    worker_name: name,
+                    location_tx: loc || null,
+                    status: 'Active',
+                    created_by: createdBy
+                });
+                if (!error) { token = candidate; break; }
+                lastErr = error;
+                if (error.code !== '23505') break; // not a unique-violation, abort
+            } catch(e) { lastErr = e; break; }
+        }
+        if (!token) {
+            Swal.fire({ icon: 'error', title: 'สร้าง Token ไม่สำเร็จ', text: (lastErr && lastErr.message) || 'unknown' });
+            return;
+        }
+
+        // Build link + auto-copy
+        var origin = window.location.origin + window.location.pathname.replace(/\/index\.html$|\/$/, '');
+        var link = origin + '/staff.html?t=' + encodeURIComponent(token);
+        try {
+            await navigator.clipboard.writeText(link);
+        } catch(e) { /* clipboard may fail on http or denied; fall back to manual copy */ }
+
+        bootstrap.Modal.getInstance(document.getElementById('faTokenModal')).hide();
+        Swal.fire({
+            icon: 'success',
+            title: 'สร้าง Token แล้ว',
+            html: 'Token: <code class="fw-bold">' + escapeHtml(token) + '</code><br>' +
+                  '<small class="text-muted">ลิงก์ถูกคัดลอกเรียบร้อย พร้อมส่งให้เจ้าหน้าที่ผ่าน LINE/SMS</small><br>' +
+                  '<input type="text" class="form-control mt-2 small" readonly value="' + escapeHtml(link) + '" onclick="this.select();">',
+            confirmButtonText: 'ตกลง'
+        });
+        fa_loadTokens();
+    }
+
+    async function fa_copyTokenLink(link) {
+        try {
+            await navigator.clipboard.writeText(link);
+            Swal.fire({ icon: 'success', title: 'คัดลอกลิงก์แล้ว', timer: 1200, showConfirmButton: false });
+        } catch(e) {
+            Swal.fire({ icon: 'info', title: 'คัดลอกด้วยมือ', html: '<input type="text" class="form-control" readonly value="' + escapeHtml(link) + '" onclick="this.select();">' });
+        }
+    }
+
+    async function fa_revokeToken(token) {
+        var confirm = await Swal.fire({
+            icon: 'warning', title: 'Revoke Token นี้?',
+            text: 'เจ้าหน้าที่จะใช้ลิงก์นี้ไม่ได้อีก',
+            showCancelButton: true, confirmButtonText: 'Revoke', cancelButtonText: 'ยกเลิก',
+            confirmButtonColor: '#dc2626'
+        });
+        if (!confirm.isConfirmed) return;
+        try {
+            var { error } = await _supabase.from('fa_event_tokens').update({ status: 'Revoked' }).eq('token', token);
+            if (error) throw error;
+            Swal.fire({ icon: 'success', title: 'Revoke แล้ว', timer: 1200, showConfirmButton: false });
+            fa_loadTokens();
+        } catch(err) {
+            Swal.fire({ icon: 'error', title: 'Revoke ไม่สำเร็จ', text: err.message || err });
+        }
+    }
+
+    // Expose to global so onclick handlers find them
+    window.fa_openTokenModal = fa_openTokenModal;
+    window.fa_createToken = fa_createToken;
+    window.fa_copyTokenLink = fa_copyTokenLink;
+    window.fa_revokeToken = fa_revokeToken;
 
     function fa_closeEventDetails() {
         fa_currentViewedEventId = null;
@@ -3337,7 +3568,7 @@
         var navLogo = document.getElementById('navbar-logo');
         if (navLogo && navLogo.src && navLogo.style.display !== 'none') logoSrc = navLogo.src;
 
-        var h = '<!DOCTYPE html><html lang="th"><head><meta charset="UTF-8"><title>รายงานปฐมพยาบาล - ' + esc(ev.name) + '</title>';
+        var h = '<!DOCTYPE html><html lang="th"><head><meta charset="UTF-8"><title>รายงานปฐมพยาบาล - ' + escapeHtml(ev.name) + '</title>';
         h += "<style>@import url('https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;600;700&display=swap');";
         h += ":root { color-scheme: light only; } * { margin:0; padding:0; box-sizing:border-box; } body { font-family:'Sarabun',sans-serif; font-size:10pt; color:#000!important; background:#fff!important; }";
         h += ".page { max-width:297mm; margin:0 auto; padding:14px 18px; }";
@@ -3369,15 +3600,15 @@
         // Header
         h += '<div style="display:flex;align-items:center;gap:12px;margin-bottom:8px;">';
         if (logoSrc) h += '<img src="' + logoSrc + '" style="height:50px;">';
-        h += '<div><div style="font-size:13pt;font-weight:700;">' + esc(config.companyName || '') + '</div>';
-        h += '<div style="font-size:9pt;color:#666;">' + esc(config.contact || '') + '</div></div></div>';
+        h += '<div><div style="font-size:13pt;font-weight:700;">' + escapeHtml(config.companyName || '') + '</div>';
+        h += '<div style="font-size:9pt;color:#666;">' + escapeHtml(config.contact || '') + '</div></div></div>';
         h += '<h2><i>&#10084;</i> รายงานสถานการณ์ด้านการปฐมพยาบาล</h2>';
 
         // Event Info
         h += '<h3>ข้อมูลงาน</h3>';
-        h += '<table><tr><td class="lbl">Event ID</td><td>' + esc(eventId) + '</td><td class="lbl">ชื่องาน</td><td><b>' + esc(ev.name || '-') + '</b></td></tr>';
-        h += '<tr><td class="lbl">สถานที่</td><td>' + esc(ev.location || '-') + '</td><td class="lbl">วันเริ่ม</td><td>' + esc(ev.startDate || '-') + (ev.startTime ? ' ' + esc(ev.startTime) : '') + '</td></tr>';
-        h += '<tr><td class="lbl">วันสิ้นสุด</td><td>' + esc(ev.endDate || '-') + (ev.endTime ? ' ' + esc(ev.endTime) : '') + '</td><td class="lbl">ผู้ป่วย Registry</td><td><b>' + total + '</b> ราย</td></tr></table>';
+        h += '<table><tr><td class="lbl">Event ID</td><td>' + escapeHtml(eventId) + '</td><td class="lbl">ชื่องาน</td><td><b>' + escapeHtml(ev.name || '-') + '</b></td></tr>';
+        h += '<tr><td class="lbl">สถานที่</td><td>' + escapeHtml(ev.location || '-') + '</td><td class="lbl">วันเริ่ม</td><td>' + escapeHtml(ev.startDate || '-') + (ev.startTime ? ' ' + escapeHtml(ev.startTime) : '') + '</td></tr>';
+        h += '<tr><td class="lbl">วันสิ้นสุด</td><td>' + escapeHtml(ev.endDate || '-') + (ev.endTime ? ' ' + escapeHtml(ev.endTime) : '') + '</td><td class="lbl">ผู้ป่วย Registry</td><td><b>' + total + '</b> ราย</td></tr></table>';
 
         // Registry Table
         h += '<h3>รายละเอียดผู้ป่วย Registry (' + total + ' ราย)</h3>';
@@ -3403,42 +3634,42 @@
                 else if (r.triage === 'P') triageBadge = 'badge-p';
                 else if (r.triage === 'U') triageBadge = 'badge-u';
 
-                var timeStr = esc(r.timeIn || '-');
-                if (r.timeOut) timeStr += '<br>' + esc(r.timeOut);
+                var timeStr = escapeHtml(r.timeIn || '-');
+                if (r.timeOut) timeStr += '<br>' + escapeHtml(r.timeOut);
 
                 var etiologyBadge = r.etiology === 'Trauma'
                     ? '<span class="badge-trauma">Trauma</span>'
                     : '<span class="badge-med">Med</span>';
                 var ccText = r.cc || '-';
-                if (r.ccOther) ccText += ' (' + esc(r.ccOther) + ')';
+                if (r.ccOther) ccText += ' (' + escapeHtml(r.ccOther) + ')';
 
                 var problemText = r.problem || '-';
-                if (r.problemOther) problemText += ' (' + esc(r.problemOther) + ')';
+                if (r.problemOther) problemText += ' (' + escapeHtml(r.problemOther) + ')';
 
-                var treatmentText = esc(r.treatment || '-');
+                var treatmentText = escapeHtml(r.treatment || '-');
 
                 var resultText = fa_reportParseResult(r.result);
 
                 var allergyMark = 'ไม่มี';
                 if (r.allergy && r.allergy.indexOf('มี') > -1) {
-                    allergyMark = '<span class="allergy-yes">' + esc(r.allergy) + '</span>';
+                    allergyMark = '<span class="allergy-yes">' + escapeHtml(r.allergy) + '</span>';
                 }
 
-                var noteStr = esc(r.note || '-');
-                if (r.locationTx) noteStr = '<span class="note-extra">[จุด: ' + esc(r.locationTx) + ']</span><br>' + noteStr;
-                if (r.gps) noteStr += '<br><span class="note-extra">[GPS: ' + esc(r.gps) + ']</span>';
+                var noteStr = escapeHtml(r.note || '-');
+                if (r.locationTx) noteStr = '<span class="note-extra">[จุด: ' + escapeHtml(r.locationTx) + ']</span><br>' + noteStr;
+                if (r.gps) noteStr += '<br><span class="note-extra">[GPS: ' + escapeHtml(r.gps) + ']</span>';
                 if (r.image) noteStr += '<br><span class="note-extra">[มีรูปภาพ]</span>';
-                noteStr += '<br><span class="note-extra">[ผู้บันทึก: ' + esc(r.recordedBy || '-') + ']</span>';
+                noteStr += '<br><span class="note-extra">[ผู้บันทึก: ' + escapeHtml(r.recordedBy || '-') + ']</span>';
 
                 h += '<tr>';
                 h += '<td style="text-align:center;">' + (idx + 1) + '</td>';
-                h += '<td style="text-align:center;"><span class="' + triageBadge + '">' + esc(r.triage || 'A') + '</span></td>';
-                h += '<td><b>' + esc(r.name || '-') + '</b><br><span class="note-extra">(' + esc(r.gender || '-') + ', ' + esc(r.age || '-') + ')</span></td>';
+                h += '<td style="text-align:center;"><span class="' + triageBadge + '">' + escapeHtml(r.triage || 'A') + '</span></td>';
+                h += '<td><b>' + escapeHtml(r.name || '-') + '</b><br><span class="note-extra">(' + escapeHtml(r.gender || '-') + ', ' + escapeHtml(r.age || '-') + ')</span></td>';
                 h += '<td style="text-align:center;">' + timeStr + '</td>';
-                h += '<td>' + etiologyBadge + '<br>' + esc(ccText) + '</td>';
-                h += '<td>' + esc(problemText) + '</td>';
+                h += '<td>' + etiologyBadge + '<br>' + escapeHtml(ccText) + '</td>';
+                h += '<td>' + escapeHtml(problemText) + '</td>';
                 h += '<td style="font-size:7.5pt;">' + treatmentText + '</td>';
-                h += '<td>' + esc(resultText) + '</td>';
+                h += '<td>' + escapeHtml(resultText) + '</td>';
                 h += '<td style="text-align:center;">' + allergyMark + '</td>';
                 h += '<td>' + noteStr + '</td>';
                 h += '</tr>';
@@ -3480,7 +3711,7 @@
             h += '<tr><th style="width:60%;">Treatment</th><th style="width:20%;">จำนวน</th><th style="width:20%;">%</th></tr></thead><tbody>';
             treatEntries.forEach(function(entry) {
                 var pct = total > 0 ? Math.round(entry[1] / total * 100) : 0;
-                h += '<tr><td>' + esc(entry[0]) + '</td><td style="text-align:center;"><b>' + entry[1] + '</b></td><td style="text-align:center;">' + pct + '%</td></tr>';
+                h += '<tr><td>' + escapeHtml(entry[0]) + '</td><td style="text-align:center;"><b>' + entry[1] + '</b></td><td style="text-align:center;">' + pct + '%</td></tr>';
             });
             h += '</tbody></table>';
         }
