@@ -439,10 +439,100 @@
     body.monitor-wide-active #monitor-wide-gps-pane .mwgp-mapctrl button:hover{
       background:#f8fafc; color:#0f172a; border-color:#94a3b8;
     }
+    body.monitor-wide-active #monitor-wide-gps-pane .mwgp-mapctrl button.active{
+      background:#0ea5e9; border-color:#0ea5e9; color:#fff;
+    }
     body.monitor-wide-active #monitor-wide-gps-pane .mwgp-mapctrl button.spinning i{
       animation: mwgp-spin 1s linear infinite;
     }
     @keyframes mwgp-spin { to { transform: rotate(360deg); } }
+
+    /* Marker label toggle */
+    body.monitor-wide-active #monitor-wide-gps-pane.labels-off .mwgp-marker-label{ display:none !important; }
+
+    /* GPS age line on each row */
+    body.monitor-wide-active #monitor-wide-gps-pane .mwgp-vh .vh-age{
+      font-size:10.5px; color:#94a3b8; margin-top:2px;
+      display:flex; align-items:center; gap:4px;
+    }
+    body.monitor-wide-active #monitor-wide-gps-pane .mwgp-vh .vh-age.stale{ color:#d97706; font-weight:600; }
+    body.monitor-wide-active #monitor-wide-gps-pane .mwgp-vh .vh-age i{ font-size:10px; }
+
+    /* Speed warning badge (>120 km/h) */
+    body.monitor-wide-active #monitor-wide-gps-pane .vh-warn{
+      display:inline-block; margin-top:4px; padding:1px 6px; border-radius:4px;
+      background:#fee2e2; color:#991b1b; font-size:9.5px; font-weight:700;
+      letter-spacing:.3px; animation: mwgp-warn-pulse 1.2s ease-in-out infinite;
+    }
+    @keyframes mwgp-warn-pulse{
+      0%,100%{ box-shadow:0 0 0 0 rgba(220,38,38,.6); }
+      50%{ box-shadow:0 0 0 4px rgba(220,38,38,0); }
+    }
+
+    /* Critical alert flash (online → offline transition) */
+    @keyframes mwgp-alert-flash{
+      0%,100%{ background:#fff; }
+      25%,75%{ background:#fee2e2; }
+      50%{ background:#fecaca; }
+    }
+    body.monitor-wide-active #monitor-wide-gps-pane .mwgp-vh.alert-flash{
+      animation: mwgp-alert-flash 1s ease-in-out 5;
+    }
+
+    /* Marker click → flash row */
+    @keyframes mwgp-row-flash{
+      0%{ box-shadow:0 0 0 0 rgba(14,165,233,.7); }
+      100%{ box-shadow:0 0 0 8px rgba(14,165,233,0); }
+    }
+    body.monitor-wide-active #monitor-wide-gps-pane .mwgp-vh.flash{
+      animation: mwgp-row-flash 1s ease-out 2;
+    }
+
+    /* Expanded detail panel (under row, inside same card) */
+    body.monitor-wide-active #monitor-wide-gps-pane .mwgp-vh.expanded{
+      grid-template-columns: 6px 1fr 96px;
+      grid-template-rows: auto auto;
+    }
+    body.monitor-wide-active #monitor-wide-gps-pane .mwgp-vh .vh-detail{
+      grid-column: 2 / 4;
+      padding:10px 14px 10px 14px;
+      border-top:1px solid #f1f5f9;
+      background:#f8fafc;
+      display:none;
+    }
+    body.monitor-wide-active #monitor-wide-gps-pane .mwgp-vh.expanded .vh-detail{ display:block; }
+    body.monitor-wide-active #monitor-wide-gps-pane .mwgp-vh .vh-detail-grid{
+      display:grid; grid-template-columns: repeat(3, 1fr); gap:8px; margin-bottom:8px;
+    }
+    body.monitor-wide-active #monitor-wide-gps-pane .mwgp-vh .vh-stat-tile{
+      background:#fff; border:1px solid #e2e8f0; border-radius:6px;
+      padding:5px 8px; min-width:0;
+    }
+    body.monitor-wide-active #monitor-wide-gps-pane .mwgp-vh .vh-stat-tile .lbl{
+      font-size:9.5px; color:#94a3b8; font-weight:600; letter-spacing:.4px; text-transform:uppercase;
+    }
+    body.monitor-wide-active #monitor-wide-gps-pane .mwgp-vh .vh-stat-tile .val{
+      font-size:13px; color:#0f172a; font-weight:700; line-height:1.2;
+      white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+      font-variant-numeric:tabular-nums;
+    }
+    body.monitor-wide-active #monitor-wide-gps-pane .mwgp-vh .vh-spark-wrap{
+      background:#fff; border:1px solid #e2e8f0; border-radius:6px;
+      padding:6px 8px;
+    }
+    body.monitor-wide-active #monitor-wide-gps-pane .mwgp-vh .vh-spark-head{
+      font-size:9.5px; color:#94a3b8; font-weight:600; letter-spacing:.4px;
+      text-transform:uppercase; margin-bottom:4px;
+      display:flex; justify-content:space-between; align-items:center;
+    }
+    body.monitor-wide-active #monitor-wide-gps-pane .mwgp-vh .vh-spark-head .max{ color:#475569; font-weight:700; }
+    body.monitor-wide-active #monitor-wide-gps-pane .mwgp-vh .vh-spark{
+      width:100%; height:36px; display:block;
+    }
+
+    /* Fullscreen tweaks — when fullscreen, page header disappears (browser
+       chrome gone), pane should still be visible at right. */
+    body.monitor-fs #monitor-wide-gps-pane{ top:0 !important; }
 
     /* Tracking banner — overlays the map top edge when a case GPS button was clicked */
     body.monitor-wide-active #monitor-wide-gps-pane .mwgp-track{
@@ -1044,6 +1134,9 @@
                 <div class="mwgp-mapctrl" id="mwgp-mapctrl">
                     <button type="button" id="mwgp-fit-btn" onclick="monitorMiniGpsFitAll()" title="ซูมให้เห็นรถทุกคัน"><i class="bi bi-arrows-fullscreen"></i></button>
                     <button type="button" id="mwgp-refresh-btn" onclick="monitorMiniGpsRefresh()" title="รีเฟรชสถานะทันที"><i class="bi bi-arrow-clockwise"></i></button>
+                    <button type="button" id="mwgp-labels-btn" class="active" onclick="monitorMiniGpsToggleLabels()" title="ป้ายชื่อรถ ปิด/เปิด"><i class="bi bi-tag-fill"></i></button>
+                    <button type="button" id="mwgp-cycle-btn" onclick="monitorMiniGpsToggleAutoCycle()" title="Auto-cycle: หมุนดูรถทีละคัน"><i class="bi bi-shuffle"></i></button>
+                    <button type="button" id="mwgp-fs-btn" onclick="monitorMiniGpsToggleFullscreen()" title="Fullscreen เข้า/ออก"><i class="bi bi-arrows-angle-expand"></i></button>
                 </div>
                 <div class="mwgp-track" id="mwgp-track">
                     <div class="mwgp-track-row">
@@ -1268,6 +1361,16 @@
     var _mwgpMap = null, _mwgpMarkers = {}, _mwgpProviders = [], _mwgpVehicles = [];
     var _mwgpStatuses = {}, _mwgpInterval = null, _mwgpInited = false;
     var _mwgpRefitInterval = null;
+    // Phase-2 enhancements (TV mode):
+    var _mwgpSpeedHistory = {};   // key -> [{t, speed}], capped at 30 (= 5 min @ 10s)
+    var _mwgpPrevOnline = {};     // key -> bool — for online→offline alert
+    var _mwgpStatusFirstFetch = true; // skip alert on first poll
+    var _mwgpExpandedKey = null;  // currently expanded row
+    var _mwgpLabelsOn = true;     // marker labels visible
+    var _mwgpAutoCycle = false;
+    var _mwgpAutoCycleIdx = -1;
+    var _mwgpAutoCycleTimer = null;
+    var SPEED_WARN = 120;          // km/h threshold
 
     function monitorUpdateWideGpsPane() {
         var wide = window.matchMedia('(min-width: 2200px)').matches;
@@ -1332,6 +1435,28 @@
                 });
             } catch(e) { console.warn('mwgp status fetch:', p.name, e.message); }
         }
+        // Push speed history + detect online → offline transition (alert flash)
+        var now = Date.now();
+        _mwgpVehicles.forEach(function(v){
+            var key = v.device_id + '_' + v.provider;
+            var s = _mwgpStatuses[key];
+            if (!s) return;
+            // Speed history
+            if (s.speed != null) {
+                if (!_mwgpSpeedHistory[key]) _mwgpSpeedHistory[key] = [];
+                _mwgpSpeedHistory[key].push({ t: now, speed: s.speed });
+                if (_mwgpSpeedHistory[key].length > 30) _mwgpSpeedHistory[key].shift();
+            }
+            // Offline transition detection (skip on very first poll)
+            var prev = _mwgpPrevOnline[key];
+            var onlineNow = !!s.online;
+            if (!_mwgpStatusFirstFetch && prev === true && onlineNow === false) {
+                // Flag for flash render after render runs below
+                v.__mwgpAlert = true;
+            }
+            _mwgpPrevOnline[key] = onlineNow;
+        });
+        _mwgpStatusFirstFetch = false;
         monitorMiniGpsRender();
         monitorMiniGpsUpdateMarkers();
         if (_mwgpTrackedKey) _mwgpRenderTrackedBanner();
@@ -1343,6 +1468,142 @@
         }
         var btn = document.getElementById('mwgp-refresh-btn');
         if (btn) setTimeout(function(){ btn.classList.remove('spinning'); }, 400);
+    }
+
+    // ============================================================
+    // TV-mode controls: labels toggle, auto-cycle, fullscreen
+    // ============================================================
+    function monitorMiniGpsToggleLabels() {
+        _mwgpLabelsOn = !_mwgpLabelsOn;
+        var pane = document.getElementById('monitor-wide-gps-pane');
+        if (pane) pane.classList.toggle('labels-off', !_mwgpLabelsOn);
+        var btn = document.getElementById('mwgp-labels-btn');
+        if (btn) btn.classList.toggle('active', _mwgpLabelsOn);
+    }
+
+    function monitorMiniGpsToggleAutoCycle() {
+        _mwgpAutoCycle = !_mwgpAutoCycle;
+        var btn = document.getElementById('mwgp-cycle-btn');
+        if (btn) btn.classList.toggle('active', _mwgpAutoCycle);
+        if (_mwgpAutoCycleTimer) { clearInterval(_mwgpAutoCycleTimer); _mwgpAutoCycleTimer = null; }
+        if (_mwgpAutoCycle) {
+            _mwgpAutoCycleTick(); // immediate first cycle
+            _mwgpAutoCycleTimer = setInterval(_mwgpAutoCycleTick, 30000); // 30s per vehicle
+        } else {
+            // Optional: clear current track when stopping cycle
+            if (_mwgpTrackedKey) monitorMiniGpsClearTrack();
+        }
+    }
+    function _mwgpAutoCycleTick() {
+        if (!_mwgpAutoCycle) return;
+        var withCoords = _mwgpVehicles.filter(function(v){
+            var s = _mwgpStatuses[v.device_id + '_' + v.provider];
+            return s && s.lat && s.lng && !(s.lat === 0 && s.lng === 0);
+        });
+        if (!withCoords.length) return;
+        _mwgpAutoCycleIdx = (_mwgpAutoCycleIdx + 1) % withCoords.length;
+        var v = withCoords[_mwgpAutoCycleIdx];
+        monitorMiniGpsTrack(v.nickname || v.device_name || v.device_id);
+    }
+
+    function monitorMiniGpsToggleFullscreen() {
+        var btn = document.getElementById('mwgp-fs-btn');
+        if (!document.fullscreenElement) {
+            (document.documentElement.requestFullscreen ? document.documentElement.requestFullscreen() : Promise.reject())
+              .then(function(){
+                  document.body.classList.add('monitor-fs');
+                  if (btn) {
+                      btn.classList.add('active');
+                      btn.innerHTML = '<i class="bi bi-arrows-angle-contract"></i>';
+                      btn.title = 'ออกจาก Fullscreen';
+                  }
+              }).catch(function(){});
+        } else {
+            (document.exitFullscreen ? document.exitFullscreen() : Promise.reject()).then(function(){
+                document.body.classList.remove('monitor-fs');
+                if (btn) {
+                    btn.classList.remove('active');
+                    btn.innerHTML = '<i class="bi bi-arrows-angle-expand"></i>';
+                    btn.title = 'Fullscreen เข้า/ออก';
+                }
+            }).catch(function(){});
+        }
+    }
+    document.addEventListener('fullscreenchange', function(){
+        var btn = document.getElementById('mwgp-fs-btn');
+        if (!document.fullscreenElement) {
+            document.body.classList.remove('monitor-fs');
+            if (btn) {
+                btn.classList.remove('active');
+                btn.innerHTML = '<i class="bi bi-arrows-angle-expand"></i>';
+                btn.title = 'Fullscreen เข้า/ออก';
+            }
+        }
+    });
+
+    // Render speed sparkline for a vehicle key (returns SVG markup)
+    function _mwgpSparklineSvg(key) {
+        var hist = _mwgpSpeedHistory[key];
+        if (!hist || hist.length < 2) return '<div style="font-size:10.5px;color:#94a3b8;text-align:center;padding:8px 0;">ยังไม่มีประวัติ</div>';
+        var W = 220, H = 32, PAD = 2;
+        var maxV = Math.max(SPEED_WARN, Math.max.apply(null, hist.map(function(p){ return p.speed; })));
+        if (maxV < 1) maxV = 1;
+        var n = hist.length;
+        var pts = hist.map(function(p, i){
+            var x = PAD + (W - 2*PAD) * i / Math.max(1, n - 1);
+            var y = H - PAD - (H - 2*PAD) * (p.speed / maxV);
+            return x.toFixed(1) + ',' + y.toFixed(1);
+        }).join(' ');
+        // Area fill underneath
+        var areaPts = '0,' + H + ' ' + pts + ' ' + W + ',' + H;
+        return '<svg class="vh-spark" viewBox="0 0 ' + W + ' ' + H + '" preserveAspectRatio="none">' +
+                 '<polygon points="' + areaPts + '" fill="rgba(14,165,233,.12)"/>' +
+                 '<polyline points="' + pts + '" fill="none" stroke="#0ea5e9" stroke-width="1.5" stroke-linejoin="round"/>' +
+               '</svg>';
+    }
+
+    // Build expanded detail HTML for a vehicle row
+    function _mwgpRowDetailHtml(v, s, key) {
+        var hd = (s && s.heading != null) ? Math.round(s.heading) + '°' : '-';
+        var gpsTime = s && s.gpsTime ? s.gpsTime : '-';
+        var ageStr = _mwgpFormatGpsAge(s);
+        var hist = _mwgpSpeedHistory[key] || [];
+        var maxSpd = hist.length ? Math.max.apply(null, hist.map(function(p){ return p.speed; })) : 0;
+        return '<div class="vh-detail">' +
+                 '<div class="vh-detail-grid">' +
+                   '<div class="vh-stat-tile"><div class="lbl">Heading</div><div class="val">' + hd + '</div></div>' +
+                   '<div class="vh-stat-tile"><div class="lbl">GPS Time</div><div class="val">' + escapeHtml(gpsTime) + '</div></div>' +
+                   '<div class="vh-stat-tile"><div class="lbl">อายุข้อมูล</div><div class="val">' + escapeHtml(ageStr || '-') + '</div></div>' +
+                 '</div>' +
+                 '<div class="vh-spark-wrap">' +
+                   '<div class="vh-spark-head"><span>Speed (5 นาทีล่าสุด)</span><span class="max">สูงสุด ' + Math.round(maxSpd) + ' km/h</span></div>' +
+                   _mwgpSparklineSvg(key) +
+                 '</div>' +
+               '</div>';
+    }
+
+    // GPS age formatter — returns "Xs ago" / "Xm ago" / null if no time
+    function _mwgpFormatGpsAge(s) {
+        if (!s || !s.gpsTime) return null;
+        var t = new Date(s.gpsTime).getTime();
+        if (!t || isNaN(t)) return null;
+        var sec = Math.max(0, Math.floor((Date.now() - t) / 1000));
+        if (sec < 60) return sec + ' วิที่แล้ว';
+        if (sec < 3600) return Math.floor(sec / 60) + ' นาทีที่แล้ว';
+        return Math.floor(sec / 3600) + ' ชม.ที่แล้ว';
+    }
+
+    // Flash a row (e.g. when its marker on map is clicked) + scroll into view
+    function _mwgpFlashRow(key) {
+        var listEl = document.getElementById('mwgp-list');
+        if (!listEl) return;
+        var node = listEl.querySelector('[data-key="' + CSS.escape(key) + '"]');
+        if (!node) return;
+        node.scrollIntoView({ behavior:'smooth', block:'center' });
+        node.classList.remove('flash');
+        // force reflow to restart animation
+        void node.offsetWidth;
+        node.classList.add('flash');
     }
 
     // Manual: zoom out to fit all vehicles in view
@@ -1403,26 +1664,48 @@
             var plate = (r.v.nickname && r.v.device_name) ? r.v.device_name : '';
             var addr = _mwgpCleanAddress(r.s.address);
             var speedNum = r.s.speed != null ? r.s.speed : 0;
+            var ageStr = _mwgpFormatGpsAge(r.s);
+            var ageStale = ageStr && /นาที|ชม/.test(ageStr);
+            var warnBadge = (r.kind !== 'offline' && speedNum > SPEED_WARN)
+                ? '<div class="vh-warn">⚠ ' + Math.round(speedNum) + ' KM/H</div>' : '';
             var speedHtml;
             if (r.kind === 'offline') {
                 speedHtml = '<div class="vh-speed">OFFLINE</div>';
             } else {
                 speedHtml = '<div class="vh-speed">' + Math.round(speedNum) + '</div>' +
-                            '<div class="vh-unit">km/h</div>';
+                            '<div class="vh-unit">km/h</div>' + warnBadge;
             }
             var trackedCls = (key === _mwgpTrackedKey) ? ' tracked' : '';
+            var expandedCls = (key === _mwgpExpandedKey) ? ' expanded' : '';
             var clickName = (name || '').replace(/'/g, "\\'");
-            return '<div class="mwgp-vh ' + r.kind + trackedCls + '" onclick="monitorMiniGpsTrack(\'' + clickName + '\')" title="คลิกเพื่อตามรถคันนี้">' +
+            var detailHtml = (key === _mwgpExpandedKey) ? _mwgpRowDetailHtml(r.v, r.s, key) : '';
+            return '<div class="mwgp-vh ' + r.kind + trackedCls + expandedCls + '" data-key="' + escapeHtml(key) + '" onclick="monitorMiniGpsTrack(\'' + clickName + '\')" title="คลิกเพื่อตามรถคันนี้">' +
                      '<div class="vh-bar"></div>' +
                      '<div class="vh-body">' +
                        '<div class="vh-name">' + escapeHtml(name) +
                          (plate ? '<span class="vh-plate">' + escapeHtml(plate) + '</span>' : '') +
                        '</div>' +
                        '<div class="vh-addr"><i class="bi bi-geo-alt"></i><span class="vh-addr-text">' + escapeHtml(addr) + '</span></div>' +
+                       (ageStr ? '<div class="vh-age' + (ageStale ? ' stale' : '') + '"><i class="bi bi-clock-history"></i>' + escapeHtml(ageStr) + '</div>' : '') +
                      '</div>' +
                      '<div class="vh-right">' + speedHtml + '</div>' +
+                     detailHtml +
                    '</div>';
         }).join('');
+
+        // Trigger alert-flash on rows whose vehicle had a __mwgpAlert flag set in fetchStatuses
+        _mwgpVehicles.forEach(function(v){
+            if (v.__mwgpAlert) {
+                var key = v.device_id + '_' + v.provider;
+                var node = list.querySelector('[data-key="' + CSS.escape(key) + '"]');
+                if (node) {
+                    node.classList.remove('alert-flash');
+                    void node.offsetWidth;
+                    node.classList.add('alert-flash');
+                }
+                v.__mwgpAlert = false;
+            }
+        });
     }
 
     // Clean up provider address strings: drop "ประเทศไทย", strip leading "จังหวัด",
@@ -1471,6 +1754,8 @@
         }
         _mwgpTrackedKey = match.device_id + '_' + match.provider;
         _mwgpTrackedVehicle = match;
+        // Expand row for the tracked vehicle (shows heading + sparkline)
+        _mwgpExpandedKey = _mwgpTrackedKey;
 
         // Show banner
         var banner = document.getElementById('mwgp-track');
@@ -1479,6 +1764,8 @@
 
         // Render with whatever cached status we have, then re-fetch
         _mwgpRenderTrackedBanner();
+        monitorMiniGpsRender();
+        _mwgpScrollToRow(_mwgpTrackedKey);
         await monitorMiniGpsFetchStatuses();
         _mwgpRenderTrackedBanner();
         // Center map on tracked vehicle
@@ -1486,6 +1773,13 @@
         if (s && s.lat && s.lng && _mwgpMap) {
             _mwgpMap.setView([s.lat, s.lng], 16);
         }
+    }
+
+    function _mwgpScrollToRow(key) {
+        var listEl = document.getElementById('mwgp-list');
+        if (!listEl) return;
+        var node = listEl.querySelector('[data-key="' + CSS.escape(key) + '"]');
+        if (node) node.scrollIntoView({ behavior:'smooth', block:'center' });
     }
 
     function _mwgpRenderTrackedBanner() {
@@ -1522,9 +1816,10 @@
     function monitorMiniGpsClearTrack() {
         _mwgpTrackedKey = null;
         _mwgpTrackedVehicle = null;
+        _mwgpExpandedKey = null;
         var banner = document.getElementById('mwgp-track');
         if (banner) banner.classList.remove('show');
-        // Re-render markers (remove pulse) + list (remove .tracked highlight)
+        // Re-render markers (remove pulse) + list (remove .tracked highlight + collapse)
         monitorMiniGpsUpdateMarkers();
         monitorMiniGpsRender();
     }
@@ -1831,6 +2126,13 @@
                 _mwgpMarkers[key].setIcon(icon);
             } else {
                 _mwgpMarkers[key] = L.marker([s.lat, s.lng], { icon: icon, title: name }).addTo(_mwgpMap);
+                // Click marker → highlight in list (scroll + flash) and track
+                (function(boundKey, boundName){
+                    _mwgpMarkers[boundKey].on('click', function(){
+                        _mwgpFlashRow(boundKey);
+                        monitorMiniGpsTrack(boundName);
+                    });
+                })(key, name);
             }
             bounds.push([s.lat, s.lng]);
         });
