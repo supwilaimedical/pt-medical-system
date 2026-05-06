@@ -78,11 +78,13 @@
             .monitor-section-header h5{ font-size:14px; }
         }
 
-        /* Auto-fit grid — card width fixed at ~440px, more cols on wide screens */
+        /* Auto-fit grid — card width fixed at ~440px, more cols on wide screens.
+           Padding 0 18px so cards align with section headers (which have padding:10 18px). */
         #monitor-transport-list, #monitor-fa-list{
             display:grid !important;
             grid-template-columns:repeat(auto-fill, minmax(min(100%, 320px), 1fr));
             gap:12px;
+            padding:0 18px 12px;
         }
         #monitor-transport-list > [class*="col-"],
         #monitor-fa-list > [class*="col-"]{
@@ -93,6 +95,7 @@
         @media (max-width:520px){
             #monitor-transport-list, #monitor-fa-list{
                 grid-template-columns:1fr;
+                padding:0 12px 10px;
             }
         }
 
