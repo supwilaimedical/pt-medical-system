@@ -46,6 +46,27 @@
             background:#dcfce7; color:#166534;
             font-size:11.5px; font-weight:600;
         }
+        /* Wallboard toggle — gray off, sky-blue on, hidden if viewport too small */
+        .monitor-page-header .mph-wallboard{
+            display:inline-flex; align-items:center; gap:6px;
+            padding:5px 11px; border-radius:999px;
+            background:#f1f5f9; color:#475569; border:1px solid #e2e8f0;
+            font-size:11.5px; font-weight:600; cursor:pointer;
+            transition: background .15s, color .15s, border-color .15s;
+        }
+        .monitor-page-header .mph-wallboard:hover{
+            background:#e2e8f0; color:#0f172a;
+        }
+        .monitor-page-header .mph-wallboard.on{
+            background:#0ea5e9; color:#fff; border-color:#0ea5e9;
+        }
+        .monitor-page-header .mph-wallboard.on:hover{ background:#0284c7; }
+        @media (max-width: 1099px){
+            .monitor-page-header .mph-wallboard{ display:none; } /* viewport too small */
+        }
+        @media (max-width: 767px){
+            .monitor-page-header .mph-wallboard .lbl{ display:none; } /* icon-only on mobile */
+        }
         .monitor-page-header .mph-live .dot{
             width:7px; height:7px; border-radius:50%; background:#16a34a;
             box-shadow:0 0 0 3px rgba(22,163,74,.25);
@@ -1066,6 +1087,9 @@
                         <h3><i class="bi bi-activity"></i> ศูนย์ควบคุม</h3>
                         <div class="sub">Monitor · เรียลไทม์</div>
                     </div>
+                    <button type="button" id="mph-wallboard-btn" class="mph-wallboard" onclick="monitorToggleWallboard()" title="Wallboard mode (เปิด GPS pane ขวา)">
+                        <i class="bi bi-tv"></i> <span class="lbl">Wallboard</span>
+                    </button>
                     <span class="mph-live"><span class="dot"></span> LIVE</span>
                 </div>
 
@@ -1372,30 +1396,69 @@
     var _mwgpAutoCycleTimer = null;
     var SPEED_WARN = 120;          // km/h threshold
 
+    // Wallboard mode override: localStorage 'pt_wallboard_mode' = 'on' / 'off' / null(=auto)
+    // - 'on'  → force show pane (regardless of viewport, except < 1100px)
+    // - 'off' → force hide pane
+    // - null  → auto: show if viewport >= 1900px (matchMedia)
+    var WALLBOARD_KEY = 'pt_wallboard_mode';
+    var WALLBOARD_MIN_WIDTH = 1100; // hard floor — pane will never show below this
+
+    function _wallboardWantsShow() {
+        var enabled = !!window._gpsEnabled;
+        if (!enabled) return false;
+        var override = null;
+        try { override = localStorage.getItem(WALLBOARD_KEY); } catch(e){}
+        var vw = window.innerWidth || document.documentElement.clientWidth || 0;
+        if (vw < WALLBOARD_MIN_WIDTH) return false; // hard mobile floor
+        if (override === 'on')  return true;
+        if (override === 'off') return false;
+        // Auto
+        return window.matchMedia('(min-width: 1900px)').matches;
+    }
+
+    function _syncWallboardButton() {
+        var btn = document.getElementById('mph-wallboard-btn');
+        if (!btn) return;
+        var on = document.body.classList.contains('monitor-wide-active');
+        btn.classList.toggle('on', on);
+        var override = null;
+        try { override = localStorage.getItem(WALLBOARD_KEY); } catch(e){}
+        var hint = override === 'on' ? 'เปิดถาวร — คลิกเพื่อปิด'
+                 : override === 'off' ? 'ปิดถาวร — คลิกเพื่อเปิด'
+                 : (on ? 'Auto: เปิดเพราะจอกว้างพอ — คลิกบังคับปิด'
+                       : 'Auto: ปิดเพราะจอแคบ — คลิกบังคับเปิด');
+        btn.title = hint;
+    }
+
     // Synchronous: toggle class instantly. Init happens in background — pane
     // chrome appears immediately even if data is still loading.
     function monitorUpdateWideGpsPane() {
-        var wide = window.matchMedia('(min-width: 1900px)').matches;
-        var enabled = !!window._gpsEnabled;
         var pane = document.getElementById('monitor-wide-gps-pane');
         if (!pane) return;
-        if (wide && enabled) {
+        var want = _wallboardWantsShow();
+        if (want) {
             document.body.classList.add('monitor-wide-active');
             if (!_mwgpInited) {
                 _mwgpInited = true;
-                // Fire-and-forget — don't block class toggle on network
                 Promise.resolve().then(monitorMiniGpsInit);
             } else if (_mwgpMap) {
-                // Map already exists — just resync tile layout
                 _mwgpMap.invalidateSize();
             }
         } else {
             document.body.classList.remove('monitor-wide-active');
         }
+        _syncWallboardButton();
+    }
+
+    // Manual toggle — sets explicit override (otherwise auto)
+    function monitorToggleWallboard() {
+        var on = document.body.classList.contains('monitor-wide-active');
+        try { localStorage.setItem(WALLBOARD_KEY, on ? 'off' : 'on'); } catch(e){}
+        monitorUpdateWideGpsPane();
     }
 
     // Use matchMedia change listener — fires INSTANTLY at the exact moment
-    // viewport crosses the 1900px threshold (no debounce needed).
+    // viewport crosses the 1900px threshold (only matters in 'auto' mode).
     (function _wireWideMql(){
         try {
             var mql = window.matchMedia('(min-width: 1900px)');
