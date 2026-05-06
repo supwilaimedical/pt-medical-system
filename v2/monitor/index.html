@@ -356,6 +356,16 @@
   body:has(#login-view.d-flex) .v2-subnav,
   body:has(#login-view.d-flex) .v2-mobile-nav-toggle{ display:none !important; }
   body:has(#login-view.d-flex){ padding-left:0 !important; }
+
+  /* Print: always hide chrome (hamburger, rail, subnav) regardless of print path */
+  @media print {
+    .v2-mobile-nav-toggle,
+    .v2-rail,
+    .v2-subnav,
+    .v2-mobile-rail-strip,
+    .no-print { display:none !important; }
+    body::before, body::after { display:none !important; content:none !important; }
+  }
 </style>
 
 <button class="v2-mobile-nav-toggle no-print" onclick="document.body.classList.toggle('v2-nav-open')" aria-label="เมนู" title="เมนู"><i class="bi bi-list"></i></button>
