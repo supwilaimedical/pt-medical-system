@@ -78,13 +78,16 @@
             .monitor-section-header h5{ font-size:14px; }
         }
 
-        /* Auto-fit grid — card width fixed at ~440px, more cols on wide screens.
+        /* Auto-fill grid — same pattern as firstaid (#fa-events-container):
+           cards 260–340px wide (max), justify-start so a single card doesn't balloon to fill width.
            Padding 0 18px so cards align with section headers (which have padding:10 18px). */
         #monitor-transport-list, #monitor-fa-list{
             display:grid !important;
-            grid-template-columns:repeat(auto-fill, minmax(min(100%, 320px), 1fr));
-            gap:12px;
-            padding:0 18px 12px;
+            grid-template-columns:repeat(auto-fill, minmax(260px, 340px)) !important;
+            justify-content:start !important;
+            gap:14px !important;
+            padding:0 18px 14px !important;
+            margin:0 !important;
         }
         #monitor-transport-list > [class*="col-"],
         #monitor-fa-list > [class*="col-"]{
@@ -92,10 +95,10 @@
             width:auto !important; max-width:none !important; flex:none !important;
             padding:0 !important;
         }
-        @media (max-width:520px){
+        @media (max-width:575px){
             #monitor-transport-list, #monitor-fa-list{
-                grid-template-columns:1fr;
-                padding:0 12px 10px;
+                grid-template-columns:1fr !important;
+                padding:0 12px 12px !important;
             }
         }
 
