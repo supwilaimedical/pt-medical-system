@@ -622,13 +622,21 @@
     body.monitor-wide-active #monitor-wide-gps-pane .mwgp-empty{
       text-align:center; color:#94a3b8; font-size:13px; padding:30px;
     }
-    /* Vehicle row — island-card style */
+    /* Vehicle row — island-card style, clickable to track on map */
     body.monitor-wide-active #monitor-wide-gps-pane .mwgp-vh{
       display:grid; grid-template-columns: 6px 1fr 96px;
       align-items:stretch; gap:0;
       background:#fff; border:1px solid #e2e8f0; border-radius:10px;
       margin-bottom:8px; overflow:hidden;
       box-shadow:0 1px 2px rgba(15,23,42,.04);
+      cursor:pointer; transition: box-shadow .15s, border-color .15s, transform .1s;
+    }
+    body.monitor-wide-active #monitor-wide-gps-pane .mwgp-vh:hover{
+      border-color:#7dd3fc; box-shadow:0 2px 8px rgba(14,165,233,.15);
+    }
+    body.monitor-wide-active #monitor-wide-gps-pane .mwgp-vh:active{ transform: translateY(1px); }
+    body.monitor-wide-active #monitor-wide-gps-pane .mwgp-vh.tracked{
+      border-color:#0284c7; box-shadow:0 0 0 2px rgba(14,165,233,.25), 0 2px 8px rgba(14,165,233,.18);
     }
     body.monitor-wide-active #monitor-wide-gps-pane .mwgp-vh .vh-bar{
       align-self:stretch; min-height:60px;
@@ -1269,9 +1277,9 @@
 
             await monitorMiniGpsFetchStatuses();
 
-            // Auto-refresh status every 30s
+            // Auto-refresh status every 10s (TV mode = wants near-realtime)
             if (_mwgpInterval) clearInterval(_mwgpInterval);
-            _mwgpInterval = setInterval(monitorMiniGpsFetchStatuses, 30000);
+            _mwgpInterval = setInterval(monitorMiniGpsFetchStatuses, 10000);
 
             // Periodic auto-refit so map keeps all vehicles in view (every 2 min)
             if (_mwgpRefitInterval) clearInterval(_mwgpRefitInterval);
@@ -1340,6 +1348,7 @@
         });
 
         list.innerHTML = rows.map(function(r){
+            var key = r.v.device_id + '_' + r.v.provider;
             var name = r.v.nickname || r.v.device_name || r.v.device_id || '-';
             var plate = (r.v.nickname && r.v.device_name) ? r.v.device_name : '';
             var addr = _mwgpCleanAddress(r.s.address);
@@ -1351,7 +1360,9 @@
                 speedHtml = '<div class="vh-speed">' + Math.round(speedNum) + '</div>' +
                             '<div class="vh-unit">km/h</div>';
             }
-            return '<div class="mwgp-vh ' + r.kind + '">' +
+            var trackedCls = (key === _mwgpTrackedKey) ? ' tracked' : '';
+            var clickName = (name || '').replace(/'/g, "\\'");
+            return '<div class="mwgp-vh ' + r.kind + trackedCls + '" onclick="monitorMiniGpsTrack(\'' + clickName + '\')" title="คลิกเพื่อตามรถคันนี้">' +
                      '<div class="vh-bar"></div>' +
                      '<div class="vh-body">' +
                        '<div class="vh-name">' + escapeHtml(name) +
@@ -1463,8 +1474,9 @@
         _mwgpTrackedVehicle = null;
         var banner = document.getElementById('mwgp-track');
         if (banner) banner.classList.remove('show');
-        // Re-render markers to remove pulse
+        // Re-render markers (remove pulse) + list (remove .tracked highlight)
         monitorMiniGpsUpdateMarkers();
+        monitorMiniGpsRender();
     }
 
     function monitorMiniGpsTrackedCamera() {
