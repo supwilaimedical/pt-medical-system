@@ -424,6 +424,26 @@
     body.monitor-wide-active #monitor-wide-gps-pane #mwgp-map{
       flex:1 1 60%; min-height:420px; background:#e2e8f0; position:relative;
     }
+    /* Map control buttons (top-right overlay) */
+    body.monitor-wide-active #monitor-wide-gps-pane .mwgp-mapctrl{
+      position:absolute; top:10px; right:10px; z-index:500;
+      display:flex; flex-direction:column; gap:4px;
+    }
+    body.monitor-wide-active #monitor-wide-gps-pane .mwgp-mapctrl button{
+      width:34px; height:34px; border-radius:8px; border:1px solid #cbd5e1;
+      background:#fff; color:#475569; cursor:pointer; padding:0;
+      display:inline-flex; align-items:center; justify-content:center;
+      font-size:15px; box-shadow:0 1px 4px rgba(15,23,42,.12);
+      transition: background .12s, color .12s, border-color .12s;
+    }
+    body.monitor-wide-active #monitor-wide-gps-pane .mwgp-mapctrl button:hover{
+      background:#f8fafc; color:#0f172a; border-color:#94a3b8;
+    }
+    body.monitor-wide-active #monitor-wide-gps-pane .mwgp-mapctrl button.spinning i{
+      animation: mwgp-spin 1s linear infinite;
+    }
+    @keyframes mwgp-spin { to { transform: rotate(360deg); } }
+
     /* Tracking banner — overlays the map top edge when a case GPS button was clicked */
     body.monitor-wide-active #monitor-wide-gps-pane .mwgp-track{
       position:absolute; top:10px; left:10px; right:10px; z-index:500;
@@ -1020,6 +1040,11 @@
                 <span class="mwgp-updated" id="mwgp-updated">--:--:--</span>
             </div>
             <div id="mwgp-map">
+                <!-- Map controls (top-right overlay) -->
+                <div class="mwgp-mapctrl" id="mwgp-mapctrl">
+                    <button type="button" id="mwgp-fit-btn" onclick="monitorMiniGpsFitAll()" title="ซูมให้เห็นรถทุกคัน"><i class="bi bi-arrows-fullscreen"></i></button>
+                    <button type="button" id="mwgp-refresh-btn" onclick="monitorMiniGpsRefresh()" title="รีเฟรชสถานะทันที"><i class="bi bi-arrow-clockwise"></i></button>
+                </div>
                 <div class="mwgp-track" id="mwgp-track">
                     <div class="mwgp-track-row">
                         <span class="mwgp-track-name"><i class="bi bi-broadcast"></i><span id="mwgp-track-name-text">-</span></span>
@@ -1057,6 +1082,8 @@
                             <button type="button" data-r="2000">2 km</button>
                             <button type="button" data-r="5000" class="active">5 km</button>
                             <button type="button" data-r="10000">10 km</button>
+                            <button type="button" data-r="15000">15 km</button>
+                            <button type="button" data-r="25000">25 km</button>
                         </div>
                     </div>
                     <div class="mwgp-nearby-list" id="mwgp-nb-list">
@@ -1294,6 +1321,8 @@
     }
 
     async function monitorMiniGpsFetchStatuses() {
+        var btn = document.getElementById('mwgp-refresh-btn');
+        if (btn) btn.classList.add('spinning');
         for (var i = 0; i < _mwgpProviders.length; i++) {
             var p = _mwgpProviders[i];
             try {
@@ -1312,6 +1341,27 @@
             var pad = function(n){ return n < 10 ? '0' + n : n; };
             u.textContent = 'อัปเดต ' + pad(d.getHours()) + ':' + pad(d.getMinutes()) + ':' + pad(d.getSeconds());
         }
+        var btn = document.getElementById('mwgp-refresh-btn');
+        if (btn) setTimeout(function(){ btn.classList.remove('spinning'); }, 400);
+    }
+
+    // Manual: zoom out to fit all vehicles in view
+    function monitorMiniGpsFitAll() {
+        if (!_mwgpMap) return;
+        var bounds = [];
+        _mwgpVehicles.forEach(function(v){
+            var s = _mwgpStatuses[v.device_id + '_' + v.provider];
+            if (s && s.lat && s.lng && !(s.lat === 0 && s.lng === 0)) {
+                bounds.push([s.lat, s.lng]);
+            }
+        });
+        if (!bounds.length) {
+            Swal.fire({ icon:'info', title:'ไม่มีพิกัดรถเลย', timer:1800, showConfirmButton:false });
+            return;
+        }
+        try {
+            _mwgpMap.fitBounds(bounds, { padding:[40,40], maxZoom:14, animate:true });
+        } catch(e){}
     }
 
     function _mwgpVehKind(s) {
