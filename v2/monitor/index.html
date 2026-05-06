@@ -357,7 +357,7 @@
   body:has(#login-view.d-flex) .v2-mobile-nav-toggle{ display:none !important; }
   body:has(#login-view.d-flex){ padding-left:0 !important; }
 
-  /* ===== Wide-screen (>=2200px) right pane: TV-optimized GPS panel =====
+  /* ===== Wide-screen (>=1900px) right pane: TV-optimized GPS panel =====
      Designed for glance-from-distance viewing on a wall TV. No interactivity:
      no search box, no filter buttons, no click-to-focus. Big readable fonts,
      strong color coding, vehicle name labels on markers. */
@@ -365,7 +365,7 @@
   body:not(.gps-enabled) .gps-track-btn{ display:none !important; }
 
   #monitor-wide-gps-pane{ display:none; }
-  @media (min-width: 2200px){
+  @media (min-width: 1900px){
     body.monitor-wide-active #app-main-wrapper > .container-fluid{
       padding-right: 740px !important;  /* exactly = pane width, no seam */
     }
@@ -1115,7 +1115,7 @@
             </div>
         </div>
 
-        <!-- Wide-screen (>=2200px) right pane: TV-optimized GPS panel
+        <!-- Wide-screen (>=1900px) right pane: TV-optimized GPS panel
              Glanceable, no controls. Header shows online/offline split.
              Map labels show vehicle names. Fleet rows are big + bold. -->
         <aside id="monitor-wide-gps-pane" class="no-print" aria-label="GPS Live (TV)">
@@ -1355,7 +1355,7 @@
     }
 
     // ============================================================
-    // Wide-screen (>=2200px) TV-optimized GPS panel
+    // Wide-screen (>=1900px) TV-optimized GPS panel
     // No interactivity (TV mode). Big fonts. Glanceable.
     // ============================================================
     var _mwgpMap = null, _mwgpMarkers = {}, _mwgpProviders = [], _mwgpVehicles = [];
@@ -1373,7 +1373,7 @@
     var SPEED_WARN = 120;          // km/h threshold
 
     function monitorUpdateWideGpsPane() {
-        var wide = window.matchMedia('(min-width: 2200px)').matches;
+        var wide = window.matchMedia('(min-width: 1900px)').matches;
         var enabled = !!window._gpsEnabled;
         var pane = document.getElementById('monitor-wide-gps-pane');
         if (!pane) return;
