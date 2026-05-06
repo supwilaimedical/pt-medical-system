@@ -357,8 +357,38 @@
   body:has(#login-view.d-flex) .v2-mobile-nav-toggle{ display:none !important; }
   body:has(#login-view.d-flex){ padding-left:0 !important; }
 
+  /* ===== Wide-screen (>=2200px) right pane: embedded GPS ===== */
+  #monitor-wide-gps-pane{ display:none; }
+  @media (min-width: 2200px){
+    body.monitor-wide-active #app-main-wrapper > .container-fluid{
+      padding-right: 740px !important;
+    }
+    body.monitor-wide-active #monitor-wide-gps-pane{
+      display:block; position:fixed; top:54px; right:0; bottom:0;
+      width:720px; background:#fff; border-left:1px solid #e2e8f0;
+      box-shadow:-2px 0 14px rgba(15,23,42,.06); z-index:1030;
+      overflow:hidden;
+    }
+    body.monitor-wide-active #monitor-wide-gps-pane .mwgp-head{
+      display:flex; align-items:center; justify-content:space-between;
+      gap:8px; padding:8px 12px; background:#f8fafc;
+      border-bottom:1px solid #e2e8f0; font-size:13px;
+    }
+    body.monitor-wide-active #monitor-wide-gps-pane .mwgp-head .ttl{
+      font-weight:600; color:#0f172a; display:flex; align-items:center; gap:6px;
+    }
+    body.monitor-wide-active #monitor-wide-gps-pane .mwgp-head .act{
+      display:flex; gap:6px;
+    }
+    body.monitor-wide-active #monitor-wide-gps-pane iframe{
+      width:100%; height:calc(100% - 38px); border:0; display:block;
+      transform-origin: 0 0;
+    }
+  }
+
   /* Print: always hide chrome (hamburger, rail, subnav) regardless of print path */
   @media print {
+    #monitor-wide-gps-pane,
     .v2-mobile-nav-toggle,
     .v2-rail,
     .v2-subnav,
@@ -679,6 +709,18 @@
             </div>
         </div>
 
+        <!-- Wide-screen (>=2200px) right pane: full GPS embedded -->
+        <aside id="monitor-wide-gps-pane" class="no-print" aria-label="GPS Live (wide screen)">
+            <div class="mwgp-head">
+                <div class="ttl"><i class="bi bi-broadcast text-success"></i> GPS Live</div>
+                <div class="act">
+                    <button type="button" class="btn btn-sm btn-outline-secondary py-0 px-2" onclick="monitorReloadWideGps()" title="รีโหลดแผนที่"><i class="bi bi-arrow-clockwise"></i></button>
+                    <a class="btn btn-sm btn-outline-primary py-0 px-2" href="../gps/" target="_blank" title="เปิดเต็มจอ"><i class="bi bi-box-arrow-up-right"></i></a>
+                </div>
+            </div>
+            <iframe id="monitor-wide-gps-iframe" loading="lazy" title="GPS Tracking"></iframe>
+        </aside>
+
     </div><!-- /app-main-wrapper -->
 
     <!-- Print Layout Container (for Monitor Reports) -->
@@ -843,7 +885,35 @@
                 }
             });
         } catch(e) { console.error(e); }
+        try { monitorUpdateWideGpsPane(); } catch(e){}
     }
+
+    // Wide-screen (>=2200px) GPS pane: lazy-load iframe + activate body class
+    function monitorUpdateWideGpsPane() {
+        var wide = window.matchMedia('(min-width: 2200px)').matches;
+        var enabled = !!window._gpsEnabled;
+        var pane = document.getElementById('monitor-wide-gps-pane');
+        var iframe = document.getElementById('monitor-wide-gps-iframe');
+        if (!pane || !iframe) return;
+        if (wide && enabled) {
+            if (!iframe.src) iframe.src = '../gps/index.html';
+            document.body.classList.add('monitor-wide-active');
+        } else {
+            document.body.classList.remove('monitor-wide-active');
+        }
+    }
+    function monitorReloadWideGps() {
+        var iframe = document.getElementById('monitor-wide-gps-iframe');
+        if (iframe) iframe.src = iframe.src || '../gps/index.html';
+        else return;
+        // force reload by toggling
+        var s = iframe.src; iframe.src = 'about:blank';
+        setTimeout(function(){ iframe.src = s; }, 50);
+    }
+    window.addEventListener('resize', function(){
+        if (window._gpsResizeTO) clearTimeout(window._gpsResizeTO);
+        window._gpsResizeTO = setTimeout(monitorUpdateWideGpsPane, 200);
+    });
 
     // =============================================
     // DATA ADAPTERS (Supabase snake_case -> original camelCase)
