@@ -364,12 +364,12 @@
   #monitor-wide-gps-pane{ display:none; }
   @media (min-width: 2200px){
     body.monitor-wide-active #app-main-wrapper > .container-fluid{
-      padding-right: 760px !important;
+      padding-right: 740px !important;  /* exactly = pane width, no seam */
     }
     body.monitor-wide-active #monitor-wide-gps-pane{
-      display:flex; flex-direction:column; position:fixed; top:54px; right:0; bottom:0;
+      display:flex; flex-direction:column; position:fixed; top:0; right:0; bottom:0;
       width:740px; background:#f8fafc; color:#0f172a;
-      border-left:1px solid #e2e8f0; z-index:1030; overflow:hidden;
+      border-left:1px solid #e2e8f0; z-index:20; overflow:hidden;
       font-family: inherit;
     }
     /* Header — exact same height/padding as .monitor-page-header so the
