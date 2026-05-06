@@ -386,7 +386,8 @@
   body:not(.gps-enabled) .gps-track-btn{ display:none !important; }
 
   #monitor-wide-gps-pane{ display:none; }
-  @media (min-width: 1900px){
+  /* Pane visibility & layout gated by body.monitor-wide-active alone — the
+     class is set by JS based on viewport >=1900 OR explicit Wallboard toggle. */
     body.monitor-wide-active #app-main-wrapper > .container-fluid{
       padding-right: 740px !important;  /* exactly = pane width, no seam */
     }
@@ -811,7 +812,6 @@
     body.monitor-wide-active #monitor-wide-gps-pane .mwgp-vh .vh-unit{
       font-size:10px; color:#94a3b8; margin-top:3px; font-weight:600; letter-spacing:.3px;
     }
-  }
 
   /* Print: always hide chrome (hamburger, rail, subnav) regardless of print path */
   @media print {
