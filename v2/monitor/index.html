@@ -419,7 +419,77 @@
     }
     /* Map */
     body.monitor-wide-active #monitor-wide-gps-pane #mwgp-map{
-      flex:1 1 60%; min-height:420px; background:#e2e8f0;
+      flex:1 1 60%; min-height:420px; background:#e2e8f0; position:relative;
+    }
+    /* Tracking banner — overlays the map top edge when a case GPS button was clicked */
+    body.monitor-wide-active #monitor-wide-gps-pane .mwgp-track{
+      position:absolute; top:10px; left:10px; right:10px; z-index:500;
+      background:#fff; border:1px solid #e2e8f0; border-radius:10px;
+      box-shadow:0 4px 14px rgba(15,23,42,.12);
+      padding:10px 12px; display:none;
+    }
+    body.monitor-wide-active #monitor-wide-gps-pane .mwgp-track.show{ display:block; }
+    body.monitor-wide-active #monitor-wide-gps-pane .mwgp-track-row{
+      display:flex; align-items:center; gap:8px; flex-wrap:wrap;
+    }
+    body.monitor-wide-active #monitor-wide-gps-pane .mwgp-track-name{
+      font-size:14px; font-weight:700; color:#0f172a;
+      flex:1; min-width:0;
+      white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+    }
+    body.monitor-wide-active #monitor-wide-gps-pane .mwgp-track-name i{
+      color:#0ea5e9; margin-right:5px;
+    }
+    body.monitor-wide-active #monitor-wide-gps-pane .mwgp-track-pill{
+      display:inline-flex; align-items:center; gap:5px;
+      padding:0 8px; height:18px; line-height:18px; border-radius:100px;
+      font-size:10.5px; font-weight:700; letter-spacing:.3px;
+    }
+    body.monitor-wide-active #monitor-wide-gps-pane .mwgp-track-pill.online{ background:#dcfce7; color:#166534; }
+    body.monitor-wide-active #monitor-wide-gps-pane .mwgp-track-pill.offline{ background:#fee2e2; color:#991b1b; }
+    body.monitor-wide-active #monitor-wide-gps-pane .mwgp-track-speed{
+      font-size:13px; font-weight:700; color:#0f172a; font-variant-numeric:tabular-nums;
+    }
+    body.monitor-wide-active #monitor-wide-gps-pane .mwgp-track-close{
+      width:24px; height:24px; border-radius:50%; border:none;
+      background:#f1f5f9; color:#475569; font-size:13px; line-height:1; cursor:pointer;
+      display:inline-flex; align-items:center; justify-content:center;
+    }
+    body.monitor-wide-active #monitor-wide-gps-pane .mwgp-track-close:hover{ background:#e2e8f0; color:#0f172a; }
+    body.monitor-wide-active #monitor-wide-gps-pane .mwgp-track-addr{
+      font-size:11.5px; color:#64748b; margin-top:5px;
+      display:flex; align-items:center; gap:4px;
+    }
+    body.monitor-wide-active #monitor-wide-gps-pane .mwgp-track-addr i{ color:#94a3b8; flex:0 0 auto; font-size:11px; }
+    body.monitor-wide-active #monitor-wide-gps-pane .mwgp-track-addr span{
+      white-space:nowrap; overflow:hidden; text-overflow:ellipsis; min-width:0;
+    }
+    body.monitor-wide-active #monitor-wide-gps-pane .mwgp-track-actions{
+      display:flex; gap:6px; margin-top:8px;
+    }
+    body.monitor-wide-active #monitor-wide-gps-pane .mwgp-track-btn{
+      flex:1; padding:6px 10px; border-radius:8px; border:1px solid transparent;
+      font-size:12px; font-weight:600; cursor:pointer;
+      display:inline-flex; align-items:center; justify-content:center; gap:5px;
+      transition:filter .15s;
+    }
+    body.monitor-wide-active #monitor-wide-gps-pane .mwgp-track-btn:hover{ filter:brightness(1.05); }
+    body.monitor-wide-active #monitor-wide-gps-pane .mwgp-track-btn.nearby{ background:#fef2f2; color:#b91c1c; border-color:#fecaca; }
+    body.monitor-wide-active #monitor-wide-gps-pane .mwgp-track-btn.camera{ background:#fefce8; color:#854d0e; border-color:#fde68a; }
+    body.monitor-wide-active #monitor-wide-gps-pane .mwgp-track-btn:disabled{ opacity:.5; cursor:not-allowed; }
+
+    /* Tracked-vehicle marker pulse */
+    @keyframes mwgp-pulse {
+      0% { transform: scale(1); opacity:.85; }
+      50% { transform: scale(1.7); opacity:0; }
+      100% { transform: scale(1); opacity:0; }
+    }
+    .mwgp-marker-tracked .mwgp-pulse-ring{
+      position:absolute; top:0; left:50%; transform:translateX(-50%);
+      width:32px; height:32px; border-radius:50%;
+      background:#0ea5e9; opacity:.6;
+      animation: mwgp-pulse 1.6s ease-out infinite;
+      pointer-events:none;
     }
     /* Marker label below arrow — light theme */
     .mwgp-marker-wrap{ position:relative; }
@@ -833,7 +903,21 @@
                 </div>
                 <span class="mwgp-updated" id="mwgp-updated">--:--:--</span>
             </div>
-            <div id="mwgp-map"></div>
+            <div id="mwgp-map">
+                <div class="mwgp-track" id="mwgp-track">
+                    <div class="mwgp-track-row">
+                        <span class="mwgp-track-name"><i class="bi bi-broadcast"></i><span id="mwgp-track-name-text">-</span></span>
+                        <span class="mwgp-track-pill" id="mwgp-track-pill">-</span>
+                        <span class="mwgp-track-speed" id="mwgp-track-speed">- km/h</span>
+                        <button type="button" class="mwgp-track-close" onclick="monitorMiniGpsClearTrack()" title="ปิด"><i class="bi bi-x-lg"></i></button>
+                    </div>
+                    <div class="mwgp-track-addr"><i class="bi bi-geo-alt"></i><span id="mwgp-track-addr-text">-</span></div>
+                    <div class="mwgp-track-actions">
+                        <button type="button" class="mwgp-track-btn nearby" id="mwgp-track-nearby-btn" onclick="monitorMiniGpsTrackedNearby()"><i class="bi bi-hospital"></i> ค้นหาใกล้รถ</button>
+                        <button type="button" class="mwgp-track-btn camera" id="mwgp-track-camera-btn" onclick="monitorMiniGpsTrackedCamera()"><i class="bi bi-camera-video"></i> Camera</button>
+                    </div>
+                </div>
+            </div>
             <div class="mwgp-fleet">
                 <div id="mwgp-list" class="mwgp-list">
                     <div class="mwgp-empty">กำลังโหลด...</div>
@@ -1079,6 +1163,7 @@
         }
         monitorMiniGpsRender();
         monitorMiniGpsUpdateMarkers();
+        if (_mwgpTrackedKey) _mwgpRenderTrackedBanner();
         var u = document.getElementById('mwgp-updated');
         if (u) {
             var d = new Date();
@@ -1159,6 +1244,120 @@
         return s || '-';
     }
 
+    // ============================================================
+    // Tracked vehicle (when user clicks GPS button on a transport case)
+    // ============================================================
+    var _mwgpTrackedKey = null;
+    var _mwgpTrackedVehicle = null;
+
+    function _mwgpFindVehicleByName(name) {
+        if (!name) return null;
+        var lower = String(name).toLowerCase();
+        return (_mwgpVehicles || []).find(function(v){
+            var nick = (v.nickname || '').toLowerCase();
+            var dname = (v.device_name || '').toLowerCase();
+            return nick === lower || dname === lower
+                || (nick && (nick.indexOf(lower) >= 0 || lower.indexOf(nick) >= 0))
+                || (dname && (dname.indexOf(lower) >= 0 || lower.indexOf(dname) >= 0));
+        }) || null;
+    }
+
+    async function monitorMiniGpsTrack(vehicleName) {
+        // Need providers + vehicles loaded; init pane if not yet
+        if (!_mwgpInited) {
+            _mwgpInited = true;
+            await monitorMiniGpsInit();
+        }
+
+        var match = _mwgpFindVehicleByName(vehicleName);
+        if (!match) {
+            Swal.fire({ icon:'warning', title:'ไม่พบรถ', text:'ไม่พบรถ "' + vehicleName + '" ในระบบ GPS', timer:2500, showConfirmButton:false });
+            return;
+        }
+        _mwgpTrackedKey = match.device_id + '_' + match.provider;
+        _mwgpTrackedVehicle = match;
+
+        // Show banner
+        var banner = document.getElementById('mwgp-track');
+        if (banner) banner.classList.add('show');
+        document.getElementById('mwgp-track-name-text').textContent = match.nickname || match.device_name || match.device_id;
+
+        // Render with whatever cached status we have, then re-fetch
+        _mwgpRenderTrackedBanner();
+        await monitorMiniGpsFetchStatuses();
+        _mwgpRenderTrackedBanner();
+        // Center map on tracked vehicle
+        var s = _mwgpStatuses[_mwgpTrackedKey];
+        if (s && s.lat && s.lng && _mwgpMap) {
+            _mwgpMap.setView([s.lat, s.lng], 16);
+        }
+    }
+
+    function _mwgpRenderTrackedBanner() {
+        if (!_mwgpTrackedKey) return;
+        var s = _mwgpStatuses[_mwgpTrackedKey] || {};
+        var pill = document.getElementById('mwgp-track-pill');
+        var spd = document.getElementById('mwgp-track-speed');
+        var addr = document.getElementById('mwgp-track-addr-text');
+        var nearbyBtn = document.getElementById('mwgp-track-nearby-btn');
+        var cameraBtn = document.getElementById('mwgp-track-camera-btn');
+        if (s.online) {
+            pill.className = 'mwgp-track-pill online';
+            pill.textContent = 'ONLINE';
+            spd.textContent = (s.speed != null ? s.speed.toFixed(1) : '-') + ' km/h';
+        } else {
+            pill.className = 'mwgp-track-pill offline';
+            pill.textContent = 'OFFLINE';
+            spd.textContent = '-';
+        }
+        addr.textContent = _mwgpCleanAddress(s.address);
+
+        // Nearby button: only Google Maps mode + has coords
+        var canNearby = window.MapConfig && MapConfig.useGoogle && MapConfig.useGoogle()
+                        && s && s.lat && s.lng && !(s.lat === 0 && s.lng === 0);
+        nearbyBtn.disabled = !canNearby;
+        // Camera button: provider must support camera URL
+        var canCam = false;
+        if (_mwgpTrackedVehicle && _mwgpTrackedVehicle.gps_providers) {
+            try { canCam = !!gpsGetCameraUrl(_mwgpTrackedVehicle.gps_providers, _mwgpTrackedVehicle.device_id); } catch(e){}
+        }
+        cameraBtn.disabled = !canCam;
+    }
+
+    function monitorMiniGpsClearTrack() {
+        _mwgpTrackedKey = null;
+        _mwgpTrackedVehicle = null;
+        var banner = document.getElementById('mwgp-track');
+        if (banner) banner.classList.remove('show');
+        // Re-render markers to remove pulse
+        monitorMiniGpsUpdateMarkers();
+    }
+
+    function monitorMiniGpsTrackedCamera() {
+        if (!_mwgpTrackedVehicle || !_mwgpTrackedVehicle.gps_providers) return;
+        try {
+            gpsOpenCamera(_mwgpTrackedVehicle.gps_providers, _mwgpTrackedVehicle.device_id);
+        } catch(e) {
+            Swal.fire({ icon:'error', title:'เปิดกล้องไม่ได้', text:e.message || '' });
+        }
+    }
+
+    // For "ค้นหาใกล้รถ" — fall back to opening the existing nearby-search modal
+    // (which has the rich result list + route UI). The modal will lay over the
+    // pane; user can dismiss to see pane again.
+    function monitorMiniGpsTrackedNearby() {
+        if (!_mwgpTrackedVehicle) return;
+        var name = _mwgpTrackedVehicle.nickname || _mwgpTrackedVehicle.device_name;
+        // Temporarily disable pane routing so openGpsModal goes to modal
+        document.body.classList.remove('monitor-wide-active');
+        try {
+            openGpsModal(name);
+        } finally {
+            // Restore wide-active after invocation; modal was already shown
+            setTimeout(function(){ document.body.classList.add('monitor-wide-active'); }, 50);
+        }
+    }
+
     function monitorMiniGpsUpdateMarkers() {
         if (!_mwgpMap) return;
         var firstPaint = !_mwgpMap._didFit;
@@ -1174,9 +1373,11 @@
             var color = kind === 'offline' ? '#64748b' : (kind === 'moving' ? '#22c55e' : '#f59e0b');
             var hd = (s.heading != null) ? s.heading : 0;
             var name = v.nickname || v.device_name || '-';
-            // Arrow + label below (always visible — TV-glanceable)
-            var html = '<div class="mwgp-marker-wrap">' +
-                         '<div style="transform:rotate(' + hd + 'deg); width:32px; height:32px;">' +
+            var isTracked = (key === _mwgpTrackedKey);
+            // Arrow + label below + pulse ring if tracked (TV-glanceable)
+            var html = '<div class="mwgp-marker-wrap' + (isTracked ? ' mwgp-marker-tracked' : '') + '">' +
+                         (isTracked ? '<div class="mwgp-pulse-ring"></div>' : '') +
+                         '<div style="transform:rotate(' + hd + 'deg); width:32px; height:32px; position:relative;">' +
                            '<svg viewBox="0 0 24 24" width="32" height="32" style="filter:drop-shadow(0 1px 3px rgba(0,0,0,.5));">' +
                            '<path d="M12 2 L20 22 L12 17 L4 22 Z" fill="' + color + '" stroke="#fff" stroke-width="1.5"/>' +
                            '</svg>' +
@@ -3191,6 +3392,12 @@
 
     async function openGpsModal(vehicleName) {
         if (!window._gpsEnabled) return;
+
+        // If wide-screen pane is active, route to inline pane instead of modal
+        if (document.body.classList.contains('monitor-wide-active')) {
+            monitorMiniGpsTrack(vehicleName);
+            return;
+        }
 
         _gpsModalVehicleName = vehicleName;
         document.getElementById('gps-modal-vehicle').textContent = vehicleName;
