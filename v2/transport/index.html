@@ -3031,6 +3031,16 @@
                        <!-- Meds / Allergies -->
                        <div class="col-12 mt-2"><label class="form-label fs-8 fw-bold text-secondary"><i class="bi bi-capsule me-1"></i> ยาประจำตัว</label><input type="text" class="form-control form-control-sm bg-light border-0" id="m_pt_meds" placeholder="เช่น Metformin, ASA"></div>
                        <div class="col-12 mt-3"><label class="form-label fs-8 fw-bold text-danger"><i class="bi bi-exclamation-triangle-fill"></i> ประวัติแพ้ยา/อาหาร</label><input type="text" class="form-control border-danger-subtle bg-danger-subtle text-danger fw-medium" id="m_pt_allergies" placeholder="ระบุหากมี"></div>
+
+                       <!-- NR Status (resuscitation directive) -->
+                       <div class="col-md-6 mt-3">
+                         <label class="form-label fw-bold fs-7 text-secondary">สถานะการกู้ชีพ (NR Status)</label>
+                         <select class="form-select bg-light border-0 shadow-none fw-medium" id="m_nr_status">
+                           <option value="Full Support">Full Support</option>
+                           <option value="DNR">DNR (Do Not Resuscitate)</option>
+                           <option value="Palliative">Palliative Care</option>
+                         </select>
+                       </div>
                      </div>
                    </div>
                  </div>
@@ -5594,6 +5604,10 @@
        document.getElementById('m_pt_cc').value = f.pt_cc.value;
        document.getElementById('m_pt_allergies').value = f.pt_allergies.value;
 
+       // NR Status (resuscitation directive)
+       var mNrSel = document.getElementById('m_nr_status');
+       if (mNrSel) mNrSel.value = (f.nr_status && f.nr_status.value) || 'Full Support';
+
        // Merged ID/Passport field (single input)
        document.getElementById('m_pt_idcard').value = f.pt_idcard ? f.pt_idcard.value : '';
 
@@ -5680,6 +5694,10 @@
        f.pt_dx.value = document.getElementById('m_pt_dx').value;
        f.pt_cc.value = document.getElementById('m_pt_cc').value;
        f.pt_allergies.value = document.getElementById('m_pt_allergies').value;
+
+       // NR Status (resuscitation directive)
+       var mNrSel = document.getElementById('m_nr_status');
+       if (mNrSel && f.nr_status) f.nr_status.value = mNrSel.value;
 
        // Merged ID/Passport field (single input)
        f.pt_idcard.value = document.getElementById('m_pt_idcard').value;
