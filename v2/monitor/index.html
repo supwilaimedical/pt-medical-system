@@ -357,95 +357,113 @@
   body:has(#login-view.d-flex) .v2-mobile-nav-toggle{ display:none !important; }
   body:has(#login-view.d-flex){ padding-left:0 !important; }
 
-  /* ===== Wide-screen (>=2200px) right pane: embedded GPS ===== */
+  /* ===== Wide-screen (>=2200px) right pane: TV-optimized GPS panel =====
+     Designed for glance-from-distance viewing on a wall TV. No interactivity:
+     no search box, no filter buttons, no click-to-focus. Big readable fonts,
+     strong color coding, vehicle name labels on markers. */
   #monitor-wide-gps-pane{ display:none; }
   @media (min-width: 2200px){
     body.monitor-wide-active #app-main-wrapper > .container-fluid{
-      padding-right: 740px !important;
+      padding-right: 760px !important;
     }
     body.monitor-wide-active #monitor-wide-gps-pane{
-      display:block; position:fixed; top:54px; right:0; bottom:0;
-      width:720px; background:#fff; border-left:1px solid #e2e8f0;
-      box-shadow:-2px 0 14px rgba(15,23,42,.06); z-index:1030;
-      overflow:hidden;
+      display:flex; flex-direction:column; position:fixed; top:54px; right:0; bottom:0;
+      width:740px; background:#0f172a; color:#f1f5f9;
+      border-left:1px solid #1e293b; box-shadow:-2px 0 14px rgba(0,0,0,.2);
+      z-index:1030; overflow:hidden;
     }
+    /* Header: title + online/offline split + last-updated */
     body.monitor-wide-active #monitor-wide-gps-pane .mwgp-head{
+      flex:0 0 auto;
       display:flex; align-items:center; justify-content:space-between;
-      gap:8px; padding:8px 12px; background:#f8fafc;
-      border-bottom:1px solid #e2e8f0; font-size:13px;
+      gap:12px; padding:14px 18px; background:#1e293b;
+      border-bottom:1px solid #334155;
     }
     body.monitor-wide-active #monitor-wide-gps-pane .mwgp-head .ttl{
-      font-weight:600; color:#0f172a; display:flex; align-items:center; gap:6px;
+      font-weight:700; color:#f8fafc; font-size:18px;
+      display:flex; align-items:center; gap:8px;
     }
-    body.monitor-wide-active #monitor-wide-gps-pane .mwgp-head .act{
-      display:flex; gap:6px;
+    body.monitor-wide-active #monitor-wide-gps-pane .mwgp-head .ttl i{ color:#22c55e; }
+    body.monitor-wide-active #monitor-wide-gps-pane .mwgp-head .stats{
+      display:flex; gap:14px; align-items:center;
     }
+    body.monitor-wide-active #monitor-wide-gps-pane .mwgp-stat{
+      display:flex; align-items:center; gap:6px; font-size:16px; font-weight:700;
+    }
+    body.monitor-wide-active #monitor-wide-gps-pane .mwgp-stat .dot{
+      width:10px; height:10px; border-radius:50%; display:inline-block;
+    }
+    body.monitor-wide-active #monitor-wide-gps-pane .mwgp-stat.online .dot{ background:#22c55e; box-shadow:0 0 8px #22c55e; }
+    body.monitor-wide-active #monitor-wide-gps-pane .mwgp-stat.offline .dot{ background:#64748b; }
+    body.monitor-wide-active #monitor-wide-gps-pane .mwgp-stat.online{ color:#86efac; }
+    body.monitor-wide-active #monitor-wide-gps-pane .mwgp-stat.offline{ color:#94a3b8; }
+    body.monitor-wide-active #monitor-wide-gps-pane .mwgp-updated{
+      font-size:11px; color:#94a3b8; font-weight:500; letter-spacing:.5px;
+    }
+    /* Map: big — 60% of pane height */
     body.monitor-wide-active #monitor-wide-gps-pane #mwgp-map{
-      width:100%; height:50%; min-height:280px;
+      flex:1 1 60%; min-height:420px; background:#1e293b;
     }
+    /* Marker labels on map (always visible, glanceable) */
+    .mwgp-marker-wrap{ position:relative; }
+    .mwgp-marker-label{
+      position:absolute; top:32px; left:50%; transform:translateX(-50%);
+      background:rgba(15,23,42,.92); color:#fff; padding:2px 8px;
+      border-radius:4px; font-size:13px; font-weight:700; white-space:nowrap;
+      letter-spacing:.3px; box-shadow:0 2px 6px rgba(0,0,0,.35);
+      border:1px solid rgba(255,255,255,.15);
+    }
+    /* Fleet list: big rows for TV */
     body.monitor-wide-active #monitor-wide-gps-pane .mwgp-fleet{
-      height:calc(50% - 38px); display:flex; flex-direction:column;
-      border-top:1px solid #e2e8f0; background:#fff;
-    }
-    body.monitor-wide-active #monitor-wide-gps-pane .mwgp-fleet-head{
-      display:flex; gap:6px; padding:8px 10px; border-bottom:1px solid #f1f5f9;
-      flex-direction:column;
-    }
-    body.monitor-wide-active #monitor-wide-gps-pane .mwgp-fleet-head input{
-      width:100%; font-size:12px; padding:5px 8px; border:1px solid #cbd5e1;
-      border-radius:6px; outline:none;
-    }
-    body.monitor-wide-active #monitor-wide-gps-pane .mwgp-fleet-head input:focus{
-      border-color:#0ea5e9; box-shadow:0 0 0 2px rgba(14,165,233,.15);
-    }
-    body.monitor-wide-active #monitor-wide-gps-pane .mwgp-filter{
-      display:flex; gap:4px;
-    }
-    body.monitor-wide-active #monitor-wide-gps-pane .mwgp-filter button{
-      flex:1; font-size:11px; padding:4px 8px; border-radius:6px;
-      background:#f8fafc; border:1px solid #e2e8f0; color:#475569;
-      cursor:pointer; transition:all .15s;
-    }
-    body.monitor-wide-active #monitor-wide-gps-pane .mwgp-filter button.active{
-      background:#0ea5e9; border-color:#0ea5e9; color:#fff;
+      flex:1 1 40%; display:flex; flex-direction:column;
+      border-top:1px solid #334155; background:#0f172a; overflow:hidden;
     }
     body.monitor-wide-active #monitor-wide-gps-pane .mwgp-list{
-      flex:1; overflow-y:auto; padding:6px 8px;
+      flex:1; overflow-y:auto; padding:8px;
     }
+    body.monitor-wide-active #monitor-wide-gps-pane .mwgp-list::-webkit-scrollbar{ width:8px; }
+    body.monitor-wide-active #monitor-wide-gps-pane .mwgp-list::-webkit-scrollbar-thumb{ background:#334155; border-radius:4px; }
     body.monitor-wide-active #monitor-wide-gps-pane .mwgp-empty{
-      text-align:center; color:#94a3b8; font-size:12px; padding:20px 8px;
+      text-align:center; color:#64748b; font-size:14px; padding:30px;
     }
     body.monitor-wide-active #monitor-wide-gps-pane .mwgp-vh{
-      display:flex; align-items:center; gap:8px; padding:6px 8px;
-      border-radius:6px; cursor:pointer; transition:background .12s;
-      border-left:3px solid transparent; margin-bottom:3px;
+      display:grid; grid-template-columns: 6px 1fr auto;
+      gap:0; padding:10px 14px 10px 0; margin-bottom:6px;
+      background:#1e293b; border-radius:8px; overflow:hidden;
     }
-    body.monitor-wide-active #monitor-wide-gps-pane .mwgp-vh:hover{
-      background:#f1f5f9;
+    body.monitor-wide-active #monitor-wide-gps-pane .mwgp-vh .vh-bar{ width:6px; height:100%; }
+    body.monitor-wide-active #monitor-wide-gps-pane .mwgp-vh.online .vh-bar{ background:#22c55e; box-shadow:inset 0 0 6px rgba(34,197,94,.5); }
+    body.monitor-wide-active #monitor-wide-gps-pane .mwgp-vh.moving .vh-bar{ background:#22c55e; }
+    body.monitor-wide-active #monitor-wide-gps-pane .mwgp-vh.idle .vh-bar{ background:#f59e0b; }
+    body.monitor-wide-active #monitor-wide-gps-pane .mwgp-vh.offline .vh-bar{ background:#475569; }
+    body.monitor-wide-active #monitor-wide-gps-pane .mwgp-vh.offline{ opacity:.55; }
+    body.monitor-wide-active #monitor-wide-gps-pane .mwgp-vh .vh-body{
+      padding-left:12px; min-width:0;
     }
-    body.monitor-wide-active #monitor-wide-gps-pane .mwgp-vh.active{
-      background:#e0f2fe; border-left-color:#0284c7;
-    }
-    body.monitor-wide-active #monitor-wide-gps-pane .mwgp-vh.online{ border-left-color:#22c55e; }
-    body.monitor-wide-active #monitor-wide-gps-pane .mwgp-vh.offline{ border-left-color:#94a3b8; opacity:.7; }
     body.monitor-wide-active #monitor-wide-gps-pane .mwgp-vh .vh-name{
-      flex:1; min-width:0; font-size:12px; font-weight:600; color:#0f172a;
+      font-size:18px; font-weight:700; color:#f8fafc;
       white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
     }
-    body.monitor-wide-active #monitor-wide-gps-pane .mwgp-vh .vh-meta{
-      font-size:10px; color:#64748b; font-weight:400;
+    body.monitor-wide-active #monitor-wide-gps-pane .mwgp-vh .vh-name .vh-plate{
+      font-size:13px; font-weight:500; color:#94a3b8; margin-left:8px;
+    }
+    body.monitor-wide-active #monitor-wide-gps-pane .mwgp-vh .vh-addr{
+      font-size:13px; color:#cbd5e1; margin-top:3px;
+      white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+    }
+    body.monitor-wide-active #monitor-wide-gps-pane .mwgp-vh .vh-addr i{ color:#64748b; margin-right:4px; }
+    body.monitor-wide-active #monitor-wide-gps-pane .mwgp-vh .vh-right{
+      text-align:right; padding-left:10px;
     }
     body.monitor-wide-active #monitor-wide-gps-pane .mwgp-vh .vh-speed{
-      font-size:11px; font-weight:700; padding:2px 6px; border-radius:10px;
-      background:#f1f5f9; color:#475569; white-space:nowrap;
+      font-size:24px; font-weight:800; line-height:1;
+      letter-spacing:-.5px;
     }
-    body.monitor-wide-active #monitor-wide-gps-pane .mwgp-vh.online .vh-speed{
-      background:#dcfce7; color:#166534;
-    }
-    .mwgp-count-pill{
-      display:inline-block; min-width:20px; padding:1px 6px; border-radius:10px;
-      background:#0ea5e9; color:#fff; font-size:10px; font-weight:700;
-      text-align:center; margin-left:4px;
+    body.monitor-wide-active #monitor-wide-gps-pane .mwgp-vh.moving .vh-speed{ color:#22c55e; }
+    body.monitor-wide-active #monitor-wide-gps-pane .mwgp-vh.idle .vh-speed{ color:#f59e0b; }
+    body.monitor-wide-active #monitor-wide-gps-pane .mwgp-vh.offline .vh-speed{ color:#64748b; font-size:14px; font-weight:700; }
+    body.monitor-wide-active #monitor-wide-gps-pane .mwgp-vh .vh-unit{
+      font-size:11px; color:#64748b; margin-top:2px; font-weight:600;
     }
   }
 
@@ -772,25 +790,20 @@
             </div>
         </div>
 
-        <!-- Wide-screen (>=2200px) right pane: inline mini GPS map + fleet list -->
-        <aside id="monitor-wide-gps-pane" class="no-print" aria-label="GPS Live (wide screen)">
+        <!-- Wide-screen (>=2200px) right pane: TV-optimized GPS panel
+             Glanceable, no controls. Header shows online/offline split.
+             Map labels show vehicle names. Fleet rows are big + bold. -->
+        <aside id="monitor-wide-gps-pane" class="no-print" aria-label="GPS Live (TV)">
             <div class="mwgp-head">
-                <div class="ttl"><i class="bi bi-broadcast text-success"></i> GPS Live <span id="mwgp-count" class="mwgp-count-pill">0</span></div>
-                <div class="act">
-                    <button type="button" class="btn btn-sm btn-outline-secondary py-0 px-2" id="mwgp-refresh-btn" onclick="monitorMiniGpsRefresh()" title="รีเฟรชสถานะ"><i class="bi bi-arrow-clockwise"></i></button>
-                    <a class="btn btn-sm btn-outline-primary py-0 px-2" href="../gps/" target="_blank" title="เปิด GPS เต็มจอ"><i class="bi bi-box-arrow-up-right"></i></a>
+                <div class="ttl"><i class="bi bi-broadcast-pin"></i> GPS LIVE</div>
+                <div class="stats">
+                    <div class="mwgp-stat online"><span class="dot"></span><span id="mwgp-online">0</span></div>
+                    <div class="mwgp-stat offline"><span class="dot"></span><span id="mwgp-offline">0</span></div>
+                    <div class="mwgp-updated" id="mwgp-updated">--:--</div>
                 </div>
             </div>
             <div id="mwgp-map"></div>
             <div class="mwgp-fleet">
-                <div class="mwgp-fleet-head">
-                    <input type="search" id="mwgp-search" placeholder="ค้นหา ทะเบียน / ชื่อรถ..." />
-                    <div class="mwgp-filter">
-                        <button type="button" class="active" data-flt="all" onclick="monitorMiniGpsFilter('all')">ทั้งหมด</button>
-                        <button type="button" data-flt="online" onclick="monitorMiniGpsFilter('online')">Online</button>
-                        <button type="button" data-flt="offline" onclick="monitorMiniGpsFilter('offline')">Offline</button>
-                    </div>
-                </div>
                 <div id="mwgp-list" class="mwgp-list">
                     <div class="mwgp-empty">กำลังโหลด...</div>
                 </div>
@@ -965,11 +978,12 @@
     }
 
     // ============================================================
-    // Wide-screen (>=2200px) inline mini GPS pane
+    // Wide-screen (>=2200px) TV-optimized GPS panel
+    // No interactivity (TV mode). Big fonts. Glanceable.
     // ============================================================
     var _mwgpMap = null, _mwgpMarkers = {}, _mwgpProviders = [], _mwgpVehicles = [];
-    var _mwgpStatuses = {}, _mwgpFilter = 'all', _mwgpSearch = '', _mwgpInterval = null;
-    var _mwgpSelectedKey = null, _mwgpInited = false;
+    var _mwgpStatuses = {}, _mwgpInterval = null, _mwgpInited = false;
+    var _mwgpRefitInterval = null;
 
     function monitorUpdateWideGpsPane() {
         var wide = window.matchMedia('(min-width: 2200px)').matches;
@@ -991,22 +1005,14 @@
 
     async function monitorMiniGpsInit() {
         try {
-            // Init Leaflet map
-            _mwgpMap = L.map('mwgp-map', { maxZoom: 19, zoomControl: true }).setView([15.87, 100.99], 6);
+            _mwgpMap = L.map('mwgp-map', { maxZoom: 19, zoomControl: false, attributionControl: false }).setView([15.87, 100.99], 6);
+            L.control.zoom({ position: 'bottomright' }).addTo(_mwgpMap);
             if (window.MapConfig) {
                 MapConfig.load(_supabase).then(function(){ return MapConfig.createTileLayer(_mwgpMap); });
             } else {
                 L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png', { maxZoom: 19 }).addTo(_mwgpMap);
             }
 
-            // Search input
-            var sb = document.getElementById('mwgp-search');
-            if (sb) sb.addEventListener('input', function(e){
-                _mwgpSearch = (e.target.value || '').trim().toLowerCase();
-                monitorMiniGpsRender();
-            });
-
-            // Load providers + vehicles
             var pRes = await _supabase.from('gps_providers').select('*').eq('is_active', true);
             _mwgpProviders = pRes.data || [];
             var vRes = await _supabase.from('gps_vehicles').select('*, gps_providers(name, software, base_url, account, password)').eq('is_active', true);
@@ -1014,21 +1020,23 @@
 
             await monitorMiniGpsFetchStatuses();
 
-            // Auto-refresh every 30s
+            // Auto-refresh status every 30s
             if (_mwgpInterval) clearInterval(_mwgpInterval);
             _mwgpInterval = setInterval(monitorMiniGpsFetchStatuses, 30000);
+
+            // Periodic auto-refit so map keeps all vehicles in view (every 2 min)
+            if (_mwgpRefitInterval) clearInterval(_mwgpRefitInterval);
+            _mwgpRefitInterval = setInterval(monitorMiniGpsRefit, 120000);
 
             setTimeout(function(){ if (_mwgpMap) _mwgpMap.invalidateSize(); }, 200);
         } catch(e) {
             console.warn('monitorMiniGpsInit:', e.message);
             var list = document.getElementById('mwgp-list');
-            if (list) list.innerHTML = '<div class="mwgp-empty text-danger">โหลด GPS ไม่สำเร็จ: ' + (e.message || '') + '</div>';
+            if (list) list.innerHTML = '<div class="mwgp-empty">โหลด GPS ไม่สำเร็จ: ' + (e.message || '') + '</div>';
         }
     }
 
     async function monitorMiniGpsFetchStatuses() {
-        var btn = document.getElementById('mwgp-refresh-btn');
-        if (btn) btn.classList.add('disabled');
         for (var i = 0; i < _mwgpProviders.length; i++) {
             var p = _mwgpProviders[i];
             try {
@@ -1040,70 +1048,75 @@
         }
         monitorMiniGpsRender();
         monitorMiniGpsUpdateMarkers();
-        if (btn) btn.classList.remove('disabled');
+        var u = document.getElementById('mwgp-updated');
+        if (u) {
+            var d = new Date();
+            var pad = function(n){ return n < 10 ? '0' + n : n; };
+            u.textContent = 'อัปเดต ' + pad(d.getHours()) + ':' + pad(d.getMinutes()) + ':' + pad(d.getSeconds());
+        }
     }
 
-    function monitorMiniGpsRefresh() { monitorMiniGpsFetchStatuses(); }
-
-    function monitorMiniGpsFilter(flt) {
-        _mwgpFilter = flt;
-        document.querySelectorAll('#monitor-wide-gps-pane .mwgp-filter button').forEach(function(b){
-            b.classList.toggle('active', b.getAttribute('data-flt') === flt);
-        });
-        monitorMiniGpsRender();
+    function _mwgpVehKind(s) {
+        if (!s || !s.online) return 'offline';
+        if ((s.speed || 0) > 1) return 'moving';
+        return 'idle';
     }
 
     function monitorMiniGpsRender() {
         var list = document.getElementById('mwgp-list');
-        var cnt = document.getElementById('mwgp-count');
         if (!list) return;
 
         var rows = _mwgpVehicles.map(function(v){
             var st = _mwgpStatuses[v.device_id + '_' + v.provider] || {};
-            return { v: v, s: st, online: !!st.online };
+            return { v: v, s: st, online: !!st.online, kind: _mwgpVehKind(st) };
         });
 
-        // Filter
-        if (_mwgpFilter === 'online') rows = rows.filter(function(r){ return r.online; });
-        else if (_mwgpFilter === 'offline') rows = rows.filter(function(r){ return !r.online; });
-        if (_mwgpSearch) {
-            rows = rows.filter(function(r){
-                var name = ((r.v.nickname || '') + ' ' + (r.v.device_name || '') + ' ' + (r.v.device_id || '')).toLowerCase();
-                return name.indexOf(_mwgpSearch) >= 0;
-            });
-        }
-
-        if (cnt) cnt.textContent = rows.length;
+        // Update online/offline counts in header
+        var onCt = rows.filter(function(r){ return r.online; }).length;
+        var offCt = rows.length - onCt;
+        var on = document.getElementById('mwgp-online'); if (on) on.textContent = onCt;
+        var off = document.getElementById('mwgp-offline'); if (off) off.textContent = offCt;
 
         if (!rows.length) {
-            list.innerHTML = '<div class="mwgp-empty">ไม่มีรถ</div>';
+            list.innerHTML = '<div class="mwgp-empty">ไม่มีรถในระบบ</div>';
             return;
         }
 
-        // Sort: online first, then by name
+        // Sort: moving > idle > offline; then by name
+        var rank = { moving:0, idle:1, offline:2 };
         rows.sort(function(a,b){
-            if (a.online !== b.online) return a.online ? -1 : 1;
+            if (rank[a.kind] !== rank[b.kind]) return rank[a.kind] - rank[b.kind];
             return (a.v.nickname || a.v.device_name || '').localeCompare(b.v.nickname || b.v.device_name || '');
         });
 
         list.innerHTML = rows.map(function(r){
-            var key = r.v.device_id + '_' + r.v.provider;
             var name = r.v.nickname || r.v.device_name || r.v.device_id || '-';
             var plate = (r.v.nickname && r.v.device_name) ? r.v.device_name : '';
-            var speed = r.s.speed != null ? r.s.speed.toFixed(1) : '-';
-            var cls = 'mwgp-vh ' + (r.online ? 'online' : 'offline') + (key === _mwgpSelectedKey ? ' active' : '');
-            return '<div class="' + cls + '" onclick="monitorMiniGpsFocus(\'' + key + '\')">' +
-                     '<div style="flex:1; min-width:0;">' +
-                       '<div class="vh-name">' + escapeHtml(name) + '</div>' +
-                       (plate ? '<div class="vh-meta">' + escapeHtml(plate) + '</div>' : '') +
+            var addr = r.s.address || '-';
+            var speedNum = r.s.speed != null ? r.s.speed : 0;
+            var speedHtml;
+            if (r.kind === 'offline') {
+                speedHtml = '<div class="vh-speed">OFFLINE</div>';
+            } else {
+                speedHtml = '<div class="vh-speed">' + Math.round(speedNum) + '</div>' +
+                            '<div class="vh-unit">km/h</div>';
+            }
+            return '<div class="mwgp-vh ' + r.kind + '">' +
+                     '<div class="vh-bar"></div>' +
+                     '<div class="vh-body">' +
+                       '<div class="vh-name">' + escapeHtml(name) +
+                         (plate ? '<span class="vh-plate">' + escapeHtml(plate) + '</span>' : '') +
+                       '</div>' +
+                       '<div class="vh-addr"><i class="bi bi-geo-alt"></i>' + escapeHtml(addr) + '</div>' +
                      '</div>' +
-                     '<div class="vh-speed">' + speed + ' km/h</div>' +
+                     '<div class="vh-right">' + speedHtml + '</div>' +
                    '</div>';
         }).join('');
     }
 
     function monitorMiniGpsUpdateMarkers() {
         if (!_mwgpMap) return;
+        var firstPaint = !_mwgpMap._didFit;
         var bounds = [];
         _mwgpVehicles.forEach(function(v){
             var key = v.device_id + '_' + v.provider;
@@ -1112,35 +1125,44 @@
                 if (_mwgpMarkers[key]) { _mwgpMap.removeLayer(_mwgpMarkers[key]); delete _mwgpMarkers[key]; }
                 return;
             }
-            var color = !s.online ? '#94a3b8' : (s.speed > 1 ? '#22c55e' : '#f59e0b');
+            var kind = _mwgpVehKind(s);
+            var color = kind === 'offline' ? '#64748b' : (kind === 'moving' ? '#22c55e' : '#f59e0b');
             var hd = (s.heading != null) ? s.heading : 0;
-            var name = v.nickname || v.device_name || '';
-            var html = '<div style="transform:rotate(' + hd + 'deg); width:28px; height:28px;">' +
-                       '<svg viewBox="0 0 24 24" width="28" height="28" style="filter:drop-shadow(0 1px 2px rgba(0,0,0,.4));">' +
-                       '<path d="M12 2 L20 22 L12 17 L4 22 Z" fill="' + color + '" stroke="#fff" stroke-width="1.5"/>' +
-                       '</svg></div>';
-            var icon = L.divIcon({ className:'mwgp-marker', html: html, iconSize:[28,28], iconAnchor:[14,14] });
+            var name = v.nickname || v.device_name || '-';
+            // Arrow + label below (always visible — TV-glanceable)
+            var html = '<div class="mwgp-marker-wrap">' +
+                         '<div style="transform:rotate(' + hd + 'deg); width:32px; height:32px;">' +
+                           '<svg viewBox="0 0 24 24" width="32" height="32" style="filter:drop-shadow(0 1px 3px rgba(0,0,0,.5));">' +
+                           '<path d="M12 2 L20 22 L12 17 L4 22 Z" fill="' + color + '" stroke="#fff" stroke-width="1.5"/>' +
+                           '</svg>' +
+                         '</div>' +
+                         '<div class="mwgp-marker-label">' + escapeHtml(name) + '</div>' +
+                       '</div>';
+            var icon = L.divIcon({ className:'mwgp-marker', html: html, iconSize:[32,32], iconAnchor:[16,16] });
             if (_mwgpMarkers[key]) {
                 _mwgpMarkers[key].setLatLng([s.lat, s.lng]);
                 _mwgpMarkers[key].setIcon(icon);
             } else {
                 _mwgpMarkers[key] = L.marker([s.lat, s.lng], { icon: icon, title: name }).addTo(_mwgpMap);
-                _mwgpMarkers[key].on('click', function(){ monitorMiniGpsFocus(key); });
             }
             bounds.push([s.lat, s.lng]);
         });
-        // Auto-fit on first paint only
-        if (!_mwgpMap._didFit && bounds.length) {
-            try { _mwgpMap.fitBounds(bounds, { padding:[20,20], maxZoom: 14 }); } catch(e){}
+        if (firstPaint && bounds.length) {
+            try { _mwgpMap.fitBounds(bounds, { padding:[40,40], maxZoom: 14 }); } catch(e){}
             _mwgpMap._didFit = true;
         }
     }
 
-    function monitorMiniGpsFocus(key) {
-        _mwgpSelectedKey = key;
-        var s = _mwgpStatuses[key];
-        if (s && s.lat && s.lng && _mwgpMap) _mwgpMap.setView([s.lat, s.lng], 16);
-        monitorMiniGpsRender();
+    function monitorMiniGpsRefit() {
+        if (!_mwgpMap) return;
+        var bounds = [];
+        Object.keys(_mwgpMarkers).forEach(function(k){
+            var ll = _mwgpMarkers[k].getLatLng();
+            if (ll) bounds.push([ll.lat, ll.lng]);
+        });
+        if (bounds.length) {
+            try { _mwgpMap.fitBounds(bounds, { padding:[40,40], maxZoom: 14, animate: true }); } catch(e){}
+        }
     }
 
     window.addEventListener('resize', function(){
