@@ -1372,6 +1372,8 @@
     var _mwgpAutoCycleTimer = null;
     var SPEED_WARN = 120;          // km/h threshold
 
+    // Synchronous: toggle class instantly. Init happens in background — pane
+    // chrome appears immediately even if data is still loading.
     function monitorUpdateWideGpsPane() {
         var wide = window.matchMedia('(min-width: 1900px)').matches;
         var enabled = !!window._gpsEnabled;
@@ -1381,14 +1383,27 @@
             document.body.classList.add('monitor-wide-active');
             if (!_mwgpInited) {
                 _mwgpInited = true;
-                setTimeout(monitorMiniGpsInit, 50);
+                // Fire-and-forget — don't block class toggle on network
+                Promise.resolve().then(monitorMiniGpsInit);
             } else if (_mwgpMap) {
-                setTimeout(function(){ _mwgpMap.invalidateSize(); }, 80);
+                // Map already exists — just resync tile layout
+                _mwgpMap.invalidateSize();
             }
         } else {
             document.body.classList.remove('monitor-wide-active');
         }
     }
+
+    // Use matchMedia change listener — fires INSTANTLY at the exact moment
+    // viewport crosses the 1900px threshold (no debounce needed).
+    (function _wireWideMql(){
+        try {
+            var mql = window.matchMedia('(min-width: 1900px)');
+            var handler = function(){ monitorUpdateWideGpsPane(); };
+            if (mql.addEventListener) mql.addEventListener('change', handler);
+            else if (mql.addListener) mql.addListener(handler); // Safari fallback
+        } catch(e) { console.warn('matchMedia listener:', e); }
+    })();
 
     async function monitorMiniGpsInit() {
         try {
@@ -2154,9 +2169,15 @@
         }
     }
 
+    // Resize: only re-sync map tiles (the threshold class is handled by
+    // matchMedia change above, so no debounce-stall on the toggle itself).
     window.addEventListener('resize', function(){
         if (window._gpsResizeTO) clearTimeout(window._gpsResizeTO);
-        window._gpsResizeTO = setTimeout(monitorUpdateWideGpsPane, 200);
+        window._gpsResizeTO = setTimeout(function(){
+            if (_mwgpMap && document.body.classList.contains('monitor-wide-active')) {
+                _mwgpMap.invalidateSize();
+            }
+        }, 80);
     });
 
     // =============================================
