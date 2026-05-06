@@ -361,6 +361,9 @@
      Designed for glance-from-distance viewing on a wall TV. No interactivity:
      no search box, no filter buttons, no click-to-focus. Big readable fonts,
      strong color coding, vehicle name labels on markers. */
+  /* GPS button on transport cards — race-safe via body.gps-enabled toggle */
+  body:not(.gps-enabled) .gps-track-btn{ display:none !important; }
+
   #monitor-wide-gps-pane{ display:none; }
   @media (min-width: 2200px){
     body.monitor-wide-active #app-main-wrapper > .container-fluid{
@@ -1086,6 +1089,7 @@
                         else locBtn.classList.add('rounded-pill-end');
                     }
                     window._gpsEnabled = gpsEnabled;
+                    document.body.classList.toggle('gps-enabled', gpsEnabled);
                 }
             });
         } catch(e) { console.error(e); }
@@ -1876,10 +1880,10 @@
                     '<div class="col-6"><div class="text-center border rounded-2 py-1" style="font-size:0.7rem;' + (isFromLog && vNote ? 'background:#f0fdf4;' : '') + '"><div class="text-muted" style="font-size:0.6rem;">' + seventhBoxLabel + '</div><div class="fw-bold" style="font-size:0.62rem;word-break:break-word;">' + esc(seventhBoxValue) + '</div></div></div>' +
                   '</div>' +
 
-                  // Footer info
+                  // Footer info — GPS button always rendered, body.gps-enabled class controls visibility (race-safe)
                   '<div class="d-flex justify-content-between align-items-center flex-wrap" style="font-size:0.72rem;">' +
                     '<span class="text-muted"><i class="bi bi-truck me-1"></i>' + esc(transportType) + ' / ' + esc(opLevel) + ' (รถ: ' + esc(opUnit) + ')' +
-                      (window._gpsEnabled ? ' <button class="btn btn-sm py-0 px-1 ms-1" style="font-size:0.68rem;background:#6366f1;color:#fff;border:none;border-radius:4px;" onclick="event.stopPropagation(); openGpsModal(\'' + esc(opUnit) + '\')"><i class="bi bi-broadcast me-1"></i>GPS</button>' : '') +
+                      (opUnit && opUnit !== '-' ? ' <button class="btn btn-sm py-0 px-1 ms-1 gps-track-btn" style="font-size:0.68rem;background:#6366f1;color:#fff;border:none;border-radius:4px;" onclick="event.stopPropagation(); openGpsModal(\'' + esc(opUnit) + '\')" title="ดู GPS"><i class="bi bi-broadcast me-1"></i>GPS</button>' : '') +
                     '</span>' +
                     '<span class="text-muted"><i class="bi bi-clock me-1"></i>' + dateStr + '</span>' +
                   '</div>' +
