@@ -387,13 +387,39 @@
 
   #monitor-wide-gps-pane{ display:none; }
   /* Pane visibility & layout gated by body.monitor-wide-active alone — the
-     class is set by JS based on viewport >=1900 OR explicit Wallboard toggle. */
+     class is set by JS based on viewport >=1900 OR explicit Wallboard toggle.
+     Pane width is RESPONSIVE so it doesn't dominate the case side on
+     smaller viewports (iPad Pro landscape, FHD@125%, etc.):
+        viewport <1500 → 420px (iPad Pro / forced laptops)
+        viewport 1500–1999 → 560px (FHD-ish)
+        viewport ≥2000 → 740px (2K/4K wallboard) */
+  :root{ --mwgp-w: 740px; }
+  @media (max-width: 1499px){ :root{ --mwgp-w: 420px; } }
+  @media (min-width: 1500px) and (max-width: 1999px){ :root{ --mwgp-w: 560px; } }
+
+  /* Compact metrics for narrow pane (small viewport / forced wallboard) */
+  @media (max-width: 1499px){
+    body.monitor-wide-active #monitor-wide-gps-pane .mwgp-vh{ grid-template-columns: 5px 1fr 78px; }
+    body.monitor-wide-active #monitor-wide-gps-pane .mwgp-vh .vh-right{ width:78px; padding:6px 10px 6px 8px; }
+    body.monitor-wide-active #monitor-wide-gps-pane .mwgp-vh .vh-name{ font-size:13.5px; }
+    body.monitor-wide-active #monitor-wide-gps-pane .mwgp-vh .vh-name .vh-plate{ font-size:11px; margin-left:5px; }
+    body.monitor-wide-active #monitor-wide-gps-pane .mwgp-vh .vh-addr{ font-size:11px; }
+    body.monitor-wide-active #monitor-wide-gps-pane .mwgp-vh .vh-speed{ font-size:18px; }
+    body.monitor-wide-active #monitor-wide-gps-pane .mwgp-vh .vh-detail-grid{ grid-template-columns: repeat(3, 1fr); gap:5px; }
+    body.monitor-wide-active #monitor-wide-gps-pane .mwgp-vh .vh-stat-tile{ padding:4px 6px; }
+    body.monitor-wide-active #monitor-wide-gps-pane .mwgp-vh .vh-stat-tile .val{ font-size:11.5px; }
+    body.monitor-wide-active #monitor-wide-gps-pane .mwgp-head{ padding:10px 14px; }
+    body.monitor-wide-active #monitor-wide-gps-pane .mwgp-head h3{ font-size:16px; }
+    body.monitor-wide-active #monitor-wide-gps-pane .mwgp-mapctrl button{ width:30px; height:30px; font-size:13px; }
+    .mwgp-marker-label{ font-size:11px !important; padding:1px 6px !important; }
+  }
+
     body.monitor-wide-active #app-main-wrapper > .container-fluid{
-      padding-right: 740px !important;  /* exactly = pane width, no seam */
+      padding-right: var(--mwgp-w) !important;  /* exactly = pane width, no seam */
     }
     body.monitor-wide-active #monitor-wide-gps-pane{
       display:flex; flex-direction:column; position:fixed; top:0; right:0; bottom:0;
-      width:740px; background:#f8fafc; color:#0f172a;
+      width: var(--mwgp-w); background:#f8fafc; color:#0f172a;
       border-left:1px solid #e2e8f0; z-index:20; overflow:hidden;
       font-family: inherit;
     }
