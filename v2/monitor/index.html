@@ -481,6 +481,111 @@
     body.monitor-wide-active #monitor-wide-gps-pane .mwgp-track-btn.camera{ background:#fefce8; color:#854d0e; border-color:#fde68a; }
     body.monitor-wide-active #monitor-wide-gps-pane .mwgp-track-btn:disabled{ opacity:.5; cursor:not-allowed; }
 
+    /* ============ Inline nearby search panel (replaces fleet list when active) ============ */
+    body.monitor-wide-active #monitor-wide-gps-pane .mwgp-nearby{
+      display:none; flex:1; flex-direction:column; overflow:hidden; background:#f8fafc;
+    }
+    body.monitor-wide-active #monitor-wide-gps-pane .mwgp-fleet.nearby-active .mwgp-list{ display:none; }
+    body.monitor-wide-active #monitor-wide-gps-pane .mwgp-fleet.nearby-active .mwgp-nearby{ display:flex; }
+    body.monitor-wide-active #monitor-wide-gps-pane .mwgp-nearby-head{
+      display:flex; align-items:center; gap:8px; padding:10px 14px;
+      background:#fff; border-bottom:1px solid #e2e8f0;
+    }
+    body.monitor-wide-active #monitor-wide-gps-pane .mwgp-nearby-head .back-btn{
+      width:28px; height:28px; border-radius:6px; border:1px solid #e2e8f0;
+      background:#fff; color:#475569; cursor:pointer;
+      display:inline-flex; align-items:center; justify-content:center;
+    }
+    body.monitor-wide-active #monitor-wide-gps-pane .mwgp-nearby-head .back-btn:hover{ background:#f1f5f9; color:#0f172a; }
+    body.monitor-wide-active #monitor-wide-gps-pane .mwgp-nearby-head .ttl{
+      font-size:13px; font-weight:700; color:#0f172a; flex:1; min-width:0;
+      white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+    }
+    body.monitor-wide-active #monitor-wide-gps-pane .mwgp-nearby-head .ttl small{
+      font-weight:500; color:#64748b; margin-left:4px;
+    }
+    body.monitor-wide-active #monitor-wide-gps-pane .mwgp-nearby-controls{
+      padding:8px 12px; background:#fff; border-bottom:1px solid #f1f5f9;
+      display:flex; flex-direction:column; gap:6px;
+    }
+    body.monitor-wide-active #monitor-wide-gps-pane .mwgp-nearby-types,
+    body.monitor-wide-active #monitor-wide-gps-pane .mwgp-nearby-radius{
+      display:flex; gap:4px; flex-wrap:wrap;
+    }
+    body.monitor-wide-active #monitor-wide-gps-pane .mwgp-nearby-types button,
+    body.monitor-wide-active #monitor-wide-gps-pane .mwgp-nearby-radius button{
+      flex:1 1 auto; min-width:0; padding:5px 9px; border-radius:6px;
+      background:#f8fafc; border:1px solid #e2e8f0; color:#475569;
+      font-size:11.5px; font-weight:600; cursor:pointer;
+      transition:all .12s; white-space:nowrap;
+    }
+    body.monitor-wide-active #monitor-wide-gps-pane .mwgp-nearby-types button.active{
+      background:#dc2626; border-color:#dc2626; color:#fff;
+    }
+    body.monitor-wide-active #monitor-wide-gps-pane .mwgp-nearby-radius button.active{
+      background:#475569; border-color:#475569; color:#fff;
+    }
+    body.monitor-wide-active #monitor-wide-gps-pane .mwgp-nearby-text{
+      width:100%; padding:6px 10px; border:1px solid #cbd5e1; border-radius:6px;
+      font-size:12px; outline:none; font-family:inherit;
+    }
+    body.monitor-wide-active #monitor-wide-gps-pane .mwgp-nearby-text:focus{
+      border-color:#dc2626; box-shadow:0 0 0 2px rgba(220,38,38,.12);
+    }
+    body.monitor-wide-active #monitor-wide-gps-pane .mwgp-nearby-list{
+      flex:1; overflow-y:auto; padding:8px 12px 14px;
+    }
+    body.monitor-wide-active #monitor-wide-gps-pane .mwgp-nearby-list::-webkit-scrollbar{ width:8px; }
+    body.monitor-wide-active #monitor-wide-gps-pane .mwgp-nearby-list::-webkit-scrollbar-thumb{ background:#cbd5e1; border-radius:4px; }
+    body.monitor-wide-active #monitor-wide-gps-pane .mwgp-nb-item{
+      background:#fff; border:1px solid #e2e8f0; border-radius:8px;
+      padding:8px 10px; margin-bottom:6px; box-shadow:0 1px 2px rgba(15,23,42,.04);
+    }
+    body.monitor-wide-active #monitor-wide-gps-pane .mwgp-nb-item.fastest{
+      border-color:#16a34a; background:#f0fdf4;
+    }
+    body.monitor-wide-active #monitor-wide-gps-pane .mwgp-nb-item .nb-name{
+      font-size:13px; font-weight:700; color:#0f172a;
+    }
+    body.monitor-wide-active #monitor-wide-gps-pane .mwgp-nb-item .nb-name .badge-fast{
+      display:inline-block; background:#16a34a; color:#fff; font-size:9.5px;
+      padding:1px 6px; border-radius:8px; margin-left:4px; font-weight:700;
+    }
+    body.monitor-wide-active #monitor-wide-gps-pane .mwgp-nb-item .nb-addr{
+      font-size:11px; color:#64748b; margin-top:2px;
+    }
+    body.monitor-wide-active #monitor-wide-gps-pane .mwgp-nb-item .nb-meta{
+      display:flex; gap:10px; align-items:center; margin-top:4px;
+      font-size:11.5px; flex-wrap:wrap;
+    }
+    body.monitor-wide-active #monitor-wide-gps-pane .mwgp-nb-item .nb-dist{ font-weight:700; color:#dc2626; }
+    body.monitor-wide-active #monitor-wide-gps-pane .mwgp-nb-item .nb-eta{ font-weight:700; color:#16a34a; }
+    body.monitor-wide-active #monitor-wide-gps-pane .mwgp-nb-item .nb-rating{ color:#d97706; font-size:11px; }
+    body.monitor-wide-active #monitor-wide-gps-pane .mwgp-nb-item .nb-actions{
+      display:flex; gap:4px; margin-top:6px; flex-wrap:wrap;
+    }
+    body.monitor-wide-active #monitor-wide-gps-pane .mwgp-nb-item .nb-actions a,
+    body.monitor-wide-active #monitor-wide-gps-pane .mwgp-nb-item .nb-actions button{
+      padding:3px 9px; font-size:11px; border-radius:100px; border:1px solid;
+      background:#fff; cursor:pointer; text-decoration:none; font-weight:600;
+      display:inline-flex; align-items:center; gap:3px;
+    }
+    body.monitor-wide-active #monitor-wide-gps-pane .mwgp-nb-item .nb-actions .nb-plot{ background:#dc2626; color:#fff; border-color:#dc2626; }
+    body.monitor-wide-active #monitor-wide-gps-pane .mwgp-nb-item .nb-actions .nb-phone{ color:#16a34a; border-color:#86efac; }
+    body.monitor-wide-active #monitor-wide-gps-pane .mwgp-nb-item .nb-actions .nb-maps{ color:#0369a1; border-color:#7dd3fc; }
+    body.monitor-wide-active #monitor-wide-gps-pane .mwgp-nb-loadmore{
+      width:100%; margin-top:6px; padding:8px; border-radius:8px;
+      background:#fff; border:1px dashed #fca5a5; color:#b91c1c;
+      font-size:11.5px; font-weight:600; cursor:pointer;
+    }
+    body.monitor-wide-active #monitor-wide-gps-pane .mwgp-nb-empty{
+      text-align:center; color:#94a3b8; font-size:12px; padding:20px 8px;
+    }
+    body.monitor-wide-active #monitor-wide-gps-pane .mwgp-nb-error{
+      background:#fef2f2; color:#991b1b; padding:8px 10px; border-radius:6px;
+      font-size:11.5px; margin-bottom:8px; border:1px solid #fecaca;
+    }
+
     /* Tracked-vehicle marker pulse */
     @keyframes mwgp-pulse {
       0% { transform: scale(1); opacity:.85; }
@@ -921,9 +1026,34 @@
                     </div>
                 </div>
             </div>
-            <div class="mwgp-fleet">
+            <div class="mwgp-fleet" id="mwgp-fleet">
                 <div id="mwgp-list" class="mwgp-list">
                     <div class="mwgp-empty">กำลังโหลด...</div>
+                </div>
+                <!-- Inline nearby search panel (replaces fleet list when active) -->
+                <div id="mwgp-nearby" class="mwgp-nearby">
+                    <div class="mwgp-nearby-head">
+                        <button type="button" class="back-btn" onclick="monitorMiniGpsCloseNearby()" title="กลับ"><i class="bi bi-arrow-left"></i></button>
+                        <div class="ttl">ค้นหาใกล้ <span id="mwgp-nb-vehicle">-</span><small id="mwgp-nb-coord"></small></div>
+                    </div>
+                    <div class="mwgp-nearby-controls">
+                        <div class="mwgp-nearby-types" id="mwgp-nb-types">
+                            <button type="button" data-t="hospital" class="active">รพ.</button>
+                            <button type="button" data-t="pharmacy">ร้านยา</button>
+                            <button type="button" data-t="police">ตำรวจ</button>
+                            <button type="button" data-t="gas_station">ปั๊ม</button>
+                            <button type="button" data-t="text">พิมพ์ค้น</button>
+                        </div>
+                        <input type="text" class="mwgp-nearby-text" id="mwgp-nb-text" placeholder="พิมพ์คำค้น แล้วกด Enter..." style="display:none;">
+                        <div class="mwgp-nearby-radius" id="mwgp-nb-radius">
+                            <button type="button" data-r="2000">2 km</button>
+                            <button type="button" data-r="5000" class="active">5 km</button>
+                            <button type="button" data-r="10000">10 km</button>
+                        </div>
+                    </div>
+                    <div class="mwgp-nearby-list" id="mwgp-nb-list">
+                        <div class="mwgp-nb-empty">เลือกประเภทเพื่อค้นหา</div>
+                    </div>
                 </div>
             </div>
         </aside>
@@ -1346,21 +1476,266 @@
         }
     }
 
-    // For "ค้นหาใกล้รถ" — fall back to opening the existing nearby-search modal
-    // (which has the rich result list + route UI). The modal will lay over the
-    // pane; user can dismiss to see pane again.
+    // ============================================================
+    // Inline nearby search (within pane, no modal)
+    // ============================================================
+    var _mwgpNbOrigin = null;       // {lat,lng,label}
+    var _mwgpNbType = 'hospital';
+    var _mwgpNbRadius = 5000;
+    var _mwgpNbAllResults = [];
+    var _mwgpNbCache = [];          // currently rendered batch
+    var _mwgpNbShowMore = false;
+    var _mwgpNbMarkers = [];        // hospital markers + route lines on _mwgpMap
+
     function monitorMiniGpsTrackedNearby() {
+        if (!window.PlacesAPI || !window.MapConfig || !MapConfig.useGoogle()) {
+            Swal.fire({ icon:'warning', title:'Google Maps ปิดอยู่', text:'กรุณา enable Google Maps ใน Admin settings ก่อน', confirmButtonText:'ตกลง' });
+            return;
+        }
         if (!_mwgpTrackedVehicle) return;
-        var name = _mwgpTrackedVehicle.nickname || _mwgpTrackedVehicle.device_name;
-        // Temporarily disable pane routing so openGpsModal goes to modal
-        document.body.classList.remove('monitor-wide-active');
+        var s = _mwgpStatuses[_mwgpTrackedKey];
+        if (!s || !s.lat || !s.lng) {
+            Swal.fire({ icon:'info', title:'ไม่มีตำแหน่ง GPS', text:'ยังไม่พบตำแหน่งของรถคันนี้', timer:2500, showConfirmButton:false });
+            return;
+        }
+
+        _mwgpNbOrigin = {
+            lat: s.lat, lng: s.lng,
+            label: 'รถ: ' + (_mwgpTrackedVehicle.nickname || _mwgpTrackedVehicle.device_name || '-')
+        };
+
+        // Show inline panel
+        var fleet = document.getElementById('mwgp-fleet');
+        if (fleet) fleet.classList.add('nearby-active');
+
+        document.getElementById('mwgp-nb-vehicle').textContent = _mwgpTrackedVehicle.nickname || _mwgpTrackedVehicle.device_name || '-';
+        document.getElementById('mwgp-nb-coord').textContent = ' (' + s.lat.toFixed(5) + ', ' + s.lng.toFixed(5) + ')';
+
+        // Reset state
+        _mwgpNbType = 'hospital';
+        document.getElementById('mwgp-nb-text').style.display = 'none';
+        _mwgpNbSyncTypeButtons();
+        _mwgpNbSyncRadiusButtons();
+        _mwgpNbClearMarkers();
+        _mwgpNbRunSearch();
+    }
+
+    function monitorMiniGpsCloseNearby() {
+        var fleet = document.getElementById('mwgp-fleet');
+        if (fleet) fleet.classList.remove('nearby-active');
+        _mwgpNbClearMarkers();
+        _mwgpNbOrigin = null;
+        // Re-center on tracked vehicle
+        var s = _mwgpStatuses[_mwgpTrackedKey];
+        if (s && s.lat && s.lng && _mwgpMap) _mwgpMap.setView([s.lat, s.lng], 16);
+    }
+
+    function _mwgpNbSyncTypeButtons() {
+        document.querySelectorAll('#mwgp-nb-types button').forEach(function(b){
+            b.classList.toggle('active', b.getAttribute('data-t') === _mwgpNbType);
+        });
+        document.getElementById('mwgp-nb-text').style.display = (_mwgpNbType === 'text') ? '' : 'none';
+    }
+    function _mwgpNbSyncRadiusButtons() {
+        document.querySelectorAll('#mwgp-nb-radius button').forEach(function(b){
+            b.classList.toggle('active', parseInt(b.getAttribute('data-r'), 10) === _mwgpNbRadius);
+        });
+    }
+
+    async function _mwgpNbRunSearch() {
+        if (!_mwgpNbOrigin) return;
+        var listEl = document.getElementById('mwgp-nb-list');
+        listEl.innerHTML = '<div class="mwgp-nb-empty"><div class="spinner-border spinner-border-sm me-2"></div>กำลังค้นหา...</div>';
         try {
-            openGpsModal(name);
-        } finally {
-            // Restore wide-active after invocation; modal was already shown
-            setTimeout(function(){ document.body.classList.add('monitor-wide-active'); }, 50);
+            var results;
+            if (_mwgpNbType === 'text') {
+                var q = (document.getElementById('mwgp-nb-text').value || '').trim();
+                if (!q) { listEl.innerHTML = '<div class="mwgp-nb-error">กรุณาพิมพ์คำค้น</div>'; return; }
+                results = await PlacesAPI.searchText({ query: q, lat: _mwgpNbOrigin.lat, lng: _mwgpNbOrigin.lng, radius: _mwgpNbRadius, maxResults: 20 });
+            } else {
+                var primaryTypes = _mwgpNbType === 'clinic' ? ['doctor', 'dentist'] : [_mwgpNbType];
+                results = await PlacesAPI.searchNearby({
+                    lat: _mwgpNbOrigin.lat, lng: _mwgpNbOrigin.lng,
+                    radius: _mwgpNbRadius, primaryTypes: primaryTypes, maxResults: 20
+                });
+            }
+            _mwgpNbAllResults = results || [];
+            var firstBatch = _mwgpNbAllResults.slice(0, 10);
+            _mwgpNbShowMore = _mwgpNbAllResults.length > 10;
+            _mwgpNbRenderList(firstBatch);
+            _mwgpNbEnrichDistanceMatrix(firstBatch);
+        } catch(e) {
+            var msg = e.message || String(e);
+            var html = 'ค้นหาไม่สำเร็จ: ' + msg.substring(0, 200);
+            if (msg.indexOf('SERVICE_DISABLED') !== -1 || msg.indexOf('has not been used') !== -1) {
+                html = '<b>Places API ยังไม่ได้เปิด</b><br>Admin ต้อง enable Places API (New)';
+            } else if (msg.indexOf('REQUEST_DENIED') !== -1) {
+                html = '<b>API Key ถูกจำกัด</b><br>ตรวจสอบ API restrictions';
+            }
+            listEl.innerHTML = '<div class="mwgp-nb-error">' + html + '</div>';
         }
     }
+
+    function _mwgpNbRenderList(places) {
+        var listEl = document.getElementById('mwgp-nb-list');
+        if (!places.length) {
+            listEl.innerHTML = '<div class="mwgp-nb-empty">ไม่พบผลลัพธ์ในรัศมีนี้</div>';
+            return;
+        }
+        var hasRoadData = places.some(function(p){ return p.roadDurationSeconds != null; });
+        var html = '';
+        places.forEach(function(h, idx){
+            var isFastest = hasRoadData && idx === 0 && h.roadDuration;
+            var distText = h.roadDistance
+                ? '<span class="nb-dist"><i class="bi bi-signpost-split"></i> ' + escapeHtml(h.roadDistance) + '</span>'
+                : '<span class="nb-dist" style="color:#64748b;"><i class="bi bi-signpost-split"></i> ' + (PlacesAPI.formatDistance ? PlacesAPI.formatDistance(h.distanceM) : (Math.round(h.distanceM/100)/10) + ' km') + ' (เส้นตรง)</span>';
+            var etaText = h.roadDuration ? '<span class="nb-eta"><i class="bi bi-clock-fill"></i> ' + escapeHtml(h.roadDuration) + '</span>' : '';
+            var rating = h.rating ? '<span class="nb-rating">★ ' + h.rating.toFixed(1) + ' (' + (h.ratingCount || 0) + ')</span>' : '';
+            html += '<div class="mwgp-nb-item' + (isFastest ? ' fastest' : '') + '">' +
+                      '<div class="nb-name">' + (idx+1) + '. ' + escapeHtml(h.name) + (isFastest ? '<span class="badge-fast">เร็วสุด</span>' : '') + '</div>' +
+                      '<div class="nb-addr">' + escapeHtml(h.address || '') + '</div>' +
+                      '<div class="nb-meta">' + distText + etaText + rating + '</div>' +
+                      '<div class="nb-actions">' +
+                        '<button class="nb-plot" onclick="monitorMiniGpsNbPlot(' + idx + ')"><i class="bi bi-geo-alt-fill"></i> แสดงบนแผนที่</button>' +
+                        (h.phone ? '<a class="nb-phone" href="tel:' + escapeHtml(h.phone) + '"><i class="bi bi-telephone-fill"></i> ' + escapeHtml(h.phone) + '</a>' : '') +
+                        (h.googleMapsUri ? '<a class="nb-maps" href="' + escapeHtml(h.googleMapsUri) + '" target="_blank"><i class="bi bi-map"></i> Maps</a>' : '') +
+                      '</div>' +
+                    '</div>';
+        });
+        if (_mwgpNbShowMore && places.length < _mwgpNbAllResults.length) {
+            var remaining = _mwgpNbAllResults.length - places.length;
+            html += '<button class="mwgp-nb-loadmore" onclick="_mwgpNbLoadMore()"><i class="bi bi-plus-circle-fill"></i> ค้นหาเพิ่ม (อีก ' + remaining + ' รายการ)</button>';
+        }
+        listEl.innerHTML = html;
+        _mwgpNbCache = places;
+    }
+
+    function _mwgpNbLoadMore() {
+        if (!_mwgpNbAllResults || _mwgpNbAllResults.length <= 10) return;
+        _mwgpNbShowMore = false;
+        var full = _mwgpNbAllResults.slice();
+        _mwgpNbRenderList(full);
+        var needEnrich = full.filter(function(h){ return h.roadDurationSeconds == null; });
+        if (needEnrich.length) _mwgpNbEnrichDistanceMatrix(full);
+    }
+
+    async function _mwgpNbEnrichDistanceMatrix(places) {
+        if (!places || !places.length || !_mwgpNbOrigin || !PlacesAPI.getDistanceMatrix) return;
+        var toEnrich = places.filter(function(p){ return p.roadDurationSeconds == null; });
+        if (!toEnrich.length) return;
+        var CHUNK = 25;
+        var chunks = [];
+        for (var i = 0; i < toEnrich.length; i += CHUNK) chunks.push(toEnrich.slice(i, i + CHUNK));
+        try {
+            var results = await Promise.all(chunks.map(function(ch){
+                return PlacesAPI.getDistanceMatrix({ lat: _mwgpNbOrigin.lat, lng: _mwgpNbOrigin.lng }, ch);
+            }));
+            var flat = [].concat.apply([], results);
+            toEnrich.forEach(function(p, idx){
+                var m = flat[idx];
+                if (m && m.status === 'OK') {
+                    p.roadDistance = m.distance;
+                    p.roadDistanceMeters = m.distanceMeters;
+                    p.roadDuration = m.duration;
+                    p.roadDurationSeconds = m.durationSeconds;
+                }
+            });
+            var sorted = places.slice().sort(function(a,b){
+                var aSec = a.roadDurationSeconds != null ? a.roadDurationSeconds : Infinity;
+                var bSec = b.roadDurationSeconds != null ? b.roadDurationSeconds : Infinity;
+                return aSec - bSec;
+            });
+            _mwgpNbRenderList(sorted);
+        } catch(e) { console.warn('[mwgp DistanceMatrix]', e.message); }
+    }
+
+    function monitorMiniGpsNbPlot(idx) {
+        var h = _mwgpNbCache[idx];
+        if (!h || !_mwgpMap || !_mwgpNbOrigin) return;
+        _mwgpNbClearMarkers();
+        var icon = L.divIcon({
+            className:'',
+            html:'<div style="width:32px;height:32px;background:#dc2626;border:3px solid #fff;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:16px;box-shadow:0 3px 10px rgba(220,38,38,.5);">&#x1f3e5;</div>',
+            iconSize:[32,32], iconAnchor:[16,16]
+        });
+        var marker = L.marker([h.lat, h.lng], { icon: icon }).addTo(_mwgpMap);
+        var dirUrl = 'https://www.google.com/maps/dir/?api=1' +
+                     '&origin=' + _mwgpNbOrigin.lat + ',' + _mwgpNbOrigin.lng +
+                     '&destination=' + h.lat + ',' + h.lng + '&travelmode=driving';
+        var popupHtml = '<div style="min-width:200px; font-family:Sarabun,sans-serif;">' +
+                        '<div style="font-weight:700; color:#0f172a;">' + escapeHtml(h.name) + '</div>' +
+                        '<div style="font-size:12px; color:#64748b; margin:3px 0;">' + escapeHtml(h.address || '') + '</div>' +
+                        (h.roadDistance ? '<div style="font-size:12px; color:#dc2626;"><b>ระยะ:</b> ' + escapeHtml(h.roadDistance) + '</div>' : '') +
+                        (h.roadDuration ? '<div style="font-size:12px; color:#16a34a; font-weight:700;">⏱ ETA: ' + escapeHtml(h.roadDuration) + '</div>' : '') +
+                        (h.phone ? '<div style="font-size:12px; margin-top:3px;"><b>โทร:</b> <a href="tel:' + escapeHtml(h.phone) + '">' + escapeHtml(h.phone) + '</a></div>' : '') +
+                        '<a href="' + escapeHtml(dirUrl) + '" target="_blank" class="btn btn-sm btn-danger w-100 mt-2" style="font-size:11px;">เปิด Google Maps</a>' +
+                        '</div>';
+        marker.bindPopup(popupHtml);
+        _mwgpNbMarkers.push(marker);
+        // Straight-line fallback while real route fetches
+        var routeLine = L.polyline(
+            [[_mwgpNbOrigin.lat, _mwgpNbOrigin.lng], [h.lat, h.lng]],
+            { color:'#dc2626', weight:3, opacity:.65, dashArray:'8,8' }
+        ).addTo(_mwgpMap);
+        _mwgpNbMarkers.push(routeLine);
+        try {
+            _mwgpMap.fitBounds(L.latLngBounds([[_mwgpNbOrigin.lat, _mwgpNbOrigin.lng], [h.lat, h.lng]]), { padding:[40,40], maxZoom:15 });
+        } catch(e){}
+        if (PlacesAPI.getDirections) {
+            PlacesAPI.getDirections(
+                { lat:_mwgpNbOrigin.lat, lng:_mwgpNbOrigin.lng },
+                { lat:h.lat, lng:h.lng }
+            ).then(function(r){
+                if (routeLine) {
+                    _mwgpMap.removeLayer(routeLine);
+                    var ix = _mwgpNbMarkers.indexOf(routeLine);
+                    if (ix !== -1) _mwgpNbMarkers.splice(ix, 1);
+                }
+                var roadLine = L.polyline(r.path, { color:'#dc2626', weight:5, opacity:.8 }).addTo(_mwgpMap);
+                _mwgpNbMarkers.push(roadLine);
+                try { _mwgpMap.fitBounds(roadLine.getBounds(), { padding:[40,40], maxZoom:15 }); } catch(e){}
+            }).catch(function(){});
+        }
+        marker.openPopup();
+    }
+
+    function _mwgpNbClearMarkers() {
+        _mwgpNbMarkers.forEach(function(m){ if (_mwgpMap) _mwgpMap.removeLayer(m); });
+        _mwgpNbMarkers = [];
+    }
+
+    // Wire up buttons inside pane nearby panel
+    document.addEventListener('click', function(ev){
+        var typeBtn = ev.target.closest('#mwgp-nb-types button');
+        if (typeBtn) {
+            _mwgpNbType = typeBtn.getAttribute('data-t') || 'hospital';
+            _mwgpNbSyncTypeButtons();
+            if (_mwgpNbType !== 'text' && _mwgpNbOrigin) _mwgpNbRunSearch();
+            return;
+        }
+        var radBtn = ev.target.closest('#mwgp-nb-radius button');
+        if (radBtn) {
+            _mwgpNbRadius = parseInt(radBtn.getAttribute('data-r'), 10) || 5000;
+            _mwgpNbSyncRadiusButtons();
+            if (_mwgpNbOrigin) _mwgpNbRunSearch();
+            return;
+        }
+    });
+    document.addEventListener('keydown', function(ev){
+        if (ev.key === 'Enter' && ev.target && ev.target.id === 'mwgp-nb-text') {
+            ev.preventDefault();
+            _mwgpNbRunSearch();
+        }
+    });
+
+    // Clear nearby markers if user closes the track banner
+    var _origClearTrack = monitorMiniGpsClearTrack;
+    monitorMiniGpsClearTrack = function() {
+        try { _mwgpNbClearMarkers(); } catch(e){}
+        var fleet = document.getElementById('mwgp-fleet');
+        if (fleet) fleet.classList.remove('nearby-active');
+        _origClearTrack();
+    };
 
     function monitorMiniGpsUpdateMarkers() {
         if (!_mwgpMap) return;
