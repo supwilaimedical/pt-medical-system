@@ -3081,8 +3081,9 @@
     var _loadedRawSnapshot = {};      // last-loaded form values (per name) — used to detect user-touched fields
     var _loadedVitalsJson = '';
     var _loadedIvsJson = '';
-    var _localSaveAt = 0;             // timestamp of last local save (to suppress own-echo)
     var _rtMergeInProgress = false;
+    var _pendingMergeCaseId = null;   // set when merge requested while isSaving — runs after save
+    var _lastMergeToastAt = 0;        // dedup toast (max 1 per 4s)
 
     // --- PAGINATION & FILTER ---
     var allCases = [];
@@ -3200,13 +3201,19 @@
     }
 
     async function _handleRemoteCaseUpdate(caseId) {
-        // Suppress echoes from own save (~3s window)
-        if (Date.now() - _localSaveAt < 3000) return;
-        if (_rtMergeInProgress || isSaving || isPopulating) return;
+        // Self-echo from own save is harmless: baseline is re-snapshotted before
+        // RT delivery arrives, so the merge sees current === loaded === remote
+        // and produces a no-op. No 3s suppression needed.
         var formView = document.getElementById('form-view');
         if (!formView || !formView.classList.contains('active')) return;
         var curEl = document.getElementById('caseId');
         if (!curEl || curEl.value !== caseId) return;
+        // If a save is in flight or another merge is running, queue this for
+        // post-save replay (otherwise the remote update would be lost forever).
+        if (_rtMergeInProgress || isSaving || isPopulating) {
+            _pendingMergeCaseId = caseId;
+            return;
+        }
 
         _rtMergeInProgress = true;
         try {
@@ -3286,17 +3293,25 @@
             _snapshotFormState();
 
             if (updatedCount > 0 || keptCount > 0) {
-                var bits = [];
-                if (updatedCount > 0) bits.push(updatedCount + ' ฟิลด์ sync');
-                if (keptCount > 0) bits.push(keptCount + ' ฟิลด์ที่คุณกำลังแก้ — ไม่ถูกแทน');
-                try {
-                    Swal.fire({
-                        toast: true, position: 'top-end', icon: 'info',
-                        title: '👥 อัปเดตจากอุปกรณ์อื่น',
-                        text: bits.join(' · '),
-                        timer: 4000, showConfirmButton: false
-                    });
-                } catch(_){}
+                // Dedup: max 1 toast per 4s. If a toast was just shown, skip
+                // (data is still merged correctly — just visual noise reduction).
+                var nowTs = Date.now();
+                if (nowTs - _lastMergeToastAt >= 4000) {
+                    _lastMergeToastAt = nowTs;
+                    var bits = [];
+                    if (updatedCount > 0) bits.push(updatedCount + ' ฟิลด์ sync');
+                    if (keptCount > 0) bits.push(keptCount + ' ฟิลด์ที่คุณกำลังแก้ — ไม่ถูกแทน');
+                    try {
+                        Swal.fire({
+                            toast: true, position: 'top-end', icon: 'info',
+                            title: '👥 อัปเดตจากอุปกรณ์อื่น',
+                            text: bits.join(' · '),
+                            timer: 4000, showConfirmButton: false
+                        });
+                    } catch(_){}
+                } else {
+                    console.log('[RT-merge] toast suppressed (dedup) — updated=' + updatedCount + ', kept=' + keptCount);
+                }
             }
         } catch(e) {
             console.warn('remote case merge failed:', e);
@@ -4413,6 +4428,12 @@
     async function saveData(isCompleted, silent, callback) {
       if(isSaving) return;
       if(isPopulating) return;
+      // If a realtime merge is currently rewriting form fields, defer this save
+      // by 250ms so we don't capture an inconsistent half-merged state.
+      if(_rtMergeInProgress) {
+          setTimeout(function(){ saveData(isCompleted, silent, callback); }, 250);
+          return;
+      }
       if(silent && !formDirty) { if (callback) callback(); return; }
       if(!dbReady) { Swal.fire('Error', 'Database not connected', 'error'); return; }
 
@@ -4476,13 +4497,20 @@
           var bch = document.getElementById('btn-case-history');
           if (bch) bch.classList.remove('d-none');
           formDirty = false;
-          // Re-snapshot baseline + mark own-save so realtime echo is suppressed
-          _localSaveAt = Date.now();
+          // Re-snapshot baseline so subsequent merges have correct ground truth.
+          // Self-echo from this save will be a no-op (current === loaded === remote).
           try {
               _loadedVitalsJson = JSON.stringify(vitalsObj || []);
               _loadedIvsJson = JSON.stringify(ivObj || []);
           } catch(_){}
           _snapshotFormState();
+          // If a merge was queued while we were saving, replay it now so we
+          // don't miss a remote change that arrived mid-save.
+          if (_pendingMergeCaseId) {
+              var pendingId = _pendingMergeCaseId;
+              _pendingMergeCaseId = null;
+              setTimeout(function(){ _scheduleRemoteCaseMerge(pendingId); }, 50);
+          }
           if (isNewCase) logActivity('CREATE_CASE', caseId, 'สร้างเคสใหม่');
           else if (!silent) logActivity('SAVE_CASE', caseId, 'บันทึก');
 
