@@ -3077,6 +3077,12 @@
     var formDirty = false;
     var loadedCaseStatus = '';
     var editModal;
+    // Realtime form-merge state
+    var _loadedRawSnapshot = {};      // last-loaded form values (per name) — used to detect user-touched fields
+    var _loadedVitalsJson = '';
+    var _loadedIvsJson = '';
+    var _localSaveAt = 0;             // timestamp of last local save (to suppress own-echo)
+    var _rtMergeInProgress = false;
 
     // --- PAGINATION & FILTER ---
     var allCases = [];
@@ -3141,6 +3147,162 @@
         if (!splash) return;
         splash.style.opacity = '0';
         setTimeout(function() { splash.style.display = 'none'; }, 400);
+    }
+
+    // ============================================================
+    // Real-time form-merge helpers (concurrent editor support)
+    // ============================================================
+    function _snapshotFormState() {
+        var f = document.forms['main-form'];
+        if (!f) { _loadedRawSnapshot = {}; return; }
+        var snap = {};
+        for (var i = 0; i < f.elements.length; i++) {
+            var el = f.elements[i];
+            if (!el.name) continue;
+            if (el.type === 'checkbox') snap[el.name] = !!el.checked;
+            else if (el.type === 'radio') { if (el.checked) snap[el.name] = el.value; }
+            else snap[el.name] = el.value;
+        }
+        _loadedRawSnapshot = snap;
+    }
+
+    function _readCurrentField(name, type) {
+        var f = document.forms['main-form'];
+        var el = f && f.elements[name];
+        if (!el) return undefined;
+        if (el instanceof RadioNodeList) return el.value;
+        if (el.type === 'checkbox') return !!el.checked;
+        return el.value;
+    }
+
+    function _writeFormField(name, value) {
+        var f = document.forms['main-form'];
+        var el = f && f.elements[name];
+        if (!el) return false;
+        isPopulating = true;
+        try {
+            if (el instanceof RadioNodeList) el.value = value;
+            else if (el.type === 'checkbox') el.checked = !!value;
+            else el.value = (value == null ? '' : value);
+        } finally {
+            isPopulating = false;
+        }
+        return true;
+    }
+
+    // Debounced merge handler — called when realtime fires for current case
+    var _mergeDebounceTimer = null;
+    function _scheduleRemoteCaseMerge(caseId) {
+        if (_mergeDebounceTimer) clearTimeout(_mergeDebounceTimer);
+        _mergeDebounceTimer = setTimeout(function(){
+            _handleRemoteCaseUpdate(caseId);
+        }, 400);
+    }
+
+    async function _handleRemoteCaseUpdate(caseId) {
+        // Suppress echoes from own save (~3s window)
+        if (Date.now() - _localSaveAt < 3000) return;
+        if (_rtMergeInProgress || isSaving || isPopulating) return;
+        var formView = document.getElementById('form-view');
+        if (!formView || !formView.classList.contains('active')) return;
+        var curEl = document.getElementById('caseId');
+        if (!curEl || curEl.value !== caseId) return;
+
+        _rtMergeInProgress = true;
+        try {
+            var resp = await _supabase.from('cases').select('*').eq('case_id', caseId).single();
+            if (resp.error) throw resp.error;
+            var row = resp.data;
+            var rd = row.raw_data || {};
+            var rawSnap = {};
+            try { rawSnap = rd.rawSnapshot ? JSON.parse(rd.rawSnapshot) : {}; } catch(_){}
+            var remoteVitalsJson = rd.vitalsJson || '';
+            var remoteIvsJson = rd.ivJson || '';
+
+            var f = document.forms['main-form'];
+            var updatedCount = 0;
+            var keptCount = 0;
+
+            for (var key in rawSnap) {
+                if (key === 'caseId') continue;
+                if (!f.elements[key]) continue;
+                var loaded = _loadedRawSnapshot[key];
+                var remote = rawSnap[key];
+                var current = _readCurrentField(key);
+                // Treat undefined/null/'' as same for comparison
+                var sameLoaded = (current === loaded) || (current == null && loaded == null) || (current === '' && loaded == null) || (current == null && loaded === '');
+                var sameRemote = (current === remote) || (current == null && remote == null) || (current === '' && remote == null) || (current == null && remote === '');
+                if (sameLoaded) {
+                    // user hasn't touched this field — safe to update
+                    if (!sameRemote) {
+                        _writeFormField(key, remote);
+                        updatedCount++;
+                    }
+                } else if (!sameRemote) {
+                    keptCount++;
+                }
+            }
+
+            // Merge vitals/arrest entries by JSON identity (append remote that aren't in local)
+            if (remoteVitalsJson && remoteVitalsJson !== _loadedVitalsJson) {
+                try {
+                    var remoteVitals = JSON.parse(remoteVitalsJson) || [];
+                    var localVitals = (function(){ try { return JSON.parse(_loadedVitalsJson || '[]'); } catch(_) { return []; } })();
+                    var localKeys = localVitals.map(function(v){ return JSON.stringify(v); });
+                    remoteVitals.forEach(function(v){
+                        if (localKeys.indexOf(JSON.stringify(v)) < 0) {
+                            isPopulating = true;
+                            try {
+                                if (v.type === 'arrest' && typeof addArrestLog === 'function') addArrestLog(false, v);
+                                else if (typeof addVitalLog === 'function') addVitalLog(false, v);
+                            } finally { isPopulating = false; }
+                            updatedCount++;
+                        }
+                    });
+                    _loadedVitalsJson = remoteVitalsJson;
+                } catch(e) { console.warn('vitals merge:', e); }
+            }
+
+            // Merge IV lines similarly
+            if (remoteIvsJson && remoteIvsJson !== _loadedIvsJson) {
+                try {
+                    var remoteIvs = JSON.parse(remoteIvsJson) || [];
+                    var localIvs = (function(){ try { return JSON.parse(_loadedIvsJson || '[]'); } catch(_) { return []; } })();
+                    var localKeys = localIvs.map(function(iv){ return JSON.stringify(iv); });
+                    remoteIvs.forEach(function(iv){
+                        if (localKeys.indexOf(JSON.stringify(iv)) < 0) {
+                            var targetId = iv.context === 'Initial' ? 'initial-iv-lines-container' : 'iv-lines-container';
+                            isPopulating = true;
+                            try { if (typeof addIvLine === 'function') addIvLine(iv, null, targetId, iv.context || 'Transport'); }
+                            finally { isPopulating = false; }
+                            updatedCount++;
+                        }
+                    });
+                    _loadedIvsJson = remoteIvsJson;
+                } catch(e) { console.warn('ivs merge:', e); }
+            }
+
+            // Re-snapshot to absorb remote-merged values (so subsequent merges work correctly)
+            _snapshotFormState();
+
+            if (updatedCount > 0 || keptCount > 0) {
+                var bits = [];
+                if (updatedCount > 0) bits.push(updatedCount + ' ฟิลด์ sync');
+                if (keptCount > 0) bits.push(keptCount + ' ฟิลด์ที่คุณกำลังแก้ — ไม่ถูกแทน');
+                try {
+                    Swal.fire({
+                        toast: true, position: 'top-end', icon: 'info',
+                        title: '👥 อัปเดตจากอุปกรณ์อื่น',
+                        text: bits.join(' · '),
+                        timer: 4000, showConfirmButton: false
+                    });
+                } catch(_){}
+            }
+        } catch(e) {
+            console.warn('remote case merge failed:', e);
+        } finally {
+            _rtMergeInProgress = false;
+        }
     }
 
     function startAutoSave() {
@@ -4314,6 +4476,13 @@
           var bch = document.getElementById('btn-case-history');
           if (bch) bch.classList.remove('d-none');
           formDirty = false;
+          // Re-snapshot baseline + mark own-save so realtime echo is suppressed
+          _localSaveAt = Date.now();
+          try {
+              _loadedVitalsJson = JSON.stringify(vitalsObj || []);
+              _loadedIvsJson = JSON.stringify(ivObj || []);
+          } catch(_){}
+          _snapshotFormState();
           if (isNewCase) logActivity('CREATE_CASE', caseId, 'สร้างเคสใหม่');
           else if (!silent) logActivity('SAVE_CASE', caseId, 'บันทึก');
 
@@ -4441,6 +4610,10 @@
 
             isPopulating = false;
             formDirty = false;
+            // Snapshot loaded state for realtime merge baseline
+            _loadedVitalsJson = data.vitalsJson || '';
+            _loadedIvsJson = data.ivJson || '';
+            _snapshotFormState();
             showForm();
             goToStep(2);
        } catch(err) {
@@ -6604,11 +6777,20 @@
 
         // Init Realtime — auto-refresh dashboard when others edit
         RT.initStatusDot();
-        RT.subscribe('transport-cases', 'cases', function() {
-            // Only refresh if on dashboard view (not editing a form)
+        RT.subscribe('transport-cases', 'cases', function(payload) {
             var dashView = document.getElementById('dashboard-view');
             if (dashView && dashView.classList.contains('active')) {
                 loadDashboardData(currentPage);
+                return;
+            }
+            // Form view: smart-merge for the case currently being edited
+            var formView = document.getElementById('form-view');
+            if (formView && formView.classList.contains('active')) {
+                var curCaseId = (document.getElementById('caseId') || {}).value || '';
+                var changedCaseId = (payload && payload.new && payload.new.case_id) || (payload && payload.old && payload.old.case_id) || '';
+                if (curCaseId && curCaseId === changedCaseId) {
+                    _scheduleRemoteCaseMerge(curCaseId);
+                }
             }
         });
 
