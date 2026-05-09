@@ -849,6 +849,27 @@
     .no-print { display:none !important; }
     body::before, body::after { display:none !important; content:none !important; }
   }
+
+  /* ============================================================ Mobile bottom nav (monitor) ============================================================ */
+  @media (max-width: 1024px) and (orientation: portrait) {
+    body .v2-subnav { display: none !important; }
+    body #app-main-wrapper { padding-left: 0 !important; }
+    body { padding-bottom: 76px !important; }
+    body.v2-nav-open .v2-rail { display:flex !important; transform:translateX(0) !important; }
+    body.v2-nav-open::before { content:''; position:fixed; inset:0; background:rgba(15,23,42,.5); z-index:1028; }
+    body .v2-rail { width:64px !important; box-shadow:4px 0 14px rgba(15,23,42,.15); }
+    body .v2-rail a { width:48px !important; height:48px !important; font-size:22px !important; }
+    .pt-bnav { position:fixed; left:0; right:0; bottom:0; z-index:1030; background:#fff; border-top:1px solid #e2e8f0;
+      padding:4px 4px calc(4px + env(safe-area-inset-bottom));
+      display:grid; grid-template-columns: repeat(3, 1fr); height:56px; }
+    .pt-bnav a { display:flex; flex-direction:column; align-items:center; justify-content:center; gap:2px;
+      color:#64748b; text-decoration:none; cursor:pointer; font-size:11px; font-weight:600; background:transparent; border:0; }
+    .pt-bnav a i { font-size:18px; line-height:1; }
+    .pt-bnav a.active { color:#7c3aed; }
+  }
+  @media (min-width: 1025px), (orientation: landscape) {
+    .pt-bnav { display:none !important; }
+  }
 </style>
 
 <button class="v2-mobile-nav-toggle no-print" onclick="document.body.classList.toggle('v2-nav-open')" aria-label="เมนู" title="เมนู"><i class="bi bi-list"></i></button>
@@ -4799,6 +4820,38 @@
       window.openReferGallery(rec.referDocs, 0);
     };
     </script>
+
+  <!-- Mobile bottom nav (monitor) -->
+  <nav class="pt-bnav" id="mon-bnav" style="display:none;">
+    <a href="javascript:void(0)" onclick="if(typeof v2MonScrollTo==='function') v2MonScrollTo('monitor-transport-list')">
+      <i class="bi bi-truck-flatbed"></i><span>นำส่ง</span>
+    </a>
+    <a href="javascript:void(0)" onclick="if(typeof v2MonScrollTo==='function') v2MonScrollTo('monitor-fa-list')">
+      <i class="bi bi-bandaid"></i><span>ปฐมพยาบาล</span>
+    </a>
+    <a href="javascript:void(0)" onclick="if(typeof v2MonScrollToCritical==='function') v2MonScrollToCritical()">
+      <i class="bi bi-exclamation-circle-fill" style="color:#dc2626;"></i><span>วิกฤต</span>
+    </a>
+  </nav>
+
+  <script>
+  (function(){
+    function _monIsMobilePortrait(){ try { return window.matchMedia('(max-width: 1024px) and (orientation: portrait)').matches; } catch(_){ return false; } }
+    function _monUpdate(){
+      var bnav = document.getElementById('mon-bnav'); if (!bnav) return;
+      bnav.style.display = _monIsMobilePortrait() ? '' : 'none';
+    }
+    document.addEventListener('DOMContentLoaded', _monUpdate);
+    window.addEventListener('resize', _monUpdate);
+    setInterval(_monUpdate, 1500);
+    document.addEventListener('click', function(e){
+      if (!document.body.classList.contains('v2-nav-open')) return;
+      if (e.target.closest('.v2-rail') || e.target.closest('.v2-mobile-nav-toggle')) return;
+      document.body.classList.remove('v2-nav-open');
+    });
+    document.querySelectorAll('.v2-rail a').forEach(function(a){ a.addEventListener('click', function(){ document.body.classList.remove('v2-nav-open'); }); });
+  })();
+  </script>
 
 </body>
 </html>
