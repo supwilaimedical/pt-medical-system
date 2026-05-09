@@ -1127,6 +1127,8 @@
         if (filters.status === 'ready_perfect' && !(ok && !hasNote)) return false;
         if (filters.status === 'ready_note' && !(ok && hasNote)) return false;
         if (filters.status === 'not_ready' && ok) return false;
+        // Virtual filter: combined ready_note + not_ready (used by mobile bnav "มีรายการ")
+        if (filters.status === 'issues' && !((ok && hasNote) || !ok)) return false;
       }
       return true;
     });
@@ -1515,13 +1517,10 @@
   // simulate by switching to All then post-filter via custom logic via setFilterStatus + global)
   // Since production setFilterStatus expects single status, easiest: introduce a virtual filter handler.
   window._fleetFilterIssues = function(){
-    var data = (typeof window._fleetGetAllData === 'function') ? window._fleetGetAllData() : null;
-    if (Array.isArray(data) && typeof window._fleetRenderTable === 'function') {
-      var combined = data.filter(function(d){
-        return d.status === 'ไม่พร้อมใช้งาน' || (d.status === 'พร้อมใช้งาน' && d.issue && d.issue !== '-');
-      });
-      window._fleetRenderTable(combined);
-      // mark bnav active
+    // Use the virtual 'issues' filter — getFiltered handles it, so calendar/stats/table all sync.
+    if (typeof window.setFilterStatus === 'function') {
+      window.setFilterStatus('issues', null);
+      // mark bnav active (production setFilterStatus only manages [data-filter-status] pills)
       document.querySelectorAll('#fleet-bnav a').forEach(function(a){ a.classList.remove('active'); });
       document.getElementById('fleet-bnav-issues')?.classList.add('active');
     }
