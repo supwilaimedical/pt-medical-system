@@ -199,11 +199,8 @@
         margin: 0 !important;
         overflow: visible !important;
       }
-      /* When form topbar is fixed, push rail down so menu items don't sit under it.
-         Topbar measured by JS sets --pt-tb-h CSS var; fallback 50px. */
-      body:has(#form-view.active).v2-nav-open .v2-rail{
-        padding-top: calc(var(--pt-tb-h, 50px) + 12px) !important;
-      }
+      /* Rail z-index 1030 > topbar 1025 → menu visually covers topbar in rail's area.
+         No extra padding needed; first menu item sits flush at top. */
       .v2-form-topbar .v2-tb-row1{
         padding:6px 8px 6px 52px; gap:4px;
         flex-wrap:nowrap !important;
