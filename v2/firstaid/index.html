@@ -1970,6 +1970,7 @@
 
     function fa_openEventDetails(eventId) {
         fa_currentViewedEventId = eventId;
+        window.fa_currentViewedEventId = eventId;   // expose for mobile bnav
 
         var allViews = document.querySelectorAll('.view-section');
         for (var i = 0; i < allViews.length; i++) allViews[i].classList.remove('active');
@@ -2219,6 +2220,7 @@
 
     function fa_closeEventDetails() {
         fa_currentViewedEventId = null;
+        window.fa_currentViewedEventId = null;
         RT.unsubscribe('fa-registry');
         fa_showDashboard();
     }
