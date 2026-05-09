@@ -16,26 +16,35 @@
     }
     .preview-banner b { color: #064e3b; }
 
-    /* TOPBAR (production-like — hamburger + title + edit/preview/save buttons) */
+    /* TOPBAR — production: white bg, icons keep natural color */
     .topbar {
         position: sticky; top: 0; z-index: 50;
-        background: linear-gradient(180deg, #6366f1, #4f46e5);
-        color: #fff; padding: 6px 10px;
+        background: #fff; border-bottom: 1px solid #e2e8f0;
+        padding: 6px 10px;
         display: flex; align-items: center; gap: 6px;
         height: 48px;
     }
-    .topbar .ic, .topbar .save {
-        height: 36px; min-width: 36px; padding: 0 10px;
+    .topbar .ic {
+        height: 36px; min-width: 36px; padding: 0 8px;
         display: flex; align-items: center; justify-content: center; gap: 5px;
-        border-radius: 8px; background: rgba(255,255,255,.18); color: #fff;
+        border-radius: 8px; background: #f1f5f9; color: #475569;
         text-decoration: none; flex: 0 0 auto; border: 0;
-        font-size: 13px; font-weight: 600;
+        font-size: 16px;
     }
-    .topbar .save { background: #16a34a; }
+    .topbar .ic:active { background: #e2e8f0; }
+    .topbar .save {
+        height: 36px; min-width: 36px; padding: 0 12px;
+        display: flex; align-items: center; justify-content: center; gap: 5px;
+        border-radius: 8px; background: #16a34a; color: #fff;
+        flex: 0 0 auto; border: 0; font-size: 13px; font-weight: 700;
+    }
+    .topbar .ic .ic-edit { color: #0369a1; }
+    .topbar .ic .ic-eye { color: #7c3aed; }
     .topbar .ttl {
-        flex: 1; min-width: 0; font-size: 14px; font-weight: 700; line-height: 1.1; padding: 0 4px;
+        flex: 1; min-width: 0; font-size: 14px; font-weight: 700; color: #0f172a; line-height: 1.1; padding: 0 4px;
     }
-    .topbar .ttl small { display: block; font-size: 10px; font-weight: 500; opacity: .85; margin-top: 2px; }
+    .topbar .ttl small { display: block; font-size: 10px; font-weight: 500; color: #64748b; margin-top: 2px; }
+    .topbar .ttl .mod-ic { color: #0ea5e9; margin-right: 4px; }   /* transport sky-blue */
 
     /* form cards (mimic PC layout — DON'T touch) */
     .form-card {
@@ -135,12 +144,12 @@
     <b>⚠️ Mockup เพื่อดู bottom nav เท่านั้น</b> — ตอน apply เข้า live <b>ฟอร์มจริงไม่แตะ</b> (เพิ่มแค่ bottom nav + ซ่อน subnav บน mobile)
 </div>
 
-<!-- TOPBAR (เหมือน production: hamburger + title + edit/preview/save) -->
+<!-- TOPBAR (production: white bg, icons keep natural color) -->
 <div class="topbar">
     <a href="transport-list.html" class="ic" title="เมนู"><i class="bi bi-list"></i></a>
-    <div class="ttl">เปิดเคส 20260508-004<small>ALS · ขณะนำส่ง</small></div>
-    <button class="ic" title="edit"><i class="bi bi-pencil"></i></button>
-    <button class="ic" title="preview"><i class="bi bi-eye"></i></button>
+    <div class="ttl"><i class="bi bi-truck-flatbed mod-ic"></i>เปิดเคส 20260508-004<small>ALS · ขณะนำส่ง</small></div>
+    <button class="ic" title="edit"><i class="bi bi-pencil ic-edit"></i></button>
+    <button class="ic" title="preview"><i class="bi bi-eye ic-eye"></i></button>
     <button class="save" title="save"><i class="bi bi-check-lg"></i></button>
 </div>
 
