@@ -3396,8 +3396,8 @@
     <a href="javascript:void(0)" class="active" onclick="if(typeof fitAllMarkers==='function') fitAllMarkers();">
       <i class="bi bi-map"></i><span>แผนที่</span>
     </a>
-    <a href="javascript:void(0)" onclick="var s=document.querySelector('.panel-search input, #vehicleSearch, input[type=search]'); if(s){ s.focus(); s.scrollIntoView({block:'center'}); }">
-      <i class="bi bi-list-ul"></i><span>รายการ</span>
+    <a href="javascript:void(0)" onclick="if(typeof fitAllMarkers==='function') fitAllMarkers()">
+      <i class="bi bi-arrows-fullscreen"></i><span>ซูมพอดี</span>
     </a>
     <a href="javascript:void(0)" onclick="if(typeof manualRefresh==='function') manualRefresh();">
       <i class="bi bi-arrow-clockwise"></i><span>รีเฟรช</span>
@@ -3423,7 +3423,6 @@
       <button class="pt-sheet-link" onclick="gpsV2Filter('all')"><i class="bi bi-list-ul"></i> ทั้งหมด</button>
       <div style="font-size:11px; font-weight:700; color:#64748b; padding:14px 0 6px;">เครื่องมือ</div>
       <button class="pt-sheet-link" onclick="if(typeof toggleAutoRefresh==='function') toggleAutoRefresh()"><i class="bi bi-arrow-repeat"></i> Auto-refresh เปิด/ปิด</button>
-      <button class="pt-sheet-link" onclick="if(typeof fitAllMarkers==='function') fitAllMarkers()"><i class="bi bi-arrows-fullscreen"></i> Fit ทุก marker</button>
       <button class="pt-sheet-link" onclick="if(typeof openNearestHospitalsModal==='function') openNearestHospitalsModal()"><i class="bi bi-hospital"></i> โรงพยาบาลใกล้สุด</button>
     </div>
   </div>
