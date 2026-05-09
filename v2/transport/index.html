@@ -195,10 +195,12 @@
          JS sets body padding-top = topbar.offsetHeight so V/S + sections below stay visible. */
       body:has(#form-view.active) .v2-form-topbar{
         position: fixed !important; top: 0 !important; left: 0 !important; right: 0 !important;
-        z-index: 1030 !important;
+        z-index: 1025 !important;
         margin: 0 !important;
         overflow: visible !important;
       }
+      /* Hide form topbar while rail menu is open (was covering rail items) */
+      body.v2-nav-open .v2-form-topbar { display: none !important; }
       .v2-form-topbar .v2-tb-row1{
         padding:6px 8px 6px 52px; gap:4px;
         flex-wrap:nowrap !important;
