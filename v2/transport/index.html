@@ -1247,6 +1247,90 @@
     #v2-quick-panel .v2-qp-print{ padding:6px 10px !important; }
     #v2-quick-panel #v2-quick-title{ font-size:14px !important; }
   }
+
+  /* ============================================================
+     Mobile + tablet portrait: hide subnav + add bottom nav.
+     Logic preserved — bottom-nav buttons call existing v2SetListTab().
+     Right column .tr-dash-right gets portaled into bottom sheet.
+     ============================================================ */
+  @media (max-width: 1024px) and (orientation: portrait) {
+    /* Hide sidebar subnav (replaced by bottom nav below) */
+    body .v2-subnav { display: none !important; }
+    /* Reclaim left padding the subnav was taking */
+    body #app-main-wrapper { padding-left: 0 !important; }
+    /* Reserve space at bottom for the bottom nav */
+    body { padding-bottom: 76px !important; }
+    /* Bottom nav (.pt-bnav) */
+    .pt-bnav {
+      position: fixed; left: 0; right: 0; bottom: 0; z-index: 1030;
+      background: #fff; border-top: 1px solid #e2e8f0;
+      padding: 4px 4px calc(4px + env(safe-area-inset-bottom));
+      display: grid; grid-template-columns: repeat(4, 1fr);
+      height: 56px;
+    }
+    .pt-bnav a {
+      display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px;
+      color: #64748b; text-decoration: none; cursor: pointer;
+      font-size: 11px; font-weight: 600;
+      background: transparent; border: 0;
+    }
+    .pt-bnav a i { font-size: 18px; line-height: 1; }
+    .pt-bnav a.active { color: #0ea5e9; }
+    .pt-bnav a .ct {
+      background: #f1f5f9; color: #475569;
+      font-size: 9.5px; font-weight: 700; padding: 0 6px;
+      border-radius: 100px; margin-left: 4px; line-height: 1.5;
+    }
+    .pt-bnav a.active .ct { background: #e0f2fe; color: #0369a1; }
+    .pt-bnav .more-btn .badge-alert {
+      position: absolute; transform: translate(10px, -10px);
+      background: #ef4444; color: #fff;
+      font-size: 9px; font-weight: 700; padding: 1px 5px;
+      border-radius: 100px;
+    }
+    /* Bottom sheet (.tr-dash-right portaled here) */
+    .pt-bsheet-bd {
+      position: fixed; inset: 0; background: rgba(15,23,42,.5); z-index: 1040;
+      opacity: 0; pointer-events: none; transition: opacity .2s;
+    }
+    .pt-bsheet-bd.show { opacity: 1; pointer-events: auto; }
+    .pt-bsheet {
+      position: fixed; left: 0; right: 0; bottom: 0; z-index: 1045;
+      background: #fff; border-radius: 16px 16px 0 0;
+      max-height: 80vh; overflow: hidden;
+      display: flex; flex-direction: column;
+      transform: translateY(100%); transition: transform .25s ease-out;
+      box-shadow: 0 -4px 24px rgba(15,23,42,.15);
+    }
+    .pt-bsheet.show { transform: translateY(0); }
+    .pt-bsheet .pt-bsheet-handle {
+      width: 36px; height: 4px; background: #cbd5e1; border-radius: 100px;
+      margin: 8px auto 4px;
+    }
+    .pt-bsheet .pt-bsheet-head {
+      padding: 8px 16px 12px;
+      display: flex; align-items: center; gap: 8px;
+      border-bottom: 1px solid #f1f5f9;
+    }
+    .pt-bsheet .pt-bsheet-head h4 {
+      margin: 0; font-size: 15px; font-weight: 700; color: #0f172a; flex: 1;
+    }
+    .pt-bsheet .pt-bsheet-head .pt-bsheet-close {
+      width: 28px; height: 28px; border-radius: 8px; border: 0;
+      background: #f1f5f9; color: #475569;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 14px;
+    }
+    .pt-bsheet .pt-bsheet-body { flex: 1; overflow-y: auto; padding: 12px 16px 24px; }
+    /* Hide production right column on mobile (its content moves into the sheet) */
+    body .tr-dash-right { display: none !important; }
+    body.tr-dash-has-rc #app-main-wrapper > .container,
+    body #app-main-wrapper > .container { padding-right: 0 !important; }
+  }
+  /* Desktop / landscape: ensure bottom nav never shows */
+  @media (min-width: 1025px), (orientation: landscape) {
+    .pt-bnav, .pt-bsheet, .pt-bsheet-bd { display: none !important; }
+  }
 </style>
 
 <script>
@@ -8792,6 +8876,104 @@
 
     // Re-render when case id becomes available (so new folder name is applied on next upload)
     // Actually uploads already read caseId at upload time, so no action needed.
+  })();
+  </script>
+
+  <!-- ============================================================
+       Mobile bottom nav + bottom sheet (visible only <=1024px portrait)
+       Reuses existing v2SetListTab() and portals .tr-dash-right into sheet.
+       ============================================================ -->
+  <nav class="pt-bnav" id="pt-bnav" style="display:none;" aria-label="Bottom navigation">
+    <a href="javascript:void(0)" data-list-tab="all" onclick="if(typeof v2SetListTab==='function') v2SetListTab('all');">
+      <i class="bi bi-list-ul"></i><span>ทั้งหมด</span>
+    </a>
+    <a href="javascript:void(0)" data-list-tab="active" onclick="if(typeof v2SetListTab==='function') v2SetListTab('active');">
+      <i class="bi bi-broadcast-pin"></i><span>Active</span>
+    </a>
+    <a href="javascript:void(0)" data-list-tab="closed" onclick="if(typeof v2SetListTab==='function') v2SetListTab('closed');">
+      <i class="bi bi-archive"></i><span>ปิดแล้ว</span>
+    </a>
+    <a href="javascript:void(0)" class="more-btn" id="pt-bnav-more">
+      <i class="bi bi-three-dots"></i><span>เพิ่มเติม</span>
+    </a>
+  </nav>
+
+  <div class="pt-bsheet-bd" id="pt-bsheet-bd"></div>
+  <div class="pt-bsheet" id="pt-bsheet" aria-hidden="true">
+    <div class="pt-bsheet-handle"></div>
+    <div class="pt-bsheet-head">
+      <h4>ภาพรวม / แจ้งเตือน</h4>
+      <button class="pt-bsheet-close" type="button" id="pt-bsheet-close-btn"><i class="bi bi-x-lg"></i></button>
+    </div>
+    <div class="pt-bsheet-body" id="pt-bsheet-body">
+      <!-- .tr-dash-right portaled here on first open -->
+    </div>
+  </div>
+
+  <script>
+  // Show bottom nav only on dashboard view (not form view).
+  // Form view will get its own bottom nav in next module step.
+  (function(){
+    function _ptIsMobilePortrait(){
+      try { return window.matchMedia('(max-width: 1024px) and (orientation: portrait)').matches; } catch(_){ return false; }
+    }
+    function _ptUpdateBnav(){
+      var bnav = document.getElementById('pt-bnav');
+      if (!bnav) return;
+      var dash = document.getElementById('dashboard-view');
+      var onDash = dash && dash.classList.contains('active');
+      bnav.style.display = (onDash && _ptIsMobilePortrait()) ? '' : 'none';
+    }
+    // Initial + after view-change events
+    document.addEventListener('DOMContentLoaded', _ptUpdateBnav);
+    window.addEventListener('resize', _ptUpdateBnav);
+    // Hook into view-toggle: poll briefly after navigation
+    document.addEventListener('click', function(e){
+      var t = e.target.closest('[data-list-tab],[onclick*="showDashboard"],[onclick*="showForm"]');
+      if (t) setTimeout(_ptUpdateBnav, 50);
+    }, true);
+    setInterval(_ptUpdateBnav, 1000); // safety net for view changes via JS
+
+    // Sync active state with v2SetListTab
+    function _ptSyncActive(){
+      var tabs = document.querySelectorAll('#pt-bnav [data-list-tab]');
+      tabs.forEach(function(a){
+        var name = a.getAttribute('data-list-tab');
+        var src = document.querySelector('.v2-subnav [data-list-tab="' + name + '"]');
+        a.classList.toggle('active', !!(src && src.classList.contains('active')));
+      });
+    }
+    setInterval(_ptSyncActive, 800);
+
+    // Sheet toggle — portals .tr-dash-right content into sheet body
+    var sheetBody = document.getElementById('pt-bsheet-body');
+    var sheet = document.getElementById('pt-bsheet');
+    var bd = document.getElementById('pt-bsheet-bd');
+    var portaled = false;
+    function openSheet(){
+      if (!portaled) {
+        var rc = document.getElementById('tr-dash-right');
+        if (rc && sheetBody) {
+          // Move (not clone) so onclick handlers + IDs stay live
+          sheetBody.appendChild(rc);
+          rc.style.display = 'block';
+          rc.style.position = 'static';
+          rc.style.width = 'auto';
+        }
+        portaled = true;
+      }
+      sheet.classList.add('show');
+      bd.classList.add('show');
+    }
+    function closeSheet(){
+      sheet.classList.remove('show');
+      bd.classList.remove('show');
+    }
+    var moreBtn = document.getElementById('pt-bnav-more');
+    if (moreBtn) moreBtn.addEventListener('click', openSheet);
+    if (bd) bd.addEventListener('click', closeSheet);
+    var closeBtn = document.getElementById('pt-bsheet-close-btn');
+    if (closeBtn) closeBtn.addEventListener('click', closeSheet);
   })();
   </script>
 
