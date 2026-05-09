@@ -423,10 +423,22 @@
     body .v2-subnav { display: none !important; }
     body #app-main-wrapper { padding-left: 0 !important; }
     body { padding-bottom: 76px !important; }
-    body.v2-nav-open .v2-rail { display:flex !important; transform:translateX(0) !important; }
+    body.v2-nav-open .v2-rail {
+      display:flex !important; transform:translateX(0) !important;
+      width: 220px !important; align-items: stretch !important; padding: 12px 8px !important;
+    }
     body.v2-nav-open::before { content:''; position:fixed; inset:0; background:rgba(15,23,42,.5); z-index:1028; }
-    body .v2-rail { width:64px !important; box-shadow:4px 0 14px rgba(15,23,42,.15); }
-    body .v2-rail a { width:48px !important; height:48px !important; font-size:22px !important; }
+    body .v2-rail { box-shadow:4px 0 14px rgba(15,23,42,.15); }
+    body.v2-nav-open .v2-rail a {
+      width: 100% !important; height: auto !important; min-height: 48px !important;
+      font-size: 14px !important; font-weight: 600;
+      display: flex !important; flex-direction: row !important;
+      align-items: center !important; justify-content: flex-start !important;
+      gap: 12px !important; padding: 10px 14px !important; border-radius: 10px;
+    }
+    body.v2-nav-open .v2-rail a i { font-size: 22px !important; flex: 0 0 auto; width: 28px; text-align: center; }
+    body.v2-nav-open .v2-rail a::after { content: attr(title); flex: 1; color: inherit; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    body.v2-nav-open .v2-rail .v2-logo { display: none !important; }
     /* Reposition existing .fa-fab (event detail FAB) to float center */
     body.fa-in-event .fa-fab {
       position: fixed !important;
