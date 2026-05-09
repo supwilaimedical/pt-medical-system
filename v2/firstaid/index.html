@@ -413,6 +413,61 @@
   .fa-recent-row .dot.complete{ background:#94a3b8; }
   .fa-recent-row .nm{ flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-weight:500; }
   .fa-recent-row .tm{ font-size:11px; color:#94a3b8; flex-shrink:0; }
+
+  /* ============================================================
+     Mobile + tablet portrait — hide subnav + show bottom nav
+     Two bnav variants: list view + event-detail view
+     All buttons reuse existing v2FaSetTab / fa_openEventDetail / etc.
+     ============================================================ */
+  @media (max-width: 1024px) and (orientation: portrait) {
+    body .v2-subnav { display: none !important; }
+    body #app-main-wrapper { padding-left: 0 !important; }
+    body { padding-bottom: 76px !important; }
+    /* Hamburger opens main rail */
+    body.v2-nav-open .v2-rail {
+      display: flex !important; transform: translateX(0) !important;
+    }
+    body.v2-nav-open::before {
+      content:''; position:fixed; inset:0; background:rgba(15,23,42,.5); z-index:1028;
+    }
+    body .v2-rail { width:64px !important; box-shadow:4px 0 14px rgba(15,23,42,.15); }
+    body .v2-rail a { width:48px !important; height:48px !important; font-size:22px !important; }
+    /* Hide existing fa-fab (we use it via FAB anyway, just relocate) */
+    /* Bottom nav */
+    .pt-bnav {
+      position: fixed; left:0; right:0; bottom:0; z-index:1030;
+      background:#fff; border-top:1px solid #e2e8f0;
+      padding: 4px 4px calc(4px + env(safe-area-inset-bottom));
+      display: grid; height: 56px;
+    }
+    .pt-bnav.cols-3 { grid-template-columns: repeat(3, 1fr); }
+    .pt-bnav.cols-4 { grid-template-columns: repeat(4, 1fr); }
+    .pt-bnav a {
+      display:flex; flex-direction:column; align-items:center; justify-content:center; gap:2px;
+      color:#64748b; text-decoration:none; cursor:pointer;
+      font-size:11px; font-weight:600; background:transparent; border:0;
+    }
+    .pt-bnav a i { font-size:18px; line-height:1; }
+    .pt-bnav a.active { color:#16a34a; }
+    /* Bottom sheet */
+    .pt-bsheet-bd { position:fixed; inset:0; background:rgba(15,23,42,.5); z-index:1040; opacity:0; pointer-events:none; transition:opacity .2s; }
+    .pt-bsheet-bd.show { opacity:1; pointer-events:auto; }
+    .pt-bsheet { position:fixed; left:0; right:0; bottom:0; z-index:1045;
+      background:#fff; border-radius:16px 16px 0 0; max-height:80vh; overflow:hidden;
+      display:flex; flex-direction:column;
+      transform:translateY(100%); transition:transform .25s ease-out;
+      box-shadow:0 -4px 24px rgba(15,23,42,.15);
+    }
+    .pt-bsheet.show { transform: translateY(0); }
+    .pt-bsheet .pt-bsheet-handle { width:36px; height:4px; background:#cbd5e1; border-radius:100px; margin:8px auto 4px; }
+    .pt-bsheet .pt-bsheet-head { padding:8px 16px 12px; display:flex; align-items:center; gap:8px; border-bottom:1px solid #f1f5f9; }
+    .pt-bsheet .pt-bsheet-head h4 { margin:0; font-size:15px; font-weight:700; color:#0f172a; flex:1; }
+    .pt-bsheet .pt-bsheet-head .pt-bsheet-close { width:28px; height:28px; border-radius:8px; border:0; background:#f1f5f9; color:#475569; display:flex; align-items:center; justify-content:center; font-size:14px; }
+    .pt-bsheet .pt-bsheet-body { flex:1; overflow-y:auto; padding:12px 16px 24px; }
+  }
+  @media (min-width: 1025px), (orientation: landscape) {
+    .pt-bnav, .pt-bsheet, .pt-bsheet-bd { display: none !important; }
+  }
 </style>
 <aside class="v2-rail no-print">
   <div class="v2-logo" title="PT Medical V2">PT</div>
@@ -3951,6 +4006,77 @@ if ('serviceWorker' in navigator) {
   navigator.serviceWorker.register('../sw.js').catch(function(e) { console.warn('SW:', e); });
 }
 </script>
+
+  <!-- ============================================================
+       Mobile bottom nav (firstaid) — list view + event-detail view
+       ============================================================ -->
+  <nav class="pt-bnav cols-3" id="fa-bnav-list" style="display:none;">
+    <a href="javascript:void(0)" id="fa-bnav-active" onclick="if(typeof v2FaSetTab==='function') v2FaSetTab('active');">
+      <i class="bi bi-broadcast-pin"></i><span>เปิดอยู่</span>
+    </a>
+    <a href="javascript:void(0)" id="fa-bnav-complete" onclick="if(typeof v2FaSetTab==='function') v2FaSetTab('complete');">
+      <i class="bi bi-archive"></i><span>ปิดแล้ว</span>
+    </a>
+    <a href="javascript:void(0)" onclick="document.getElementById('fa-search-input')?.focus();">
+      <i class="bi bi-search"></i><span>ค้นหา</span>
+    </a>
+  </nav>
+
+  <nav class="pt-bnav cols-4" id="fa-bnav-detail" style="display:none;">
+    <a href="javascript:void(0)" onclick="if(typeof fa_closeEventDetails==='function') fa_closeEventDetails();">
+      <i class="bi bi-arrow-left"></i><span>กลับ</span>
+    </a>
+    <a href="javascript:void(0)" onclick="if(typeof fa_printReport==='function') fa_printReport(window.fa_currentViewedEventId)">
+      <i class="bi bi-printer"></i><span>พิมพ์</span>
+    </a>
+    <a href="javascript:void(0)" onclick="if(typeof fa_openEditEventForm==='function') fa_openEditEventForm(window.fa_currentViewedEventId)">
+      <i class="bi bi-pencil"></i><span>แก้งาน</span>
+    </a>
+    <a href="javascript:void(0)" id="fa-bnav-toggle-status" onclick="if(typeof v2FaToggleStatus==='function') v2FaToggleStatus()">
+      <i class="bi bi-flag-fill"></i><span>ปิด/เปิด</span>
+    </a>
+  </nav>
+
+  <script>
+  (function(){
+    function _faIsMobilePortrait(){ try { return window.matchMedia('(max-width: 1024px) and (orientation: portrait)').matches; } catch(_){ return false; } }
+    function _faUpdate(){
+      var listV = document.getElementById('fa-events-list-view') || document.getElementById('fa-event-list-view');
+      var detailV = document.getElementById('fa-event-detail-view');
+      var bL = document.getElementById('fa-bnav-list');
+      var bD = document.getElementById('fa-bnav-detail');
+      if (!bL || !bD) return;
+      var mobile = _faIsMobilePortrait();
+      var onList = listV && listV.classList.contains('active');
+      var onDetail = detailV && detailV.classList.contains('active');
+      bL.style.display = (onList && mobile) ? '' : 'none';
+      bD.style.display = (onDetail && mobile) ? '' : 'none';
+      // sync active list tab
+      if (onList && mobile) {
+          var sa = document.getElementById('v2-fa-tab-active');
+          var sc = document.getElementById('v2-fa-tab-complete');
+          var ba = document.getElementById('fa-bnav-active');
+          var bc = document.getElementById('fa-bnav-complete');
+          if (ba) ba.classList.toggle('active', !!(sa && sa.classList.contains('active')));
+          if (bc) bc.classList.toggle('active', !!(sc && sc.classList.contains('active')));
+      }
+    }
+    document.addEventListener('DOMContentLoaded', _faUpdate);
+    window.addEventListener('resize', _faUpdate);
+    setInterval(_faUpdate, 800);
+    document.addEventListener('click', function(){ setTimeout(_faUpdate, 50); }, true);
+
+    // Hamburger rail open/close
+    document.addEventListener('click', function(e){
+      if (!document.body.classList.contains('v2-nav-open')) return;
+      if (e.target.closest('.v2-rail') || e.target.closest('.v2-mobile-nav-toggle')) return;
+      document.body.classList.remove('v2-nav-open');
+    });
+    document.querySelectorAll('.v2-rail a').forEach(function(a){
+      a.addEventListener('click', function(){ document.body.classList.remove('v2-nav-open'); });
+    });
+  })();
+  </script>
 
 </body>
 </html>
