@@ -291,7 +291,9 @@
 
     /* Mobile: topbar gets hamburger clearance only; other blocks keep flush 12-14px padding */
     @media (max-width: 767px){
-      #dashboard-view > .d-flex.justify-content-between.align-items-end{ padding:10px 14px 10px 60px !important; }
+      #dashboard-view > .d-flex.justify-content-between.align-items-end{ padding:12px 14px 12px 60px !important; min-height:60px; }
+      #dashboard-view .dashboard-header{ font-size:16px !important; }
+      #dashboard-view .dashboard-header + p, #v2-tr-dash-sub{ font-size:12px !important; margin-top:4px !important; }
       #dashboard-view .search-panel{ padding:10px 14px !important; }
       #active-cards-container{ padding:12px 14px !important; }
       #closed-table-container{ padding:6px 14px 12px !important; }
