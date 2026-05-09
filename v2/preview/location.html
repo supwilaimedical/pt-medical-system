@@ -8,100 +8,169 @@
 <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <link href="shared/common.css" rel="stylesheet">
 <style>
-.loc-row {
-    background: #fff; border-radius: 10px; margin: 6px 12px;
-    padding: 10px 12px; box-shadow: 0 1px 2px rgba(15,23,42,.05);
-    display: grid; grid-template-columns: auto 1fr auto; gap: 10px; align-items: center;
+/* tab pills (production: btn-group above view) */
+.loc-tabs {
+    display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px;
+    margin: 8px 12px;
 }
-.loc-row .ic {
-    width: 36px; height: 36px; border-radius: 8px;
-    display: flex; align-items: center; justify-content: center;
-    font-size: 16px; flex: 0 0 auto;
+.loc-tabs .tab {
+    background: #fff; border: 1px solid #e2e8f0; border-radius: 100px;
+    padding: 8px; text-align: center; font-size: 12px; font-weight: 700;
+    color: #64748b; cursor: pointer;
 }
-.loc-row .ic.med { background: #fee2e2; color: #dc2626; }
-.loc-row .ic.gen { background: #fef3c7; color: #d97706; }
-.loc-row .ic.hot { background: #ede9fe; color: #7c3aed; }
-.loc-row .ic.car { background: #dbeafe; color: #2563eb; }
-.loc-row .nm { font-weight: 600; color: #0f172a; font-size: 13px; line-height: 1.25; }
-.loc-row .meta { font-size: 11px; color: #64748b; margin-top: 2px; }
-.loc-row .chev { color: #94a3b8; font-size: 16px; }
+.loc-tabs .tab.active { background: #fef3c7; border-color: #facc15; color: #854d0e; }
+.loc-tabs .tab .ct {
+    background: #f1f5f9; color: #475569;
+    padding: 0 6px; border-radius: 100px; font-size: 10px; margin-left: 4px;
+}
+.loc-tabs .tab.active .ct { background: #facc15; color: #422006; }
 
-.tabs-row {
+/* filter row mirror production search-panel */
+.loc-filter {
+    background: #fff; padding: 10px 12px;
+    margin: 0 12px 8px;
+    border: 1px solid #e2e8f0; border-radius: 12px;
     display: grid; grid-template-columns: 1fr 1fr; gap: 6px;
-    margin: 0 12px 6px;
 }
-.tabs-row .tab {
-    background: #fff; border: 1px solid #e2e8f0; border-radius: 10px;
-    padding: 10px; text-align: center; font-size: 12px; font-weight: 700;
-    cursor: pointer;
+.loc-filter .lbl-row {
+    grid-column: 1 / -1;
+    font-size: 10.5px; font-weight: 700; color: #64748b;
+    text-transform: uppercase; letter-spacing: .3px;
+    display: flex; align-items: center; gap: 4px;
 }
-.tabs-row .tab.active { background: #fef3c7; border-color: #facc15; color: #854d0e; }
+.loc-filter select {
+    width: 100%; min-height: 36px; padding: 4px 8px;
+    border: 1px solid #e2e8f0; border-radius: 8px;
+    background: #f8fafc; font-size: 13px;
+}
+
+/* map area (dashboard view) */
+.map-card {
+    background: #e2e8f0;
+    height: 280px;
+    margin: 0 12px 8px;
+    border-radius: 12px;
+    background-image: linear-gradient(45deg, #cbd5e1 25%, transparent 25%), linear-gradient(-45deg, #cbd5e1 25%, transparent 25%);
+    background-size: 20px 20px;
+    position: relative; overflow: hidden;
+}
+.map-card .pin {
+    position: absolute; font-size: 28px;
+    text-shadow: 0 2px 4px rgba(0,0,0,.3);
+}
+
+/* recent list (right col on PC, below map on mobile) */
+.recent-card {
+    background: #fff; border: 1px solid #e2e8f0; border-radius: 12px;
+    margin: 0 12px;
+}
+.recent-card .head {
+    padding: 10px 12px; border-bottom: 1px solid #f1f5f9;
+    font-weight: 700; font-size: 13px; color: #0f172a;
+    display: flex; align-items: center; gap: 6px;
+}
+.recent-card .head i { color: #16a34a; }
+.recent-row {
+    display: grid; grid-template-columns: auto 1fr auto; gap: 10px;
+    padding: 8px 12px; align-items: center; border-bottom: 1px solid #f8fafc;
+    font-size: 12.5px;
+}
+.recent-row:last-child { border-bottom: 0; }
+.recent-row .ic {
+    width: 28px; height: 28px; border-radius: 6px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 13px;
+}
+.recent-row .ic.med { background: #fee2e2; color: #dc2626; }
+.recent-row .ic.gen { background: #fef3c7; color: #d97706; }
+.recent-row .ic.hot { background: #ede9fe; color: #7c3aed; }
+.recent-row .ic.car { background: #dbeafe; color: #2563eb; }
+.recent-row .nm { font-weight: 600; color: #0f172a; line-height: 1.2; }
+.recent-row .meta { font-size: 11px; color: #64748b; margin-top: 1px; }
+.recent-row .time { font-size: 10.5px; color: #94a3b8; font-variant-numeric: tabular-nums; }
+
+/* customer list table (production .table) */
+.cust-table {
+    background: #fff; margin: 0 12px;
+    border: 1px solid #e2e8f0; border-radius: 12px; overflow: hidden;
+    display: none;   /* shown when tab=customers */
+}
+.cust-table table { width: 100%; border-collapse: collapse; font-size: 12px; }
+.cust-table th { background: #f8fafc; color: #64748b; font-weight: 700;
+    padding: 8px 10px; text-align: left; font-size: 10.5px; text-transform: uppercase; letter-spacing: .3px; }
+.cust-table td { padding: 10px; border-top: 1px solid #f1f5f9; color: #0f172a; }
+.cust-table td .nm { font-weight: 600; font-size: 13px; }
+.cust-table td .area { font-size: 11px; color: #64748b; margin-top: 1px; }
+.cust-table tr.active-tab + .cust-table { display: block; }
 </style></head><body>
 
-<div class="preview-banner"><b>⚠️ Mockup</b> · live: subnav → bottom nav + ⋯ sheet (ตามประเภท + พื้นที่ + tokens)</div>
+<div class="preview-banner"><b>⚠️ Mockup</b> · live: subnav (มุมมอง+ประเภท+พื้นที่+tokens) → bottom nav + ⋯ sheet · Add CTA → FAB</div>
+
 <div class="topbar">
     <button class="ham"><i class="bi bi-list"></i></button>
     <div class="ttl-block">
         <h3><i class="bi bi-geo-alt-fill mod-c-location"></i>พิกัดสถานที่</h3>
-        <div class="sub">ทั้งหมด <b>87</b> · สถานพยาบาล <b>34</b> · โรงแรม <b>12</b></div>
+        <div class="sub">ทั้งหมด <b>87</b> สถานที่</div>
     </div>
 </div>
 
 <div class="body-pad">
 
-<div class="card-island" style="margin-top:0; padding:8px 12px;">
-    <div class="input-group input-group-sm">
-        <span class="input-group-text bg-light border-0"><i class="bi bi-search"></i></span>
-        <input class="form-control bg-light border-0" placeholder="ค้นชื่อ / ที่อยู่...">
+<!-- Production tabs: Dashboard / Customers / Tokens (admin) -->
+<div class="loc-tabs">
+    <div class="tab active"><i class="bi bi-grid"></i> Dashboard</div>
+    <div class="tab"><i class="bi bi-list-ul"></i> รายการ <span class="ct">87</span></div>
+    <div class="tab"><i class="bi bi-link-45deg"></i> Tokens <span class="ct">3</span></div>
+</div>
+
+<!-- Filter row (production .search-panel) — type + province + district -->
+<div class="loc-filter">
+    <div class="lbl-row"><i class="bi bi-funnel"></i> กรอง</div>
+    <select><option>ทุกประเภท</option><option>สถานพยาบาล</option><option>ลูกค้าทั่วไป</option><option>โรงแรม</option><option>ศูนย์ดูแล</option></select>
+    <select><option>ทุกจังหวัด</option><option>นครสวรรค์</option><option>กรุงเทพฯ</option></select>
+</div>
+
+<!-- DASHBOARD VIEW (default): Map + Recent -->
+<div class="map-card">
+    <div class="pin" style="top:25%; left:30%;">📍</div>
+    <div class="pin" style="top:45%; left:55%;">📍</div>
+    <div class="pin" style="top:65%; left:35%;">📍</div>
+    <div class="pin" style="top:55%; left:75%;">📍</div>
+</div>
+
+<div class="recent-card">
+    <div class="head"><i class="bi bi-clock-history"></i> เพิ่ม/แก้ไขล่าสุด</div>
+    <div class="recent-row">
+        <div class="ic med"><i class="bi bi-hospital"></i></div>
+        <div><div class="nm">รพ.สวรรค์ประชารักษ์</div><div class="meta">ปากน้ำโพ · นครสวรรค์</div></div>
+        <span class="time">2 ชม.</span>
     </div>
-</div>
-
-<div class="tabs-row">
-    <div class="tab active">📊 Dashboard</div>
-    <div class="tab">📋 รายการ (87)</div>
-</div>
-
-<div class="sec-head"><h5><i class="bi bi-geo-alt-fill mod-c-location"></i> ใกล้คุณ <span class="count">5</span></h5><span class="filler"></span></div>
-
-<div class="loc-row">
-    <div class="ic med"><i class="bi bi-hospital"></i></div>
-    <div><div class="nm">รพ.สวรรค์ประชารักษ์</div><div class="meta">2.3 กม. · ปากน้ำโพ</div></div>
-    <i class="bi bi-chevron-right chev"></i>
-</div>
-<div class="loc-row">
-    <div class="ic hot"><i class="bi bi-building-fill"></i></div>
-    <div><div class="nm">โรงแรมอินทรา</div><div class="meta">3.1 กม. · เมืองนครสวรรค์</div></div>
-    <i class="bi bi-chevron-right chev"></i>
-</div>
-<div class="loc-row">
-    <div class="ic gen"><i class="bi bi-building"></i></div>
-    <div><div class="nm">บริษัท ABC</div><div class="meta">4.5 กม. · บางแค</div></div>
-    <i class="bi bi-chevron-right chev"></i>
-</div>
-
-<div class="sec-head"><h5><i class="bi bi-clock-history"></i> เพิ่มล่าสุด <span class="count">3</span></h5><span class="filler"></span></div>
-
-<div class="loc-row">
-    <div class="ic med"><i class="bi bi-hospital"></i></div>
-    <div><div class="nm">คลีนิคหมอสมศักดิ์</div><div class="meta">เพิ่มเมื่อ 2 ชม. · เกาะใหญ่</div></div>
-    <i class="bi bi-chevron-right chev"></i>
-</div>
-<div class="loc-row">
-    <div class="ic car"><i class="bi bi-house-heart-fill"></i></div>
-    <div><div class="nm">ศูนย์ดูแลผู้สูงอายุสุขใจ</div><div class="meta">เพิ่มเมื่อวานนี้ · ชุมแสง</div></div>
-    <i class="bi bi-chevron-right chev"></i>
+    <div class="recent-row">
+        <div class="ic gen"><i class="bi bi-building"></i></div>
+        <div><div class="nm">บริษัท ABC จำกัด</div><div class="meta">เมือง · นครสวรรค์</div></div>
+        <span class="time">วาน</span>
+    </div>
+    <div class="recent-row">
+        <div class="ic hot"><i class="bi bi-building-fill"></i></div>
+        <div><div class="nm">โรงแรมอินทรา</div><div class="meta">เมือง · นครสวรรค์</div></div>
+        <span class="time">2 วัน</span>
+    </div>
+    <div class="recent-row">
+        <div class="ic car"><i class="bi bi-house-heart-fill"></i></div>
+        <div><div class="nm">ศูนย์ดูแลผู้สูงอายุสุขใจ</div><div class="meta">ชุมแสง · นครสวรรค์</div></div>
+        <span class="time">3 วัน</span>
+    </div>
 </div>
 
 </div>
 
 <button class="fab-btn yellow" title="เพิ่มสถานที่"><i class="bi bi-plus-lg"></i></button>
 
-<nav class="bottom-nav cols-4">
+<nav class="bottom-nav cols-3">
     <a class="active location"><i class="bi bi-grid"></i>Dashboard</a>
-    <a><i class="bi bi-list-ul"></i>รายการ</a>
-    <a><i class="bi bi-share"></i>Tokens</a>
+    <a><i class="bi bi-list-ul"></i><span>รายการ <span class="ct">87</span></span></a>
     <a class="more-btn" onclick="document.getElementById('rsheet').classList.add('show'); document.getElementById('rsheetbd').classList.add('show');">
-        <i class="bi bi-funnel-fill"></i>ตัวกรอง
+        <i class="bi bi-three-dots"></i>เพิ่มเติม
     </a>
 </nav>
 
@@ -109,23 +178,34 @@
 <div class="right-sheet" id="rsheet">
     <div class="sheet-handle"></div>
     <div class="sheet-head">
-        <h4>ตัวกรอง</h4>
+        <h4>เพิ่มเติม</h4>
         <button class="close" onclick="document.getElementById('rsheet').classList.remove('show'); document.getElementById('rsheetbd').classList.remove('show');"><i class="bi bi-x-lg"></i></button>
     </div>
     <div class="sheet-body">
-        <div class="rc-label">ตามประเภท</div>
+        <div class="rc-label">มุมมอง</div>
+        <div class="rc-group">
+            <div class="rc-row click"><span class="lbl">📊 Dashboard (map + recent)</span></div>
+            <div class="rc-row click"><span class="lbl">📋 รายการลูกค้า/สถานที่</span><span class="val">87</span></div>
+            <div class="rc-row click"><span class="lbl">🔗 Share Tokens (admin)</span><span class="val">3</span></div>
+        </div>
+        <div class="rc-label">ประเภท</div>
         <div class="rc-group">
             <div class="rc-row click"><span class="lbl">🏥 สถานพยาบาล</span><span class="val">34</span></div>
             <div class="rc-row click"><span class="lbl">🏢 ลูกค้าทั่วไป</span><span class="val">22</span></div>
             <div class="rc-row click"><span class="lbl">🏨 โรงแรม</span><span class="val">12</span></div>
             <div class="rc-row click"><span class="lbl">🏠 ศูนย์ดูแล</span><span class="val">19</span></div>
         </div>
-        <div class="rc-label">ตามพื้นที่</div>
+        <div class="rc-label">พื้นที่</div>
         <div class="rc-group">
             <div class="rc-row click"><span class="lbl">นครสวรรค์</span><span class="val">52</span></div>
-            <div class="rc-row click"><span class="lbl">เมืองชุมแสง</span><span class="val">14</span></div>
-            <div class="rc-row click"><span class="lbl">ลาดยาว</span><span class="val">8</span></div>
-            <div class="rc-row click"><span class="lbl">ปากน้ำโพ</span><span class="val">13</span></div>
+            <div class="rc-row click"><span class="lbl">กรุงเทพฯ</span><span class="val">18</span></div>
+            <div class="rc-row click"><span class="lbl">เชียงใหม่</span><span class="val">8</span></div>
+            <div class="rc-row click"><span class="lbl">ภูเก็ต</span><span class="val">9</span></div>
+        </div>
+        <div class="rc-label">เครื่องมือ</div>
+        <div class="rc-group">
+            <div class="rc-row click"><span class="lbl">📥 Backfill จังหวัด/อำเภอ</span></div>
+            <div class="rc-row click"><span class="lbl">📤 Export CSV</span></div>
         </div>
     </div>
 </div>
