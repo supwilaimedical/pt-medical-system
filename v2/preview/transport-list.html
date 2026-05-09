@@ -145,18 +145,19 @@
         z-index: 40; cursor: pointer; border: 0;
     }
 
-    /* Bottom nav — straight 1:1 mapping from subnav (status tabs only) */
+    /* Bottom nav — 3 status tabs + เพิ่มเติม (opens right-column sheet) */
     .bottom-nav {
         position: fixed; left: 0; right: 0; bottom: 0; z-index: 35;
         background: #fff; border-top: 1px solid #e2e8f0;
         padding: 4px 4px calc(4px + env(safe-area-inset-bottom));
-        display: grid; grid-template-columns: repeat(3, 1fr);
+        display: grid; grid-template-columns: repeat(4, 1fr);
         height: 56px;
     }
     .bottom-nav a {
         display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px;
-        color: #64748b; text-decoration: none;
+        color: #64748b; text-decoration: none; cursor: pointer;
         font-size: 11px; font-weight: 600;
+        background: transparent; border: 0;
     }
     .bottom-nav a i { font-size: 18px; line-height: 1; }
     .bottom-nav a.active { color: #0ea5e9; }
@@ -166,6 +167,80 @@
         border-radius: 100px; margin-left: 4px; line-height: 1.5;
     }
     .bottom-nav a.active .ct { background: #e0f2fe; color: #0369a1; }
+    .bottom-nav .more-btn .badge-alert {
+        position: absolute; transform: translate(10px, -10px);
+        background: #ef4444; color: #fff;
+        font-size: 9px; font-weight: 700; padding: 1px 5px;
+        border-radius: 100px;
+    }
+
+    /* Bottom sheet — production .tr-dash-right (right column) shown as bottom drawer on mobile */
+    .sheet-backdrop {
+        position: fixed; inset: 0; background: rgba(15,23,42,.5); z-index: 60;
+        opacity: 0; pointer-events: none; transition: opacity .2s;
+    }
+    .sheet-backdrop.show { opacity: 1; pointer-events: auto; }
+    .right-sheet {
+        position: fixed; left: 0; right: 0; bottom: 0; z-index: 65;
+        background: #fff; border-radius: 16px 16px 0 0;
+        max-height: 80vh; overflow: hidden;
+        display: flex; flex-direction: column;
+        transform: translateY(100%); transition: transform .25s ease-out;
+        box-shadow: 0 -4px 24px rgba(15,23,42,.15);
+    }
+    .right-sheet.show { transform: translateY(0); }
+    .right-sheet .sheet-handle {
+        width: 36px; height: 4px; background: #cbd5e1; border-radius: 100px;
+        margin: 8px auto 4px;
+    }
+    .right-sheet .sheet-head {
+        padding: 8px 16px 12px;
+        display: flex; align-items: center; gap: 8px;
+        border-bottom: 1px solid #f1f5f9;
+    }
+    .right-sheet .sheet-head h4 {
+        margin: 0; font-size: 15px; font-weight: 700; color: #0f172a; flex: 1;
+    }
+    .right-sheet .sheet-head .close {
+        width: 28px; height: 28px; border-radius: 8px; border: 0;
+        background: #f1f5f9; color: #475569;
+        display: flex; align-items: center; justify-content: center;
+        font-size: 14px;
+    }
+    .right-sheet .sheet-body { flex: 1; overflow-y: auto; padding: 12px 16px 24px; }
+
+    /* Right-column content (mirrors production .tr-rc-section / .tr-rc-row) */
+    .rc-label {
+        font-size: 10.5px; font-weight: 700; color: #64748b;
+        letter-spacing: .3px; text-transform: uppercase;
+        margin: 14px 0 6px; display: flex; align-items: center; gap: 6px;
+    }
+    .rc-label:first-child { margin-top: 0; }
+    .rc-label .count {
+        background: #f1f5f9; color: #475569;
+        padding: 1px 7px; border-radius: 100px;
+        font-size: 10px; font-weight: 700;
+    }
+    .rc-group {
+        background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px;
+        overflow: hidden;
+    }
+    .rc-row {
+        padding: 9px 12px; display: flex; align-items: center; gap: 8px;
+        border-bottom: 1px solid #f1f5f9;
+        font-size: 13px; color: #0f172a;
+    }
+    .rc-row:last-child { border-bottom: 0; }
+    .rc-row .lbl { flex: 1; min-width: 0; }
+    .rc-row .val { font-weight: 700; font-variant-numeric: tabular-nums; }
+    .rc-row.click { cursor: pointer; }
+    .rc-row.click:active { background: #f1f5f9; }
+    .tr-dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; margin-right: 6px; }
+    .tr-dot.red { background: #dc2626; }
+    .tr-dot.pink { background: #ec4899; }
+    .tr-dot.yellow { background: #eab308; }
+    .tr-dot.green { background: #16a34a; }
+    .rc-empty { color: #94a3b8; font-size: 12px; padding: 12px; text-align: center; }
 
     .body-pad { padding-bottom: 76px; }
 </style>
@@ -302,12 +377,80 @@
 <!-- FAB (production exists as .fab-btn) -->
 <button class="fab-btn" title="เพิ่มเคสใหม่"><i class="bi bi-plus-lg"></i></button>
 
-<!-- Bottom nav = subnav status tabs ตรงๆ (3 ตัว) -->
+<!-- Bottom nav = 3 status tabs + เพิ่มเติม (เปิด right-column sheet) -->
 <nav class="bottom-nav">
     <a class="active"><i class="bi bi-list-ul"></i><span>ทั้งหมด <span class="ct">15</span></span></a>
     <a><i class="bi bi-broadcast-pin"></i><span>Active <span class="ct">3</span></span></a>
     <a><i class="bi bi-archive"></i><span>ปิดแล้ว <span class="ct">12</span></span></a>
+    <a class="more-btn" onclick="document.getElementById('rsheet').classList.add('show'); document.getElementById('rsheetbd').classList.add('show');">
+        <i class="bi bi-three-dots"></i><span>เพิ่มเติม<span class="badge-alert">2</span></span>
+    </a>
 </nav>
+
+<!-- Bottom sheet = production right column on mobile -->
+<div class="sheet-backdrop" id="rsheetbd" onclick="document.getElementById('rsheet').classList.remove('show'); this.classList.remove('show');"></div>
+<div class="right-sheet" id="rsheet">
+    <div class="sheet-handle"></div>
+    <div class="sheet-head">
+        <h4>ภาพรวม / แจ้งเตือน</h4>
+        <button class="close" onclick="document.getElementById('rsheet').classList.remove('show'); document.getElementById('rsheetbd').classList.remove('show');"><i class="bi bi-x-lg"></i></button>
+    </div>
+    <div class="sheet-body">
+
+        <div class="rc-label">⚠️ ต้องดำเนินการ</div>
+        <div class="rc-group">
+            <div class="rc-row click">
+                <span class="lbl">📝 Consent รอเซ็น</span>
+                <span class="val" style="color:#dc2626;">2</span>
+            </div>
+            <div class="rc-row click">
+                <span class="lbl">🟠 ค้างเกิน 48 ชม.</span>
+                <span class="val" style="color:#d97706;">0</span>
+            </div>
+        </div>
+
+        <div class="rc-label"><i class="bi bi-share"></i> เคสที่แชร์ลิงก์อยู่ <span class="count">1</span></div>
+        <div class="rc-group">
+            <div class="rc-row click">
+                <span class="lbl">20260508-002 · นายธนากร</span>
+                <span class="val" style="color:#64748b; font-size:11px; font-weight:500;">3 ชม.</span>
+            </div>
+        </div>
+
+        <div class="rc-label">📊 วันนี้</div>
+        <div class="rc-group">
+            <div class="rc-row">
+                <span class="lbl">🆕 เปิดเคสใหม่</span>
+                <span class="val">3</span>
+            </div>
+            <div class="rc-row">
+                <span class="lbl">✅ ปิดเคส</span>
+                <span class="val">12</span>
+            </div>
+        </div>
+
+        <div class="rc-label">🎯 Triage (กำลังดำเนินการ)</div>
+        <div class="rc-group">
+            <div class="rc-row"><span class="lbl"><span class="tr-dot red"></span>Red · วิกฤต</span><span class="val">1</span></div>
+            <div class="rc-row"><span class="lbl"><span class="tr-dot pink"></span>Pink · ฉุกเฉิน</span><span class="val">1</span></div>
+            <div class="rc-row"><span class="lbl"><span class="tr-dot yellow"></span>Yellow · เร่งด่วน</span><span class="val">1</span></div>
+            <div class="rc-row"><span class="lbl"><span class="tr-dot green"></span>Green · ไม่เร่งด่วน</span><span class="val">0</span></div>
+        </div>
+
+        <div class="rc-label">📅 สัปดาห์นี้</div>
+        <div class="rc-group">
+            <div class="rc-row">
+                <span class="lbl">เคสทั้งหมด</span>
+                <span class="val">87</span>
+            </div>
+            <div class="rc-row">
+                <span class="lbl">เฉลี่ย/วัน</span>
+                <span class="val">12.4</span>
+            </div>
+        </div>
+
+    </div>
+</div>
 
 </body>
 </html>
