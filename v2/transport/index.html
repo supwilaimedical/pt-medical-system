@@ -191,17 +191,14 @@
     .v2-tb-btn.v2-tb-icon.primary:hover{ background:#f0f9ff; color:#0369a1; border-color:#7dd3fc; }
     /* Mobile + tablet portrait: ALL on one row — case-id + actions + status, no wrap */
     @media (max-width:1024px) and (orientation:portrait){
-      /* Only the button row (.v2-tb-row1) is fixed-pinned to viewport top.
-         Other rows (timeline/status/banner) scroll naturally with content. */
-      body:has(#form-view.active) .v2-form-topbar{ position: static !important; overflow: visible !important; }
-      body:has(#form-view.active) .v2-form-topbar .v2-tb-row1{
+      /* Whole topbar position:fixed → rock-solid, no iOS wobble.
+         JS sets body padding-top = topbar.offsetHeight so V/S + sections below stay visible. */
+      body:has(#form-view.active) .v2-form-topbar{
         position: fixed !important; top: 0 !important; left: 0 !important; right: 0 !important;
         z-index: 1030 !important;
-        background: #fff !important;
-        border-bottom: 1px solid #e2e8f0;
+        margin: 0 !important;
+        overflow: visible !important;
       }
-      /* Reserve space at top for the fixed row1 (52px) */
-      body:has(#form-view.active){ padding-top: 52px !important; }
       .v2-form-topbar .v2-tb-row1{
         padding:6px 8px 6px 52px; gap:4px;
         flex-wrap:nowrap !important;
@@ -9024,6 +9021,22 @@
       if (t) setTimeout(_ptUpdateBnav, 50);
     }, true);
     setInterval(_ptUpdateBnav, 1000); // safety net for view changes via JS
+
+    // Form view: set body padding-top = fixed topbar's actual height (otherwise
+    // content underneath gets covered). Recompute on resize / view change.
+    function _ptSyncFormPad(){
+      var formActive = document.getElementById('form-view')?.classList.contains('active');
+      var mobile = _ptIsMobilePortrait();
+      var topbar = document.querySelector('.v2-form-topbar');
+      if (formActive && mobile && topbar) {
+        document.body.style.paddingTop = topbar.offsetHeight + 'px';
+      } else {
+        document.body.style.paddingTop = '';
+      }
+    }
+    document.addEventListener('DOMContentLoaded', _ptSyncFormPad);
+    window.addEventListener('resize', _ptSyncFormPad);
+    setInterval(_ptSyncFormPad, 800);
 
     // Sync active state with v2SetListTab
     function _ptSyncActive(){
