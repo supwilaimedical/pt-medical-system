@@ -191,6 +191,17 @@
     .v2-tb-btn.v2-tb-icon.primary:hover{ background:#f0f9ff; color:#0369a1; border-color:#7dd3fc; }
     /* Mobile + tablet portrait: ALL on one row — case-id + actions + status, no wrap */
     @media (max-width:1024px) and (orientation:portrait){
+      /* Only the button row (.v2-tb-row1) is fixed-pinned to viewport top.
+         Other rows (timeline/status/banner) scroll naturally with content. */
+      body:has(#form-view.active) .v2-form-topbar{ position: static !important; overflow: visible !important; }
+      body:has(#form-view.active) .v2-form-topbar .v2-tb-row1{
+        position: fixed !important; top: 0 !important; left: 0 !important; right: 0 !important;
+        z-index: 1030 !important;
+        background: #fff !important;
+        border-bottom: 1px solid #e2e8f0;
+      }
+      /* Reserve space at top for the fixed row1 (52px) */
+      body:has(#form-view.active){ padding-top: 52px !important; }
       .v2-form-topbar .v2-tb-row1{
         padding:6px 8px 6px 52px; gap:4px;
         flex-wrap:nowrap !important;
