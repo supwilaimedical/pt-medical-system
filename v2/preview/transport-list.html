@@ -3,330 +3,323 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Preview · Transport List</title>
+<title>Preview · Transport List (bottom nav only)</title>
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
 <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
 <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-<link href="shared/mobile-patterns.css" rel="stylesheet">
 <style>
-    body { font-family: 'Sarabun', sans-serif; margin: 0; }
+    body { font-family: 'Sarabun', sans-serif; margin: 0; background: #f8fafc; }
 
-    /* topbar */
-    .pp-topbar {
+    .preview-banner {
+        background: #ecfdf5; border-bottom: 1px solid #bbf7d0;
+        padding: 8px 14px; font-size: 12px; color: #065f46; text-align: center;
+    }
+    .preview-banner b { color: #064e3b; }
+
+    /* TOPBAR — production-like */
+    .topbar {
         position: sticky; top: 0; z-index: 50;
-        background: #fff; border-bottom: 1px solid #e2e8f0;
-        padding: 10px 14px;
-        display: flex; align-items: center; gap: 10px;
+        background: linear-gradient(180deg, #6366f1, #4f46e5);
+        color: #fff; padding: 6px 10px;
+        display: flex; align-items: center; gap: 6px;
+        height: 48px;
     }
-    .pp-topbar .pp-back {
-        width: 36px; height: 36px; display: flex; align-items: center; justify-content: center;
-        border-radius: 10px; background: #f1f5f9; color: #475569;
-        text-decoration: none; flex: 0 0 auto;
-    }
-    .pp-topbar .pp-title {
-        flex: 1; min-width: 0;
-        font-size: 16px; font-weight: 700; color: #0f172a;
-        line-height: 1.2;
-    }
-    .pp-topbar .pp-title small {
-        display: block; font-size: 11px; font-weight: 500; color: #64748b; margin-top: 1px;
-    }
-    .pp-topbar .pp-action {
-        width: 36px; height: 36px; display: flex; align-items: center; justify-content: center;
-        border-radius: 10px; background: #f1f5f9; color: #475569;
+    .topbar .ic {
+        width: 36px; height: 36px;
+        display: flex; align-items: center; justify-content: center;
+        border-radius: 8px; background: rgba(255,255,255,.18); color: #fff;
         text-decoration: none; flex: 0 0 auto; border: 0;
     }
+    .topbar .ttl { flex: 1; min-width: 0; font-size: 14px; font-weight: 700; line-height: 1.1; padding: 0 4px; }
+    .topbar .ttl small { display: block; font-size: 10px; font-weight: 500; opacity: .85; margin-top: 2px; }
 
-    /* search */
-    .pp-search {
-        background: #fff; padding: 0 14px 10px; border-bottom: 1px solid #f1f5f9;
+    /* Page header (mirrors production "tr-colhead-left" + sub) */
+    .page-header {
+        background: #fff; padding: 12px 14px; border-bottom: 1px solid #e2e8f0;
     }
-    .pp-search-input {
-        width: 100%; height: 40px; border-radius: 10px;
-        background: #f1f5f9; border: 0; padding: 0 14px 0 38px;
-        font-size: 14px; font-family: inherit;
-        background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='%2364748b'><path d='M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001q.044.06.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1 1 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0'/></svg>");
-        background-repeat: no-repeat; background-position: 12px center; background-size: 16px;
-    }
-    .pp-search-input:focus { outline: none; background-color: #e2e8f0; }
-
-    /* case card */
-    .pp-case-card {
-        background: #fff;
-        margin: 10px 14px 0;
-        border: 1px solid #e2e8f0;
-        border-radius: 12px;
-        box-shadow: 0 1px 3px rgba(15,23,42,.06);
-        overflow: hidden;
-        position: relative;
-    }
-    .pp-case-card.t-resus  { border-left: 4px solid #dc2626; }
-    .pp-case-card.t-emer   { border-left: 4px solid #ea580c; }
-    .pp-case-card.t-urgent { border-left: 4px solid #ca8a04; }
-    .pp-case-card.t-non    { border-left: 4px solid #16a34a; }
-
-    .pp-case-card .head {
-        padding: 10px 12px 6px;
+    .page-header h3 {
+        margin: 0; font-size: 16px; font-weight: 700; color: #0f172a;
         display: flex; align-items: center; gap: 8px;
     }
-    .pp-case-card .head .case-id {
-        font-size: 11px; font-weight: 600; color: #64748b;
-        letter-spacing: .3px;
+    .page-header h3 i { color: #0ea5e9; font-size: 16px; }
+    .page-header .sub {
+        font-size: 12px; color: #64748b; margin-top: 4px;
     }
-    .pp-case-card .head .spacer { flex: 1; }
-    .pp-case-card .head .status-pill {
-        font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 100px;
-    }
-    .pp-case-card .head .status-pill.s-active { background: #dbeafe; color: #1e40af; }
-    .pp-case-card .head .status-pill.s-completed { background: #dcfce7; color: #166534; }
-    .pp-case-card .head .status-pill.s-pending { background: #fef9c3; color: #854d0e; }
+    .page-header .sub b { color: #0f172a; font-weight: 700; }
 
-    .pp-case-card .body { padding: 0 12px 10px; }
-    .pp-case-card .pt-name {
-        font-size: 16px; font-weight: 700; color: #0f172a;
-        line-height: 1.25;
-        white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    /* Search panel (production: ค้นหา + วันที่) */
+    .search-panel {
+        background: #fff; padding: 10px 14px;
+        border-bottom: 1px solid #f1f5f9;
+        display: grid; grid-template-columns: 1.4fr 1fr; gap: 8px;
     }
-    .pp-case-card .pt-meta {
-        font-size: 12px; color: #64748b; margin-top: 2px;
-        display: flex; gap: 6px; align-items: center;
+    .search-panel .input-wrap {
+        display: flex; align-items: center; gap: 6px;
+        background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 100px;
+        padding: 4px 10px; height: 38px;
     }
-    .pp-case-card .pt-meta .sep { color: #cbd5e1; }
+    .search-panel .input-wrap i { color: #94a3b8; font-size: 14px; }
+    .search-panel input {
+        flex: 1; min-width: 0; border: 0; background: transparent; outline: none;
+        font-size: 14px; font-family: inherit; padding: 0;
+    }
 
-    .pp-case-card .route {
-        background: #f8fafc;
-        border-radius: 8px;
-        padding: 8px 10px; margin-top: 8px;
-        font-size: 12.5px; color: #0f172a;
+    /* Section header (mirrors dash-section-header) */
+    .sec-head {
+        display: flex; align-items: center; gap: 8px;
+        padding: 14px 14px 6px; background: transparent;
+    }
+    .sec-head h5 {
+        margin: 0; font-size: 14px; font-weight: 700; color: #0f172a;
         display: flex; align-items: center; gap: 6px;
     }
-    .pp-case-card .route .from { color: #64748b; max-width: 38%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    .pp-case-card .route .arrow { color: #94a3b8; }
-    .pp-case-card .route .to { font-weight: 600; flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-
-    .pp-case-card .footer {
-        display: flex; align-items: center; gap: 8px;
-        padding: 8px 12px;
-        border-top: 1px solid #f1f5f9;
-        background: #fafbfc;
-        font-size: 12px;
+    .sec-head h5 i { font-size: 16px; }
+    .sec-head .count {
+        background: #16a34a; color: #fff;
+        padding: 1px 8px; border-radius: 100px;
+        font-size: 11px; font-weight: 700; line-height: 1.4;
     }
-    .pp-case-card .footer .meta-l { color: #64748b; flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    .pp-case-card .footer .meta-l i { margin-right: 4px; color: #94a3b8; }
-    .pp-case-card .footer .meta-r { color: #94a3b8; font-variant-numeric: tabular-nums; }
-    .pp-case-card .footer .gps-tag {
-        display: inline-flex; align-items: center; gap: 3px;
-        background: #ede9fe; color: #6d28d9;
-        padding: 1px 6px; border-radius: 4px; font-size: 10.5px; font-weight: 700; margin-left: 6px;
-    }
+    .sec-head.closed .count { background: #94a3b8; }
+    .sec-head .filler { flex: 1; height: 1px; background: #e2e8f0; }
 
-    /* FAB */
-    .pp-fab {
-        position: fixed; right: 16px; bottom: 80px;
+    /* Card (active case — placeholder for production card layout) */
+    .case-card {
+        background: #fff; border-radius: 12px; margin: 8px 12px;
+        box-shadow: 0 1px 3px rgba(15,23,42,.06);
+        padding: 12px 14px; position: relative;
+        border-left: 4px solid transparent;
+    }
+    .case-card.t-r { border-left-color: #dc2626; }
+    .case-card.t-e { border-left-color: #ea580c; }
+    .case-card.t-u { border-left-color: #ca8a04; }
+    .case-card.t-n { border-left-color: #16a34a; }
+    .case-card .row-1 {
+        display: flex; align-items: center; gap: 6px; margin-bottom: 4px;
+        font-size: 11px; color: #64748b;
+    }
+    .case-card .row-1 .id { font-weight: 700; color: #0f172a; }
+    .case-card .row-1 .triage {
+        margin-left: auto;
+        padding: 1px 7px; border-radius: 100px; font-weight: 700; font-size: 10px;
+    }
+    .case-card .row-1 .triage.t-r { background: #fee2e2; color: #991b1b; }
+    .case-card .row-1 .triage.t-e { background: #fed7aa; color: #9a3412; }
+    .case-card .row-1 .triage.t-u { background: #fef9c3; color: #854d0e; }
+    .case-card .row-1 .triage.t-n { background: #dcfce7; color: #166534; }
+    .case-card .pt-name { font-size: 14px; font-weight: 700; color: #0f172a; }
+    .case-card .pt-meta { font-size: 11.5px; color: #64748b; margin-top: 1px; }
+    .case-card .route {
+        background: #f8fafc; border-radius: 6px;
+        padding: 6px 8px; margin-top: 6px;
+        font-size: 12px; color: #475569;
+        display: flex; align-items: center; gap: 4px;
+    }
+    .case-card .route .from { color: #94a3b8; max-width: 38%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .case-card .route .arrow { color: #cbd5e1; }
+    .case-card .route .to { font-weight: 600; color: #0f172a; flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .case-card .footer {
+        margin-top: 6px; padding-top: 6px; border-top: 1px dashed #f1f5f9;
+        font-size: 11px; color: #64748b;
+        display: flex; align-items: center; gap: 6px;
+    }
+    .case-card .footer .meta-l { flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .case-card .footer .meta-l i { color: #94a3b8; margin-right: 3px; }
+
+    /* Closed table (production uses table) */
+    .closed-table {
+        background: #fff; margin: 6px 12px; border-radius: 12px;
+        box-shadow: 0 1px 3px rgba(15,23,42,.06);
+        overflow: hidden;
+    }
+    .closed-table table { width: 100%; border-collapse: collapse; font-size: 12px; }
+    .closed-table th {
+        background: #f8fafc; color: #64748b; font-weight: 700;
+        padding: 8px 10px; text-align: left; font-size: 10.5px; text-transform: uppercase; letter-spacing: .3px;
+    }
+    .closed-table td {
+        padding: 10px; border-top: 1px solid #f1f5f9; color: #0f172a;
+    }
+    .closed-table td .id { font-size: 10.5px; color: #64748b; font-family: monospace; }
+    .closed-table td .nm { font-weight: 600; font-size: 13px; }
+
+    /* FAB (already exists in production as `fab-btn`) */
+    .fab-btn {
+        position: fixed; right: 16px; bottom: 76px;
         width: 56px; height: 56px; border-radius: 50%;
-        background: #16a34a; color: #fff; border: 0;
-        font-size: 24px;
-        box-shadow: 0 4px 14px rgba(22,163,74,.4);
+        background: #0ea5e9; color: #fff;
         display: flex; align-items: center; justify-content: center;
-        z-index: 40; text-decoration: none;
-    }
-    .pp-fab:active { transform: scale(.95); }
-
-    /* Section divider */
-    .pp-list-section {
-        font-size: 11px; font-weight: 700; color: #64748b;
-        letter-spacing: .5px; text-transform: uppercase;
-        padding: 16px 14px 4px;
-    }
-    .pp-list-section .count {
-        font-weight: 700; color: #0f172a;
-        background: #f1f5f9; padding: 1px 8px; border-radius: 100px;
-        font-size: 10px; margin-left: 6px;
+        font-size: 24px; box-shadow: 0 4px 14px rgba(14,165,233,.4);
+        z-index: 40; cursor: pointer; border: 0;
     }
 
-    /* Banner above first card to remind: this is a preview */
-    .preview-banner {
-        background: #fef3c7; padding: 8px 14px;
-        font-size: 12px; color: #78350f; text-align: center;
+    /* Bottom nav — replaces subnav contents on mobile */
+    .bottom-nav {
+        position: fixed; left: 0; right: 0; bottom: 0; z-index: 35;
+        background: #fff; border-top: 1px solid #e2e8f0;
+        padding: 4px 4px calc(4px + env(safe-area-inset-bottom));
+        display: grid; grid-template-columns: repeat(5, 1fr);
+        height: 56px;
     }
+    .bottom-nav a {
+        display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px;
+        color: #64748b; text-decoration: none;
+        font-size: 10px; font-weight: 600;
+    }
+    .bottom-nav a i { font-size: 18px; line-height: 1; }
+    .bottom-nav a.active { color: #16a34a; }
+    .bottom-nav a .badge {
+        position: absolute; transform: translate(8px, -8px);
+        background: #ef4444; color: #fff;
+        font-size: 9px; font-weight: 700; padding: 1px 5px;
+        border-radius: 100px;
+    }
+
+    .body-pad { padding-bottom: 76px; }
 </style>
 </head>
 <body>
 
-<div class="preview-banner">📐 Preview only · ของจริง <a href="../transport/" style="color:#92400e; font-weight:700;">/v2/transport/</a></div>
-
-<div class="pp-topbar">
-    <a href="index.html" class="pp-back"><i class="bi bi-arrow-left"></i></a>
-    <div class="pp-title">นำส่งผู้ป่วย<small>3 active · 12 completed วันนี้</small></div>
-    <button class="pp-action" title="Filter"><i class="bi bi-sliders"></i></button>
+<div class="preview-banner">
+    <b>⚠️ Mockup เพื่อดู bottom nav</b> — apply live: ซ่อน subnav บน mobile + เพิ่ม bottom nav DOM, layout list เดิมไม่แตะ
 </div>
 
-<div class="pp-search">
-    <input type="search" class="pp-search-input" placeholder="ค้นหา ชื่อ / HN / ทะเบียนรถ...">
+<!-- Topbar (production-like — hamburger + title) -->
+<div class="topbar">
+    <button class="ic" title="เมนู"><i class="bi bi-list"></i></button>
+    <div class="ttl">นำส่งผู้ป่วย<small>Transport · เรียลไทม์</small></div>
 </div>
 
-<div class="pp-filter-chips">
-    <span class="chip active">ทั้งหมด <b style="margin-left:3px;">15</b></span>
-    <span class="chip">Active <b style="margin-left:3px;">3</b></span>
-    <span class="chip">Pending</span>
-    <span class="chip">Completed</span>
-    <span class="chip">วันนี้</span>
-    <span class="chip">7 วัน</span>
+<div class="body-pad">
+
+<!-- Page header (matches production tr-colhead) -->
+<div class="page-header">
+    <h3><i class="bi bi-truck-flatbed"></i> นำส่งผู้ป่วย</h3>
+    <div class="sub">กำลังดำเนินการ <b>3</b> · ปิดแล้ว <b>12</b></div>
 </div>
 
-<div class="pp-content-wrap">
-
-<div class="pp-list-section">
-    Active <span class="count">3</span>
-</div>
-
-<!-- Case 1 — Resus, active -->
-<div class="pp-case-card t-resus">
-    <div class="head">
-        <span class="case-id">20260508-001</span>
-        <span class="pp-triage-chip t-resus">วิกฤต</span>
-        <span class="spacer"></span>
-        <span class="status-pill s-active">Active</span>
+<!-- Search panel (production layout) -->
+<div class="search-panel">
+    <div class="input-wrap">
+        <i class="bi bi-search"></i>
+        <input type="text" placeholder="พิมพ์ชื่อ หรือ รหัสเคส...">
     </div>
-    <div class="body">
-        <div class="pt-name">นางสาวสมใจ ใจดี</div>
-        <div class="pt-meta">
-            หญิง <span class="sep">·</span> 72 ปี <span class="sep">·</span> HN 12345678
-        </div>
-        <div class="route">
-            <span class="from">บ้าน, ปากน้ำโพ</span>
-            <i class="bi bi-arrow-right arrow"></i>
-            <span class="to">รพ.สวรรค์ประชารักษ์ — ER</span>
-        </div>
-    </div>
-    <div class="footer">
-        <span class="meta-l"><i class="bi bi-truck-front-fill"></i>คันที่ 1 (ALS)<span class="gps-tag"><i class="bi bi-broadcast"></i>GPS</span></span>
-        <span class="meta-r">10 นาทีที่แล้ว</span>
+    <div class="input-wrap">
+        <i class="bi bi-calendar-event"></i>
+        <input type="date">
     </div>
 </div>
 
-<!-- Case 2 — Emergency -->
-<div class="pp-case-card t-emer">
-    <div class="head">
-        <span class="case-id">20260508-002</span>
-        <span class="pp-triage-chip t-emer">ฉุกเฉิน</span>
-        <span class="spacer"></span>
-        <span class="status-pill s-active">Active</span>
-    </div>
-    <div class="body">
-        <div class="pt-name">นายธนากร อาทิตย์ใส</div>
-        <div class="pt-meta">
-            ชาย <span class="sep">·</span> 45 ปี <span class="sep">·</span> HN 87654321
-        </div>
-        <div class="route">
-            <span class="from">รพ.อินเตอร์</span>
-            <i class="bi bi-arrow-right arrow"></i>
-            <span class="to">รพ.รามาฯ — Cardio Cath Lab</span>
-        </div>
-    </div>
-    <div class="footer">
-        <span class="meta-l"><i class="bi bi-truck-front-fill"></i>คันที่ 2 (BLS)<span class="gps-tag"><i class="bi bi-broadcast"></i>GPS</span></span>
-        <span class="meta-r">28 นาทีที่แล้ว</span>
-    </div>
+<!-- Section: กำลังดำเนินการ -->
+<div class="sec-head">
+    <h5><i class="bi bi-broadcast-pin text-success"></i> กำลังดำเนินการ <span class="count">3</span></h5>
+    <span class="filler"></span>
 </div>
 
-<!-- Case 3 — Urgent -->
-<div class="pp-case-card t-urgent">
-    <div class="head">
-        <span class="case-id">20260508-003</span>
-        <span class="pp-triage-chip t-urgent">เร่งด่วน</span>
-        <span class="spacer"></span>
-        <span class="status-pill s-pending">Pending</span>
+<div class="case-card t-r">
+    <div class="row-1">
+        <span class="id">20260508-001</span>
+        <span style="margin-left:auto;"></span>
+        <span class="triage t-r">วิกฤต</span>
     </div>
-    <div class="body">
-        <div class="pt-name">เด็กชายสมชาย สุวรรณ</div>
-        <div class="pt-meta">
-            ชาย <span class="sep">·</span> 8 ปี <span class="sep">·</span> ไม่มี HN
-        </div>
-        <div class="route">
-            <span class="from">โรงเรียนปากน้ำโพ</span>
-            <i class="bi bi-arrow-right arrow"></i>
-            <span class="to">รพ.สวรรค์ประชารักษ์ — OPD</span>
-        </div>
-    </div>
-    <div class="footer">
-        <span class="meta-l"><i class="bi bi-truck-front-fill"></i>คันที่ 3 (ALS)</span>
-        <span class="meta-r">42 นาทีที่แล้ว</span>
-    </div>
-</div>
-
-<div class="pp-list-section">
-    Completed (วันนี้) <span class="count">12</span>
-</div>
-
-<!-- Case 4 — Completed example -->
-<div class="pp-case-card t-non">
-    <div class="head">
-        <span class="case-id">20260508-101</span>
-        <span class="pp-triage-chip t-non">ไม่เร่งด่วน</span>
-        <span class="spacer"></span>
-        <span class="status-pill s-completed">เสร็จ</span>
-    </div>
-    <div class="body">
-        <div class="pt-name">นายอำพล เกตุแก้ว</div>
-        <div class="pt-meta">
-            ชาย <span class="sep">·</span> 67 ปี <span class="sep">·</span> HN 11223344
-        </div>
-        <div class="route">
-            <span class="from">รพ.สวรรค์ฯ</span>
-            <i class="bi bi-arrow-right arrow"></i>
-            <span class="to">บ้าน — ปากน้ำโพ</span>
-        </div>
+    <div class="pt-name">นางสาวสมใจ ใจดี</div>
+    <div class="pt-meta">หญิง · 72 ปี · HN 12345678</div>
+    <div class="route">
+        <span class="from">บ้าน, ปากน้ำโพ</span>
+        <i class="bi bi-arrow-right arrow"></i>
+        <span class="to">รพ.สวรรค์ประชารักษ์ — ER</span>
     </div>
     <div class="footer">
         <span class="meta-l"><i class="bi bi-truck-front-fill"></i>คันที่ 1 (ALS)</span>
-        <span class="meta-r">เสร็จเมื่อ 11:42</span>
+        <span>10 นาทีที่แล้ว</span>
     </div>
 </div>
 
-<div class="pp-case-card t-non">
-    <div class="head">
-        <span class="case-id">20260508-100</span>
-        <span class="pp-triage-chip t-non">ไม่เร่งด่วน</span>
-        <span class="spacer"></span>
-        <span class="status-pill s-completed">เสร็จ</span>
+<div class="case-card t-e">
+    <div class="row-1">
+        <span class="id">20260508-002</span>
+        <span class="triage t-e">ฉุกเฉิน</span>
     </div>
-    <div class="body">
-        <div class="pt-name">นางสาวมาลี พงษ์ทวี</div>
-        <div class="pt-meta">
-            หญิง <span class="sep">·</span> 28 ปี <span class="sep">·</span> HN 99887766
-        </div>
-        <div class="route">
-            <span class="from">รพ.รามาฯ</span>
-            <i class="bi bi-arrow-right arrow"></i>
-            <span class="to">บ้าน — เขตจตุจักร</span>
-        </div>
+    <div class="pt-name">นายธนากร อาทิตย์ใส</div>
+    <div class="pt-meta">ชาย · 45 ปี · HN 87654321</div>
+    <div class="route">
+        <span class="from">รพ.อินเตอร์</span>
+        <i class="bi bi-arrow-right arrow"></i>
+        <span class="to">รพ.รามาฯ — Cardio Cath</span>
     </div>
     <div class="footer">
         <span class="meta-l"><i class="bi bi-truck-front-fill"></i>คันที่ 2 (BLS)</span>
-        <span class="meta-r">เสร็จเมื่อ 10:15</span>
+        <span>28 นาทีที่แล้ว</span>
     </div>
 </div>
 
-<div style="height:80px;"></div>
+<div class="case-card t-u">
+    <div class="row-1">
+        <span class="id">20260508-003</span>
+        <span class="triage t-u">เร่งด่วน</span>
+    </div>
+    <div class="pt-name">เด็กชายสมชาย สุวรรณ</div>
+    <div class="pt-meta">ชาย · 8 ปี · ไม่มี HN</div>
+    <div class="route">
+        <span class="from">โรงเรียนปากน้ำโพ</span>
+        <i class="bi bi-arrow-right arrow"></i>
+        <span class="to">รพ.สวรรค์ประชารักษ์ — OPD</span>
+    </div>
+    <div class="footer">
+        <span class="meta-l"><i class="bi bi-truck-front-fill"></i>คันที่ 3 (ALS)</span>
+        <span>42 นาทีที่แล้ว</span>
+    </div>
 </div>
 
-<!-- FAB: new case -->
-<a href="transport-form.html" class="pp-fab" title="เปิดเคสใหม่"><i class="bi bi-plus-lg"></i></a>
+<!-- Section: ปิดเคสแล้ว (table per production) -->
+<div class="sec-head closed">
+    <h5><i class="bi bi-archive text-secondary"></i> ปิดเคสแล้ว <span class="count">12</span></h5>
+    <span class="filler"></span>
+</div>
 
-<!-- Bottom tab nav -->
-<nav class="pp-bottom-nav">
-    <a href="#"><i class="bi bi-house-door-fill"></i>หน้าหลัก</a>
-    <a href="transport-list.html" class="active"><i class="bi bi-truck-front-fill"></i>นำส่ง</a>
-    <a href="#"><i class="bi bi-bandaid-fill"></i>ปฐมพยาบาล</a>
-    <a href="#"><i class="bi bi-geo-alt-fill"></i>พิกัด</a>
-    <a href="#"><i class="bi bi-three-dots"></i>เพิ่มเติม</a>
+<div class="closed-table">
+    <table>
+        <thead>
+            <tr><th>เคส / ผู้ป่วย</th><th style="text-align:right;">เวลา</th></tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>
+                    <div class="id">20260508-101</div>
+                    <div class="nm">นายอำพล เกตุแก้ว</div>
+                </td>
+                <td style="text-align:right; color:#94a3b8;">11:42</td>
+            </tr>
+            <tr>
+                <td>
+                    <div class="id">20260508-100</div>
+                    <div class="nm">นางสาวมาลี พงษ์ทวี</div>
+                </td>
+                <td style="text-align:right; color:#94a3b8;">10:15</td>
+            </tr>
+            <tr>
+                <td>
+                    <div class="id">20260508-099</div>
+                    <div class="nm">นายประยุทธ ใสใจ</div>
+                </td>
+                <td style="text-align:right; color:#94a3b8;">09:30</td>
+            </tr>
+        </tbody>
+    </table>
+</div>
+
+</div>
+
+<!-- FAB (production exists as .fab-btn) -->
+<button class="fab-btn" title="เพิ่มเคสใหม่"><i class="bi bi-plus-lg"></i></button>
+
+<!-- Bottom nav: subnav-equivalent (status tabs + search shortcuts) -->
+<nav class="bottom-nav">
+    <a class="active"><i class="bi bi-list-ul"></i>ทั้งหมด</a>
+    <a><i class="bi bi-broadcast-pin"></i>Active</a>
+    <a><i class="bi bi-archive"></i>ปิดแล้ว</a>
+    <a><i class="bi bi-search"></i>ค้นหา</a>
+    <a><i class="bi bi-calendar-event"></i>วันที่</a>
 </nav>
-
-<script>
-    // helper for bottom-nav padding
-    document.body.classList.add('pp-has-bottom-nav');
-</script>
 
 </body>
 </html>
