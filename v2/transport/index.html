@@ -191,6 +191,12 @@
     .v2-tb-btn.v2-tb-icon.primary:hover{ background:#f0f9ff; color:#0369a1; border-color:#7dd3fc; }
     /* Mobile + tablet portrait: ALL on one row — case-id + actions + status, no wrap */
     @media (max-width:1024px) and (orientation:portrait){
+      /* Force topbar always sticky-visible (production overflow:hidden + negative margin
+         can cause sticky to lose hold on iOS Safari when scrolling fast). */
+      .v2-form-topbar{
+        position: sticky !important; top: 0 !important; z-index: 1030 !important;
+        overflow: visible !important;
+      }
       .v2-form-topbar .v2-tb-row1{
         padding:6px 8px 6px 52px; gap:4px;
         flex-wrap:nowrap !important;
