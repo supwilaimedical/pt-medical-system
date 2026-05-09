@@ -331,9 +331,11 @@
     .cal-cell.today .cal-day{
       background:var(--fleet-acc); color:#fff; padding:1px 7px; border-radius:6px;
     }
-    .cal-dot{ width:6px; height:6px; border-radius:50%; }
+    .cal-dot{ width:6px; height:6px; border-radius:50%; display:inline-block; }
     .cal-dot.green{ background:var(--c-success); }
+    .cal-dot.yellow{ background:var(--c-warn, #d97706); }
     .cal-dot.red{ background:var(--c-danger); }
+    .cal-dots{ display:inline-flex; gap:2px; align-items:center; }
     .cal-tags{ margin-top:4px; display:flex; flex-wrap:wrap; gap:2px; }
     .cal-tag{
       font-size:9px; padding:1px 4px; border-radius:4px; font-weight:600;
@@ -1216,9 +1218,15 @@
       var records = data.filter(function(d){ return d.date === dateStr; });
       var hasRec = records.length > 0;
       var hasFail = records.some(function(r){ return r.status === 'ไม่พร้อมใช้งาน'; });
+      var hasNote = records.some(function(r){ return r.status === 'พร้อมใช้งาน' && r.issue && r.issue !== '-'; });
+      var hasOK   = records.some(function(r){ return r.status === 'พร้อมใช้งาน' && (!r.issue || r.issue === '-'); });
       var isToday = dateStr === todayStr;
       var cellCls = 'cal-cell' + (hasRec ? ' has-data' : '') + (isToday ? ' today' : '');
-      var dotHtml = hasRec ? '<span class="cal-dot '+(hasFail?'red':'green')+'"></span>' : '';
+      var dots = '';
+      if (hasOK)   dots += '<span class="cal-dot green"></span>';
+      if (hasNote) dots += '<span class="cal-dot yellow"></span>';
+      if (hasFail) dots += '<span class="cal-dot red"></span>';
+      var dotHtml = dots ? '<span class="cal-dots">'+dots+'</span>' : '';
 
       var tags = '';
       if (hasRec){
