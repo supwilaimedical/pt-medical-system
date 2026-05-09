@@ -191,16 +191,6 @@
     .v2-tb-btn.v2-tb-icon.primary:hover{ background:#f0f9ff; color:#0369a1; border-color:#7dd3fc; }
     /* Mobile + tablet portrait: ALL on one row — case-id + actions + status, no wrap */
     @media (max-width:1024px) and (orientation:portrait){
-      /* iOS Safari has rubber-band scrolling that makes sticky elements wobble.
-         Switch to position:fixed so topbar is rock-solid, and add body
-         padding-top equal to topbar height to compensate for lost flow. */
-      body:has(#form-view.active) .v2-form-topbar{
-        position: fixed !important; top: 0 !important; left: 0 !important; right: 0 !important;
-        z-index: 1030 !important;
-        margin: 0 !important;
-        overflow: visible !important;
-      }
-      body:has(#form-view.active){ padding-top: 130px; }   /* room reserved for full topbar */
       .v2-form-topbar .v2-tb-row1{
         padding:6px 8px 6px 52px; gap:4px;
         flex-wrap:nowrap !important;
