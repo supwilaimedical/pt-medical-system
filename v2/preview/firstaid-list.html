@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="th"><head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Preview · Firstaid List</title>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link href="shared/common.css" rel="stylesheet">
+<style>
+.event-card {
+    background: #fff; border-radius: 12px; margin: 8px 12px;
+    box-shadow: 0 1px 3px rgba(15,23,42,.06); padding: 12px 14px;
+    border-left: 4px solid #16a34a;
+}
+.event-card.complete { border-left-color: #94a3b8; opacity: .85; }
+.event-card .name { font-size: 15px; font-weight: 700; color: #0f172a; }
+.event-card .loc { font-size: 12px; color: #64748b; margin-top: 2px; }
+.event-card .stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; margin-top: 8px; }
+.event-card .stat { background: #f8fafc; border-radius: 6px; padding: 6px 4px; text-align: center; }
+.event-card .stat .lbl { font-size: 10px; color: #64748b; }
+.event-card .stat .val { font-size: 14px; font-weight: 700; color: #0f172a; }
+.event-card .stat.r .val { color: #dc2626; } .event-card .stat.b .val { color: #2563eb; } .event-card .stat.g .val { color: #16a34a; } .event-card .stat.o .val { color: #ea580c; }
+.event-card .footer { font-size: 11px; color: #64748b; margin-top: 8px; padding-top: 8px; border-top: 1px dashed #f1f5f9; display: flex; gap: 8px; }
+</style></head><body>
+
+<div class="preview-banner"><b>⚠️ Mockup</b> · live = ซ่อน subnav บน mobile + เพิ่ม bottom nav DOM</div>
+<button class="nav-toggle"><i class="bi bi-list"></i></button>
+
+<div class="body-pad">
+
+<div class="page-header">
+    <h3><i class="bi bi-bandaid mod-c-firstaid"></i>ปฐมพยาบาล</h3>
+    <div class="sub">เปิดอยู่ <b>2</b> · ปิดแล้ว <b>15</b></div>
+</div>
+
+<div class="card-island" style="margin-top:0; padding:8px 12px;">
+    <div class="input-group input-group-sm">
+        <span class="input-group-text bg-light border-0"><i class="bi bi-search"></i></span>
+        <input class="form-control bg-light border-0" placeholder="ค้นหาชื่องาน / สถานที่...">
+    </div>
+</div>
+
+<div class="sec-head"><h5><i class="bi bi-broadcast-pin text-success"></i> เปิดอยู่ <span class="count">2</span></h5><span class="filler"></span></div>
+
+<div class="event-card">
+    <div class="name">งานวิ่ง Supwilai Marathon 2026</div>
+    <div class="loc"><i class="bi bi-geo-alt"></i> สนามกีฬานครสวรรค์ · 06:00–12:00</div>
+    <div class="stats">
+        <div class="stat"><div class="lbl">Reg</div><div class="val">23</div></div>
+        <div class="stat r"><div class="lbl">U</div><div class="val">1</div></div>
+        <div class="stat b"><div class="lbl">A</div><div class="val">8</div></div>
+        <div class="stat g"><div class="lbl">P</div><div class="val">14</div></div>
+    </div>
+    <div class="footer">
+        <span><i class="bi bi-person"></i> 4 staff</span>
+        <span><i class="bi bi-broadcast"></i> 2 token</span>
+        <span style="margin-left:auto;">เปิด 2 ชม.</span>
+    </div>
+</div>
+
+<div class="event-card">
+    <div class="name">ทดสอบงานวิ่ง</div>
+    <div class="loc"><i class="bi bi-geo-alt"></i> บ้านแถวนี้ · 18:00–23:00</div>
+    <div class="stats">
+        <div class="stat"><div class="lbl">Reg</div><div class="val">6</div></div>
+        <div class="stat r"><div class="lbl">U</div><div class="val">1</div></div>
+        <div class="stat b"><div class="lbl">A</div><div class="val">3</div></div>
+        <div class="stat g"><div class="lbl">P</div><div class="val">2</div></div>
+    </div>
+    <div class="footer">
+        <span><i class="bi bi-person"></i> 2 staff</span>
+        <span style="margin-left:auto;">วันนี้</span>
+    </div>
+</div>
+
+<div class="sec-head closed"><h5><i class="bi bi-archive text-secondary"></i> ปิดแล้ว <span class="count">15</span></h5><span class="filler"></span></div>
+<div class="event-card complete">
+    <div class="name">งานปั่นจักรยานเพื่อสุขภาพ</div>
+    <div class="loc"><i class="bi bi-geo-alt"></i> เขาขาด · 04 พ.ค. 26</div>
+</div>
+<div class="event-card complete">
+    <div class="name">วิ่งการกุศล รพ.</div>
+    <div class="loc"><i class="bi bi-geo-alt"></i> สนามกีฬาฯ · 28 เม.ย. 26</div>
+</div>
+
+</div>
+
+<button class="fab-btn green" title="เพิ่มเหตุการณ์"><i class="bi bi-plus-lg"></i></button>
+
+<nav class="bottom-nav cols-3">
+    <a class="active firstaid"><i class="bi bi-broadcast-pin"></i><span>เปิด <span class="ct">2</span></span></a>
+    <a><i class="bi bi-archive"></i><span>ปิด <span class="ct">15</span></span></a>
+    <a><i class="bi bi-arrow-down-up"></i>เรียง</a>
+</nav>
+
+</body></html>

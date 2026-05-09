@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="th"><head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Preview · GPS</title>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link href="shared/common.css" rel="stylesheet">
+<style>
+.map-area {
+    background: #e2e8f0;
+    height: calc(100vh - 56px - 240px);   /* topbar implicit + bottom nav + list */
+    min-height: 240px;
+    margin: 0 12px 8px;
+    border-radius: 12px;
+    position: relative;
+    overflow: hidden;
+    background-image: linear-gradient(45deg, #cbd5e1 25%, transparent 25%), linear-gradient(-45deg, #cbd5e1 25%, transparent 25%);
+    background-size: 20px 20px;
+}
+.map-area .pin {
+    position: absolute; font-size: 28px;
+    text-shadow: 0 2px 4px rgba(0,0,0,.3);
+}
+.map-area .ctrl {
+    position: absolute; right: 8px; top: 8px;
+    display: flex; flex-direction: column; gap: 4px;
+}
+.map-area .ctrl button {
+    width: 34px; height: 34px; border-radius: 8px;
+    background: #fff; color: #475569; border: 1px solid #cbd5e1;
+    display: flex; align-items: center; justify-content: center; font-size: 14px;
+    box-shadow: 0 1px 3px rgba(15,23,42,.1);
+}
+.veh-row {
+    background: #fff; border-radius: 10px; margin: 6px 12px;
+    padding: 10px 12px; box-shadow: 0 1px 2px rgba(15,23,42,.05);
+    display: grid; grid-template-columns: 4px 1fr auto; gap: 10px; align-items: stretch;
+    overflow: hidden;
+}
+.veh-row .bar { width: 4px; }
+.veh-row.online .bar { background: #16a34a; }
+.veh-row.idle .bar { background: #ea580c; }
+.veh-row.offline .bar { background: #94a3b8; }
+.veh-row.offline { opacity: .65; }
+.veh-row .body { padding: 4px 0 4px 8px; min-width: 0; }
+.veh-row .nm { font-weight: 700; font-size: 13px; color: #0f172a; }
+.veh-row .addr { font-size: 11px; color: #64748b; margin-top: 1px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.veh-row .speed { text-align: right; padding-left: 8px; }
+.veh-row .speed .v { font-size: 18px; font-weight: 800; color: #16a34a; line-height: 1; }
+.veh-row.idle .speed .v { color: #ea580c; }
+.veh-row.offline .speed .v { color: #94a3b8; font-size: 12px; }
+.veh-row .speed .u { font-size: 10px; color: #94a3b8; }
+</style></head><body>
+
+<div class="preview-banner"><b>⚠️ Mockup</b> · live: subnav (สถานะ + เครื่องมือ) → bottom nav + ⋯ sheet</div>
+<button class="nav-toggle"><i class="bi bi-list"></i></button>
+
+<div class="body-pad">
+
+<div class="page-header">
+    <h3><i class="bi bi-broadcast-pin mod-c-gps"></i>GPS Tracking</h3>
+    <div class="sub">3 คัน · <b style="color:#16a34a;">2 online</b> · <b style="color:#94a3b8;">1 offline</b> · อัปเดต 11:38</div>
+</div>
+
+<div class="map-area">
+    <div class="pin" style="top:30%; left:35%;">📍</div>
+    <div class="pin" style="top:55%; left:55%;">📍</div>
+    <div class="pin" style="top:70%; left:25%;">📍</div>
+    <div class="ctrl">
+        <button><i class="bi bi-arrows-fullscreen"></i></button>
+        <button><i class="bi bi-plus-lg"></i></button>
+        <button><i class="bi bi-dash-lg"></i></button>
+    </div>
+</div>
+
+<div class="veh-row online">
+    <div class="bar"></div>
+    <div class="body"><div class="nm">คันที่ 1 (ALS) · Supwilai-4893</div><div class="addr">นครสวรรค์ปากน้ำโพ — กำลังเคลื่อนที่</div></div>
+    <div class="speed"><div class="v">42</div><div class="u">km/h</div></div>
+</div>
+<div class="veh-row idle">
+    <div class="bar"></div>
+    <div class="body"><div class="nm">คันที่ 2 (BLS) · Supwilai-4944</div><div class="addr">รพ.สวรรค์ประชารักษ์ — จอด</div></div>
+    <div class="speed"><div class="v">0</div><div class="u">km/h</div></div>
+</div>
+<div class="veh-row offline">
+    <div class="bar"></div>
+    <div class="body"><div class="nm">คันที่ 3 (ALS) · Supwilai-8029</div><div class="addr">โรงแรมอโนดาษ — offline</div></div>
+    <div class="speed"><div class="v">OFFLINE</div></div>
+</div>
+
+</div>
+
+<nav class="bottom-nav cols-4">
+    <a class="active gps"><i class="bi bi-map"></i>แผนที่</a>
+    <a><i class="bi bi-list-ul"></i>รายการ</a>
+    <a><i class="bi bi-arrow-clockwise"></i>รีเฟรช</a>
+    <a class="more-btn" onclick="document.getElementById('rsheet').classList.add('show'); document.getElementById('rsheetbd').classList.add('show');">
+        <i class="bi bi-three-dots"></i>เพิ่มเติม
+    </a>
+</nav>
+
+<div class="sheet-backdrop" id="rsheetbd" onclick="document.getElementById('rsheet').classList.remove('show'); this.classList.remove('show');"></div>
+<div class="right-sheet" id="rsheet">
+    <div class="sheet-handle"></div>
+    <div class="sheet-head"><h4>เครื่องมือ + ตัวกรอง</h4>
+        <button class="close" onclick="document.getElementById('rsheet').classList.remove('show'); document.getElementById('rsheetbd').classList.remove('show');"><i class="bi bi-x-lg"></i></button>
+    </div>
+    <div class="sheet-body">
+        <div class="rc-label">ตามสถานะ</div>
+        <div class="rc-group">
+            <div class="rc-row click"><span class="lbl">🟢 Online</span><span class="val">2</span></div>
+            <div class="rc-row click"><span class="lbl">🟡 Idle</span><span class="val">0</span></div>
+            <div class="rc-row click"><span class="lbl">🔴 Overspeed (&gt;120)</span><span class="val">0</span></div>
+            <div class="rc-row click"><span class="lbl">⚫ Offline</span><span class="val">1</span></div>
+        </div>
+        <div class="rc-label">เครื่องมือ</div>
+        <div class="rc-group">
+            <div class="rc-row click"><span class="lbl">⏱️ Auto-refresh</span><span class="val" style="color:#16a34a;">ON</span></div>
+            <div class="rc-row click"><span class="lbl">🔍 Fit all markers</span></div>
+            <div class="rc-row click"><span class="lbl">🏥 Nearest hospital</span></div>
+            <div class="rc-row click"><span class="lbl">🔎 ค้นหารถ</span></div>
+        </div>
+    </div>
+</div>
+
+</body></html>

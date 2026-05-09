@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="th"><head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Preview · Fleet Status</title>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link href="shared/common.css" rel="stylesheet">
+<style>
+.fleet-card {
+    background: #fff; border-radius: 12px; margin: 8px 12px;
+    box-shadow: 0 1px 3px rgba(15,23,42,.06); overflow: hidden;
+}
+.fleet-card .head {
+    padding: 10px 12px; display: flex; align-items: center; gap: 8px;
+    border-bottom: 1px solid #f1f5f9;
+}
+.fleet-card .head .ic {
+    width: 36px; height: 36px; border-radius: 8px;
+    background: #dbeafe; color: #2563eb;
+    display: flex; align-items: center; justify-content: center; font-size: 18px;
+}
+.fleet-card .head .nm { font-weight: 700; color: #0f172a; flex: 1; }
+.fleet-card .head .nm small { display: block; font-weight: 500; color: #64748b; font-size: 11px; margin-top: 2px; }
+.fleet-card .head .status {
+    padding: 2px 9px; border-radius: 100px; font-size: 11px; font-weight: 700;
+}
+.fleet-card .head .status.ok { background: #dcfce7; color: #166534; }
+.fleet-card .head .status.note { background: #fef9c3; color: #854d0e; }
+.fleet-card .head .status.bad { background: #fee2e2; color: #991b1b; }
+.fleet-card .body { padding: 8px 12px; font-size: 12px; color: #64748b; }
+.fleet-card .body .item { display: flex; gap: 6px; padding: 4px 0; }
+.fleet-card .body .item i { color: #16a34a; }
+.fleet-card .body .item.bad i { color: #dc2626; }
+.fleet-card .footer {
+    border-top: 1px dashed #f1f5f9; padding: 8px 12px;
+    display: flex; gap: 6px; align-items: center;
+    font-size: 11px; color: #64748b;
+}
+.fleet-card .footer button {
+    margin-left: auto; background: #0369a1; color: #fff; border: 0;
+    padding: 6px 12px; border-radius: 6px; font-size: 12px; font-weight: 600;
+}
+</style></head><body>
+
+<div class="preview-banner"><b>⚠️ Mockup</b> · live: subnav (filter รถ + สถานะ) → bottom nav + ⋯ sheet</div>
+<button class="nav-toggle"><i class="bi bi-list"></i></button>
+
+<div class="body-pad">
+
+<div class="page-header">
+    <h3><i class="bi bi-clipboard-check mod-c-fleet"></i>Fleet Status</h3>
+    <div class="sub">รถ <b>3</b> · ตรวจวันนี้ <b>2</b> · ปกติ <b>2</b> · มีรายการ <b>1</b></div>
+</div>
+
+<div class="fleet-card">
+    <div class="head">
+        <div class="ic"><i class="bi bi-truck-front-fill"></i></div>
+        <div class="nm">คันที่ 1 (ALS)<small>Supwilai-4893</small></div>
+        <span class="status ok">พร้อม</span>
+    </div>
+    <div class="body">
+        <div class="item"><i class="bi bi-check-circle-fill"></i> ตรวจล่าสุด: 09:00 วันนี้</div>
+        <div class="item"><i class="bi bi-check-circle-fill"></i> น้ำมัน 90% · ออกซิเจน 100%</div>
+        <div class="item"><i class="bi bi-check-circle-fill"></i> เครื่องช่วยหายใจปกติ</div>
+    </div>
+    <div class="footer">
+        <i class="bi bi-person"></i> สิทธาคม
+        <button>บันทึกตรวจ</button>
+    </div>
+</div>
+
+<div class="fleet-card">
+    <div class="head">
+        <div class="ic"><i class="bi bi-truck-front-fill"></i></div>
+        <div class="nm">คันที่ 2 (BLS)<small>Supwilai-4944</small></div>
+        <span class="status note">มีรายการ</span>
+    </div>
+    <div class="body">
+        <div class="item"><i class="bi bi-check-circle-fill"></i> ตรวจล่าสุด: 08:30 วันนี้</div>
+        <div class="item bad"><i class="bi bi-exclamation-triangle-fill"></i> ออกซิเจนน้อย 30%</div>
+        <div class="item"><i class="bi bi-check-circle-fill"></i> น้ำมัน 75%</div>
+    </div>
+    <div class="footer">
+        <i class="bi bi-person"></i> เอ
+        <button>บันทึกตรวจ</button>
+    </div>
+</div>
+
+<div class="fleet-card">
+    <div class="head">
+        <div class="ic"><i class="bi bi-truck-front-fill"></i></div>
+        <div class="nm">คันที่ 3 (ALS)<small>Supwilai-8029</small></div>
+        <span class="status bad">ยังไม่ตรวจ</span>
+    </div>
+    <div class="body">
+        <div class="item bad"><i class="bi bi-x-circle-fill"></i> ยังไม่มีบันทึกวันนี้</div>
+    </div>
+    <div class="footer">
+        <button style="margin-left:auto;">บันทึกตรวจ</button>
+    </div>
+</div>
+
+</div>
+
+<nav class="bottom-nav cols-4">
+    <a class="active fleet"><i class="bi bi-list-check"></i>ทั้งหมด</a>
+    <a><i class="bi bi-check-circle-fill"></i>ปกติ</a>
+    <a><i class="bi bi-exclamation-triangle-fill"></i>มีรายการ</a>
+    <a class="more-btn" onclick="document.getElementById('rsheet').classList.add('show'); document.getElementById('rsheetbd').classList.add('show');">
+        <i class="bi bi-funnel-fill"></i>กรอง
+    </a>
+</nav>
+
+<div class="sheet-backdrop" id="rsheetbd" onclick="document.getElementById('rsheet').classList.remove('show'); this.classList.remove('show');"></div>
+<div class="right-sheet" id="rsheet">
+    <div class="sheet-handle"></div>
+    <div class="sheet-head"><h4>ตัวกรอง</h4>
+        <button class="close" onclick="document.getElementById('rsheet').classList.remove('show'); document.getElementById('rsheetbd').classList.remove('show');"><i class="bi bi-x-lg"></i></button>
+    </div>
+    <div class="sheet-body">
+        <div class="rc-label">ตามรถ</div>
+        <div class="rc-group">
+            <div class="rc-row click"><span class="lbl">ทั้งหมด</span></div>
+            <div class="rc-row click"><span class="lbl">คันที่ 1 (ALS)</span></div>
+            <div class="rc-row click"><span class="lbl">คันที่ 2 (BLS)</span></div>
+            <div class="rc-row click"><span class="lbl">คันที่ 3 (ALS)</span></div>
+        </div>
+        <div class="rc-label">สถานะ</div>
+        <div class="rc-group">
+            <div class="rc-row click"><span class="lbl">✅ พร้อมใช้งาน</span><span class="val">2</span></div>
+            <div class="rc-row click"><span class="lbl">⚠️ มีรายการ</span><span class="val">1</span></div>
+            <div class="rc-row click"><span class="lbl">❌ ยังไม่ตรวจ</span><span class="val">1</span></div>
+        </div>
+    </div>
+</div>
+
+</body></html>
