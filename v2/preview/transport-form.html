@@ -16,35 +16,38 @@
     }
     .preview-banner b { color: #064e3b; }
 
-    /* TOPBAR — production: white bg, icons keep natural color */
-    .topbar {
+    /* Production v2-form-topbar — white bg, sticky, has case info row + step row */
+    .v2-form-topbar {
         position: sticky; top: 0; z-index: 50;
         background: #fff; border-bottom: 1px solid #e2e8f0;
-        padding: 6px 10px;
+    }
+    .v2-tb-row1 {
         display: flex; align-items: center; gap: 6px;
-        height: 48px;
+        padding: 8px 12px 8px 56px;   /* left padded for hamburger */
+        border-bottom: 1px solid #f1f5f9;
     }
-    .topbar .ic {
-        height: 36px; min-width: 36px; padding: 0 8px;
-        display: flex; align-items: center; justify-content: center; gap: 5px;
-        border-radius: 8px; background: #f1f5f9; color: #475569;
+    .v2-tb-row1 .case-id { font-size: 13px; font-weight: 700; color: #0369a1; }
+    .v2-tb-row1 .case-meta { font-size: 11px; color: #64748b; margin-left: 6px; }
+    .v2-tb-row1 .spacer { flex: 1; }
+    .v2-tb-row1 .ic, .v2-tb-row1 .save {
+        height: 32px; min-width: 32px; padding: 0 8px;
+        display: flex; align-items: center; justify-content: center; gap: 4px;
+        border-radius: 7px; background: #f1f5f9; color: #475569;
         text-decoration: none; flex: 0 0 auto; border: 0;
-        font-size: 16px;
+        font-size: 14px;
     }
-    .topbar .ic:active { background: #e2e8f0; }
-    .topbar .save {
-        height: 36px; min-width: 36px; padding: 0 12px;
-        display: flex; align-items: center; justify-content: center; gap: 5px;
-        border-radius: 8px; background: #16a34a; color: #fff;
-        flex: 0 0 auto; border: 0; font-size: 13px; font-weight: 700;
+    .v2-tb-row1 .save { background: #16a34a; color: #fff; font-size: 13px; font-weight: 700; padding: 0 10px; }
+    .v2-tb-row1 .ic .ic-edit { color: #0369a1; }
+    .v2-tb-row1 .ic .ic-eye { color: #7c3aed; }
+    /* Floating hamburger same as list */
+    .nav-toggle {
+        position: fixed; top: 8px; left: 8px; z-index: 60;
+        width: 40px; height: 40px;
+        display: flex; align-items: center; justify-content: center;
+        border-radius: 10px; background: #fff; border: 1px solid #e2e8f0;
+        color: #0369a1; font-size: 22px;
+        box-shadow: 0 2px 8px rgba(0,0,0,.15); cursor: pointer;
     }
-    .topbar .ic .ic-edit { color: #0369a1; }
-    .topbar .ic .ic-eye { color: #7c3aed; }
-    .topbar .ttl {
-        flex: 1; min-width: 0; font-size: 14px; font-weight: 700; color: #0f172a; line-height: 1.1; padding: 0 4px;
-    }
-    .topbar .ttl small { display: block; font-size: 10px; font-weight: 500; color: #64748b; margin-top: 2px; }
-    .topbar .ttl .mod-ic { color: #0ea5e9; margin-right: 4px; }   /* transport sky-blue */
 
     /* form cards (mimic PC layout — DON'T touch) */
     .form-card {
@@ -144,13 +147,19 @@
     <b>⚠️ Mockup เพื่อดู bottom nav เท่านั้น</b> — ตอน apply เข้า live <b>ฟอร์มจริงไม่แตะ</b> (เพิ่มแค่ bottom nav + ซ่อน subnav บน mobile)
 </div>
 
-<!-- TOPBAR (production: white bg, icons keep natural color) -->
-<div class="topbar">
-    <a href="transport-list.html" class="ic" title="เมนู"><i class="bi bi-list"></i></a>
-    <div class="ttl"><i class="bi bi-truck-flatbed mod-ic"></i>เปิดเคส 20260508-004<small>ALS · ขณะนำส่ง</small></div>
-    <button class="ic" title="edit"><i class="bi bi-pencil ic-edit"></i></button>
-    <button class="ic" title="preview"><i class="bi bi-eye ic-eye"></i></button>
-    <button class="save" title="save"><i class="bi bi-check-lg"></i></button>
+<!-- Floating hamburger -->
+<button class="nav-toggle" title="เมนู"><i class="bi bi-list"></i></button>
+
+<!-- v2-form-topbar (production has this on form view) -->
+<div class="v2-form-topbar">
+    <div class="v2-tb-row1">
+        <span class="case-id">20260508-004</span>
+        <span class="case-meta">ALS · ขณะนำส่ง</span>
+        <span class="spacer"></span>
+        <button class="ic" title="edit"><i class="bi bi-pencil ic-edit"></i></button>
+        <button class="ic" title="preview"><i class="bi bi-eye ic-eye"></i></button>
+        <button class="save" title="save"><i class="bi bi-check-lg"></i></button>
+    </div>
 </div>
 
 <div class="scope-note">

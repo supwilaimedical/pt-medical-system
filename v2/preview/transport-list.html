@@ -16,35 +16,25 @@
     }
     .preview-banner b { color: #064e3b; }
 
-    /* TOPBAR — production: white bg, icons keep their natural color */
-    .topbar {
-        position: sticky; top: 0; z-index: 50;
-        background: #fff; border-bottom: 1px solid #e2e8f0;
-        padding: 6px 10px;
-        display: flex; align-items: center; gap: 6px;
-        height: 48px;
-    }
-    .topbar .ic {
-        width: 36px; height: 36px;
+    /* Floating hamburger (production .v2-mobile-nav-toggle) — top-left, no extra topbar */
+    .nav-toggle {
+        position: fixed; top: 8px; left: 8px; z-index: 60;
+        width: 40px; height: 40px;
         display: flex; align-items: center; justify-content: center;
-        border-radius: 8px; background: #f1f5f9; color: #475569;
-        text-decoration: none; flex: 0 0 auto; border: 0;
-        font-size: 16px;
+        border-radius: 10px; background: #fff; border: 1px solid #e2e8f0;
+        color: #0369a1; font-size: 22px;
+        box-shadow: 0 2px 8px rgba(0,0,0,.15); cursor: pointer;
     }
-    .topbar .ic:active { background: #e2e8f0; }
-    .topbar .ttl { flex: 1; min-width: 0; font-size: 14px; font-weight: 700; color: #0f172a; line-height: 1.1; padding: 0 4px; }
-    .topbar .ttl small { display: block; font-size: 10px; font-weight: 500; color: #64748b; margin-top: 2px; }
-    .topbar .ttl .mod-ic { color: #0ea5e9; margin-right: 4px; }   /* transport sky-blue */
 
-    /* Page header (mirrors production "tr-colhead-left" + sub) */
+    /* Page header (production .dashboard-header) — only title block, padded for hamburger */
     .page-header {
-        background: #fff; padding: 12px 14px; border-bottom: 1px solid #e2e8f0;
+        background: transparent; padding: 12px 14px 12px 60px;
     }
     .page-header h3 {
-        margin: 0; font-size: 16px; font-weight: 700; color: #0f172a;
+        margin: 0; font-size: 18px; font-weight: 700; color: #0f172a;
         display: flex; align-items: center; gap: 8px;
     }
-    .page-header h3 i { color: #0ea5e9; font-size: 16px; }
+    .page-header h3 i { color: #0ea5e9; font-size: 16px; }   /* transport sky */
     .page-header .sub {
         font-size: 12px; color: #64748b; margin-top: 4px;
     }
@@ -186,11 +176,8 @@
     <b>⚠️ Mockup เพื่อดู bottom nav</b> — apply live: ซ่อน subnav บน mobile + เพิ่ม bottom nav DOM, layout list เดิมไม่แตะ
 </div>
 
-<!-- Topbar (production-like — hamburger + title) -->
-<div class="topbar">
-    <button class="ic" title="เมนู"><i class="bi bi-list"></i></button>
-    <div class="ttl"><i class="bi bi-truck-flatbed mod-ic"></i>นำส่งผู้ป่วย<small>Transport · เรียลไทม์</small></div>
-</div>
+<!-- Floating hamburger (production .v2-mobile-nav-toggle) -->
+<button class="nav-toggle" title="เมนู"><i class="bi bi-list"></i></button>
 
 <div class="body-pad">
 
