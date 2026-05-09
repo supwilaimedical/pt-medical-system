@@ -4836,7 +4836,7 @@
     </script>
 
   <!-- Mobile bottom nav (monitor) -->
-  <nav class="pt-bnav" id="mon-bnav" style="display:none;">
+  <nav class="pt-bnav" id="mon-bnav" style="display:none; grid-template-columns: repeat(4, 1fr) !important;">
     <a href="javascript:void(0)" onclick="if(typeof v2MonScrollTo==='function') v2MonScrollTo('monitor-transport-list')">
       <i class="bi bi-truck-flatbed"></i><span>นำส่ง</span>
     </a>
@@ -4845,6 +4845,9 @@
     </a>
     <a href="javascript:void(0)" onclick="if(typeof v2MonScrollToCritical==='function') v2MonScrollToCritical()">
       <i class="bi bi-exclamation-circle-fill" style="color:#dc2626;"></i><span>วิกฤต</span>
+    </a>
+    <a href="javascript:void(0)" onclick="if(typeof loadMonitor==='function') loadMonitor()">
+      <i class="bi bi-arrow-clockwise"></i><span>รีเฟรช</span>
     </a>
   </nav>
 
