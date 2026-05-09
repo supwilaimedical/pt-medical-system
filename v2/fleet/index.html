@@ -1527,6 +1527,13 @@
   };
 
   // Vehicle picker sheet (ทั้งหมด button)
+  // Helper: reset status filter to 'All' and clear bnav active state
+  function _fleetResetStatus(){
+    var allStatusBtn = document.querySelector('[data-filter-status="All"]');
+    if (typeof window.setFilterStatus === 'function') window.setFilterStatus('All', allStatusBtn);
+    document.querySelectorAll('#fleet-bnav a').forEach(function(a){ a.classList.remove('active'); });
+  }
+
   window._fleetOpenVehicleSheet = function(){
     var body = document.getElementById('pt-bsheet-body');
     var title = document.getElementById('fleet-sheet-title');
@@ -1535,7 +1542,7 @@
     var data = (typeof window._fleetGetAllData === 'function') ? window._fleetGetAllData() : [];
     var vehicles = Array.isArray(data) ? Array.from(new Set(data.map(function(d){ return d.vehicle; }))).sort() : [];
     var nameOf = (typeof window._fleetDisplayName === 'function') ? window._fleetDisplayName : function(v){ return v; };
-    body.innerHTML = '<button class="pt-sheet-link" data-veh="All"><i class="bi bi-list-ul"></i> ทั้งหมด</button>'
+    body.innerHTML = '<button class="pt-sheet-link" data-veh="All" style="font-weight:700;color:#0369a1;"><i class="bi bi-house-fill"></i> ดูทั้งหมด (ล้างตัวกรอง)</button>'
       + vehicles.map(function(v){
           var safeV = String(v).replace(/"/g,'&quot;');
           return '<button class="pt-sheet-link" data-veh="'+safeV+'"><i class="bi bi-truck-front"></i> '+nameOf(v)+'</button>';
@@ -1543,7 +1550,10 @@
     body.querySelectorAll('.pt-sheet-link').forEach(function(b){
       b.addEventListener('click', function(){
         var v = b.getAttribute('data-veh');
-        if (typeof setFilterVehicle === 'function') setFilterVehicle(v, b);
+        // Always reset status filter when picking from vehicle sheet — user expects clean view
+        _fleetResetStatus();
+        var allVehBtn = document.querySelector('[data-filter-vehicle="'+v+'"]');
+        if (typeof setFilterVehicle === 'function') setFilterVehicle(v, allVehBtn);
         document.getElementById('pt-bsheet').classList.remove('show');
         document.getElementById('pt-bsheet-bd').classList.remove('show');
       });
