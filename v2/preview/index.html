@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>PT-Amb · UX Preview Gallery</title>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+    body { font-family: 'Sarabun', sans-serif; background: #f8fafc; padding: 20px; max-width: 720px; margin: 0 auto; }
+    h1 { font-weight: 700; font-size: 22px; margin-bottom: 4px; color: #0f172a; }
+    .sub { color: #64748b; font-size: 14px; margin-bottom: 24px; }
+    .module {
+        background: #fff; border: 1px solid #e2e8f0; border-radius: 12px;
+        margin-bottom: 16px; overflow: hidden;
+    }
+    .module-head {
+        padding: 12px 16px; background: #f1f5f9;
+        font-size: 13px; font-weight: 700; color: #0f172a;
+        display: flex; justify-content: space-between; align-items: center;
+    }
+    .module-head .badge-status {
+        font-size: 10px; font-weight: 600; padding: 2px 8px; border-radius: 100px;
+    }
+    .badge-todo { background: #f1f5f9; color: #64748b; }
+    .badge-wip { background: #fef9c3; color: #854d0e; }
+    .badge-done { background: #dcfce7; color: #166534; }
+    .module a {
+        display: flex; align-items: center; gap: 10px;
+        padding: 12px 16px; border-bottom: 1px solid #f1f5f9;
+        text-decoration: none; color: #0f172a;
+        transition: background .12s;
+    }
+    .module a:last-child { border-bottom: 0; }
+    .module a:hover { background: #f8fafc; }
+    .module a i.lead-ic { color: #16a34a; font-size: 18px; width: 24px; }
+    .module a .ttl { flex: 1; font-weight: 600; font-size: 14px; }
+    .module a .desc { font-size: 12px; color: #64748b; display: block; margin-top: 2px; font-weight: 400; }
+    .module a .chev { color: #94a3b8; }
+    .order-pill {
+        display: inline-flex; align-items: center; justify-content: center;
+        width: 22px; height: 22px; border-radius: 50%;
+        background: #e2e8f0; color: #475569;
+        font-size: 11px; font-weight: 700; margin-right: 6px;
+    }
+    .top-note {
+        background: #fef3c7; border: 1px solid #fde68a; border-radius: 10px;
+        padding: 10px 14px; font-size: 12.5px; color: #78350f;
+        margin-bottom: 16px;
+    }
+    .top-note b { color: #422006; }
+    code { background: #f1f5f9; padding: 1px 6px; border-radius: 4px; font-size: 12px; color: #0f172a; }
+</style>
+</head>
+<body>
+
+<h1><i class="bi bi-phone text-success"></i> PT-Amb · UX Preview</h1>
+<div class="sub">Mobile + tablet portrait redesign sandbox · static HTML, no logic</div>
+
+<div class="top-note">
+    <b>📐 Test:</b> เปิดบนมือถือจริง (≤1024px portrait). Desktop จะเห็นเป็น preview-mode เท่านั้น —
+    ไม่ใช่ของจริงตอน apply กลับ live. Preview = visual only, ไม่มี JS, ไม่มี data จริง.
+</div>
+
+<div class="module">
+    <div class="module-head"><span><span class="order-pill">1</span>Transport</span><span class="badge-status badge-wip">WIP</span></div>
+    <a href="transport-list.html"><i class="bi bi-list-ul lead-ic"></i><span class="ttl">รายการเคส (List)<span class="desc">Dashboard / สถานะ / filter</span></span><i class="bi bi-chevron-right chev"></i></a>
+    <a href="transport-form.html"><i class="bi bi-file-earmark-medical lead-ic"></i><span class="ttl">เปิดเคสใหม่ / แก้ไข (Form)<span class="desc">Triage · Vital · IV · Airway · O2</span></span><i class="bi bi-chevron-right chev"></i></a>
+</div>
+
+<div class="module">
+    <div class="module-head"><span><span class="order-pill">2</span>Firstaids</span><span class="badge-status badge-todo">TODO</span></div>
+    <a href="#" style="opacity:.4; pointer-events:none;"><i class="bi bi-clipboard-pulse lead-ic"></i><span class="ttl">Event admin<span class="desc">Pending</span></span><i class="bi bi-chevron-right chev"></i></a>
+    <a href="#" style="opacity:.4; pointer-events:none;"><i class="bi bi-person-badge lead-ic"></i><span class="ttl">Staff<span class="desc">Pending</span></span><i class="bi bi-chevron-right chev"></i></a>
+</div>
+
+<div class="module">
+    <div class="module-head"><span><span class="order-pill">3</span>Location</span><span class="badge-status badge-todo">TODO</span></div>
+    <a href="#" style="opacity:.4; pointer-events:none;"><i class="bi bi-geo-alt lead-ic"></i><span class="ttl">Search / Add pin<span class="desc">Pending</span></span><i class="bi bi-chevron-right chev"></i></a>
+</div>
+
+<div class="module">
+    <div class="module-head"><span><span class="order-pill">4</span>GPS</span><span class="badge-status badge-todo">TODO</span></div>
+    <a href="#" style="opacity:.4; pointer-events:none;"><i class="bi bi-broadcast lead-ic"></i><span class="ttl">Live tracking<span class="desc">Pending</span></span><i class="bi bi-chevron-right chev"></i></a>
+</div>
+
+<div class="module">
+    <div class="module-head"><span><span class="order-pill">5</span>Monitor</span><span class="badge-status badge-todo">TODO</span></div>
+    <a href="#" style="opacity:.4; pointer-events:none;"><i class="bi bi-activity lead-ic"></i><span class="ttl">Dashboard<span class="desc">Pending</span></span><i class="bi bi-chevron-right chev"></i></a>
+</div>
+
+<div class="module">
+    <div class="module-head"><span><span class="order-pill">6</span>Fleet</span><span class="badge-status badge-todo">TODO</span></div>
+    <a href="#" style="opacity:.4; pointer-events:none;"><i class="bi bi-truck-front lead-ic"></i><span class="ttl">Vehicle status<span class="desc">Pending</span></span><i class="bi bi-chevron-right chev"></i></a>
+</div>
+
+<div class="module">
+    <div class="module-head"><span><span class="order-pill">7</span>Admin Settings</span><span class="badge-status badge-todo">TODO</span></div>
+    <a href="#" style="opacity:.4; pointer-events:none;"><i class="bi bi-gear lead-ic"></i><span class="ttl">Config panel<span class="desc">Pending</span></span><i class="bi bi-chevron-right chev"></i></a>
+</div>
+
+<div class="module">
+    <div class="module-head"><span><span class="order-pill">8</span>Dashboard (landing)</span><span class="badge-status badge-todo">TODO</span></div>
+    <a href="#" style="opacity:.4; pointer-events:none;"><i class="bi bi-house lead-ic"></i><span class="ttl">Landing<span class="desc">Pending</span></span><i class="bi bi-chevron-right chev"></i></a>
+</div>
+
+<p style="text-align:center; color:#94a3b8; font-size:11px; margin-top:24px;">
+    ดูเอกสาร: <code>memory/danger_zones_ux_refactor.md</code> ก่อนเริ่มงาน · ดู patterns ที่ <code>shared/mobile-patterns.css</code>
+</p>
+
+</body>
+</html>

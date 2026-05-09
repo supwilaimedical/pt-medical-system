@@ -1,0 +1,282 @@
+/* ============================================================
+   PT-Amb Mobile Patterns — preview-stage CSS only
+   Activates on mobile + tablet portrait (<=1024px portrait).
+   Desktop / landscape: untouched.
+   ============================================================ */
+
+@media (max-width: 1024px) and (orientation: portrait) {
+
+/* ---------- Tokens (reuse existing palette) ---------- */
+:root {
+    --pp-bg:           #f8fafc;
+    --pp-card:         #ffffff;
+    --pp-border:       #e2e8f0;
+    --pp-border-soft:  #f1f5f9;
+    --pp-text:         #0f172a;
+    --pp-text-muted:   #64748b;
+    --pp-text-faint:   #94a3b8;
+    --pp-accent:       #16a34a;          /* primary action — green */
+    --pp-accent-soft:  #dcfce7;
+    --pp-shadow:       0 1px 3px rgba(15,23,42,.06), 0 1px 2px rgba(15,23,42,.04);
+    --pp-shadow-md:    0 4px 12px rgba(15,23,42,.08);
+    --pp-radius:       12px;
+    --pp-radius-lg:    16px;
+}
+
+body { background: var(--pp-bg) !important; }
+
+/* ---------- Patient header card ---------- */
+.pp-patient-header {
+    position: sticky; top: 0; z-index: 30;
+    background: var(--pp-card);
+    border-bottom: 1px solid var(--pp-border);
+    padding: 12px 14px;
+    display: flex; align-items: center; gap: 12px;
+}
+.pp-patient-header .pp-avatar {
+    width: 48px; height: 48px; border-radius: 50%;
+    background: var(--pp-accent-soft); color: var(--pp-accent);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 22px; flex: 0 0 auto;
+    overflow: hidden;
+}
+.pp-patient-header .pp-avatar img { width: 100%; height: 100%; object-fit: cover; }
+.pp-patient-header .pp-id { flex: 1; min-width: 0; }
+.pp-patient-header .pp-name {
+    font-size: 16px; font-weight: 700; color: var(--pp-text);
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    line-height: 1.2;
+}
+.pp-patient-header .pp-meta {
+    font-size: 12px; color: var(--pp-text-muted); margin-top: 2px;
+    display: flex; gap: 8px; flex-wrap: wrap;
+}
+.pp-patient-header .pp-meta .sep { color: var(--pp-text-faint); }
+.pp-patient-header .pp-chev {
+    color: var(--pp-text-faint); font-size: 18px; flex: 0 0 auto;
+}
+
+/* ---------- Stat strip (3 metrics with icons) ---------- */
+.pp-stat-strip {
+    background: var(--pp-card);
+    margin: 10px 14px 0;
+    border: 1px solid var(--pp-border);
+    border-radius: var(--pp-radius);
+    padding: 10px;
+    display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px;
+    box-shadow: var(--pp-shadow);
+}
+.pp-stat-strip .pp-stat {
+    display: flex; align-items: center; gap: 8px;
+    min-width: 0;
+}
+.pp-stat-strip .pp-stat .pp-stat-ic {
+    width: 32px; height: 32px; border-radius: 8px;
+    background: var(--pp-accent-soft); color: var(--pp-accent);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 16px; flex: 0 0 auto;
+}
+.pp-stat-strip .pp-stat .pp-stat-body { min-width: 0; }
+.pp-stat-strip .pp-stat .pp-stat-lbl {
+    font-size: 10px; color: var(--pp-text-faint); font-weight: 600;
+    letter-spacing: .3px; text-transform: uppercase; line-height: 1;
+}
+.pp-stat-strip .pp-stat .pp-stat-val {
+    font-size: 13px; color: var(--pp-text); font-weight: 700;
+    line-height: 1.2; margin-top: 3px;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+
+/* ---------- Numbered section header ---------- */
+.pp-section-num {
+    margin: 16px 14px 8px;
+    font-size: 13px; font-weight: 700; color: var(--pp-text);
+    display: flex; align-items: center; gap: 8px;
+}
+.pp-section-num .pp-section-num-bullet {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 22px; height: 22px; border-radius: 50%;
+    background: var(--pp-accent-soft); color: var(--pp-accent);
+    font-size: 12px; font-weight: 800;
+}
+
+/* ---------- Big toggle (card-style radio replacement) ---------- */
+.pp-big-toggle-group {
+    margin: 0 14px;
+    display: grid; gap: 8px;
+    grid-template-columns: repeat(3, 1fr);
+}
+.pp-big-toggle {
+    background: var(--pp-card);
+    border: 2px solid var(--pp-border);
+    border-radius: var(--pp-radius);
+    padding: 12px 10px;
+    text-align: center; cursor: pointer;
+    transition: border-color .12s, background .12s, transform .08s;
+    position: relative;
+}
+.pp-big-toggle:active { transform: scale(.98); }
+.pp-big-toggle .pp-bt-title {
+    font-size: 14px; font-weight: 700; color: var(--pp-text);
+    line-height: 1.2;
+}
+.pp-big-toggle .pp-bt-sub {
+    font-size: 10.5px; color: var(--pp-text-muted); margin-top: 4px;
+    line-height: 1.3;
+}
+.pp-big-toggle.pp-bt-green { background: #f0fdf4; border-color: #bbf7d0; }
+.pp-big-toggle.pp-bt-yellow { background: #fefce8; border-color: #fef08a; }
+.pp-big-toggle.pp-bt-red { background: #fef2f2; border-color: #fecaca; }
+.pp-big-toggle.pp-bt-blue { background: #eff6ff; border-color: #bfdbfe; }
+.pp-big-toggle.active.pp-bt-green { border-color: #16a34a; box-shadow: 0 0 0 2px rgba(22,163,74,.12); }
+.pp-big-toggle.active.pp-bt-yellow { border-color: #eab308; box-shadow: 0 0 0 2px rgba(234,179,8,.12); }
+.pp-big-toggle.active.pp-bt-red { border-color: #dc2626; box-shadow: 0 0 0 2px rgba(220,38,38,.12); }
+.pp-big-toggle.active.pp-bt-blue { border-color: #2563eb; box-shadow: 0 0 0 2px rgba(37,99,235,.12); }
+.pp-big-toggle.active::after {
+    content: '✓'; position: absolute; top: 6px; right: 8px;
+    width: 18px; height: 18px; border-radius: 50%;
+    background: currentColor; color: #fff;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 11px; font-weight: 700;
+}
+.pp-big-toggle.pp-bt-green.active { color: #16a34a; }
+.pp-big-toggle.pp-bt-yellow.active { color: #ca8a04; }
+.pp-big-toggle.pp-bt-red.active { color: #dc2626; }
+.pp-big-toggle.pp-bt-blue.active { color: #2563eb; }
+
+/* ---------- Section card (input groups, list rows, etc.) ---------- */
+.pp-card {
+    background: var(--pp-card);
+    margin: 0 14px 12px;
+    border: 1px solid var(--pp-border);
+    border-radius: var(--pp-radius);
+    box-shadow: var(--pp-shadow);
+    overflow: hidden;
+}
+.pp-card-body { padding: 12px 14px; }
+.pp-card-row {
+    display: flex; align-items: center; gap: 10px;
+    padding: 12px 14px;
+    border-bottom: 1px solid var(--pp-border-soft);
+}
+.pp-card-row:last-child { border-bottom: 0; }
+.pp-card-row .pp-row-icon {
+    width: 36px; height: 36px; border-radius: 10px;
+    background: var(--pp-accent-soft); color: var(--pp-accent);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 16px; flex: 0 0 auto;
+}
+.pp-card-row .pp-row-body { flex: 1; min-width: 0; }
+.pp-card-row .pp-row-title {
+    font-size: 14px; font-weight: 600; color: var(--pp-text);
+    line-height: 1.3;
+}
+.pp-card-row .pp-row-sub {
+    font-size: 12px; color: var(--pp-text-muted); margin-top: 2px;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.pp-card-row .pp-row-chev { color: var(--pp-text-faint); font-size: 18px; }
+
+/* ---------- Sticky bottom CTA ---------- */
+.pp-sticky-cta {
+    position: fixed; left: 0; right: 0; bottom: 0;
+    z-index: 40;
+    background: var(--pp-card);
+    border-top: 1px solid var(--pp-border);
+    padding: 10px 14px calc(10px + env(safe-area-inset-bottom));
+    display: flex; gap: 8px;
+}
+.pp-sticky-cta .btn {
+    flex: 1; height: 48px;
+    border-radius: 12px; font-weight: 700; font-size: 15px;
+    display: flex; align-items: center; justify-content: center; gap: 6px;
+}
+.pp-sticky-cta .btn-primary {
+    background: var(--pp-accent); border: 0; color: #fff;
+}
+.pp-sticky-cta .btn-secondary {
+    background: var(--pp-bg); border: 1px solid var(--pp-border); color: var(--pp-text);
+}
+
+/* Reserve space at bottom of body so sticky CTA doesn't cover content */
+body.pp-has-cta .pp-content-wrap { padding-bottom: 86px; }
+body.pp-has-bottom-nav .pp-content-wrap { padding-bottom: 72px; }
+body.pp-has-cta.pp-has-bottom-nav .pp-content-wrap { padding-bottom: 138px; }
+
+/* ---------- Bottom tab navigation ---------- */
+.pp-bottom-nav {
+    position: fixed; left: 0; right: 0; bottom: 0;
+    z-index: 35;
+    background: var(--pp-card);
+    border-top: 1px solid var(--pp-border);
+    padding: 6px 4px calc(6px + env(safe-area-inset-bottom));
+    display: grid; grid-template-columns: repeat(5, 1fr);
+}
+.pp-bottom-nav a {
+    display: flex; flex-direction: column; align-items: center; gap: 2px;
+    padding: 6px 4px;
+    color: var(--pp-text-muted); text-decoration: none;
+    font-size: 10.5px; font-weight: 600;
+}
+.pp-bottom-nav a i { font-size: 20px; line-height: 1; }
+.pp-bottom-nav a.active { color: var(--pp-accent); }
+
+/* ---------- Triage chips (sort by severity, color-coded) ---------- */
+.pp-triage-chip {
+    display: inline-flex; align-items: center; gap: 4px;
+    padding: 2px 8px; border-radius: 100px;
+    font-size: 11px; font-weight: 700; letter-spacing: .3px;
+}
+.pp-triage-chip.t-resus  { background: #fee2e2; color: #991b1b; }
+.pp-triage-chip.t-emer   { background: #fed7aa; color: #9a3412; }
+.pp-triage-chip.t-urgent { background: #fef9c3; color: #854d0e; }
+.pp-triage-chip.t-non    { background: #dcfce7; color: #166534; }
+
+/* ---------- Filter chips (horizontal scroll) ---------- */
+.pp-filter-chips {
+    display: flex; gap: 6px; padding: 10px 14px;
+    overflow-x: auto; scrollbar-width: none;
+}
+.pp-filter-chips::-webkit-scrollbar { display: none; }
+.pp-filter-chips .chip {
+    flex: 0 0 auto;
+    padding: 6px 12px; border-radius: 100px;
+    background: var(--pp-card); border: 1px solid var(--pp-border);
+    font-size: 12px; font-weight: 600; color: var(--pp-text-muted);
+    white-space: nowrap; cursor: pointer;
+}
+.pp-filter-chips .chip.active {
+    background: var(--pp-text); color: #fff; border-color: var(--pp-text);
+}
+
+/* ---------- Inputs (full-width, big touch) ---------- */
+.pp-input, .pp-select, .pp-textarea {
+    width: 100%; min-height: 44px; padding: 10px 12px;
+    border: 1px solid var(--pp-border); border-radius: 10px;
+    background: var(--pp-card); color: var(--pp-text);
+    font-size: 16px;  /* 16px prevents iOS zoom on focus */
+    font-family: inherit;
+}
+.pp-textarea { min-height: 80px; resize: vertical; line-height: 1.4; }
+.pp-input:focus, .pp-select:focus, .pp-textarea:focus {
+    outline: none; border-color: var(--pp-accent);
+    box-shadow: 0 0 0 3px rgba(22,163,74,.1);
+}
+.pp-field-label {
+    display: block; font-size: 12px; font-weight: 600;
+    color: var(--pp-text-muted); margin: 0 0 6px;
+}
+
+/* ---------- Empty state ---------- */
+.pp-empty {
+    text-align: center; padding: 40px 20px;
+    color: var(--pp-text-muted);
+}
+.pp-empty i { font-size: 40px; color: var(--pp-text-faint); display: block; margin-bottom: 8px; }
+
+/* ---------- Spacing helpers ---------- */
+.pp-content-wrap { padding-top: 4px; }
+.pp-mb-12 { margin-bottom: 12px; }
+.pp-mt-12 { margin-top: 12px; }
+
+}  /* /@media */
