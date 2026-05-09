@@ -423,16 +423,46 @@
     body .v2-subnav { display: none !important; }
     body #app-main-wrapper { padding-left: 0 !important; }
     body { padding-bottom: 76px !important; }
-    /* Hamburger opens main rail */
+    /* Hamburger opens main rail (220px expanded with labels) */
     body.v2-nav-open .v2-rail {
       display: flex !important; transform: translateX(0) !important;
+      width: 220px !important; align-items: stretch !important; padding: 12px 8px !important;
     }
-    body.v2-nav-open::before {
-      content:''; position:fixed; inset:0; background:rgba(15,23,42,.5); z-index:1028;
+    body.v2-nav-open::before { content:''; position:fixed; inset:0; background:rgba(15,23,42,.5); z-index:1028; }
+    body .v2-rail { box-shadow:4px 0 14px rgba(15,23,42,.15); }
+    body.v2-nav-open .v2-rail a {
+      width: 100% !important; height: auto !important; min-height: 48px !important;
+      font-size: 14px !important; font-weight: 600;
+      display: flex !important; flex-direction: row !important;
+      align-items: center !important; justify-content: flex-start !important;
+      gap: 12px !important; padding: 10px 14px !important; border-radius: 10px;
     }
-    body .v2-rail { width:64px !important; box-shadow:4px 0 14px rgba(15,23,42,.15); }
-    body .v2-rail a { width:48px !important; height:48px !important; font-size:22px !important; }
-    /* Hide existing fa-fab (we use it via FAB anyway, just relocate) */
+    body.v2-nav-open .v2-rail a i { font-size: 22px !important; flex: 0 0 auto; width: 28px; text-align: center; }
+    body.v2-nav-open .v2-rail a::after { content: attr(title); flex: 1; color: inherit; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    body.v2-nav-open .v2-rail .v2-logo { display: none !important; }
+    /* Reposition existing .fa-fab (event detail FAB) to float center */
+    body.fa-in-event .fa-fab {
+      position: fixed !important;
+      left: 50% !important; right: auto !important; bottom: 28px !important;
+      transform: translateX(-50%);
+      width: 60px !important; height: 60px !important;
+      border-radius: 50% !important;
+      background: #16a34a !important; color: #fff !important;
+      box-shadow: 0 6px 20px rgba(22,163,74,.45), 0 0 0 4px #fff !important;
+      z-index: 1036 !important;
+    }
+    /* New FAB for list view (+ เหตุการณ์) */
+    .fa-list-fab {
+      position: fixed; left: 50%; bottom: 28px; transform: translateX(-50%);
+      width: 60px; height: 60px; border-radius: 50%;
+      background: #16a34a; color: #fff; border: 0;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 24px; cursor: pointer;
+      box-shadow: 0 6px 20px rgba(22,163,74,.45), 0 0 0 4px #fff;
+      z-index: 1036;
+    }
+    .fa-list-fab:active { transform: translateX(-50%) scale(.95); }
+    body.fa-in-event .fa-list-fab { display: none !important; }
     /* Bottom nav */
     .pt-bnav {
       position: fixed; left:0; right:0; bottom:0; z-index:1030;
@@ -4010,6 +4040,8 @@ if ('serviceWorker' in navigator) {
   <!-- ============================================================
        Mobile bottom nav (firstaid) — list view + event-detail view
        ============================================================ -->
+  <button class="fa-list-fab" id="fa-list-fab" style="display:none;" onclick="if(typeof fa_openCreateEventModal==='function') fa_openCreateEventModal();" title="เพิ่มเหตุการณ์"><i class="bi bi-plus-lg"></i></button>
+
   <nav class="pt-bnav cols-3" id="fa-bnav-list" style="display:none;">
     <a href="javascript:void(0)" id="fa-bnav-active" onclick="if(typeof v2FaSetTab==='function') v2FaSetTab('active');">
       <i class="bi bi-broadcast-pin"></i><span>เปิดอยู่</span>
@@ -4051,6 +4083,8 @@ if ('serviceWorker' in navigator) {
       var onDetail = detailV && detailV.classList.contains('active');
       bL.style.display = (onList && mobile) ? '' : 'none';
       bD.style.display = (onDetail && mobile) ? '' : 'none';
+      var listFab = document.getElementById('fa-list-fab');
+      if (listFab) listFab.style.display = (onList && mobile) ? '' : 'none';
       // sync active list tab
       if (onList && mobile) {
           var sa = document.getElementById('v2-fa-tab-active');
