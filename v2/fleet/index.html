@@ -1459,17 +1459,17 @@
 
 <!-- Mobile bottom nav (fleet) -->
 <nav class="pt-bnav" id="fleet-bnav" style="display:none;">
-  <a href="javascript:void(0)" id="fleet-bnav-all" onclick="if(typeof setFilterStatus==='function') setFilterStatus('All', this);">
+  <a href="javascript:void(0)" id="fleet-bnav-all" onclick="window._fleetOpenVehicleSheet()">
     <i class="bi bi-list-ul"></i><span>ทั้งหมด</span>
   </a>
   <a href="javascript:void(0)" id="fleet-bnav-ok" onclick="if(typeof setFilterStatus==='function') setFilterStatus('ready_perfect', this);">
     <i class="bi bi-check-circle-fill" style="color:#16a34a;"></i><span>พร้อม</span>
   </a>
-  <a href="javascript:void(0)" id="fleet-bnav-note" onclick="if(typeof setFilterStatus==='function') setFilterStatus('ready_note', this);">
+  <a href="javascript:void(0)" id="fleet-bnav-issues" onclick="window._fleetFilterIssues()">
     <i class="bi bi-exclamation-triangle-fill" style="color:#d97706;"></i><span>มีรายการ</span>
   </a>
-  <a href="javascript:void(0)" class="more-btn" id="fleet-bnav-more">
-    <i class="bi bi-funnel-fill"></i><span>กรองรถ</span>
+  <a href="javascript:void(0)" class="more-btn" id="fleet-bnav-prob">
+    <i class="bi bi-bug-fill" style="color:#dc2626;"></i><span>Problem</span>
   </a>
 </nav>
 
@@ -1477,13 +1477,85 @@
 <div class="pt-bsheet" id="pt-bsheet">
   <div class="pt-bsheet-handle"></div>
   <div class="pt-bsheet-head">
-    <h4>กรองตามรถ</h4>
+    <h4 id="fleet-sheet-title">ปัญหาที่พบล่าสุด</h4>
     <button class="pt-bsheet-close" id="pt-bsheet-close-btn"><i class="bi bi-x-lg"></i></button>
   </div>
-  <div class="pt-bsheet-body" id="pt-bsheet-body">
-    <div style="font-size:13px;color:#64748b;padding:8px 0;">เลือกรถจากรายการในด้านบน เพื่อกรองข้อมูล (subnav production มีรายชื่อรถจริง — apply portal ตามจริงรอบหน้า)</div>
-  </div>
+  <div class="pt-bsheet-body" id="pt-bsheet-body"></div>
 </div>
+
+<script>
+(function(){
+  // "มีรายการ" filter — combine ready_note + not_ready (production setFilterStatus accepts only one;
+  // simulate by switching to All then post-filter via custom logic via setFilterStatus + global)
+  // Since production setFilterStatus expects single status, easiest: introduce a virtual filter handler.
+  window._fleetFilterIssues = function(){
+    if (typeof allData !== 'undefined' && Array.isArray(allData) && typeof renderTable === 'function') {
+      // use existing filter mechanism via global setFilterStatus path: cycle to 'ready_note' first;
+      // user presses again could see 'not_ready'. Better: render combined directly.
+      var combined = allData.filter(function(d){
+        return d.status === 'ไม่พร้อมใช้งาน' || (d.status === 'พร้อมใช้งาน' && d.issue && d.issue !== '-');
+      });
+      renderTable(combined);
+      // mark bnav active
+      document.querySelectorAll('#fleet-bnav a').forEach(function(a){ a.classList.remove('active'); });
+      document.getElementById('fleet-bnav-issues')?.classList.add('active');
+    }
+  };
+
+  // Vehicle picker sheet (ทั้งหมด button)
+  window._fleetOpenVehicleSheet = function(){
+    var body = document.getElementById('pt-bsheet-body');
+    var title = document.getElementById('fleet-sheet-title');
+    if (!body) return;
+    title.textContent = 'เลือกรถ';
+    var vehicles = (typeof allData !== 'undefined') ? Array.from(new Set(allData.map(function(d){ return d.vehicle; }))).sort() : [];
+    body.innerHTML = '<button class="pt-sheet-link" data-veh="All"><i class="bi bi-list-ul"></i> ทั้งหมด</button>'
+      + vehicles.map(function(v){
+          return '<button class="pt-sheet-link" data-veh="'+v.replace(/"/g,'&quot;')+'"><i class="bi bi-truck-front"></i> '+v+'</button>';
+        }).join('');
+    body.querySelectorAll('.pt-sheet-link').forEach(function(b){
+      b.addEventListener('click', function(){
+        var v = b.getAttribute('data-veh');
+        if (typeof setFilterVehicle === 'function') setFilterVehicle(v, b);
+        document.getElementById('pt-bsheet').classList.remove('show');
+        document.getElementById('pt-bsheet-bd').classList.remove('show');
+      });
+    });
+    document.getElementById('pt-bsheet').classList.add('show');
+    document.getElementById('pt-bsheet-bd').classList.add('show');
+  };
+
+  // Problem sheet — list recent issues sorted newest first
+  window._fleetOpenProblemSheet = function(){
+    var body = document.getElementById('pt-bsheet-body');
+    var title = document.getElementById('fleet-sheet-title');
+    if (!body) return;
+    title.textContent = 'ปัญหาที่พบล่าสุด';
+    var rows = (typeof allData !== 'undefined') ? allData.filter(function(d){
+      return d.status === 'ไม่พร้อมใช้งาน' || (d.issue && d.issue !== '-');
+    }).sort(function(a,b){ return (b.date||'').localeCompare(a.date||''); }).slice(0,30) : [];
+    if (!rows.length) {
+      body.innerHTML = '<div style="padding:20px; text-align:center; color:#94a3b8;">ไม่มีปัญหาล่าสุด</div>';
+    } else {
+      body.innerHTML = rows.map(function(r){
+        var sev = r.status === 'ไม่พร้อมใช้งาน' ? '#dc2626' : '#d97706';
+        return '<div style="padding:10px 12px; border-bottom:1px solid #f1f5f9;">'
+          + '<div style="display:flex; gap:6px; align-items:center; font-size:11px; color:#64748b;">'
+            + '<span style="color:'+sev+'; font-weight:700;">●</span>'
+            + '<b style="color:#0f172a;">'+(r.vehicle||'-')+'</b>'
+            + '<span>·</span><span>'+(r.date||'-')+'</span>'
+          + '</div>'
+          + '<div style="font-size:13px; color:#0f172a; margin-top:3px;">'+(r.issue||'-')+'</div>'
+        + '</div>';
+      }).join('');
+    }
+    document.getElementById('pt-bsheet').classList.add('show');
+    document.getElementById('pt-bsheet-bd').classList.add('show');
+  };
+
+  document.getElementById('fleet-bnav-prob')?.addEventListener('click', window._fleetOpenProblemSheet);
+})();
+</script>
 
 <script>
 (function(){
