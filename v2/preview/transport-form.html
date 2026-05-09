@@ -23,8 +23,15 @@
     }
     .v2-tb-row1 {
         display: flex; align-items: center; gap: 6px;
-        padding: 8px 12px 8px 56px;   /* left padded for hamburger */
+        padding: 8px 12px;
         border-bottom: 1px solid #f1f5f9;
+    }
+    .v2-tb-row1 .ham {
+        width: 38px; height: 38px;
+        display: flex; align-items: center; justify-content: center;
+        border-radius: 10px; background: #f1f5f9; border: 0;
+        color: #0369a1; font-size: 20px;
+        flex: 0 0 auto; cursor: pointer;
     }
     .v2-tb-row1 .case-id { font-size: 13px; font-weight: 700; color: #0369a1; }
     .v2-tb-row1 .case-meta { font-size: 11px; color: #64748b; margin-left: 6px; }
@@ -39,15 +46,7 @@
     .v2-tb-row1 .save { background: #16a34a; color: #fff; font-size: 13px; font-weight: 700; padding: 0 10px; }
     .v2-tb-row1 .ic .ic-edit { color: #0369a1; }
     .v2-tb-row1 .ic .ic-eye { color: #7c3aed; }
-    /* Floating hamburger same as list */
-    .nav-toggle {
-        position: fixed; top: 8px; left: 8px; z-index: 60;
-        width: 40px; height: 40px;
-        display: flex; align-items: center; justify-content: center;
-        border-radius: 10px; background: #fff; border: 1px solid #e2e8f0;
-        color: #0369a1; font-size: 22px;
-        box-shadow: 0 2px 8px rgba(0,0,0,.15); cursor: pointer;
-    }
+    /* hamburger now anchored inside v2-tb-row1 (no floating) */
 
     /* form cards (mimic PC layout — DON'T touch) */
     .form-card {
@@ -147,12 +146,10 @@
     <b>⚠️ Mockup เพื่อดู bottom nav เท่านั้น</b> — ตอน apply เข้า live <b>ฟอร์มจริงไม่แตะ</b> (เพิ่มแค่ bottom nav + ซ่อน subnav บน mobile)
 </div>
 
-<!-- Floating hamburger -->
-<button class="nav-toggle" title="เมนู"><i class="bi bi-list"></i></button>
-
-<!-- v2-form-topbar (production has this on form view) -->
+<!-- v2-form-topbar (production) — hamburger anchored leftmost -->
 <div class="v2-form-topbar">
     <div class="v2-tb-row1">
+        <button class="ham" title="เมนู"><i class="bi bi-list"></i></button>
         <span class="case-id">20260508-004</span>
         <span class="case-meta">ALS · ขณะนำส่ง</span>
         <span class="spacer"></span>

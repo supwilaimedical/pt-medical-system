@@ -8,26 +8,40 @@ body { font-family: 'Sarabun', sans-serif; margin: 0; background: #f8fafc; }
 }
 .preview-banner b { color: #064e3b; }
 
-/* Floating hamburger (production .v2-mobile-nav-toggle) */
-.nav-toggle {
-    position: fixed; top: 8px; left: 8px; z-index: 60;
-    width: 40px; height: 40px;
+/* Topbar — sticky white bar containing hamburger + title (anchored, not floating) */
+.topbar {
+    position: sticky; top: 0; z-index: 50;
+    background: #fff; border-bottom: 1px solid #e2e8f0;
+    padding: 8px 12px;
+    display: flex; align-items: center; gap: 10px;
+    min-height: 52px;
+}
+.topbar .ham {
+    width: 38px; height: 38px;
     display: flex; align-items: center; justify-content: center;
-    border-radius: 10px; background: #fff; border: 1px solid #e2e8f0;
-    color: #0369a1; font-size: 22px;
-    box-shadow: 0 2px 8px rgba(0,0,0,.15); cursor: pointer;
+    border-radius: 10px; background: #f1f5f9; border: 0;
+    color: #0369a1; font-size: 20px;
+    flex: 0 0 auto; cursor: pointer;
 }
-
-/* Page header (production .dashboard-header) — left padded for hamburger */
-.page-header {
-    background: transparent; padding: 12px 14px 12px 60px;
+.topbar .ham:active { background: #e2e8f0; }
+.topbar .ttl-block { flex: 1; min-width: 0; line-height: 1.15; }
+.topbar .ttl-block h3 {
+    margin: 0; font-size: 16px; font-weight: 700; color: #0f172a;
+    display: flex; align-items: center; gap: 6px;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
 }
-.page-header h3 {
-    margin: 0; font-size: 18px; font-weight: 700; color: #0f172a;
-    display: flex; align-items: center; gap: 8px;
+.topbar .ttl-block h3 i { font-size: 16px; flex: 0 0 auto; }
+.topbar .ttl-block .sub {
+    font-size: 11.5px; color: #64748b; margin-top: 2px;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
 }
-.page-header .sub { font-size: 12px; color: #64748b; margin-top: 4px; }
-.page-header .sub b { color: #0f172a; font-weight: 700; }
+.topbar .ttl-block .sub b { color: #0f172a; font-weight: 700; }
+.topbar .top-act {
+    width: 36px; height: 36px;
+    display: flex; align-items: center; justify-content: center;
+    border-radius: 8px; background: #f1f5f9; color: #475569;
+    flex: 0 0 auto; border: 0; font-size: 16px;
+}
 
 /* Section header (production .dash-section-header) */
 .sec-head {

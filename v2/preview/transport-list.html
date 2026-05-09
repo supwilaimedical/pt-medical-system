@@ -16,29 +16,7 @@
     }
     .preview-banner b { color: #064e3b; }
 
-    /* Floating hamburger (production .v2-mobile-nav-toggle) — top-left, no extra topbar */
-    .nav-toggle {
-        position: fixed; top: 8px; left: 8px; z-index: 60;
-        width: 40px; height: 40px;
-        display: flex; align-items: center; justify-content: center;
-        border-radius: 10px; background: #fff; border: 1px solid #e2e8f0;
-        color: #0369a1; font-size: 22px;
-        box-shadow: 0 2px 8px rgba(0,0,0,.15); cursor: pointer;
-    }
-
-    /* Page header (production .dashboard-header) — only title block, padded for hamburger */
-    .page-header {
-        background: transparent; padding: 12px 14px 12px 60px;
-    }
-    .page-header h3 {
-        margin: 0; font-size: 18px; font-weight: 700; color: #0f172a;
-        display: flex; align-items: center; gap: 8px;
-    }
-    .page-header h3 i { color: #0ea5e9; font-size: 16px; }   /* transport sky */
-    .page-header .sub {
-        font-size: 12px; color: #64748b; margin-top: 4px;
-    }
-    .page-header .sub b { color: #0f172a; font-weight: 700; }
+    /* Topbar moved to shared common.css — .topbar with anchored hamburger */
 
     /* Search panel (production: ค้นหา + วันที่) */
     .search-panel {
@@ -251,16 +229,16 @@
     <b>⚠️ Mockup เพื่อดู bottom nav</b> — apply live: ซ่อน subnav บน mobile + เพิ่ม bottom nav DOM, layout list เดิมไม่แตะ
 </div>
 
-<!-- Floating hamburger (production .v2-mobile-nav-toggle) -->
-<button class="nav-toggle" title="เมนู"><i class="bi bi-list"></i></button>
+<!-- Topbar (anchored hamburger + title) -->
+<div class="topbar">
+    <button class="ham"><i class="bi bi-list"></i></button>
+    <div class="ttl-block">
+        <h3><i class="bi bi-truck-flatbed mod-c-transport"></i>นำส่งผู้ป่วย</h3>
+        <div class="sub">กำลังดำเนินการ <b>3</b> · ปิดแล้ว <b>12</b></div>
+    </div>
+</div>
 
 <div class="body-pad">
-
-<!-- Page header (matches production tr-colhead) -->
-<div class="page-header">
-    <h3><i class="bi bi-truck-flatbed"></i> นำส่งผู้ป่วย</h3>
-    <div class="sub">กำลังดำเนินการ <b>3</b> · ปิดแล้ว <b>12</b></div>
-</div>
 
 <!-- Search panel (production layout) -->
 <div class="search-panel">
