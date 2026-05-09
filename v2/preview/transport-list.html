@@ -145,27 +145,27 @@
         z-index: 40; cursor: pointer; border: 0;
     }
 
-    /* Bottom nav — replaces subnav contents on mobile */
+    /* Bottom nav — straight 1:1 mapping from subnav (status tabs only) */
     .bottom-nav {
         position: fixed; left: 0; right: 0; bottom: 0; z-index: 35;
         background: #fff; border-top: 1px solid #e2e8f0;
         padding: 4px 4px calc(4px + env(safe-area-inset-bottom));
-        display: grid; grid-template-columns: repeat(5, 1fr);
+        display: grid; grid-template-columns: repeat(3, 1fr);
         height: 56px;
     }
     .bottom-nav a {
-        display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px;
+        display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px;
         color: #64748b; text-decoration: none;
-        font-size: 10px; font-weight: 600;
+        font-size: 11px; font-weight: 600;
     }
     .bottom-nav a i { font-size: 18px; line-height: 1; }
-    .bottom-nav a.active { color: #16a34a; }
-    .bottom-nav a .badge {
-        position: absolute; transform: translate(8px, -8px);
-        background: #ef4444; color: #fff;
-        font-size: 9px; font-weight: 700; padding: 1px 5px;
-        border-radius: 100px;
+    .bottom-nav a.active { color: #0ea5e9; }
+    .bottom-nav a .ct {
+        background: #f1f5f9; color: #475569;
+        font-size: 9.5px; font-weight: 700; padding: 0 6px;
+        border-radius: 100px; margin-left: 4px; line-height: 1.5;
     }
+    .bottom-nav a.active .ct { background: #e0f2fe; color: #0369a1; }
 
     .body-pad { padding-bottom: 76px; }
 </style>
@@ -302,13 +302,11 @@
 <!-- FAB (production exists as .fab-btn) -->
 <button class="fab-btn" title="เพิ่มเคสใหม่"><i class="bi bi-plus-lg"></i></button>
 
-<!-- Bottom nav: subnav-equivalent (status tabs + search shortcuts) -->
+<!-- Bottom nav = subnav status tabs ตรงๆ (3 ตัว) -->
 <nav class="bottom-nav">
-    <a class="active"><i class="bi bi-list-ul"></i>ทั้งหมด</a>
-    <a><i class="bi bi-broadcast-pin"></i>Active</a>
-    <a><i class="bi bi-archive"></i>ปิดแล้ว</a>
-    <a><i class="bi bi-search"></i>ค้นหา</a>
-    <a><i class="bi bi-calendar-event"></i>วันที่</a>
+    <a class="active"><i class="bi bi-list-ul"></i><span>ทั้งหมด <span class="ct">15</span></span></a>
+    <a><i class="bi bi-broadcast-pin"></i><span>Active <span class="ct">3</span></span></a>
+    <a><i class="bi bi-archive"></i><span>ปิดแล้ว <span class="ct">12</span></span></a>
 </nav>
 
 </body>
