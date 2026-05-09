@@ -189,8 +189,8 @@
     .v2-tb-btn.v2-tb-icon i{ font-size:15px; }
     .v2-tb-btn.v2-tb-icon.primary{ color:#0ea5e9; background:#fff; border-color:#bae6fd; }
     .v2-tb-btn.v2-tb-icon.primary:hover{ background:#f0f9ff; color:#0369a1; border-color:#7dd3fc; }
-    /* Mobile: ALL on one row — case-id + actions + status, no wrap */
-    @media (max-width:767px){
+    /* Mobile + tablet portrait: ALL on one row — case-id + actions + status, no wrap */
+    @media (max-width:1024px) and (orientation:portrait){
       .v2-form-topbar .v2-tb-row1{
         padding:6px 8px 6px 52px; gap:4px;
         flex-wrap:nowrap !important;
