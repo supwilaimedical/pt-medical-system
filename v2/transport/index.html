@@ -199,8 +199,11 @@
         margin: 0 !important;
         overflow: visible !important;
       }
-      /* Hide form topbar while rail menu is open (was covering rail items) */
-      body.v2-nav-open .v2-form-topbar { display: none !important; }
+      /* When form topbar is fixed, push rail down so menu items don't sit under it.
+         Topbar measured by JS sets --pt-tb-h CSS var; fallback 50px. */
+      body:has(#form-view.active).v2-nav-open .v2-rail{
+        padding-top: calc(var(--pt-tb-h, 50px) + 12px) !important;
+      }
       .v2-form-topbar .v2-tb-row1{
         padding:6px 8px 6px 52px; gap:4px;
         flex-wrap:nowrap !important;
@@ -9031,9 +9034,14 @@
       var mobile = _ptIsMobilePortrait();
       var topbar = document.querySelector('.v2-form-topbar');
       if (formActive && mobile && topbar) {
-        document.body.style.paddingTop = topbar.offsetHeight + 'px';
+        var h = topbar.offsetHeight;
+        document.body.style.paddingTop = h + 'px';
+        // Just the row1 button height (~52px) is enough to clear hamburger area
+        var row1 = topbar.querySelector('.v2-tb-row1');
+        document.documentElement.style.setProperty('--pt-tb-h', (row1 ? row1.offsetHeight : 50) + 'px');
       } else {
         document.body.style.paddingTop = '';
+        document.documentElement.style.removeProperty('--pt-tb-h');
       }
     }
     document.addEventListener('DOMContentLoaded', _ptSyncFormPad);
