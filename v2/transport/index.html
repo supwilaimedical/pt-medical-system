@@ -1287,6 +1287,7 @@
       display: grid; grid-template-columns: repeat(4, 1fr);
       height: 56px;
     }
+    .pt-bnav.pt-bnav-5 { grid-template-columns: repeat(5, 1fr); }
     .pt-bnav a {
       display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px;
       color: #64748b; text-decoration: none; cursor: pointer;
@@ -8902,7 +8903,8 @@
 
   <!-- ============================================================
        Mobile bottom nav + bottom sheet (visible only <=1024px portrait)
-       Reuses existing v2SetListTab() and portals .tr-dash-right into sheet.
+       Two variants: pt-bnav (dashboard) + pt-bnav-form (form view).
+       All buttons reuse existing v2SetListTab / v2GoToStep / v2QuickAction.
        ============================================================ -->
   <nav class="pt-bnav" id="pt-bnav" style="display:none;" aria-label="Bottom navigation">
     <a href="javascript:void(0)" data-list-tab="all" onclick="if(typeof v2SetListTab==='function') v2SetListTab('all');">
@@ -8915,6 +8917,25 @@
       <i class="bi bi-archive"></i><span>ปิดแล้ว</span>
     </a>
     <a href="javascript:void(0)" class="more-btn" id="pt-bnav-more">
+      <i class="bi bi-three-dots"></i><span>เพิ่มเติม</span>
+    </a>
+  </nav>
+
+  <!-- Form-view bottom nav: 2 steps + Consent + Refer + ⋯ More -->
+  <nav class="pt-bnav pt-bnav-5" id="pt-bnav-form" style="display:none;" aria-label="Form bottom navigation">
+    <a href="javascript:void(0)" id="pt-bnav-form-back" onclick="if(typeof showDashboard==='function') showDashboard();">
+      <i class="bi bi-arrow-left"></i><span>เคส</span>
+    </a>
+    <a href="javascript:void(0)" id="pt-bnav-form-step2" data-step="2" onclick="if(typeof v2GoToStep==='function') v2GoToStep(2);">
+      <i class="bi bi-1-circle"></i><span>ประเมิน</span>
+    </a>
+    <a href="javascript:void(0)" id="pt-bnav-form-step3" data-step="3" onclick="if(typeof v2GoToStep==='function') v2GoToStep(3);">
+      <i class="bi bi-2-circle"></i><span>นำส่ง</span>
+    </a>
+    <a href="javascript:void(0)" onclick="if(typeof v2QuickAction==='function') v2QuickAction('consent');">
+      <i class="bi bi-file-earmark-check"></i><span>Consent</span>
+    </a>
+    <a href="javascript:void(0)" class="more-btn" id="pt-bnav-form-more">
       <i class="bi bi-three-dots"></i><span>เพิ่มเติม</span>
     </a>
   </nav>
@@ -8940,10 +8961,24 @@
     }
     function _ptUpdateBnav(){
       var bnav = document.getElementById('pt-bnav');
-      if (!bnav) return;
+      var bnavF = document.getElementById('pt-bnav-form');
+      if (!bnav || !bnavF) return;
       var dash = document.getElementById('dashboard-view');
+      var form = document.getElementById('form-view');
       var onDash = dash && dash.classList.contains('active');
-      bnav.style.display = (onDash && _ptIsMobilePortrait()) ? '' : 'none';
+      var onForm = form && form.classList.contains('active');
+      var mobile = _ptIsMobilePortrait();
+      bnav.style.display  = (onDash && mobile) ? '' : 'none';
+      bnavF.style.display = (onForm && mobile) ? '' : 'none';
+      // Sync form step active state
+      if (onForm && mobile) {
+          var s2 = document.querySelector('.v2-subnav [data-step="2"]');
+          var s3 = document.querySelector('.v2-subnav [data-step="3"]');
+          var s2btn = document.getElementById('pt-bnav-form-step2');
+          var s3btn = document.getElementById('pt-bnav-form-step3');
+          if (s2btn) s2btn.classList.toggle('active', !!(s2 && s2.classList.contains('active')));
+          if (s3btn) s3btn.classList.toggle('active', !!(s3 && s3.classList.contains('active')));
+      }
     }
     // Initial + after view-change events
     document.addEventListener('DOMContentLoaded', _ptUpdateBnav);
@@ -8966,32 +9001,68 @@
     }
     setInterval(_ptSyncActive, 800);
 
-    // Sheet toggle — portals .tr-dash-right content into sheet body
+    // Sheet toggle — portals .tr-dash-right (dashboard) OR builds form actions list (form view)
     var sheetBody = document.getElementById('pt-bsheet-body');
     var sheet = document.getElementById('pt-bsheet');
     var bd = document.getElementById('pt-bsheet-bd');
-    var portaled = false;
-    function openSheet(){
-      if (!portaled) {
+    var rcPortaled = false;
+    function _setSheetTitle(t){ var h = document.querySelector('#pt-bsheet h4'); if (h) h.textContent = t; }
+    function openSheetDash(){
+      if (!rcPortaled) {
         var rc = document.getElementById('tr-dash-right');
         if (rc && sheetBody) {
-          // Move (not clone) so onclick handlers + IDs stay live
+          sheetBody.innerHTML = '';
           sheetBody.appendChild(rc);
-          rc.style.display = 'block';
-          rc.style.position = 'static';
-          rc.style.width = 'auto';
+          rcPortaled = true;
         }
-        portaled = true;
+      } else {
+        // re-mount rc if it was replaced by form sheet content
+        var rc2 = document.getElementById('tr-dash-right');
+        if (rc2 && rc2.parentNode !== sheetBody) {
+          sheetBody.innerHTML = '';
+          sheetBody.appendChild(rc2);
+        }
       }
-      sheet.classList.add('show');
-      bd.classList.add('show');
+      _setSheetTitle('ภาพรวม / แจ้งเตือน');
+      sheet.classList.add('show'); bd.classList.add('show');
+    }
+    function openSheetForm(){
+      // Form view: inline action list (Refer / Print / Form view / Step 1)
+      sheetBody.innerHTML = ''
+        + '<div style="padding:6px 0;">'
+        + '  <button class="ptf-action" data-act="refer"><i class="bi bi-paperclip"></i> Refer (เอกสารแนบ)</button>'
+        + '  <button class="ptf-action" data-act="print"><i class="bi bi-printer"></i> พิมพ์รายงาน</button>'
+        + '  <button class="ptf-action" data-act="form"><i class="bi bi-clipboard-check"></i> ฟอร์มเคส (ประเมิน + นำส่ง)</button>'
+        + '  <button class="ptf-action" data-act="step1"><i class="bi bi-arrow-up-circle"></i> ขั้นเปิดเคส (1)</button>'
+        + '  <button class="ptf-action" data-act="history"><i class="bi bi-clock-history"></i> ประวัติเคส</button>'
+        + '</div>';
+      sheetBody.querySelectorAll('.ptf-action').forEach(function(b){
+        b.style.cssText = 'display:flex;align-items:center;gap:10px;width:100%;padding:14px 16px;background:#fff;border:0;border-bottom:1px solid #f1f5f9;font-size:14px;color:#0f172a;text-align:left;cursor:pointer;font-family:inherit;';
+        b.addEventListener('click', function(){
+          var a = b.getAttribute('data-act');
+          closeSheet();
+          if (a === 'refer'   && typeof v2QuickAction === 'function') v2QuickAction('refer');
+          else if (a === 'print' && typeof handlePrint === 'function') handlePrint();
+          else if (a === 'print') window.print();
+          else if (a === 'form'  && typeof v2CloseQuickPanel === 'function') {
+              v2CloseQuickPanel();
+              setTimeout(function(){ document.getElementById('main-form')?.scrollIntoView({behavior:'smooth', block:'start'}); }, 50);
+          }
+          else if (a === 'step1' && typeof v2GoToStep === 'function') v2GoToStep(1);
+          else if (a === 'history' && typeof openCaseHistory === 'function') openCaseHistory();
+        });
+      });
+      _setSheetTitle('เพิ่มเติม');
+      sheet.classList.add('show'); bd.classList.add('show');
     }
     function closeSheet(){
       sheet.classList.remove('show');
       bd.classList.remove('show');
     }
     var moreBtn = document.getElementById('pt-bnav-more');
-    if (moreBtn) moreBtn.addEventListener('click', openSheet);
+    if (moreBtn) moreBtn.addEventListener('click', openSheetDash);
+    var moreBtnF = document.getElementById('pt-bnav-form-more');
+    if (moreBtnF) moreBtnF.addEventListener('click', openSheetForm);
     if (bd) bd.addEventListener('click', closeSheet);
     var closeBtn = document.getElementById('pt-bsheet-close-btn');
     if (closeBtn) closeBtn.addEventListener('click', closeSheet);
