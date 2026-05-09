@@ -9060,7 +9060,6 @@
     }
     document.addEventListener('DOMContentLoaded', _ptSyncFormPad);
     window.addEventListener('resize', _ptSyncFormPad);
-    setInterval(_ptSyncFormPad, 800);
 
     // Sync active state with v2SetListTab
     function _ptSyncActive(){
@@ -9071,7 +9070,9 @@
         a.classList.toggle('active', !!(src && src.classList.contains('active')));
       });
     }
-    setInterval(_ptSyncActive, 800);
+
+    // Merge two 800ms intervals into one tick (same rate, same callbacks — no timing change)
+    setInterval(function(){ _ptSyncFormPad(); _ptSyncActive(); }, 800);
 
     // Sheet toggle — portals .tr-dash-right (dashboard) OR builds form actions list (form view)
     var sheetBody = document.getElementById('pt-bsheet-body');

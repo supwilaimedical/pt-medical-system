@@ -420,8 +420,11 @@
       .cal-tags{ display:none; } /* hide preview tags, dot only */
       .cal-dot{ width:7px; height:7px; }
       .cal-header{ font-size:9.5px; padding:4px 0; }
-      /* Smaller chart height */
-      .chart-wrap{ height:200px; }
+      /* Compact chart — prevent canvas overflow on narrow screens */
+      .charts-row{ gap:10px; }
+      .charts-row > .panel-card{ min-width:0; padding:10px 12px; overflow:hidden; }
+      .chart-wrap{ height:200px; width:100%; max-width:100%; min-width:0; overflow:hidden; }
+      .chart-wrap canvas{ max-width:100% !important; height:100% !important; }
       /* Readiness % smaller */
       .readiness-pct{ font-size:24px; }
       /* Panel head wraps cleanly */
@@ -799,7 +802,23 @@
 
   // === State ===
   var allData = [];
-  var currentMonth = new Date(); currentMonth.setDate(1);
+  // Bangkok-timezone "today" string (YYYY-MM-DD) — avoids UTC drift during 00:00-06:59 ICT
+  function _todayBangkok(){
+    try {
+      return new Intl.DateTimeFormat('en-CA', {
+        timeZone: 'Asia/Bangkok',
+        year: 'numeric', month: '2-digit', day: '2-digit'
+      }).format(new Date());
+    } catch(e){
+      // Fallback: manual UTC+7 offset
+      var n = new Date();
+      var bkk = new Date(n.getTime() + (n.getTimezoneOffset() + 420) * 60000);
+      return bkk.getFullYear() + '-' + String(bkk.getMonth()+1).padStart(2,'0') + '-' + String(bkk.getDate()).padStart(2,'0');
+    }
+  }
+  // currentMonth — anchor to Bangkok date so month flip happens at Bangkok midnight, not UTC
+  var _bkkParts = _todayBangkok().split('-');
+  var currentMonth = new Date(parseInt(_bkkParts[0]), parseInt(_bkkParts[1])-1, 1);
   var filters = { vehicle:'All', status:'All' };
   var tableSearchQuery = '';
   var isTableExpanded = false;
@@ -1211,7 +1230,7 @@
     var firstDay = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), 1).getDay();
     for (var i = 0; i < firstDay; i++) grid.innerHTML += '<div class="cal-cell"></div>';
 
-    var todayStr = new Date().toISOString().split('T')[0];
+    var todayStr = _todayBangkok();
 
     for (var day = 1; day <= daysInMonth; day++){
       var dateStr = currentMonth.getFullYear() + '-' + String(currentMonth.getMonth()+1).padStart(2,'0') + '-' + String(day).padStart(2,'0');
@@ -1387,7 +1406,7 @@
 
   // === Right Col ===
   function renderRightCol(){
-    var todayStr = new Date().toISOString().split('T')[0];
+    var todayStr = _todayBangkok();
     var todayRecs = allData.filter(function(d){ return d.date === todayStr; });
     var todayReady = todayRecs.filter(function(d){ return d.status === 'พร้อมใช้งาน' && d.issue === '-'; }).length;
     var todayIssues = todayRecs.filter(function(d){ return d.status === 'ไม่พร้อมใช้งาน' || d.issue !== '-'; }).length;
@@ -1454,6 +1473,13 @@
   // === Boot ===
   fetchFleetData();
 
+  // === Expose getters for mobile bnav (additive — no logic change) ===
+  // bnav helpers live in a separate IIFE below; they need read-only access to data + renderTable.
+  window._fleetGetAllData   = function(){ return allData; };
+  window._fleetGetFiltered  = function(){ try { return getFiltered(); } catch(e){ return allData; } };
+  window._fleetRenderTable  = function(d){ try { return renderTable(d); } catch(e){} };
+  window._fleetDisplayName  = function(v){ try { return _displayName(v); } catch(e){ return v; } };
+
 })();
 </script>
 
@@ -1489,13 +1515,12 @@
   // simulate by switching to All then post-filter via custom logic via setFilterStatus + global)
   // Since production setFilterStatus expects single status, easiest: introduce a virtual filter handler.
   window._fleetFilterIssues = function(){
-    if (typeof allData !== 'undefined' && Array.isArray(allData) && typeof renderTable === 'function') {
-      // use existing filter mechanism via global setFilterStatus path: cycle to 'ready_note' first;
-      // user presses again could see 'not_ready'. Better: render combined directly.
-      var combined = allData.filter(function(d){
+    var data = (typeof window._fleetGetAllData === 'function') ? window._fleetGetAllData() : null;
+    if (Array.isArray(data) && typeof window._fleetRenderTable === 'function') {
+      var combined = data.filter(function(d){
         return d.status === 'ไม่พร้อมใช้งาน' || (d.status === 'พร้อมใช้งาน' && d.issue && d.issue !== '-');
       });
-      renderTable(combined);
+      window._fleetRenderTable(combined);
       // mark bnav active
       document.querySelectorAll('#fleet-bnav a').forEach(function(a){ a.classList.remove('active'); });
       document.getElementById('fleet-bnav-issues')?.classList.add('active');
@@ -1508,10 +1533,13 @@
     var title = document.getElementById('fleet-sheet-title');
     if (!body) return;
     title.textContent = 'เลือกรถ';
-    var vehicles = (typeof allData !== 'undefined') ? Array.from(new Set(allData.map(function(d){ return d.vehicle; }))).sort() : [];
+    var data = (typeof window._fleetGetAllData === 'function') ? window._fleetGetAllData() : [];
+    var vehicles = Array.isArray(data) ? Array.from(new Set(data.map(function(d){ return d.vehicle; }))).sort() : [];
+    var nameOf = (typeof window._fleetDisplayName === 'function') ? window._fleetDisplayName : function(v){ return v; };
     body.innerHTML = '<button class="pt-sheet-link" data-veh="All"><i class="bi bi-list-ul"></i> ทั้งหมด</button>'
       + vehicles.map(function(v){
-          return '<button class="pt-sheet-link" data-veh="'+v.replace(/"/g,'&quot;')+'"><i class="bi bi-truck-front"></i> '+v+'</button>';
+          var safeV = String(v).replace(/"/g,'&quot;');
+          return '<button class="pt-sheet-link" data-veh="'+safeV+'"><i class="bi bi-truck-front"></i> '+nameOf(v)+'</button>';
         }).join('');
     body.querySelectorAll('.pt-sheet-link').forEach(function(b){
       b.addEventListener('click', function(){
@@ -1525,27 +1553,36 @@
     document.getElementById('pt-bsheet-bd').classList.add('show');
   };
 
-  // Problem sheet — list recent issues sorted newest first
+  // Problem sheet — use exposed getters (P1) to filter same way production right-col does.
+  // Logic mirrors renderRightCol() line 1403: status==='ไม่พร้อมใช้งาน' || issue!=='-'
   window._fleetOpenProblemSheet = function(){
     var body = document.getElementById('pt-bsheet-body');
     var title = document.getElementById('fleet-sheet-title');
     if (!body) return;
     title.textContent = 'ปัญหาที่พบล่าสุด';
-    var rows = (typeof allData !== 'undefined') ? allData.filter(function(d){
+    var data = (typeof window._fleetGetAllData === 'function') ? window._fleetGetAllData() : null;
+    var nameOf = (typeof window._fleetDisplayName === 'function') ? window._fleetDisplayName : function(v){ return v; };
+    var rows = Array.isArray(data) ? data.filter(function(d){
       return d.status === 'ไม่พร้อมใช้งาน' || (d.issue && d.issue !== '-');
-    }).sort(function(a,b){ return (b.date||'').localeCompare(a.date||''); }).slice(0,30) : [];
-    if (!rows.length) {
-      body.innerHTML = '<div style="padding:20px; text-align:center; color:#94a3b8;">ไม่มีปัญหาล่าสุด</div>';
+    }).slice(0, 30) : [];
+    // data already sorted newest-first by handleData (line 1007)
+    if (!rows.length){
+      // Distinguish: data not loaded vs no issues
+      var msg = (data && data.length) ? 'ไม่มีปัญหา' : 'รอข้อมูล...';
+      body.innerHTML = '<div style="padding:20px; text-align:center; color:#94a3b8;">'+ msg +'</div>';
     } else {
       body.innerHTML = rows.map(function(r){
         var sev = r.status === 'ไม่พร้อมใช้งาน' ? '#dc2626' : '#d97706';
+        var msgTxt = (r.issue && r.issue !== '-') ? r.issue : 'ไม่พร้อมใช้งาน';
+        var esc = function(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); };
         return '<div style="padding:10px 12px; border-bottom:1px solid #f1f5f9;">'
-          + '<div style="display:flex; gap:6px; align-items:center; font-size:11px; color:#64748b;">'
-            + '<span style="color:'+sev+'; font-weight:700;">●</span>'
-            + '<b style="color:#0f172a;">'+(r.vehicle||'-')+'</b>'
-            + '<span>·</span><span>'+(r.date||'-')+'</span>'
+          + '<div style="display:flex; gap:6px; align-items:center; font-size:11.5px; color:#0f172a; font-weight:700;">'
+            + '<span style="color:'+sev+';">●</span>'
+            + esc(nameOf(r.vehicle)) +' · '+ esc(r.date)
           + '</div>'
-          + '<div style="font-size:13px; color:#0f172a; margin-top:3px;">'+(r.issue||'-')+'</div>'
+          + '<div style="font-size:12px; color:'+sev+'; margin-top:3px; line-height:1.4;">'
+            + esc(msgTxt)
+          + '</div>'
         + '</div>';
       }).join('');
     }
