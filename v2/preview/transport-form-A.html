@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Preview · Form A — sticky always</title>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+    body { font-family: 'Sarabun', sans-serif; margin: 0; background: #f8fafc; }
+
+    .preview-banner {
+        background: #fef3c7; padding: 6px 14px;
+        font-size: 11.5px; color: #78350f; text-align: center;
+    }
+    .preview-banner b { color: #422006; }
+
+    /* ---- TOP STACK ---- */
+    .topbar {
+        position: sticky; top: 0; z-index: 50;
+        background: linear-gradient(180deg, #6366f1, #4f46e5);
+        color: #fff; padding: 8px 14px;
+        display: flex; align-items: center; gap: 10px;
+        height: 50px;
+    }
+    .topbar .ic {
+        width: 34px; height: 34px; display:flex; align-items:center; justify-content:center;
+        border-radius: 9px; background: rgba(255,255,255,.18); color: #fff;
+        text-decoration: none; flex: 0 0 auto; border: 0;
+    }
+    .topbar .ttl { flex: 1; min-width: 0; font-size: 15px; font-weight: 700; line-height: 1.1; }
+    .topbar .ttl small { display:block; font-size: 10.5px; font-weight: 500; opacity: .85; margin-top: 2px; }
+
+    /* PATIENT HEADER — STICKY ALWAYS (Option A) */
+    .pt-sticky {
+        position: sticky; top: 50px; z-index: 45;
+        background: #fff;
+        border-bottom: 1px solid #e2e8f0;
+        padding: 6px 12px;
+        display: flex; align-items: center; gap: 10px;
+        height: 48px;
+        box-shadow: 0 2px 6px rgba(15,23,42,.05);
+    }
+    .pt-sticky .av {
+        width: 32px; height: 32px; border-radius: 50%;
+        background: #dcfce7; color: #16a34a;
+        display:flex; align-items:center; justify-content:center; font-size: 16px;
+        flex: 0 0 auto;
+    }
+    .pt-sticky .body {
+        flex: 1; min-width: 0; line-height: 1.15;
+    }
+    .pt-sticky .nm { font-size: 14px; font-weight: 700; color: #0f172a;
+        white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .pt-sticky .meta { font-size: 11px; color: #64748b; margin-top: 1px; }
+    .pt-sticky .meta .sep { color: #cbd5e1; margin: 0 4px; }
+    .pt-sticky .edit {
+        width: 32px; height: 32px; display:flex; align-items:center; justify-content:center;
+        border-radius: 8px; background: #f1f5f9; color: #475569;
+        flex: 0 0 auto; border: 0; font-size: 14px;
+    }
+
+    /* form cards (close to production) */
+    .form-card {
+        background: #fff; border-radius: 12px; margin: 10px 12px;
+        box-shadow: 0 1px 3px rgba(15,23,42,.06); overflow: hidden;
+    }
+    .form-card-head {
+        padding: 10px 14px; border-bottom: 1px solid #f1f5f9;
+        font-weight: 700; font-size: 14px; color: #0f172a;
+        display: flex; align-items: center; gap: 8px;
+    }
+    .form-card-head i { color: #6366f1; }
+    .form-card.green .form-card-head i { color: #16a34a; }
+    .form-card.red .form-card-head i { color: #dc2626; }
+    .form-card-body { padding: 12px 14px; }
+    .field-label { display:block; font-size: 12px; font-weight: 600; color: #64748b; margin: 0 0 6px; }
+    .field-input, .field-select, .field-textarea {
+        width: 100%; min-height: 42px; padding: 8px 12px;
+        border: 1px solid #e2e8f0; border-radius: 8px;
+        background: #f8fafc; font-size: 16px; font-family: inherit;
+    }
+    .field-textarea { min-height: 70px; line-height: 1.4; }
+
+    .vital-mini-grid { display:grid; grid-template-columns: repeat(4, 1fr); gap: 6px; text-align:center; }
+    .vital-mini-grid .v { background: #f8fafc; border-radius: 8px; padding: 6px 4px; }
+    .vital-mini-grid .v .lbl { font-size: 10px; color: #64748b; }
+    .vital-mini-grid .v .val { font-size: 14px; font-weight: 700; color: #0f172a; }
+
+    .triage-grp { display:grid; grid-template-columns: repeat(4, 1fr); gap: 6px; }
+    .triage-grp button {
+        padding: 8px 4px; border-radius: 8px; border: 1px solid;
+        font-size: 12px; font-weight: 700; background: #fff; cursor: pointer;
+    }
+    .triage-grp button.t-r.active { background: #dc2626; color: #fff; border-color: #dc2626; }
+    .triage-grp .t-r { color: #991b1b; border-color: #fecaca; }
+    .triage-grp .t-e { color: #9a3412; border-color: #fed7aa; }
+    .triage-grp .t-u { color: #854d0e; border-color: #fef08a; }
+    .triage-grp .t-n { color: #166534; border-color: #bbf7d0; }
+
+    .log-row {
+        display:grid; grid-template-columns: auto 1fr auto; gap: 8px; align-items:center;
+        padding: 8px 0; border-bottom: 1px dashed #f1f5f9; font-size: 12px;
+    }
+    .log-row:last-child { border-bottom: 0; }
+    .log-row .t { background:#f1f5f9; padding: 3px 8px; border-radius: 6px; font-weight:700; color:#475569; }
+    .log-row .s b { color: #0f172a; }
+    .log-row .l i { color: #94a3b8; }
+    .add-btn-row { display:grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin-top: 10px; }
+    .add-btn-row button {
+        padding: 8px; border-radius: 8px; border: 1px dashed #cbd5e1;
+        background: #f8fafc; color: #475569; font-size: 12px; font-weight: 600;
+    }
+    .add-btn-row button i { color: #16a34a; margin-right: 4px; }
+
+    /* ---- BOTTOM STACK (sub-bottom-nav + main bottom-nav) ---- */
+    .step-nav {
+        position: fixed; left: 0; right: 0; bottom: 56px; z-index: 40;
+        background: #fff; border-top: 1px solid #e2e8f0;
+        padding: 4px 6px; display: grid; grid-template-columns: repeat(4, 1fr);
+        height: 40px;
+    }
+    .step-nav a {
+        display: flex; align-items: center; justify-content: center; gap: 4px;
+        font-size: 11.5px; font-weight: 600; color: #64748b; text-decoration: none;
+        border-radius: 6px;
+    }
+    .step-nav a .num {
+        width: 20px; height: 20px; border-radius: 50%;
+        background: #f1f5f9; color: #94a3b8;
+        display:inline-flex; align-items:center; justify-content:center;
+        font-size: 11px; font-weight: 800;
+    }
+    .step-nav a.done .num { background: #16a34a; color: #fff; }
+    .step-nav a.done .num::before { content: '✓'; }
+    .step-nav a.done .num span { display: none; }
+    .step-nav a.active { color: #16a34a; }
+    .step-nav a.active .num { background: #16a34a; color: #fff; box-shadow: 0 0 0 3px #dcfce7; }
+
+    .bottom-nav {
+        position: fixed; left: 0; right: 0; bottom: 0; z-index: 35;
+        background: #fff; border-top: 1px solid #e2e8f0;
+        padding: 4px 4px calc(4px + env(safe-area-inset-bottom));
+        display: grid; grid-template-columns: repeat(5, 1fr);
+        height: 56px;
+    }
+    .bottom-nav a {
+        display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px;
+        color: #64748b; text-decoration: none;
+        font-size: 10px; font-weight: 600;
+    }
+    .bottom-nav a i { font-size: 18px; line-height: 1; }
+    .bottom-nav a.active { color: #16a34a; }
+
+    .body-pad { padding-bottom: 110px; padding-top: 4px; }
+</style>
+</head>
+<body>
+
+<div class="preview-banner">
+    <b>📐 Option A:</b> patient header sticky <b>ตลอด</b> · top stack 98px · iPhone SE form area ~390px
+</div>
+
+<!-- topbar -->
+<div class="topbar">
+    <a href="transport-list.html" class="ic"><i class="bi bi-list"></i></a>
+    <div class="ttl">เปิดเคส 20260508-004<small>ALS · Step 2/4</small></div>
+    <button class="ic"><i class="bi bi-eye"></i></button>
+    <button class="ic" style="background:#16a34a;"><i class="bi bi-check-lg"></i></button>
+</div>
+
+<!-- patient header sticky -->
+<div class="pt-sticky" onclick="document.getElementById('cardA').scrollIntoView({behavior:'smooth', block:'start'})">
+    <div class="av"><i class="bi bi-person-fill"></i></div>
+    <div class="body">
+        <div class="nm">นางสาวสมใจ ใจดี</div>
+        <div class="meta">♀ 72 <span class="sep">·</span> HN 12345678 <span class="sep">·</span> <span style="color:#dc2626;">⚠ แพ้ Penicillin</span></div>
+    </div>
+    <button class="edit" title="แก้ไข"><i class="bi bi-pencil"></i></button>
+</div>
+
+<div class="body-pad">
+
+<!-- Card A: ข้อมูลผู้ป่วย -->
+<div class="form-card green" id="cardA">
+    <div class="form-card-head"><i class="bi bi-person-vcard-fill"></i> ข้อมูลผู้ป่วย</div>
+    <div class="form-card-body">
+        <label class="field-label">ชื่อ - นามสกุล</label>
+        <input type="text" class="field-input" value="นางสาวสมใจ ใจดี" style="margin-bottom:8px;">
+        <div class="row g-2">
+            <div class="col-4"><label class="field-label">อายุ</label><input type="text" class="field-input" value="72"></div>
+            <div class="col-4"><label class="field-label">เพศ</label><select class="field-select"><option>หญิง</option></select></div>
+            <div class="col-4"><label class="field-label">HN</label><input type="text" class="field-input" value="12345678"></div>
+        </div>
+    </div>
+</div>
+
+<!-- Card B: Triage -->
+<div class="form-card red">
+    <div class="form-card-head"><i class="bi bi-exclamation-triangle-fill"></i> Triage + ประเภทนำส่ง</div>
+    <div class="form-card-body">
+        <label class="field-label">ระดับความเร่งด่วน</label>
+        <div class="triage-grp">
+            <button class="t-r active">วิกฤต</button>
+            <button class="t-e">ฉุกเฉิน</button>
+            <button class="t-u">เร่งด่วน</button>
+            <button class="t-n">ไม่เร่งด่วน</button>
+        </div>
+        <label class="field-label" style="margin-top:10px;">ประเภท</label>
+        <select class="field-select"><option>EMS (รับจากจุดเกิดเหตุ)</option></select>
+    </div>
+</div>
+
+<!-- Route -->
+<div class="form-card">
+    <div class="form-card-head"><i class="bi bi-geo-alt-fill"></i> การเดินทาง</div>
+    <div class="form-card-body">
+        <label class="field-label">รับจาก</label>
+        <input type="text" class="field-input" value="บ้าน, ปากน้ำโพ" style="margin-bottom:8px;">
+        <label class="field-label">นำส่ง</label>
+        <input type="text" class="field-input" value="รพ.สวรรค์ประชารักษ์ — ER">
+    </div>
+</div>
+
+<!-- CC/Dx -->
+<div class="form-card">
+    <div class="form-card-head"><i class="bi bi-clipboard2-pulse-fill"></i> อาการ + Diagnosis</div>
+    <div class="form-card-body">
+        <label class="field-label">CC</label>
+        <textarea class="field-textarea">เจ็บแน่นหน้าอก หายใจลำบาก 30 นาที</textarea>
+        <label class="field-label" style="margin-top:8px;">Dx</label>
+        <textarea class="field-textarea">R/O Acute MI</textarea>
+    </div>
+</div>
+
+<!-- Vital -->
+<div class="form-card">
+    <div class="form-card-head"><i class="bi bi-heart-pulse-fill"></i> Initial Vital Signs</div>
+    <div class="form-card-body">
+        <div class="vital-mini-grid">
+            <div class="v"><div class="lbl">BP</div><div class="val" style="color:#dc3545;">160/95</div></div>
+            <div class="v"><div class="lbl">PR</div><div class="val" style="color:#e67e22;">112</div></div>
+            <div class="v"><div class="lbl">SpO₂</div><div class="val" style="color:#2980b9;">92</div></div>
+            <div class="v"><div class="lbl">RR</div><div class="val">24</div></div>
+            <div class="v"><div class="lbl">Temp</div><div class="val">37.0</div></div>
+            <div class="v"><div class="lbl">GCS</div><div class="val" style="font-size:11px;">E4V5M6</div></div>
+            <div class="v" style="grid-column: span 2;"><div class="lbl">A+B</div><div class="val">A: Open</div></div>
+        </div>
+    </div>
+</div>
+
+<!-- ระหว่างนำส่ง -->
+<div class="form-card">
+    <div class="form-card-head"><i class="bi bi-activity"></i> ระหว่างนำส่ง</div>
+    <div class="form-card-body">
+        <div class="log-row">
+            <span class="t">10:42</span>
+            <span class="s">BP <b>140/85</b> · PR <b>98</b> · SpO₂ <b>96%</b></span>
+            <span class="l"><i class="bi bi-lock-fill"></i></span>
+        </div>
+        <div class="log-row">
+            <span class="t">10:30</span>
+            <span class="s">BP <b>150/90</b> · PR <b>105</b></span>
+            <span class="l"><i class="bi bi-lock-fill"></i></span>
+        </div>
+        <div class="add-btn-row">
+            <button><i class="bi bi-plus-lg"></i>Vital</button>
+            <button><i class="bi bi-plus-lg"></i>IV</button>
+            <button><i class="bi bi-plus-lg"></i>Med</button>
+        </div>
+    </div>
+</div>
+
+</div>
+
+<!-- SUB BOTTOM NAV: STEPS -->
+<nav class="step-nav">
+    <a class="done"><span class="num"><span>1</span></span>ผู้ป่วย</a>
+    <a class="active"><span class="num">2</span>ประเมิน</a>
+    <a><span class="num">3</span>นำส่ง</a>
+    <a><span class="num">4</span>จบเคส</a>
+</nav>
+
+<!-- MAIN BOTTOM NAV: ACTIONS (ของฟอร์ม) -->
+<nav class="bottom-nav">
+    <a><i class="bi bi-file-earmark-check"></i>Consent</a>
+    <a><i class="bi bi-paperclip"></i>Refer</a>
+    <a><i class="bi bi-clock-history"></i>ประวัติ</a>
+    <a><i class="bi bi-printer"></i>พิมพ์</a>
+    <a><i class="bi bi-three-dots"></i>เพิ่มเติม</a>
+</nav>
+
+</body>
+</html>
