@@ -8755,6 +8755,13 @@
           delete doc._uploading;
         }
         renderReferList(mode);
+        // Force re-render quick panel if it's showing refer (mobile bnav flow)
+        try {
+          var qp = document.getElementById('v2-quick-panel');
+          if (qp && qp.getAttribute('data-kind') === 'refer' && qp.style.display !== 'none') {
+            if (typeof window.v2RenderReferOnly === 'function') window.v2RenderReferOnly();
+          }
+        } catch(_){}
       }
     }
 
