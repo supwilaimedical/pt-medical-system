@@ -1260,6 +1260,25 @@
     body #app-main-wrapper { padding-left: 0 !important; }
     /* Reserve space at bottom for the bottom nav */
     body { padding-bottom: 76px !important; }
+
+    /* Hamburger opens main rail (production CSS hides it but never re-shows) */
+    body.v2-nav-open .v2-rail {
+      display: flex !important;
+      transform: translateX(0) !important;
+    }
+    body.v2-nav-open::before {
+      content: ''; position: fixed; inset: 0;
+      background: rgba(15,23,42,.5); z-index: 1028;
+      pointer-events: auto;
+    }
+    body .v2-rail {
+      width: 64px !important;
+      box-shadow: 4px 0 14px rgba(15,23,42,.15);
+    }
+    body .v2-rail a {
+      width: 48px !important; height: 48px !important;
+      font-size: 22px !important;
+    }
     /* Bottom nav (.pt-bnav) */
     .pt-bnav {
       position: fixed; left: 0; right: 0; bottom: 0; z-index: 1030;
@@ -8974,6 +8993,18 @@
     if (bd) bd.addEventListener('click', closeSheet);
     var closeBtn = document.getElementById('pt-bsheet-close-btn');
     if (closeBtn) closeBtn.addEventListener('click', closeSheet);
+
+    // Close hamburger rail on backdrop tap (rail uses body::before backdrop)
+    document.addEventListener('click', function(e){
+      if (!document.body.classList.contains('v2-nav-open')) return;
+      // close if tap is outside rail + outside the toggle button itself
+      if (e.target.closest('.v2-rail') || e.target.closest('.v2-mobile-nav-toggle')) return;
+      document.body.classList.remove('v2-nav-open');
+    });
+    // Close on rail item navigation (so menu doesn't stay open after picking a module)
+    document.querySelectorAll('.v2-rail a').forEach(function(a){
+      a.addEventListener('click', function(){ document.body.classList.remove('v2-nav-open'); });
+    });
   })();
   </script>
 
