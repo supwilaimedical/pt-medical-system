@@ -571,6 +571,49 @@
     .v2-loc-kebab-item{ padding:12px 14px; font-size:14px; }
     .v2-loc-kebab-menu{ min-width:220px; }
   }
+
+  /* ============================================================
+     Mobile + tablet portrait — hide subnav + show bottom nav
+     ============================================================ */
+  @media (max-width: 1024px) and (orientation: portrait) {
+    body .v2-subnav { display: none !important; }
+    body #app-main-wrapper { padding-left: 0 !important; }
+    body { padding-bottom: 76px !important; }
+    body.v2-nav-open .v2-rail { display:flex !important; transform:translateX(0) !important; }
+    body.v2-nav-open::before { content:''; position:fixed; inset:0; background:rgba(15,23,42,.5); z-index:1028; }
+    body .v2-rail { width:64px !important; box-shadow:4px 0 14px rgba(15,23,42,.15); }
+    body .v2-rail a { width:48px !important; height:48px !important; font-size:22px !important; }
+    .pt-bnav { position:fixed; left:0; right:0; bottom:0; z-index:1030;
+      background:#fff; border-top:1px solid #e2e8f0;
+      padding:4px 4px calc(4px + env(safe-area-inset-bottom));
+      display:grid; grid-template-columns: repeat(4, 1fr); height:56px; }
+    .pt-bnav a { display:flex; flex-direction:column; align-items:center; justify-content:center; gap:2px;
+      color:#64748b; text-decoration:none; cursor:pointer; font-size:11px; font-weight:600;
+      background:transparent; border:0; }
+    .pt-bnav a i { font-size:18px; line-height:1; }
+    .pt-bnav a.active { color:#eab308; }
+    .pt-bsheet-bd { position:fixed; inset:0; background:rgba(15,23,42,.5); z-index:1040; opacity:0; pointer-events:none; transition:opacity .2s; }
+    .pt-bsheet-bd.show { opacity:1; pointer-events:auto; }
+    .pt-bsheet { position:fixed; left:0; right:0; bottom:0; z-index:1045;
+      background:#fff; border-radius:16px 16px 0 0; max-height:80vh; overflow:hidden;
+      display:flex; flex-direction:column;
+      transform:translateY(100%); transition:transform .25s ease-out;
+      box-shadow:0 -4px 24px rgba(15,23,42,.15); }
+    .pt-bsheet.show { transform:translateY(0); }
+    .pt-bsheet .pt-bsheet-handle { width:36px; height:4px; background:#cbd5e1; border-radius:100px; margin:8px auto 4px; }
+    .pt-bsheet .pt-bsheet-head { padding:8px 16px 12px; display:flex; align-items:center; gap:8px; border-bottom:1px solid #f1f5f9; }
+    .pt-bsheet .pt-bsheet-head h4 { margin:0; font-size:15px; font-weight:700; color:#0f172a; flex:1; }
+    .pt-bsheet .pt-bsheet-head .pt-bsheet-close { width:28px; height:28px; border-radius:8px; border:0; background:#f1f5f9; color:#475569; display:flex; align-items:center; justify-content:center; font-size:14px; }
+    .pt-bsheet .pt-bsheet-body { flex:1; overflow-y:auto; padding:12px 16px 24px; }
+    /* FAB above bnav */
+    .pt-fab { position:fixed; right:16px; bottom:80px; width:56px; height:56px;
+      border-radius:50%; background:#eab308; color:#fff; border:0;
+      display:flex; align-items:center; justify-content:center; font-size:24px;
+      box-shadow:0 4px 14px rgba(234,179,8,.4); z-index:1035; cursor:pointer; }
+  }
+  @media (min-width: 1025px), (orientation: landscape) {
+    .pt-bnav, .pt-bsheet, .pt-bsheet-bd, .pt-fab { display:none !important; }
+  }
 </style>
 
 <aside class="v2-rail no-print">
@@ -2622,6 +2665,89 @@
   if ('serviceWorker' in navigator) {
     navigator.serviceWorker.register('../sw.js').catch(function(e) { console.warn('SW:', e); });
   }
+  </script>
+
+  <!-- ============================================================
+       Mobile bottom nav (location): 3 views + filter sheet + FAB
+       ============================================================ -->
+  <nav class="pt-bnav" id="loc-bnav" style="display:none;">
+    <a href="javascript:void(0)" id="loc-bnav-dashboard" onclick="if(typeof loc_switchTab==='function') loc_switchTab('dashboard');">
+      <i class="bi bi-grid"></i><span>Dashboard</span>
+    </a>
+    <a href="javascript:void(0)" id="loc-bnav-customers" onclick="if(typeof loc_switchTab==='function') loc_switchTab('customers');">
+      <i class="bi bi-list-ul"></i><span>รายการ</span>
+    </a>
+    <a href="javascript:void(0)" id="loc-bnav-tokens" onclick="if(typeof loc_switchTab==='function') loc_switchTab('tokens');" style="display:none;">
+      <i class="bi bi-link-45deg"></i><span>Tokens</span>
+    </a>
+    <a href="javascript:void(0)" class="more-btn" id="loc-bnav-more">
+      <i class="bi bi-funnel-fill"></i><span>กรอง</span>
+    </a>
+  </nav>
+
+  <button class="pt-fab" id="loc-fab" style="display:none;" title="เพิ่มสถานที่" onclick="if(typeof loc_openFormNew==='function') loc_openFormNew();"><i class="bi bi-plus-lg"></i></button>
+
+  <div class="pt-bsheet-bd" id="pt-bsheet-bd"></div>
+  <div class="pt-bsheet" id="pt-bsheet">
+    <div class="pt-bsheet-handle"></div>
+    <div class="pt-bsheet-head">
+      <h4>ตัวกรอง</h4>
+      <button class="pt-bsheet-close" id="pt-bsheet-close-btn"><i class="bi bi-x-lg"></i></button>
+    </div>
+    <div class="pt-bsheet-body" id="pt-bsheet-body">
+      <div style="font-size:13px;color:#64748b;padding:8px 0;">ใช้ตัวกรองในแถบบนสุดของหน้า (ประเภท / จังหวัด / อำเภอ) — ทุกตัวเลือกทำงานเหมือนกับ desktop</div>
+    </div>
+  </div>
+
+  <script>
+  (function(){
+    function _locIsMobilePortrait(){ try { return window.matchMedia('(max-width: 1024px) and (orientation: portrait)').matches; } catch(_){ return false; } }
+    function _locUpdate(){
+      var bnav = document.getElementById('loc-bnav');
+      var fab = document.getElementById('loc-fab');
+      if (!bnav) return;
+      var mobile = _locIsMobilePortrait();
+      bnav.style.display = mobile ? '' : 'none';
+      if (fab) fab.style.display = mobile ? '' : 'none';
+      // Show Tokens tab if admin (production v2-sn-tokens unhides for admin)
+      var tokAdmin = document.getElementById('v2-sn-tokens');
+      var tokBtn = document.getElementById('loc-bnav-tokens');
+      if (tokBtn) tokBtn.style.display = (tokAdmin && tokAdmin.style.display !== 'none') ? '' : 'none';
+      // Re-grid based on whether tokens is visible (3 vs 4 cols)
+      var visible = bnav.querySelectorAll('a[style=""], a:not([style])').length;
+      bnav.style.gridTemplateColumns = 'repeat(' + visible + ', 1fr)';
+      // Sync active
+      var dV = document.getElementById('loc-dashboard-view');
+      var lV = document.getElementById('loc-list-view');
+      var tV = document.getElementById('loc-tokens-view');
+      var bD = document.getElementById('loc-bnav-dashboard');
+      var bL = document.getElementById('loc-bnav-customers');
+      var bT = document.getElementById('loc-bnav-tokens');
+      if (bD) bD.classList.toggle('active', !!(dV && dV.classList.contains('active')));
+      if (bL) bL.classList.toggle('active', !!(lV && lV.classList.contains('active')));
+      if (bT) bT.classList.toggle('active', !!(tV && tV.classList.contains('active')));
+    }
+    document.addEventListener('DOMContentLoaded', _locUpdate);
+    window.addEventListener('resize', _locUpdate);
+    setInterval(_locUpdate, 800);
+
+    var sheet = document.getElementById('pt-bsheet');
+    var bd = document.getElementById('pt-bsheet-bd');
+    function openSheet(){ sheet.classList.add('show'); bd.classList.add('show'); }
+    function closeSheet(){ sheet.classList.remove('show'); bd.classList.remove('show'); }
+    document.getElementById('loc-bnav-more')?.addEventListener('click', openSheet);
+    bd?.addEventListener('click', closeSheet);
+    document.getElementById('pt-bsheet-close-btn')?.addEventListener('click', closeSheet);
+
+    document.addEventListener('click', function(e){
+      if (!document.body.classList.contains('v2-nav-open')) return;
+      if (e.target.closest('.v2-rail') || e.target.closest('.v2-mobile-nav-toggle')) return;
+      document.body.classList.remove('v2-nav-open');
+    });
+    document.querySelectorAll('.v2-rail a').forEach(function(a){
+      a.addEventListener('click', function(){ document.body.classList.remove('v2-nav-open'); });
+    });
+  })();
   </script>
 </body>
 </html>
