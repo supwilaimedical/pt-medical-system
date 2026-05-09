@@ -191,9 +191,16 @@
     .v2-tb-btn.v2-tb-icon.primary:hover{ background:#f0f9ff; color:#0369a1; border-color:#7dd3fc; }
     /* Mobile + tablet portrait: ALL on one row — case-id + actions + status, no wrap */
     @media (max-width:1024px) and (orientation:portrait){
+      /* Lock topbar against URL-bar viewport jitter (GPU layer + explicit height) */
+      .v2-form-topbar{
+        transform: translateZ(0);
+        will-change: transform;
+        contain: layout style;
+      }
       .v2-form-topbar .v2-tb-row1{
         padding:6px 8px 6px 52px; gap:4px;
         flex-wrap:nowrap !important;
+        height: 52px; min-height: 52px;
       }
       .v2-form-topbar .v2-tb-row1 .left{
         flex:1 1 auto; min-width:0; flex-wrap:nowrap !important; gap:4px;
