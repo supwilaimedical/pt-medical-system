@@ -601,12 +601,13 @@
     .pt-bnav { position:fixed; left:0; right:0; bottom:0; z-index:1030;
       background:#fff; border-top:1px solid #e2e8f0;
       padding:4px 4px calc(4px + env(safe-area-inset-bottom));
-      display:grid; grid-template-columns: repeat(4, 1fr); height:56px; }
+      display:grid; grid-template-columns: repeat(3, 1fr); height:56px; }
     .pt-bnav a { display:flex; flex-direction:column; align-items:center; justify-content:center; gap:2px;
       color:#64748b; text-decoration:none; cursor:pointer; font-size:11px; font-weight:600;
       background:transparent; border:0; }
     .pt-bnav a i { font-size:18px; line-height:1; }
     .pt-bnav a.active { color:#eab308; }
+    .pt-bnav .pt-bnav-pocket { display:block; pointer-events:none; visibility:hidden; }
     .pt-bsheet-bd { position:fixed; inset:0; background:rgba(15,23,42,.5); z-index:1040; opacity:0; pointer-events:none; transition:opacity .2s; }
     .pt-bsheet-bd.show { opacity:1; pointer-events:auto; }
     .pt-bsheet { position:fixed; left:0; right:0; bottom:0; z-index:1045;
@@ -2702,6 +2703,7 @@
     <a href="javascript:void(0)" id="loc-bnav-customers" onclick="if(typeof loc_switchTab==='function') loc_switchTab('customers');">
       <i class="bi bi-list-ul"></i><span>รายการ</span>
     </a>
+    <span class="pt-bnav-pocket" aria-hidden="true"></span>
     <a href="javascript:void(0)" id="loc-bnav-tokens" onclick="if(typeof loc_switchTab==='function') loc_switchTab('tokens');" style="display:none;">
       <i class="bi bi-link-45deg"></i><span>Tokens</span>
     </a>
@@ -2734,9 +2736,10 @@
       var tokAdmin = document.getElementById('v2-sn-tokens');
       var tokBtn = document.getElementById('loc-bnav-tokens');
       if (tokBtn) tokBtn.style.display = (tokAdmin && tokAdmin.style.display !== 'none') ? '' : 'none';
-      // Re-grid based on whether tokens is visible (3 vs 4 cols)
+      // Re-grid: visible buttons + 1 pocket cell. Pocket sits at col 3 to absorb the center FAB.
+      // 3 buttons + pocket → 4 cols ; 4 buttons (admin) + pocket → 5 cols.
       var visible = bnav.querySelectorAll('a[style=""], a:not([style])').length;
-      bnav.style.gridTemplateColumns = 'repeat(' + visible + ', 1fr)';
+      bnav.style.gridTemplateColumns = 'repeat(' + (visible + 1) + ', 1fr)';
       // Sync active
       var dV = document.getElementById('loc-dashboard-view');
       var lV = document.getElementById('loc-list-view');
