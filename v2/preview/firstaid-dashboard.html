@@ -99,8 +99,8 @@
     width: 1920px; height: 1080px;
     padding: 20px 24px 22px;
     display: grid;
-    grid-template-rows: auto auto 1fr;
-    gap: 12px;
+    grid-template-rows: auto 1fr;
+    gap: 14px;
     overflow: hidden;
   }
 
@@ -1269,6 +1269,16 @@ function App() {
         </div>
 
         <div className="th-stats">
+          <div className="tabs" style={{ margin: "-2px 6px -2px -2px" }}>
+            <button className={`tab ${tab === "dashboard" ? "active" : ""}`} onClick={() => setTab("dashboard")}>
+              Dashboard
+            </button>
+            <button className={`tab ${tab === "pending" ? "active" : ""}`} onClick={() => setTab("pending")}>
+              Pending
+              <span className={`tab-count ${DATA.pending.length > 0 ? "urgent" : ""}`}>{DATA.pending.length}</span>
+            </button>
+          </div>
+          <div className="th-divider"></div>
           <div className="th-stat">
             <div className="th-stat-label">Venue</div>
             <div className="th-stat-value">{DATA.event.venue}</div>
@@ -1328,20 +1338,7 @@ function App() {
         </div>
       </header>
 
-      {/* TABS ROW */}
-      <div className="tabs-row">
-        <div className="tabs">
-          <button className={`tab ${tab === "dashboard" ? "active" : ""}`} onClick={() => setTab("dashboard")}>
-            Dashboard
-          </button>
-          <button className={`tab ${tab === "pending" ? "active" : ""}`} onClick={() => setTab("pending")}>
-            Pending
-            <span className={`tab-count ${DATA.pending.length > 0 ? "urgent" : ""}`}>{DATA.pending.length}</span>
-          </button>
-        </div>
-      </div>
-
-      {/* MAIN CONTENT — switch by tab */}
+      {/* MAIN CONTENT — switch by tab (tabs moved into header th-stats) */}
       {tab === "dashboard" ? (
         <div className="main-grid">
           {/* ROW 1: Total | Triage | Time chart */}
