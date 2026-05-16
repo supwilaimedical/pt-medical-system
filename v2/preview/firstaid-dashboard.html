@@ -879,6 +879,10 @@ const DATA = {
     { label: "Med", value: 4, color: "var(--primary)" },
     { label: "Trauma", value: 2, color: "var(--accent)" },
   ],
+  category: [
+    { label: "10K Run", value: 6, color: "var(--primary)" },
+    // เพิ่มได้: { label: "Half marathon", value: 0, color: "var(--blue)" },
+  ],
   treatment: [
     { label: "Oxygen / O₂", value: 2, color: "#2A5BA7" },
     { label: "IV Fluid", value: 3, color: "#0E5E5C" },
@@ -1351,7 +1355,7 @@ function App() {
           {/* ROW 2: Gender + Category + Location + Etiology + Treatment */}
           <div className="grid row-2">
             <DonutCard title="Gender · เพศ" dotColor="primary" data={DATA.gender} centerLabel="Cases" />
-            <BigStatCard title="Category · ประเภท" dotColor="primary" value="10K" sub="Mini-Marathon" footer={`100% · n = ${DATA.totals.total}`} />
+            <DonutCard title="Category · ประเภท" dotColor="primary" data={DATA.category} centerLabel="Cases" />
             <DonutCard title="Location Tx · จุดรักษา" dotColor="orange" data={DATA.locationTx} centerLabel="Sites" />
             <DonutCard title="Etiology · สาเหตุ" dotColor="primary" data={DATA.etiology} centerLabel="Med/Tr" />
             <BarListCard title="Treatment · หัตถการ" dotColor="violet" rows={DATA.treatment} />
