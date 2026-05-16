@@ -1,0 +1,1121 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Preview · Firstaid Dashboard Redesign</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@300;400;500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+
+<!-- React 18 + Babel standalone (no build step, matches PT-Amb vanilla-CDN convention) -->
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" crossorigin="anonymous"></script>
+
+<style>
+  :root {
+    /* WARM CLINICAL — default theme */
+    --bg: #F6F4EF;
+    --bg-tint: #EFECE3;
+    --surface: #FFFFFF;
+    --surface-2: #FAF8F3;
+    --line: #E8E4D8;
+    --line-soft: #F0EDE2;
+    --ink: #1B1A17;
+    --ink-2: #4A4842;
+    --ink-3: #807D74;
+    --ink-4: #B6B2A6;
+
+    --primary: #0E5E5C;
+    --primary-ink: #073B3A;
+    --primary-soft: #E5EFEE;
+
+    --accent: #C8531D;
+
+    --green: #1E7F4E;
+    --green-soft: #E1F0E6;
+    --amber: #B8740A;
+    --amber-soft: #F6EBD1;
+    --orange: #C2541A;
+    --orange-soft: #F6E2D0;
+    --red: #B3261E;
+    --red-soft: #F6DCD9;
+    --blue: #2A5BA7;
+    --blue-soft: #DEE8F6;
+    --violet: #6A3FA7;
+    --violet-soft: #E8DFF6;
+
+    --radius: 14px;
+    --radius-sm: 8px;
+    --shadow-card: 0 1px 0 rgba(20,16,8,0.04), 0 1px 2px rgba(20,16,8,0.03);
+    --shadow-pop: 0 8px 24px -8px rgba(20,16,8,0.18), 0 2px 8px rgba(20,16,8,0.06);
+  }
+
+  /* COOL CLINICAL theme */
+  html[data-theme="cool"] {
+    --bg: #F4F6F9;
+    --bg-tint: #ECF0F5;
+    --surface: #FFFFFF;
+    --surface-2: #F8FAFC;
+    --line: #E2E7EF;
+    --line-soft: #ECEFF5;
+    --ink: #0F172A;
+    --ink-2: #334155;
+    --ink-3: #64748B;
+    --ink-4: #94A3B8;
+    --primary: #1E4FA3;
+    --primary-ink: #122E66;
+    --primary-soft: #DCE7F7;
+  }
+
+  /* (Night theme removed per request — kept only light themes) */
+
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; height: 100%; overflow: hidden; }
+  body {
+    font-family: 'IBM Plex Sans Thai', 'Inter', system-ui, sans-serif;
+    background: #000;
+    color: var(--ink);
+    font-size: 15px;
+    line-height: 1.4;
+    -webkit-font-smoothing: antialiased;
+    font-feature-settings: "tnum" 1, "cv11" 1;
+    width: 100vw; height: 100vh;
+    position: relative;
+  }
+  .num, .mono { font-family: 'Inter', 'IBM Plex Sans Thai', sans-serif; font-variant-numeric: tabular-nums; }
+  .mono { font-family: 'JetBrains Mono', monospace; font-feature-settings: "tnum" 1; }
+
+  /* Fixed 1920x1080 stage — auto-scaled to fit viewport */
+  .stage-wrap {
+    width: 1920px; height: 1080px;
+    transform-origin: center center;
+    background: var(--bg);
+    position: relative;
+    overflow: hidden;
+  }
+  .app {
+    width: 1920px; height: 1080px;
+    padding: 20px 24px 22px;
+    display: grid;
+    grid-template-rows: auto 1fr;
+    gap: 14px;
+    overflow: hidden;
+  }
+
+  .icon-btn {
+    width: 36px; height: 36px;
+    display: inline-flex; align-items: center; justify-content: center;
+    background: var(--surface); border: 1px solid var(--line);
+    color: var(--ink-2); border-radius: 8px; cursor: pointer;
+    transition: all .15s;
+  }
+  .icon-btn:hover { background: var(--surface-2); color: var(--ink); border-color: var(--ink-4); }
+  .icon-btn svg { width: 18px; height: 18px; }
+
+  /* TV HEADER (compact, all-in-one) */
+  .tv-header {
+    display: grid;
+    grid-template-columns: minmax(380px, auto) 1fr auto;
+    gap: 24px;
+    align-items: center;
+    padding: 14px 20px;
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow-card);
+    min-height: 72px;
+    flex-shrink: 0;
+  }
+  .th-brand { display: flex; align-items: center; gap: 14px; min-width: 0; }
+  .brand-mark {
+    width: 44px; height: 44px; border-radius: 11px;
+    background: var(--primary); color: #fff;
+    display: grid; place-items: center;
+    box-shadow: inset 0 0 0 1px rgba(255,255,255,0.06);
+    flex-shrink: 0;
+  }
+  .brand-mark svg { width: 22px; height: 22px; }
+  .th-text { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+  .th-eyebrow {
+    font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase;
+    color: var(--ink-3); font-weight: 500;
+    display: inline-flex; align-items: center; gap: 10px;
+  }
+  .live-tag-inline {
+    display: inline-flex; align-items: center; gap: 5px;
+    background: var(--red); color: #fff;
+    font-size: 9.5px; font-weight: 700; letter-spacing: 0.12em;
+    padding: 3px 8px 3px 7px; border-radius: 4px;
+    text-transform: uppercase;
+  }
+  .live-tag-inline .live-dot { background: #fff; }
+  .live-tag-inline .live-dot::after { border-color: #fff; }
+  .th-name {
+    font-size: 19px; font-weight: 600; color: var(--ink);
+    letter-spacing: -0.005em; line-height: 1.2;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .th-stats {
+    display: flex; align-items: center; gap: 0;
+    background: var(--bg-tint);
+    border: 1px solid var(--line-soft);
+    border-radius: 10px;
+    padding: 4px 4px;
+    justify-self: end;
+  }
+  .th-stat { padding: 4px 18px; display: flex; flex-direction: column; gap: 1px; }
+  .th-stat-label {
+    font-size: 10px; color: var(--ink-3); text-transform: uppercase;
+    letter-spacing: 0.06em; font-weight: 500;
+  }
+  .th-stat-value { font-size: 14px; font-weight: 600; color: var(--ink); }
+  .th-divider { width: 1px; height: 26px; background: var(--line); }
+  .th-controls { display: flex; align-items: center; gap: 12px; }
+  .refresh-meta-inline {
+    display: inline-flex; align-items: center; gap: 8px;
+    font-size: 12px; color: var(--ink-3); font-weight: 500;
+    padding-right: 4px;
+  }
+  .refresh-meta-inline .timer { color: var(--ink-2); font-weight: 600; }
+
+  .live-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--green); position: relative; }
+  .live-dot::after {
+    content: ""; position: absolute; inset: -4px; border-radius: 50%;
+    border: 2px solid var(--green); opacity: 0.35;
+    animation: ping 1.8s ease-out infinite;
+  }
+  @keyframes ping { 0%{ transform:scale(0.6); opacity:0.5; } 100%{ transform:scale(1.6); opacity:0; } }
+
+  .btn {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 7px 12px; border-radius: 8px;
+    background: var(--surface); border: 1px solid var(--line);
+    color: var(--ink-2); font-size: 13px; font-weight: 500;
+    cursor: pointer; transition: all .15s;
+    font-family: inherit;
+  }
+  .btn:hover { background: var(--surface-2); border-color: var(--ink-4); color: var(--ink); }
+
+  /* GRID */
+  .grid { display: grid; gap: 14px; min-height: 0; }
+  .row-1 { grid-template-columns: 280px 360px 1fr; height: 100%; }
+  .row-2 { grid-template-columns: repeat(5, 1fr); height: 100%; }
+  .row-3 { grid-template-columns: repeat(12, 1fr); height: 100%; }
+  .row-3 .col-3 { grid-column: span 3; }
+  .row-3 .col-4 { grid-column: span 4; }
+  .row-3 .col-2 { grid-column: span 2; }
+  .row-3 .col-1 { grid-column: span 1; }
+
+  .main-grid {
+    display: grid;
+    grid-template-rows: 310px 250px 1fr;
+    gap: 14px;
+    min-height: 0;
+  }
+
+  /* CARD */
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    padding: 16px 18px;
+    box-shadow: var(--shadow-card);
+    overflow: hidden;
+    display: flex; flex-direction: column;
+    min-height: 0;
+  }
+  .card.compact { padding: 12px 14px; }
+  .card-head {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 14px;
+  }
+  .card-title {
+    font-size: 13px; font-weight: 600; color: var(--ink);
+    display: flex; align-items: center; gap: 8px;
+    letter-spacing: -0.005em;
+  }
+  .card-title .dot {
+    width: 6px; height: 6px; border-radius: 50%; background: var(--primary);
+  }
+  .card-sub { font-size: 11px; color: var(--ink-3); font-weight: 500; letter-spacing: 0.02em; }
+
+  /* TOTAL HERO */
+  .total-card {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    padding: 18px 20px 14px;
+    box-shadow: var(--shadow-card);
+    position: relative; overflow: hidden;
+    flex: 1; min-height: 0;
+    display: flex; flex-direction: column;
+  }
+  .total-card::before {
+    content: ""; position: absolute;
+    right: -40px; top: -40px;
+    width: 160px; height: 160px; border-radius: 50%;
+    background: radial-gradient(circle, var(--primary-soft) 0%, transparent 70%);
+    pointer-events: none;
+  }
+  .total-label {
+    font-size: 12px; color: var(--ink-3);
+    letter-spacing: 0.04em; text-transform: uppercase; font-weight: 600;
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .total-value {
+    font-family: 'Inter', sans-serif; font-feature-settings: "tnum" 1;
+    font-size: 76px; font-weight: 600; line-height: 1; letter-spacing: -0.04em;
+    color: var(--ink);
+    margin: 6px 0 12px;
+    position: relative; z-index: 1;
+  }
+  .total-breakdown {
+    display: flex; gap: 18px; padding-top: 12px;
+    border-top: 1px dashed var(--line);
+    position: relative; z-index: 1;
+  }
+  .total-bd-item { display: flex; flex-direction: column; gap: 2px; }
+  .total-bd-item .v { font-size: 16px; font-weight: 600; color: var(--ink); font-variant-numeric: tabular-nums; }
+  .total-bd-item .l { font-size: 11px; color: var(--ink-3); }
+  .total-bd-item .v .swatch {
+    display: inline-block; width: 8px; height: 8px; border-radius: 2px;
+    margin-right: 6px; vertical-align: middle;
+  }
+
+  /* TRIAGE */
+  .triage-rows { display: flex; flex-direction: column; gap: 6px; }
+  .triage-row {
+    display: grid; grid-template-columns: 14px 76px 1fr 28px;
+    align-items: center; gap: 12px;
+    padding: 8px 10px; border-radius: 8px;
+    transition: background .15s;
+  }
+  .triage-row:hover { background: var(--surface-2); }
+  .triage-marker { width: 10px; height: 10px; border-radius: 3px; }
+  .triage-label { font-size: 13px; font-weight: 500; color: var(--ink); }
+  .triage-bar {
+    height: 6px; background: var(--bg-tint); border-radius: 3px; overflow: hidden;
+    position: relative;
+  }
+  .triage-bar-fill {
+    height: 100%; border-radius: 3px;
+    transition: width .6s cubic-bezier(.2,.7,.2,1);
+  }
+  .triage-count {
+    font-size: 14px; font-weight: 600; color: var(--ink); text-align: right;
+    font-variant-numeric: tabular-nums;
+  }
+  .triage-pct {
+    font-size: 11px; font-weight: 600; color: var(--ink-3);
+    font-variant-numeric: tabular-nums;
+    position: absolute; right: -36px; top: 50%; transform: translateY(-50%);
+    width: 32px; text-align: right;
+  }
+
+  /* CHART */
+  .chart-card { padding: 16px 18px 10px; }
+  .chart-card .chart-body { flex: 1; min-height: 0; display: flex; }
+  .chart-card .chart-body svg { width: 100%; height: 100%; }
+  .chart-legend {
+    display: flex; gap: 14px; align-items: center;
+    font-size: 12px; color: var(--ink-2);
+  }
+  .legend-item { display: inline-flex; align-items: center; gap: 6px; }
+  .legend-swatch { width: 10px; height: 10px; border-radius: 3px; }
+  .legend-item .legend-v { color: var(--ink-3); font-variant-numeric: tabular-nums; margin-left: 2px; }
+
+  /* DONUT CARD */
+  .donut-card {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    padding: 14px 14px 12px;
+    box-shadow: var(--shadow-card);
+    display: flex; flex-direction: column; gap: 8px;
+    min-height: 0; overflow: hidden;
+  }
+  .donut-wrap {
+    position: relative;
+    flex: 1; min-height: 0;
+    display: grid; place-items: center;
+  }
+  .donut-wrap svg { max-height: 100%; max-width: 100%; height: 100%; width: auto; }
+  .donut-center {
+    position: absolute; inset: 0; display: grid; place-items: center;
+    pointer-events: none;
+  }
+  .donut-center .v { font-size: 22px; font-weight: 600; color: var(--ink); line-height: 1; font-variant-numeric: tabular-nums; }
+  .donut-center .l { font-size: 10px; color: var(--ink-3); text-transform: uppercase; letter-spacing: 0.08em; margin-top: 3px; }
+  .donut-legend {
+    display: flex; flex-direction: column; gap: 4px;
+    font-size: 11.5px; color: var(--ink-2);
+    max-height: 90px; overflow: hidden;
+  }
+  .donut-legend-row { display: grid; grid-template-columns: 10px 1fr auto auto; gap: 8px; align-items: center; }
+  .donut-legend-row .sw { width: 8px; height: 8px; border-radius: 2px; }
+  .donut-legend-row .lbl { color: var(--ink-2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .donut-legend-row .cnt { color: var(--ink); font-weight: 600; font-variant-numeric: tabular-nums; }
+  .donut-legend-row .pct { color: var(--ink-3); font-variant-numeric: tabular-nums; min-width: 38px; text-align: right; }
+
+  /* BAR LIST */
+  .bar-list {
+    display: flex; flex-direction: column;
+    gap: 6px;
+    flex: 1; min-height: 0;
+  }
+  .bar-row {
+    display: grid;
+    grid-template-columns: 110px 1fr 28px;
+    gap: 10px;
+    align-items: center;
+  }
+  .bar-lbl {
+    font-size: 11.5px; color: var(--ink-2);
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .bar-v {
+    font-size: 12px; font-weight: 600; color: var(--ink);
+    font-variant-numeric: tabular-nums;
+    text-align: right;
+  }
+  .bar-track {
+    height: 6px; border-radius: 3px;
+    background: var(--bg-tint);
+    overflow: hidden;
+  }
+  .bar-fill {
+    height: 100%; border-radius: 3px;
+    transition: width .6s cubic-bezier(.2,.7,.2,1);
+  }
+
+  /* TABLES */
+  .rank-table { width: 100%; border-collapse: collapse; }
+  .rank-table th {
+    text-align: left; font-size: 10.5px; font-weight: 500;
+    text-transform: uppercase; letter-spacing: 0.06em; color: var(--ink-3);
+    padding: 4px 6px 8px; border-bottom: 1px solid var(--line-soft);
+  }
+  .rank-table th.r { text-align: right; }
+  .rank-table td {
+    padding: 8px 6px; font-size: 13px;
+    border-bottom: 1px solid var(--line-soft);
+  }
+  .rank-table td.r { text-align: right; font-variant-numeric: tabular-nums; }
+  .rank-table tr:last-child td { border-bottom: none; }
+  .rank-table tbody { font-size: 12.5px; }
+  .rank-num {
+    display: inline-flex; width: 18px; height: 18px;
+    align-items: center; justify-content: center;
+    background: var(--bg-tint); border-radius: 4px;
+    font-size: 10.5px; font-weight: 600; color: var(--ink-3);
+    font-variant-numeric: tabular-nums;
+  }
+  .rank-bar { position: relative; padding-right: 8px; }
+  .rank-bar-fill {
+    position: absolute; left: 0; bottom: -1px;
+    height: 2px; border-radius: 1px;
+    opacity: 0.6;
+  }
+  .pct-strong { font-weight: 600; }
+  .count-cell { font-weight: 600; color: var(--ink); }
+
+  .item-pill {
+    display: inline-block; padding: 1px 7px; border-radius: 5px;
+    font-size: 12.5px; line-height: 1.4;
+  }
+
+  /* Q.DISPENSE */
+  .qd-list {
+    display: flex; flex-direction: column;
+    border-top: 1px solid var(--line-soft);
+  }
+  .qd-row {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 9px 4px; border-bottom: 1px dashed var(--line-soft);
+    font-size: 13px;
+  }
+  .qd-row .name { color: var(--ink-2); }
+  .qd-row .v { font-weight: 600; color: var(--ink); font-variant-numeric: tabular-nums; }
+  .qd-row.total {
+    background: var(--ink); color: #fff;
+    border-radius: 8px; padding: 10px 12px;
+    margin-top: 8px; border: none;
+  }
+  .qd-row.total .name { color: #fff; opacity: 0.85; font-weight: 600; }
+  .qd-row.total .v { color: #fff; font-size: 18px; }
+
+  /* segment header dot colors */
+  .dot.green { background: var(--green); }
+  .dot.red { background: var(--red); }
+  .dot.violet { background: var(--violet); }
+  .dot.blue { background: var(--blue); }
+  .dot.amber { background: var(--amber); }
+  .dot.orange { background: var(--orange); }
+  .dot.primary { background: var(--primary); }
+
+  /* Theme toggle (warm/cool) — small bottom-right floater */
+  .theme-toggle {
+    position: fixed; right: 14px; bottom: 14px; z-index: 1000;
+    display: flex; gap: 4px; padding: 4px;
+    background: var(--surface); border: 1px solid var(--line);
+    border-radius: 999px; box-shadow: var(--shadow-pop);
+  }
+  .theme-toggle button {
+    border: 0; background: transparent; cursor: pointer;
+    padding: 6px 14px; border-radius: 999px;
+    font-family: inherit; font-size: 12px; font-weight: 500;
+    color: var(--ink-3);
+  }
+  .theme-toggle button.active {
+    background: var(--primary); color: #fff;
+  }
+
+  /* PRINT — A4 landscape, clean */
+  @media print {
+    @page { size: A4 landscape; margin: 6mm; }
+    html, body { overflow: visible !important; height: auto !important; background: #fff !important; }
+    .stage-host { position: static !important; }
+    .stage-wrap {
+      transform: none !important; width: 100% !important; height: auto !important;
+      box-shadow: none !important;
+    }
+    .app { width: 100% !important; height: auto !important; padding: 0 !important; }
+    .icon-btn, .theme-toggle, .refresh-meta-inline { display: none !important; }
+    .card, .total-card, .donut-card, .tv-header {
+      box-shadow: none !important; break-inside: avoid;
+    }
+    body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  }
+</style>
+</head>
+<body>
+
+<div class="stage-host" id="stage-host">
+  <div class="stage-wrap" id="stage">
+    <div id="root"></div>
+  </div>
+</div>
+
+<!-- Theme toggle (warm / cool only — night removed per request) -->
+<div class="theme-toggle">
+  <button id="th-warm" class="active" onclick="setTheme('warm')">Warm</button>
+  <button id="th-cool" onclick="setTheme('cool')">Cool</button>
+</div>
+
+<style>
+  .stage-host { position: absolute; inset: 0; overflow: hidden; }
+</style>
+
+<script>
+  // Theme switch
+  function setTheme(t) {
+    if (t === 'warm') document.documentElement.removeAttribute('data-theme');
+    else document.documentElement.setAttribute('data-theme', t);
+    document.getElementById('th-warm').classList.toggle('active', t === 'warm');
+    document.getElementById('th-cool').classList.toggle('active', t === 'cool');
+    try { localStorage.setItem('fa-dash-preview-theme', t); } catch(e){}
+  }
+  try {
+    var saved = localStorage.getItem('fa-dash-preview-theme');
+    if (saved && saved !== 'night') setTheme(saved);
+  } catch(e){}
+
+  // Auto-scale the 1920x1080 stage to fit viewport (letterboxed)
+  (function() {
+    const stage = document.getElementById('stage');
+    stage.style.position = 'absolute';
+    stage.style.left = '0';
+    stage.style.top = '0';
+    stage.style.transformOrigin = '0 0';
+    function fit() {
+      const sx = window.innerWidth / 1920;
+      const sy = window.innerHeight / 1080;
+      const s = Math.min(sx, sy);
+      const tx = (window.innerWidth - 1920 * s) / 2;
+      const ty = (window.innerHeight - 1080 * s) / 2;
+      stage.style.transform = `translate(${tx}px, ${ty}px) scale(${s})`;
+    }
+    window.addEventListener('resize', fit);
+    fit();
+    if (document.fonts && document.fonts.ready) document.fonts.ready.then(fit);
+  })();
+</script>
+
+<!-- CHARTS (inline from charts.jsx) -->
+<script type="text/babel">
+function Donut({ data, size = 130, thickness = 18 }) {
+  const total = data.reduce((s, d) => s + d.value, 0) || 1;
+  const r = size / 2 - thickness / 2 - 2;
+  const c = size / 2;
+  const C = 2 * Math.PI * r;
+  let offset = 0;
+  return (
+    <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} style={{ display: "block" }}>
+      <circle cx={c} cy={c} r={r} fill="none" stroke="var(--line-soft)" strokeWidth={thickness} />
+      {data.map((d, i) => {
+        const frac = d.value / total;
+        const dash = frac * C;
+        const dashArr = `${dash} ${C - dash}`;
+        const dashOff = -offset;
+        offset += dash;
+        return (
+          <circle key={i} cx={c} cy={c} r={r} fill="none" stroke={d.color} strokeWidth={thickness}
+            strokeDasharray={dashArr} strokeDashoffset={dashOff}
+            transform={`rotate(-90 ${c} ${c})`} strokeLinecap="butt" />
+        );
+      })}
+    </svg>
+  );
+}
+
+function DonutCard({ title, dotColor = "primary", data, centerValue, centerLabel }) {
+  const total = data.reduce((s, d) => s + d.value, 0);
+  const cv = centerValue != null ? centerValue : total;
+  return (
+    <div className="donut-card">
+      <div className="card-head" style={{ marginBottom: 4 }}>
+        <div className="card-title">
+          <span className={`dot ${dotColor}`}></span>
+          {title}
+        </div>
+      </div>
+      <div className="donut-wrap">
+        <Donut data={data} />
+        <div className="donut-center">
+          <div style={{ textAlign: "center" }}>
+            <div className="v">{cv}</div>
+            {centerLabel && <div className="l">{centerLabel}</div>}
+          </div>
+        </div>
+      </div>
+      <div className="donut-legend">
+        {data.map((d, i) => {
+          const pct = total > 0 ? (d.value / total * 100) : 0;
+          return (
+            <div className="donut-legend-row" key={i}>
+              <span className="sw" style={{ background: d.color }}></span>
+              <span className="lbl" title={d.label}>{d.label}</span>
+              <span className="cnt">{d.value}</span>
+              <span className="pct">{pct.toFixed(0)}%</span>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+function TimeOfIncident({ series, labels }) {
+  const W = 1200, H = 260;
+  const pad = { l: 40, r: 28, t: 22, b: 32 };
+  const innerW = W - pad.l - pad.r;
+  const innerH = H - pad.t - pad.b;
+  const n = labels.length;
+  const max = Math.max(2, ...series.flatMap(s => s.values));
+  const yTicks = [];
+  for (let i = 0; i <= max; i++) yTicks.push(i);
+  const x = (i) => pad.l + (n === 1 ? innerW / 2 : (innerW * i) / (n - 1));
+  const y = (v) => pad.t + innerH - (v / max) * innerH;
+
+  const smooth = (pts) => {
+    if (pts.length < 2) return "";
+    let d = `M ${pts[0][0]} ${pts[0][1]}`;
+    for (let i = 0; i < pts.length - 1; i++) {
+      const p0 = pts[i - 1] || pts[i];
+      const p1 = pts[i];
+      const p2 = pts[i + 1];
+      const p3 = pts[i + 2] || p2;
+      const cp1x = p1[0] + (p2[0] - p0[0]) / 6;
+      const cp1y = p1[1] + (p2[1] - p0[1]) / 6;
+      const cp2x = p2[0] - (p3[0] - p1[0]) / 6;
+      const cp2y = p2[1] - (p3[1] - p1[1]) / 6;
+      d += ` C ${cp1x} ${cp1y}, ${cp2x} ${cp2y}, ${p2[0]} ${p2[1]}`;
+    }
+    return d;
+  };
+
+  return (
+    <svg viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="none" width="100%" height="100%" style={{ display: "block" }}>
+      <defs>
+        {series.map((s, idx) => (
+          <linearGradient id={`grad-${idx}`} key={idx} x1="0" x2="0" y1="0" y2="1">
+            <stop offset="0%" stopColor={s.color} stopOpacity="0.22" />
+            <stop offset="100%" stopColor={s.color} stopOpacity="0" />
+          </linearGradient>
+        ))}
+      </defs>
+      {yTicks.map((t, i) => (
+        <g key={i}>
+          <line x1={pad.l} x2={W - pad.r} y1={y(t)} y2={y(t)}
+            stroke="var(--line-soft)" strokeDasharray={i === 0 ? "" : "2 4"} vectorEffect="non-scaling-stroke" />
+          <text x={pad.l - 8} y={y(t) + 4} fontSize="11" fill="var(--ink-3)" textAnchor="end"
+            fontFamily="JetBrains Mono, monospace">{t}</text>
+        </g>
+      ))}
+      {labels.map((l, i) => (
+        <text key={i} x={x(i)} y={H - 10} fontSize="11.5" fill="var(--ink-3)" textAnchor="middle"
+          fontFamily="JetBrains Mono, monospace">{l}</text>
+      ))}
+      {series.map((s, idx) => {
+        const pts = s.values.map((v, i) => [x(i), y(v)]);
+        const linePath = smooth(pts);
+        const areaPath = linePath + ` L ${x(n - 1)} ${y(0)} L ${x(0)} ${y(0)} Z`;
+        return (
+          <g key={idx}>
+            <path d={areaPath} fill={`url(#grad-${idx})`} />
+            <path d={linePath} fill="none" stroke={s.color} strokeWidth="2.4"
+              strokeLinejoin="round" strokeLinecap="round" vectorEffect="non-scaling-stroke" />
+          </g>
+        );
+      })}
+      {series.map((s, idx) => {
+        const pts = s.values.map((v, i) => [x(i), y(v)]);
+        return pts.map(([px, py], i) => (
+          <g key={`${idx}-${i}`}>
+            <line x1={px} x2={px} y1={py} y2={py}
+              stroke={s.color} strokeWidth="10" strokeLinecap="round" vectorEffect="non-scaling-stroke" />
+            <line x1={px} x2={px} y1={py} y2={py}
+              stroke="var(--surface)" strokeWidth="5" strokeLinecap="round" vectorEffect="non-scaling-stroke" />
+            <line x1={px} x2={px} y1={py} y2={py}
+              stroke={s.color} strokeWidth="3" strokeLinecap="round" vectorEffect="non-scaling-stroke" />
+          </g>
+        ));
+      })}
+    </svg>
+  );
+}
+
+function Sparkline({ values, color = "var(--primary)", w = 90, h = 28 }) {
+  if (!values || !values.length) return null;
+  const max = Math.max(1, ...values);
+  const min = Math.min(0, ...values);
+  const rng = max - min || 1;
+  const stepX = w / (values.length - 1 || 1);
+  const pts = values.map((v, i) => [i * stepX, h - ((v - min) / rng) * h]);
+  const d = "M " + pts.map(p => `${p[0]} ${p[1]}`).join(" L ");
+  const area = d + ` L ${w} ${h} L 0 ${h} Z`;
+  return (
+    <svg width={w} height={h} viewBox={`0 0 ${w} ${h}`}>
+      <path d={area} fill={color} opacity="0.15" />
+      <path d={d} fill="none" stroke={color} strokeWidth="1.6" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
+Object.assign(window, { Donut, DonutCard, TimeOfIncident, Sparkline });
+</script>
+
+<!-- APP (inline from app.jsx, simplified — no tweaks panel, no night theme, +Print) -->
+<script type="text/babel">
+const { Donut, DonutCard, TimeOfIncident, Sparkline } = window;
+
+// ===== HARDCODED DATA (preview only — wire to live _initData when adopting) =====
+const DATA = {
+  event: {
+    name: "ทดสอบงานวิ่ง — บ้านแถวนี้",
+    location: "อ. เมือง • Mini-Marathon 10K",
+    started: "18:00",
+    elapsed: "2:14:37",
+    weather: "29°C • ชื้น 78%",
+  },
+  totals: { total: 6, med: 4, trauma: 2, transfer: 3, dc: 3, pending: 0 },
+  triage: [
+    { key: "alert", label: "Alert", value: 4, color: "var(--green)" },
+    { key: "verbal", label: "Verbal", value: 0, color: "var(--amber)" },
+    { key: "pain", label: "Pain", value: 1, color: "var(--orange)" },
+    { key: "unresp", label: "Unresponsive", value: 1, color: "var(--red)" },
+  ],
+  timeOfIncident: {
+    labels: ["18:00", "18:30", "19:00", "19:30", "20:00", "20:30"],
+    series: [
+      { name: "Med", color: "var(--primary)", values: [2, 1, 1, 0, 0, 0] },
+      { name: "Trauma", color: "var(--accent)", values: [1, 0, 1, 0, 0, 0] },
+    ],
+  },
+  gender: [
+    { label: "หญิง / Female", value: 4, color: "#D45A8A" },
+    { label: "ชาย / Male", value: 2, color: "#3B6EC7" },
+  ],
+  locationTx: [
+    { label: "Sector 1", value: 1, color: "#C2541A" },
+    { label: "Medical Tent", value: 2, color: "#B8740A" },
+    { label: "Finish-line", value: 2, color: "#1E7F4E" },
+    { label: "Sector 2", value: 0.5, color: "#2A5BA7" },
+    { label: "Sector 3", value: 0.5, color: "#6A3FA7" },
+  ],
+  etiology: [
+    { label: "Med", value: 4, color: "var(--primary)" },
+    { label: "Trauma", value: 2, color: "var(--accent)" },
+  ],
+  treatment: [
+    { label: "Oxygen / O₂", value: 2, color: "#2A5BA7" },
+    { label: "IV Fluid", value: 3, color: "#0E5E5C" },
+    { label: "Cool down", value: 2, color: "#1E7F4E" },
+    { label: "ยานวด / สเปรย์", value: 3, color: "#B8740A" },
+    { label: "Hot pack", value: 1, color: "#C2541A" },
+    { label: "ทำแผล", value: 2, color: "#6A3FA7" },
+    { label: "จ่ายยา (พารา)", value: 2, color: "#D45A8A" },
+    { label: "ห้ามเลือด", value: 1, color: "#B3261E" },
+    { label: "Splint / ดาม", value: 1, color: "#807D74" },
+  ],
+  ccMed: [
+    { label: "Heat-related / อาการจากความร้อน", value: 1, color: "var(--orange-soft)", ink: "var(--orange)" },
+    { label: "Muscle cramp / ตะคริว", value: 1, color: "var(--amber-soft)", ink: "var(--amber)" },
+    { label: "Headache / ปวดศีรษะ", value: 1, color: "var(--blue-soft)", ink: "var(--blue)" },
+    { label: "Collapse (pre-finish)", value: 1, color: "var(--red-soft)", ink: "var(--red)" },
+  ],
+  ccTrauma: [
+    { label: "Fall / ล้ม สะดุด", value: 1, color: "var(--red-soft)", ink: "var(--red)" },
+    { label: "Laceration / แผลฉีก", value: 1, color: "var(--orange-soft)", ink: "var(--orange)" },
+  ],
+  problem: [
+    { label: "Exertional Heat Stroke", value: 2, color: "var(--red-soft)", ink: "var(--red)" },
+    { label: "EAMC", value: 1, color: "var(--amber-soft)", ink: "var(--amber)" },
+    { label: "EAC", value: 1, color: "var(--amber-soft)", ink: "var(--amber)" },
+    { label: "Fever / Infection", value: 1, color: "var(--orange-soft)", ink: "var(--orange)" },
+    { label: "Crowd Crush Injury", value: 1, color: "var(--violet-soft)", ink: "var(--violet)" },
+  ],
+  result: [
+    { label: "Transfer / ส่งต่อ", value: 3, color: "var(--blue-soft)", ink: "var(--blue)" },
+    { label: "D/C / กลับบ้าน", value: 3, color: "var(--green-soft)", ink: "var(--green)" },
+  ],
+  qDispense: [
+    { name: "แอมโมเนีย", value: 4, ink: "var(--orange)" },
+    { name: "พลาสเตอร์ยา", value: 1, ink: "var(--blue)" },
+    { name: "ยานวด / สเปรย์", value: 3, ink: "var(--amber)" },
+    { name: "ประคบเย็น", value: 1, ink: "var(--primary)" },
+  ],
+};
+
+function pct(v, total) { return total > 0 ? (v / total * 100) : 0; }
+const fmtPct = (n) => `${n.toFixed(n < 10 && n > 0 ? 1 : 0)}%`;
+
+function TotalCard({ totals }) {
+  return (
+    <div className="total-card">
+      <div className="total-label">
+        <span>Total Cases · ทั้งหมด</span>
+        <Sparkline values={[0,1,2,3,4,5,6]} color="var(--primary)" w={70} h={22} />
+      </div>
+      <div className="total-value">{totals.total}</div>
+      <div className="total-breakdown">
+        <div className="total-bd-item">
+          <div className="v"><span className="swatch" style={{ background: "var(--primary)" }}></span>{totals.med}</div>
+          <div className="l">Medical</div>
+        </div>
+        <div className="total-bd-item">
+          <div className="v"><span className="swatch" style={{ background: "var(--accent)" }}></span>{totals.trauma}</div>
+          <div className="l">Trauma</div>
+        </div>
+        <div className="total-bd-item">
+          <div className="v"><span className="swatch" style={{ background: "var(--blue)" }}></span>{totals.transfer}</div>
+          <div className="l">Transfer</div>
+        </div>
+        <div className="total-bd-item">
+          <div className="v"><span className="swatch" style={{ background: "var(--green)" }}></span>{totals.dc}</div>
+          <div className="l">D/C</div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function TriageCard({ triage }) {
+  const total = triage.reduce((s, t) => s + t.value, 0);
+  return (
+    <div className="card">
+      <div className="card-head">
+        <div className="card-title"><span className="dot primary"></span>Scene Triage · AVPU</div>
+        <div className="card-sub">n = {total}</div>
+      </div>
+      <div className="triage-rows">
+        {triage.map(t => {
+          const p = pct(t.value, total);
+          return (
+            <div className="triage-row" key={t.key}>
+              <span className="triage-marker" style={{ background: t.color }}></span>
+              <span className="triage-label">{t.label}</span>
+              <div className="triage-bar" style={{ position: "relative" }}>
+                <div className="triage-bar-fill" style={{ width: `${p}%`, background: t.color }}></div>
+                <span className="triage-pct">{p.toFixed(0)}%</span>
+              </div>
+              <span className="triage-count">{t.value}</span>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+function ChartCard({ timeOfIncident }) {
+  const totMed = timeOfIncident.series[0].values.reduce((a,b)=>a+b,0);
+  const totTr  = timeOfIncident.series[1].values.reduce((a,b)=>a+b,0);
+  return (
+    <div className="card chart-card">
+      <div className="card-head">
+        <div>
+          <div className="card-title">Time of Incident</div>
+          <div className="card-sub" style={{ marginTop: 2 }}>เคสตามช่วงเวลา · 30-min buckets</div>
+        </div>
+        <div className="chart-legend">
+          <span className="legend-item">
+            <span className="legend-swatch" style={{ background: "var(--primary)" }}></span>
+            Med <span className="legend-v">{totMed}</span>
+          </span>
+          <span className="legend-item">
+            <span className="legend-swatch" style={{ background: "var(--accent)" }}></span>
+            Trauma <span className="legend-v">{totTr}</span>
+          </span>
+        </div>
+      </div>
+      <div className="chart-body">
+        <TimeOfIncident labels={timeOfIncident.labels} series={timeOfIncident.series} />
+      </div>
+    </div>
+  );
+}
+
+function RankTable({ title, dotColor, rows }) {
+  const total = rows.reduce((s, r) => s + r.value, 0);
+  const maxV = Math.max(...rows.map(r => r.value));
+  return (
+    <div className="card compact" style={{ display: "flex", flexDirection: "column" }}>
+      <div className="card-head" style={{ marginBottom: 6 }}>
+        <div className="card-title"><span className={`dot ${dotColor}`}></span>{title}</div>
+        <div className="card-sub mono">n = {total}</div>
+      </div>
+      <table className="rank-table">
+        <thead>
+          <tr>
+            <th style={{ width: 26 }}>#</th>
+            <th>รายการ</th>
+            <th className="r" style={{ width: 36 }}>n</th>
+            <th className="r" style={{ width: 54 }}>%</th>
+          </tr>
+        </thead>
+        <tbody>
+          {rows.map((r, i) => {
+            const p = pct(r.value, total);
+            return (
+              <tr key={i}>
+                <td><span className="rank-num">{i + 1}</span></td>
+                <td className="rank-bar">
+                  <span className="item-pill" style={{ background: r.color, color: r.ink }}>{r.label}</span>
+                  <span className="rank-bar-fill" style={{ width: `${(r.value / maxV) * 70}%`, background: r.ink }}></span>
+                </td>
+                <td className="r count-cell">{r.value}</td>
+                <td className="r pct-strong" style={{ color: r.ink }}>{fmtPct(p)}</td>
+              </tr>
+            );
+          })}
+        </tbody>
+      </table>
+    </div>
+  );
+}
+
+function QDispenseCard({ rows }) {
+  const total = rows.reduce((s, r) => s + r.value, 0);
+  return (
+    <div className="card compact" style={{ display: "flex", flexDirection: "column" }}>
+      <div className="card-head" style={{ marginBottom: 6 }}>
+        <div className="card-title"><span className="dot amber"></span>Q.Dispense</div>
+        <div className="card-sub">เวชภัณฑ์</div>
+      </div>
+      <div className="qd-list">
+        {rows.map((r, i) => (
+          <div className="qd-row" key={i}>
+            <span className="name">{r.name}</span>
+            <span className="v" style={{ color: r.ink }}>{r.value}</span>
+          </div>
+        ))}
+      </div>
+      <div className="qd-row total">
+        <span className="name">รวม · Total</span>
+        <span className="v">{total}</span>
+      </div>
+    </div>
+  );
+}
+
+function BigStatCard({ title, dotColor = "primary", value, sub, footer }) {
+  return (
+    <div className="card" style={{ justifyContent: "space-between" }}>
+      <div className="card-head" style={{ marginBottom: 0 }}>
+        <div className="card-title"><span className={`dot ${dotColor}`}></span>{title}</div>
+      </div>
+      <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-start", flex: 1, justifyContent: "center" }}>
+        <div style={{ fontSize: 44, fontWeight: 600, letterSpacing: "-0.02em", lineHeight: 1, color: "var(--ink)", fontFamily: "Inter, sans-serif" }}>{value}</div>
+        <div style={{ fontSize: 13, color: "var(--ink-3)", marginTop: 6 }}>{sub}</div>
+      </div>
+      {footer && <div style={{ fontSize: 12, color: "var(--ink-3)" }}>{footer}</div>}
+    </div>
+  );
+}
+
+function BarListCard({ title, dotColor = "primary", rows }) {
+  const total = rows.reduce((s, r) => s + r.value, 0);
+  const maxV = Math.max(...rows.map(r => r.value));
+  return (
+    <div className="card" style={{ display: "flex", flexDirection: "column", padding: "14px 16px" }}>
+      <div className="card-head" style={{ marginBottom: 8 }}>
+        <div className="card-title"><span className={`dot ${dotColor}`}></span>{title}</div>
+        <div className="card-sub mono">n = {total}</div>
+      </div>
+      <div className="bar-list">
+        {rows.map((r, i) => {
+          return (
+            <div className="bar-row" key={i}>
+              <span className="bar-lbl" title={r.label}>{r.label}</span>
+              <div className="bar-track">
+                <div className="bar-fill" style={{ width: `${(r.value / maxV) * 100}%`, background: r.color }}></div>
+              </div>
+              <span className="bar-v">{r.value}</span>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+function App() {
+  const [refreshIn, setRefreshIn] = React.useState(120);
+  const [isFs, setIsFs] = React.useState(false);
+
+  React.useEffect(() => {
+    const id = setInterval(() => setRefreshIn(r => r <= 1 ? 120 : r - 1), 1000);
+    return () => clearInterval(id);
+  }, []);
+
+  React.useEffect(() => {
+    const onChange = () => setIsFs(!!document.fullscreenElement);
+    document.addEventListener("fullscreenchange", onChange);
+    return () => document.removeEventListener("fullscreenchange", onChange);
+  }, []);
+
+  const toggleFullscreen = () => {
+    if (!document.fullscreenElement) {
+      (document.documentElement.requestFullscreen?.() || Promise.resolve()).catch(()=>{});
+    } else {
+      document.exitFullscreen?.();
+    }
+  };
+  const doPrint = () => window.print();
+  const doRefresh = () => setRefreshIn(120);
+
+  return (
+    <div className="app">
+
+      {/* COMPACT HEADER */}
+      <header className="tv-header">
+        <div className="th-brand">
+          <div className="brand-mark">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M12 5v14M5 12h14"/>
+            </svg>
+          </div>
+          <div className="th-text">
+            <div className="th-eyebrow">
+              Medical Registry · Event Dashboard
+              <span className="live-tag-inline"><span className="live-dot"></span> LIVE</span>
+            </div>
+            <div className="th-name">{DATA.event.name}</div>
+          </div>
+        </div>
+
+        <div className="th-stats">
+          <div className="th-stat">
+            <div className="th-stat-label">Category</div>
+            <div className="th-stat-value">{DATA.event.location}</div>
+          </div>
+          <div className="th-divider"></div>
+          <div className="th-stat">
+            <div className="th-stat-label">Start</div>
+            <div className="th-stat-value mono">{DATA.event.started}</div>
+          </div>
+          <div className="th-divider"></div>
+          <div className="th-stat">
+            <div className="th-stat-label">Elapsed</div>
+            <div className="th-stat-value mono">{DATA.event.elapsed}</div>
+          </div>
+          <div className="th-divider"></div>
+          <div className="th-stat">
+            <div className="th-stat-label">Conditions</div>
+            <div className="th-stat-value" style={{ fontWeight: 500 }}>{DATA.event.weather}</div>
+          </div>
+        </div>
+
+        <div className="th-controls">
+          <div className="refresh-meta-inline">
+            <span className="live-dot"></span>
+            <span>Auto-refresh <span className="timer mono">{refreshIn}s</span></span>
+          </div>
+          <button className="icon-btn" title="Refresh" onClick={doRefresh}>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M3 12a9 9 0 0 1 15-6.7L21 8"/><path d="M21 3v5h-5"/>
+              <path d="M21 12a9 9 0 0 1-15 6.7L3 16"/><path d="M3 21v-5h5"/>
+            </svg>
+          </button>
+          <button className="icon-btn" title="Print" onClick={doPrint}>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+              <polyline points="6 9 6 2 18 2 18 9"/><rect x="6" y="14" width="12" height="8"/>
+              <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/>
+            </svg>
+          </button>
+          <button className="icon-btn" title={isFs ? "Exit fullscreen" : "Enter fullscreen"} onClick={toggleFullscreen}>
+            {isFs ? (
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M9 3v4a2 2 0 0 1-2 2H3"/><path d="M21 9h-4a2 2 0 0 1-2-2V3"/>
+                <path d="M3 15h4a2 2 0 0 1 2 2v4"/><path d="M15 21v-4a2 2 0 0 1 2-2h4"/>
+              </svg>
+            ) : (
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M3 9V5a2 2 0 0 1 2-2h4"/><path d="M15 3h4a2 2 0 0 1 2 2v4"/>
+                <path d="M21 15v4a2 2 0 0 1-2 2h-4"/><path d="M9 21H5a2 2 0 0 1-2-2v-4"/>
+              </svg>
+            )}
+          </button>
+        </div>
+      </header>
+
+      {/* MAIN GRID */}
+      <div className="main-grid">
+
+        {/* ROW 1: Total | Triage | Time chart */}
+        <div className="grid row-1">
+          <TotalCard totals={DATA.totals} />
+          <TriageCard triage={DATA.triage} />
+          <ChartCard timeOfIncident={DATA.timeOfIncident} />
+        </div>
+
+        {/* ROW 2: Gender + Category + Location + Etiology + Treatment */}
+        <div className="grid row-2">
+          <DonutCard title="Gender · เพศ" dotColor="primary" data={DATA.gender} centerLabel="Cases" />
+          <BigStatCard title="Category · ประเภท" dotColor="primary" value="10K" sub="Mini-Marathon" footer={`100% · n = ${DATA.totals.total}`} />
+          <DonutCard title="Location Tx · จุดรักษา" dotColor="orange" data={DATA.locationTx} centerLabel="Sites" />
+          <DonutCard title="Etiology · สาเหตุ" dotColor="primary" data={DATA.etiology} centerLabel="Med/Tr" />
+          <BarListCard title="Treatment · หัตถการ" dotColor="violet" rows={DATA.treatment} />
+        </div>
+
+        {/* ROW 3: 4 tables + Q.Dispense */}
+        <div className="grid row-3">
+          <div className="col-3"><RankTable title="CC (Med) · อาการ" dotColor="primary" rows={DATA.ccMed} /></div>
+          <div className="col-3"><RankTable title="CC (Trauma) · บาดเจ็บ" dotColor="red" rows={DATA.ccTrauma} /></div>
+          <div className="col-3"><RankTable title="Problem · การวินิจฉัย" dotColor="violet" rows={DATA.problem} /></div>
+          <div className="col-2"><RankTable title="Result · ผลรักษา" dotColor="green" rows={DATA.result} /></div>
+          <div className="col-1"><QDispenseCard rows={DATA.qDispense} /></div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById("root")).render(<App />);
+</script>
+
+</body>
+</html>
