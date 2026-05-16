@@ -3823,6 +3823,17 @@
         // Responsive
         h += "@media screen and (max-width:900px) { .page { padding:8px; } .row1 { grid-template-columns:1fr!important; } .row2d { grid-template-columns:repeat(3,1fr)!important; } .row3r { grid-template-columns:repeat(2,1fr)!important; } .time-ch-wrap { height:140px; } }";
         h += "@media screen and (max-width:600px) { .row2d { grid-template-columns:1fr!important; } .row3r { grid-template-columns:1fr!important; } }";
+        // Fullscreen mode — scale UI for wallboard / TV view
+        h += "body:-webkit-full-screen, body:fullscreen { background:#0f172a; }";
+        h += "body:fullscreen .page { max-width:none !important; padding:18px 24px; background:#fff; min-height:100vh; }";
+        h += "body:fullscreen .hdr h1 { font-size:22pt !important; }";
+        h += "body:fullscreen .sub { font-size:11pt !important; }";
+        h += "body:fullscreen .card-title, body:fullscreen .stit { font-size:11pt !important; }";
+        h += "body:fullscreen .stat-num { font-size:30pt !important; }";
+        h += "body:fullscreen .chwrap { height:170px !important; }";
+        h += "body:fullscreen .time-ch-wrap { height:240px !important; }";
+        h += "body:fullscreen .rtbl, body:fullscreen .ptbl { font-size:10pt !important; }";
+        h += "body:fullscreen .rtbl th, body:fullscreen .ptbl th { font-size:9.5pt !important; }";
         h += "</style></head><body><div class='page'>";
 
         // Header
@@ -3840,6 +3851,7 @@
         h += '<div class="refresh-info"><span id="ref-dot" class="refresh-dot"></span><span id="ref-text">Auto refresh: <b id="ref-cd">120</b>s</span>';
         h += '<button onclick="doRefresh()" style="padding:3px 10px;border:1px solid #cbd5e1;border-radius:5px;background:#fff;cursor:pointer;font-family:Sarabun;font-size:8pt;">Refresh</button>';
         h += '<button onclick="doPrint()" style="padding:3px 10px;border:1px solid #cbd5e1;border-radius:5px;background:#fff;cursor:pointer;font-family:Sarabun;font-size:8pt;">Print</button>';
+        h += '<button id="btn-fs" onclick="toggleFullscreen()" style="padding:3px 10px;border:1px solid #cbd5e1;border-radius:5px;background:#fff;cursor:pointer;font-family:Sarabun;font-size:8pt;" title="เต็มจอ (F11 / Esc ออก)"><span id="fs-label">⛶ Fullscreen</span></button>';
         h += '</div></div>';
 
         // Tab: Dashboard
@@ -3859,6 +3871,11 @@
         // State
         h += 'var _evId="' + eventId + '",_cd=120,_REFRESH=120,_RMAX=7,_charts={},_lastData=null;';
         h += 'var _initData=' + JSON.stringify(result) + ';';
+
+        // Fullscreen toggle
+        h += 'function toggleFullscreen(){var el=document.documentElement;var inFs=document.fullscreenElement||document.webkitFullscreenElement;if(inFs){(document.exitFullscreen||document.webkitExitFullscreen).call(document);}else{(el.requestFullscreen||el.webkitRequestFullscreen).call(el).catch(function(e){alert("Browser ปฏิเสธ fullscreen: "+e.message);});}}';
+        h += 'document.addEventListener("fullscreenchange",function(){var lbl=document.getElementById("fs-label");if(!lbl)return;var inFs=document.fullscreenElement||document.webkitFullscreenElement;lbl.textContent=inFs?"⛶ Exit Fullscreen":"⛶ Fullscreen";});';
+        h += 'document.addEventListener("keydown",function(e){if(e.key==="f"&&!e.ctrlKey&&!e.metaKey&&!e.altKey&&e.target.tagName!=="INPUT"&&e.target.tagName!=="TEXTAREA"){toggleFullscreen();}});';
 
         // Tab switch
         h += 'function switchTab(t){document.getElementById("tab-dash").style.display=t==="dash"?"":"none";document.getElementById("tab-pending").style.display=t==="pending"?"":"none";';

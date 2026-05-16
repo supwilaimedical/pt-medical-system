@@ -1,0 +1,27 @@
+# Cloudflare Worker — Speed Watcher
+# Periodically polls GPS providers, alerts via notify worker when vehicle speed > threshold.
+# Deploy:  cd cloudflare && wrangler deploy --config wrangler-speed-watcher.toml
+
+name = "speed-watcher"
+main = "speed-watcher-worker.js"
+compatibility_date = "2024-11-01"
+
+# Cron — every 2 minutes
+[triggers]
+crons = ["*/2 * * * *"]
+
+# KV — per-vehicle event state (alert count, eventStart)
+[[kv_namespaces]]
+binding = "SPEED_WATCH_KV"
+id = "ad7994d828a44b86aaf83ff6e34fde59"
+
+[vars]
+# Supabase project (anon key OK — gps_providers/gps_vehicles readable by anon per existing RLS)
+SUPABASE_URL = "https://rwxaalgvkzlsyfzdebcj.supabase.co"
+SUPABASE_ANON_KEY = "sb_publishable_5jmlKl7w2H_Qb4Yp1Y8gWA_-SMZfB0a"
+
+# Service binding to gps-proxy worker (which handles /notify/* routes).
+# Worker-to-worker via Service Binding (not public workers.dev URL — CF 1042).
+[[services]]
+binding = "NOTIFY"
+service = "gps-proxy"
