@@ -3823,17 +3823,29 @@
         // Responsive
         h += "@media screen and (max-width:900px) { .page { padding:8px; } .row1 { grid-template-columns:1fr!important; } .row2d { grid-template-columns:repeat(3,1fr)!important; } .row3r { grid-template-columns:repeat(2,1fr)!important; } .time-ch-wrap { height:140px; } }";
         h += "@media screen and (max-width:600px) { .row2d { grid-template-columns:1fr!important; } .row3r { grid-template-columns:1fr!important; } }";
-        // Fullscreen mode — scale UI for wallboard / TV view
-        h += "body:-webkit-full-screen, body:fullscreen { background:#0f172a; }";
-        h += "body:fullscreen .page { max-width:none !important; padding:18px 24px; background:#fff; min-height:100vh; }";
-        h += "body:fullscreen .hdr h1 { font-size:22pt !important; }";
-        h += "body:fullscreen .sub { font-size:11pt !important; }";
-        h += "body:fullscreen .card-title, body:fullscreen .stit { font-size:11pt !important; }";
-        h += "body:fullscreen .stat-num { font-size:30pt !important; }";
-        h += "body:fullscreen .chwrap { height:170px !important; }";
-        h += "body:fullscreen .time-ch-wrap { height:240px !important; }";
-        h += "body:fullscreen .rtbl, body:fullscreen .ptbl { font-size:10pt !important; }";
-        h += "body:fullscreen .rtbl th, body:fullscreen .ptbl th { font-size:9.5pt !important; }";
+        // Fullscreen mode — scale UI for wallboard / TV view (fills viewport, vh-based heights)
+        h += "body:-webkit-full-screen, body:fullscreen { background:#0f172a; margin:0; }";
+        h += "body:fullscreen .page { max-width:none !important; width:100vw !important; margin:0 !important; padding:14px 22px 18px !important; background:#fff; min-height:100vh; box-sizing:border-box; }";
+        // Header / toolbar
+        h += "body:fullscreen .hdr h1 { font-size:26pt !important; line-height:1.15; }";
+        h += "body:fullscreen .sub { font-size:13pt !important; }";
+        h += "body:fullscreen .toolbar { padding:8px 0 !important; font-size:11pt !important; }";
+        h += "body:fullscreen .tab-btn { font-size:11pt !important; padding:8px 18px !important; }";
+        // Card titles + stat
+        h += "body:fullscreen .card-title, body:fullscreen .stit { font-size:13pt !important; }";
+        h += "body:fullscreen .stat-num { font-size:54pt !important; line-height:1; }";
+        h += "body:fullscreen .stat-lbl { font-size:11pt !important; }";
+        // Chart heights — vh-based so they fill the viewport regardless of TV size
+        h += "body:fullscreen .chwrap { height:22vh !important; min-height:170px; }";
+        h += "body:fullscreen .time-ch-wrap { height:32vh !important; min-height:240px; }";
+        // Tables (lists) — larger rows for readability at distance
+        h += "body:fullscreen .rtbl, body:fullscreen .ptbl { font-size:12pt !important; }";
+        h += "body:fullscreen .rtbl th, body:fullscreen .ptbl th { font-size:11pt !important; padding:8px 10px !important; }";
+        h += "body:fullscreen .rtbl td, body:fullscreen .ptbl td { padding:8px 10px !important; }";
+        h += "body:fullscreen .badge-tri { font-size:10pt !important; padding:4px 12px !important; }";
+        // Scene Triage label/values inside dashboard
+        h += "body:fullscreen .stl { font-size:12pt !important; }";
+        h += "body:fullscreen .stn { font-size:18pt !important; font-weight:700; }";
         h += "</style></head><body><div class='page'>";
 
         // Header
