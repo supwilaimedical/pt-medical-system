@@ -697,19 +697,33 @@
     background: var(--primary); color: #fff;
   }
 
-  /* PRINT — A4 landscape, clean */
+  /* PRINT — fit 1920x1080 stage to A4 landscape (no overflow, single page) */
   @media print {
-    @page { size: A4 landscape; margin: 6mm; }
-    html, body { overflow: visible !important; height: auto !important; background: #fff !important; }
-    .stage-host { position: static !important; }
-    .stage-wrap {
-      transform: none !important; width: 100% !important; height: auto !important;
-      box-shadow: none !important;
+    @page { size: A4 landscape; margin: 5mm; }
+    html, body {
+      overflow: hidden !important; height: 100% !important;
+      background: #fff !important; margin: 0 !important; padding: 0 !important;
     }
-    .app { width: 100% !important; height: auto !important; padding: 0 !important; }
+    .stage-host {
+      position: static !important;
+      width: 287mm !important; height: 200mm !important;  /* A4L - 2*5mm margin */
+      overflow: hidden !important;
+      page-break-inside: avoid;
+    }
+    /* Scale 1920x1080 → 287mm wide. 287mm ≈ 1085px @96dpi → scale = 1085/1920 = ~0.565
+       Height after scale: 1080 * 0.565 = ~610px ≈ 162mm (fits within 200mm A4L height) */
+    .stage-wrap {
+      transform: scale(0.565) !important;
+      transform-origin: top left !important;
+      width: 1920px !important; height: 1080px !important;
+      box-shadow: none !important;
+      background: #fff !important;
+    }
+    .app { padding: 14px 20px !important; }
     .icon-btn, .theme-toggle, .refresh-meta-inline { display: none !important; }
-    .card, .total-card, .donut-card, .tv-header {
-      box-shadow: none !important; break-inside: avoid;
+    .live-tag-inline, .live-dot { display: none !important; }
+    .card, .total-card, .donut-card, .tv-header, .pending-card {
+      box-shadow: none !important;
     }
     body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
   }
@@ -765,6 +779,17 @@
     window.addEventListener('resize', fit);
     fit();
     if (document.fonts && document.fonts.ready) document.fonts.ready.then(fit);
+
+    // Print: clear inline transform so @media print scale rule wins
+    var _savedTransform = '';
+    window.addEventListener('beforeprint', function() {
+      _savedTransform = stage.style.transform;
+      stage.style.transform = '';
+    });
+    window.addEventListener('afterprint', function() {
+      stage.style.transform = _savedTransform || '';
+      fit();
+    });
   })();
 </script>
 
