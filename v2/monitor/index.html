@@ -3286,13 +3286,29 @@
     }
 
     async function monitorOpenFADashboard(eventId, eventName) {
-        // Open window BEFORE async call — iOS Safari blocks popups from async callbacks
+        // New V2 dashboard — self-contained page that fetches its own data.
+        // Legacy fallback: append &legacy=1 to URL → caller can use old generator.
+        var useLegacy = (function() {
+            try { return new URLSearchParams(window.location.search).get('fa_legacy') === '1'; }
+            catch(_) { return false; }
+        })();
+
+        if (!useLegacy) {
+            var url = CONFIG.BASE_URL + '/v2/firstaid/dashboard.html?event=' + encodeURIComponent(eventId);
+            var w = window.open(url, '_blank');
+            if (!w || w.closed) {
+                Swal.fire({ icon:'warning', title:'Popup ถูกบล็อก', text:'กรุณาอนุญาต Popup หรือลองกดปุ่มอีกครั้ง' });
+            }
+            return;
+        }
+
+        // ===== LEGACY V1 path (kept for rollback — trigger via ?fa_legacy=1) =====
         var w = window.open('', '_blank');
         if (!w || w.closed) {
             Swal.fire({ icon:'warning', title:'Popup ถูกบล็อก', text:'กรุณาอนุญาต Popup หรือลองกดปุ่มอีกครั้ง' });
             return;
         }
-        w.document.write('<html><head><title>Loading...</title></head><body style="display:flex;align-items:center;justify-content:center;height:100vh;font-family:sans-serif;color:#666;"><h2>กำลังโหลด Dashboard...</h2></body></html>');
+        w.document.write('<html><head><title>Loading...</title></head><body style="display:flex;align-items:center;justify-content:center;height:100vh;font-family:sans-serif;color:#666;"><h2>กำลังโหลด Dashboard (legacy)...</h2></body></html>');
         try {
             var result = await getEventReportData(eventId);
             if (result && result.event) {
