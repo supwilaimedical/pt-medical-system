@@ -3830,8 +3830,9 @@
         // Bands (auto height)
         h += "body.is-fs .hdr { flex:0 0 auto; padding:6px 14px !important; }";
         h += "body.is-fs .toolbar { flex:0 0 auto; padding:2px 0 !important; }";
-        // #tab-dash: column flex container, sums to remaining viewport
-        h += "body.is-fs #tab-dash { flex:1 1 auto; display:flex !important; flex-direction:column; gap:8px; min-height:0; overflow:hidden; }";
+        // #tab-dash / #tab-pending: column flex container (no !important on display, so JS style.display=none still hides)
+        h += "body.is-fs #tab-dash { flex:1 1 auto; display:flex; flex-direction:column; gap:8px; min-height:0; overflow:hidden; }";
+        h += "body.is-fs #tab-pending { flex:1 1 auto; display:flex; flex-direction:column; min-height:0; overflow:auto; padding:10px 4px; }";
         // Each row: FIXED vh height — prevents Chart.js infinite resize loop
         h += "body.is-fs #tab-dash .row1 { height:28vh; min-height:0; margin:0 !important; }";
         h += "body.is-fs #tab-dash .row2d { height:30vh; min-height:0; margin:0 !important; }";
