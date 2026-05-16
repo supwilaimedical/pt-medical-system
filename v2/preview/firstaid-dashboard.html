@@ -284,8 +284,83 @@
     margin-right: 6px; vertical-align: middle;
   }
 
+  /* TOTAL CARD — extras (rate + footer) */
+  .total-rate {
+    display: flex; align-items: baseline; gap: 8px;
+    padding: 0 0 12px;
+    position: relative; z-index: 1;
+  }
+  .total-rate .rate-v {
+    font-size: 22px; font-weight: 700; color: var(--ink);
+    letter-spacing: -0.02em;
+  }
+  .total-rate .rate-l { font-size: 12px; color: var(--ink-3); }
+  .total-rate .rate-trend {
+    margin-left: auto;
+    font-size: 11px; font-weight: 600;
+    padding: 3px 9px; border-radius: 999px;
+    border: 1px solid currentColor;
+    background: transparent;
+  }
+  .total-footer {
+    display: flex; gap: 14px; padding-top: 10px;
+    border-top: 1px dashed var(--line);
+    position: relative; z-index: 1;
+    margin-top: auto;
+  }
+  .total-footer .tf-item {
+    flex: 1; display: flex; align-items: center; justify-content: space-between;
+    background: var(--surface-2); border-radius: 8px;
+    padding: 6px 10px;
+  }
+  .total-footer .tf-l { font-size: 11px; color: var(--ink-3); font-weight: 500; }
+  .total-footer .tf-v {
+    font-size: 14px; font-weight: 700; color: var(--ink);
+    font-variant-numeric: tabular-nums;
+  }
+
   /* TRIAGE */
   .triage-rows { display: flex; flex-direction: column; gap: 6px; }
+  .triage-rows-big { gap: 10px; flex: 1; min-height: 0; justify-content: center; }
+  .triage-row-big {
+    grid-template-columns: 16px 1fr 80px 38px 30px !important;
+    gap: 14px !important;
+    padding: 10px 12px !important;
+    background: var(--surface-2);
+    border-radius: 10px;
+  }
+  .triage-marker-big {
+    width: 14px; height: 14px; border-radius: 4px;
+  }
+  .triage-label-big {
+    font-size: 14px; font-weight: 600; color: var(--ink);
+  }
+  .triage-pct-big {
+    font-size: 12px; font-weight: 700;
+    color: var(--ink-2); text-align: right;
+    font-variant-numeric: tabular-nums;
+  }
+  .triage-count-big {
+    font-size: 17px; font-weight: 700; color: var(--ink); text-align: right;
+    font-variant-numeric: tabular-nums;
+  }
+  .triage-footer {
+    display: flex; gap: 10px; margin-top: 10px;
+    padding-top: 10px; border-top: 1px dashed var(--line);
+  }
+  .tri-foot-item {
+    flex: 1; display: flex; align-items: center; gap: 8px;
+    padding: 8px 10px; background: var(--surface-2);
+    border-radius: 8px;
+  }
+  .tri-foot-item .dot-sq { width: 9px; height: 9px; border-radius: 2px; flex-shrink: 0; }
+  .tri-foot-item .tf-lbl { font-size: 11px; color: var(--ink-3); font-weight: 500; flex: 1; }
+  .tri-foot-item .tf-num {
+    font-size: 16px; font-weight: 700;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .triage-rows-orig { display: flex; flex-direction: column; gap: 6px; }
   .triage-row {
     display: grid; grid-template-columns: 14px 76px 1fr 28px;
     align-items: center; gap: 12px;
@@ -931,14 +1006,22 @@ const DATA = {
 function pct(v, total) { return total > 0 ? (v / total * 100) : 0; }
 const fmtPct = (n) => `${n.toFixed(n < 10 && n > 0 ? 1 : 0)}%`;
 
-function TotalCard({ totals }) {
+function TotalCard({ totals, elapsedMin, pendingCount, lastCaseTime }) {
+  const ratePerHour = elapsedMin > 0 ? (totals.total / (elapsedMin / 60)) : 0;
+  const peakNext = ratePerHour >= 4 ? "↑ Surge" : ratePerHour >= 2 ? "→ Normal" : "↓ Quiet";
+  const peakColor = ratePerHour >= 4 ? "var(--red)" : ratePerHour >= 2 ? "var(--primary)" : "var(--green)";
   return (
     <div className="total-card">
       <div className="total-label">
         <span>Total Cases · ทั้งหมด</span>
-        <Sparkline values={[0,1,2,3,4,5,6]} color="var(--primary)" w={70} h={22} />
+        <Sparkline values={[0,1,2,3,4,5,6]} color="var(--primary)" w={84} h={26} />
       </div>
       <div className="total-value">{totals.total}</div>
+      <div className="total-rate">
+        <span className="rate-v mono">{ratePerHour.toFixed(1)}</span>
+        <span className="rate-l">เคส/ชม.</span>
+        <span className="rate-trend" style={{ color: peakColor, borderColor: peakColor }}>{peakNext}</span>
+      </div>
       <div className="total-breakdown">
         <div className="total-bd-item">
           <div className="v"><span className="swatch" style={{ background: "var(--primary)" }}></span>{totals.med}</div>
@@ -957,33 +1040,58 @@ function TotalCard({ totals }) {
           <div className="l">D/C</div>
         </div>
       </div>
+      <div className="total-footer">
+        <div className="tf-item">
+          <span className="tf-l">Pending</span>
+          <span className="tf-v" style={{ color: pendingCount > 0 ? "var(--red)" : "var(--ink-3)" }}>{pendingCount}</span>
+        </div>
+        <div className="tf-item">
+          <span className="tf-l">Last case</span>
+          <span className="tf-v mono">{lastCaseTime || "—"}</span>
+        </div>
+      </div>
     </div>
   );
 }
 
 function TriageCard({ triage }) {
   const total = triage.reduce((s, t) => s + t.value, 0);
+  // Pain + Unresponsive = needs attention
+  const critical = triage.filter(t => t.key === "pain" || t.key === "unresp").reduce((s, t) => s + t.value, 0);
+  const stable = total - critical;
   return (
     <div className="card">
       <div className="card-head">
         <div className="card-title"><span className="dot primary"></span>Scene Triage · AVPU</div>
         <div className="card-sub">n = {total}</div>
       </div>
-      <div className="triage-rows">
+      <div className="triage-rows triage-rows-big">
         {triage.map(t => {
           const p = pct(t.value, total);
           return (
-            <div className="triage-row" key={t.key}>
-              <span className="triage-marker" style={{ background: t.color }}></span>
-              <span className="triage-label">{t.label}</span>
+            <div className="triage-row triage-row-big" key={t.key}>
+              <span className="triage-marker-big" style={{ background: t.color }}></span>
+              <span className="triage-label-big">{t.label}</span>
               <div className="triage-bar" style={{ position: "relative" }}>
                 <div className="triage-bar-fill" style={{ width: `${p}%`, background: t.color }}></div>
-                <span className="triage-pct">{p.toFixed(0)}%</span>
               </div>
-              <span className="triage-count">{t.value}</span>
+              <span className="triage-pct-big">{p.toFixed(0)}%</span>
+              <span className="triage-count-big">{t.value}</span>
             </div>
           );
         })}
+      </div>
+      <div className="triage-footer">
+        <div className="tri-foot-item">
+          <span className="dot-sq" style={{ background: "var(--green)" }}></span>
+          <span className="tf-lbl">Stable (A+V)</span>
+          <span className="tf-num" style={{ color: "var(--green)" }}>{stable}</span>
+        </div>
+        <div className="tri-foot-item">
+          <span className="dot-sq" style={{ background: "var(--red)" }}></span>
+          <span className="tf-lbl">Critical (P+U)</span>
+          <span className="tf-num" style={{ color: critical > 0 ? "var(--red)" : "var(--ink-3)" }}>{critical}</span>
+        </div>
       </div>
     </div>
   );
@@ -1347,7 +1455,12 @@ function App() {
         <div className="main-grid">
           {/* ROW 1: Total | Triage | Time chart */}
           <div className="grid row-1">
-            <TotalCard totals={DATA.totals} />
+            <TotalCard
+              totals={DATA.totals}
+              elapsedMin={Math.floor((now - new Date(DATA.event.startedAt)) / 60000)}
+              pendingCount={DATA.pending.length}
+              lastCaseTime={DATA.pending.length > 0 ? DATA.pending[DATA.pending.length - 1].timeIn : "—"}
+            />
             <TriageCard triage={DATA.triage} />
             <ChartCard timeOfIncident={DATA.timeOfIncident} />
           </div>
