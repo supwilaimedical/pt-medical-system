@@ -1,0 +1,157 @@
+/* ============================================================
+   Backoffice — overrides + additions on top of components.css
+   Adds: toast host, modal loading overlay, hub tiles, login screen
+   ============================================================ */
+
+/* Toasts (replaces design's toast-host) */
+.bo-toast-host {
+  position: fixed; right: 16px; bottom: 16px;
+  z-index: 11000;
+  display: flex; flex-direction: column; gap: 8px;
+  pointer-events: none;
+}
+.bo-toast {
+  pointer-events: auto;
+  background: var(--bg-elev);
+  border: 1px solid var(--line);
+  border-radius: var(--r-3);
+  box-shadow: var(--sh-3);
+  padding: 10px 14px;
+  display: flex; align-items: center; gap: 10px;
+  font-size: var(--t-sm);
+  min-width: 220px; max-width: 360px;
+}
+.bo-toast--ok   { color: var(--ok); }
+.bo-toast--err  { color: var(--danger); background: var(--danger-soft); border-color: #fecaca; }
+.bo-toast--undo { color: var(--warn); }
+.bo-toast i { font-size: 18px; }
+.bo-toast__btn {
+  margin-left: auto;
+  background: var(--ink);
+  color: #fff;
+  border: 0;
+  border-radius: var(--r-2);
+  padding: 4px 10px;
+  font-size: var(--t-xs);
+  cursor: pointer;
+}
+
+/* Loading overlay */
+.bo-load-overlay {
+  position: fixed; inset: 0;
+  background: rgba(15,23,42,.45);
+  display: none;
+  align-items: center; justify-content: center;
+  z-index: 12000;
+  backdrop-filter: blur(2px);
+}
+.bo-load-overlay.is-open { display: flex; }
+.bo-load-card {
+  background: var(--bg-elev);
+  border-radius: var(--r-3);
+  padding: 24px 32px;
+  display: flex; align-items: center; gap: 14px;
+  box-shadow: var(--sh-pop);
+}
+.bo-load-text { font-weight: 500; color: var(--ink-2); }
+
+/* Login + Hub screen */
+.bo-login {
+  min-height: 100vh;
+  display: flex; align-items: center; justify-content: center;
+  background: var(--modern-soft);
+  padding: 16px;
+}
+.bo-login__card {
+  background: var(--bg-elev);
+  border-radius: var(--r-4);
+  box-shadow: var(--sh-3);
+  padding: 32px;
+  width: 100%; max-width: 420px;
+}
+.bo-login__logo {
+  width: 64px; height: 64px;
+  border-radius: var(--r-3);
+  background: var(--modern-primary);
+  color: #fff;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 28px; font-weight: 700;
+  margin: 0 auto 20px;
+}
+.bo-login__title {
+  text-align: center; font-size: 22px; font-weight: 700;
+  color: var(--primary); margin-bottom: 4px;
+}
+.bo-login__sub {
+  text-align: center; font-size: 13px; color: var(--ink-3);
+  margin-bottom: 24px;
+}
+
+/* Hub tiles */
+.bo-hub {
+  min-height: 100vh;
+  background: var(--bg);
+  display: flex; flex-direction: column;
+}
+.bo-hub__top {
+  background: var(--bg-elev);
+  border-bottom: 1px solid var(--line);
+  padding: 12px 20px;
+  display: flex; align-items: center; gap: 12px;
+  min-height: 56px;
+}
+.bo-hub__top h1 { font-size: 18px; margin: 0; color: var(--primary); font-weight: 700; }
+.bo-hub__user {
+  margin-left: auto; display: flex; align-items: center; gap: 8px;
+  font-size: 13px; color: var(--ink-2);
+}
+.bo-hub__avatar {
+  width: 36px; height: 36px; border-radius: 50%;
+  background: var(--primary); color: #fff;
+  display: flex; align-items: center; justify-content: center;
+  font-weight: 700; font-size: 13px;
+}
+.bo-hub__body {
+  flex: 1;
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 20px; padding: 32px 20px;
+  max-width: 1100px; margin: 0 auto; width: 100%;
+}
+.bo-tile {
+  background: var(--bg-elev);
+  border: 1px solid var(--line);
+  border-radius: var(--r-4);
+  padding: 28px 24px;
+  display: flex; flex-direction: column; gap: 12px;
+  cursor: pointer;
+  transition: transform var(--dur-2) var(--ease), box-shadow var(--dur-2) var(--ease), border-color var(--dur-2) var(--ease);
+  text-decoration: none; color: inherit;
+}
+.bo-tile:hover {
+  transform: translateY(-3px);
+  box-shadow: var(--sh-3);
+  border-color: var(--primary-300);
+}
+.bo-tile__icon {
+  width: 56px; height: 56px;
+  border-radius: var(--r-3);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 28px; color: #fff;
+}
+.bo-tile__icon--dms   { background: var(--doc-rcpt); }
+.bo-tile__icon--stock { background: var(--type-equip); }
+.bo-tile__title { font-size: 18px; font-weight: 700; color: var(--ink); margin: 0; }
+.bo-tile__desc  { font-size: 13px; color: var(--ink-3); line-height: 1.5; }
+.bo-tile__cta   { font-size: 13px; color: var(--primary); font-weight: 600; margin-top: auto; }
+.bo-tile__cta i { transition: transform var(--dur-1) var(--ease); }
+.bo-tile:hover .bo-tile__cta i { transform: translateX(3px); }
+
+/* Remove meta-header reference from copied components.css if any */
+.meta-header, .meta-tabs, .meta-tab, .meta-section, .meta-header__viewport, .vp-btn { display: none !important; }
+
+/* Print page CSS additions for documents */
+@media print {
+  .bo-no-print, .pt-rail, .pt-subnav, .pt-bnav, .pt-content__topbar { display: none !important; }
+  .pt-content, .pt-content__body { overflow: visible !important; padding: 0 !important; }
+  body, html { background: #fff !important; }
+}

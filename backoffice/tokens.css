@@ -1,0 +1,139 @@
+/* ============================================================
+   DMS + Stock — Design Tokens
+   Aligned with PT-Amb visual language
+   ============================================================ */
+
+:root {
+  /* — Brand — */
+  --primary:        #1A2B4A;   /* navy */
+  --primary-700:    #142039;
+  --primary-500:    #25406b;
+  --primary-300:    #5b75a2;
+  --accent:         #C41E3A;   /* red */
+  --accent-600:     #a51730;
+  --accent-300:     #e0667a;
+  --modern-primary: linear-gradient(135deg, #1e3a5f 0%, #0d6efd 100%);
+  --modern-soft:    linear-gradient(135deg, #eaf1ff 0%, #f4f7fc 100%);
+
+  /* — Canvas — */
+  --bg:             #f0f2f5;
+  --bg-elev:        #ffffff;
+  --bg-muted:       #f7f8fa;
+  --bg-tinted:      #eef2f7;
+  --bg-dark:        #0e1a30;
+
+  /* — Ink — */
+  --ink:            #0f172a;
+  --ink-2:          #334155;
+  --ink-3:          #64748b;
+  --ink-4:          #94a3b8;
+  --ink-5:          #cbd5e1;
+  --line:           #e2e8f0;
+  --line-strong:    #cbd5e1;
+
+  /* — Status — */
+  --ok:             #16a34a;
+  --ok-soft:        #dcfce7;
+  --warn:           #d97706;
+  --warn-soft:      #fef3c7;
+  --danger:         #dc2626;
+  --danger-soft:    #fee2e2;
+  --info:           #0ea5e9;
+  --info-soft:      #e0f2fe;
+
+  /* — Triage (medical) — */
+  --t-red:          #dc2626;
+  --t-pink:         #ec4899;
+  --t-yellow:       #f59e0b;
+  --t-green:        #16a34a;
+
+  /* — Stock type palette (one per category) — */
+  --type-drug:      #2563eb;   /* 💊 ยา           */
+  --type-drug-bg:   #dbeafe;
+  --type-med:       #0d9488;   /* 🩹 เวชภัณฑ์    */
+  --type-med-bg:    #ccfbf1;
+  --type-equip:     #7c3aed;   /* 🩺 อุปกรณ์      */
+  --type-equip-bg:  #ede9fe;
+  --type-gen:       #475569;   /* 📦 ของใช้       */
+  --type-gen-bg:    #e2e8f0;
+  --type-doc:       #b45309;   /* 📄 เอกสาร      */
+  --type-doc-bg:    #fef3c7;
+  --type-tech:      #ea580c;   /* 🔧 ช่าง         */
+  --type-tech-bg:   #ffedd5;
+  --type-ox:        #0891b2;   /* 🫁 ออกซิเจน    */
+  --type-ox-bg:     #cffafe;
+
+  /* — Doc type palette — */
+  --doc-q:          #0d6efd;   /* Quotation     */
+  --doc-q-bg:       #dbeafe;
+  --doc-inv:        #7c3aed;   /* Tax Invoice   */
+  --doc-inv-bg:     #ede9fe;
+  --doc-rcpt:       #16a34a;   /* Receipt       */
+  --doc-rcpt-bg:    #dcfce7;
+  --doc-bill:       #d97706;   /* Billing Note  */
+  --doc-bill-bg:    #fef3c7;
+  --doc-cn:         #dc2626;   /* Credit Note   */
+  --doc-cn-bg:      #fee2e2;
+
+  /* — Radius — */
+  --r-1:  4px;
+  --r-2:  8px;
+  --r-3:  12px;
+  --r-4:  16px;
+  --r-pill: 999px;
+
+  /* — Shadow — */
+  --sh-1: 0 1px 2px rgba(15,23,42,.04), 0 0 0 1px rgba(15,23,42,.04);
+  --sh-2: 0 2px 4px rgba(15,23,42,.06), 0 1px 2px rgba(15,23,42,.04);
+  --sh-3: 0 12px 24px -8px rgba(15,23,42,.16), 0 4px 8px -4px rgba(15,23,42,.08);
+  --sh-pop: 0 24px 48px -12px rgba(15,23,42,.30);
+
+  /* — Layout — */
+  --rail-w:     56px;
+  --subnav-w:   240px;
+  --topbar-h:   52px;
+  --bnav-h:     64px;
+  --hit:        44px;     /* min tap target */
+  --hit-lg:     56px;     /* mobile primary action */
+
+  /* — Type — */
+  --font-th:    "Sarabun", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-en:    "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono:  "JetBrains Mono", "SFMono-Regular", Menlo, Consolas, monospace;
+
+  --t-xxs:  11px;
+  --t-xs:   12px;
+  --t-sm:   13px;
+  --t-md:   14px;
+  --t-lg:   16px;
+  --t-xl:   18px;
+  --t-2xl:  22px;
+  --t-3xl:  28px;
+  --t-4xl:  36px;
+
+  --lh:     1.5;
+  --lh-t:   1.25;
+
+  /* — Motion — */
+  --ease:   cubic-bezier(.2,.7,.2,1);
+  --dur-1:  .15s;
+  --dur-2:  .25s;
+}
+
+/* — Bootstrap override hooks — */
+.btn-primary {
+  --bs-btn-bg: var(--primary);
+  --bs-btn-border-color: var(--primary);
+  --bs-btn-hover-bg: var(--primary-700);
+  --bs-btn-hover-border-color: var(--primary-700);
+  --bs-btn-active-bg: var(--primary-700);
+  --bs-btn-active-border-color: var(--primary-700);
+}
+.btn-danger {
+  --bs-btn-bg: var(--accent);
+  --bs-btn-border-color: var(--accent);
+  --bs-btn-hover-bg: var(--accent-600);
+  --bs-btn-hover-border-color: var(--accent-600);
+  --bs-btn-active-bg: var(--accent-600);
+  --bs-btn-active-border-color: var(--accent-600);
+}
