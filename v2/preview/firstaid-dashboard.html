@@ -715,10 +715,10 @@ const { Donut, DonutCard, TimeOfIncident, Sparkline } = window;
 const DATA = {
   event: {
     name: "ทดสอบงานวิ่ง — บ้านแถวนี้",
-    location: "อ. เมือง • Mini-Marathon 10K",
-    started: "18:00",
-    elapsed: "2:14:37",
-    weather: "29°C • ชื้น 78%",
+    venue: "สวนหลวง ร.9",
+    category: "Mini-Marathon 10K",
+    // Preview: pretend event started 2h 14m 37s ago so live Elapsed shows realistic value
+    startedAt: new Date(Date.now() - (2 * 3600 + 14 * 60 + 37) * 1000).toISOString(),
   },
   totals: { total: 6, med: 4, trauma: 2, transfer: 3, dc: 3, pending: 0 },
   triage: [
@@ -985,11 +985,32 @@ function BarListCard({ title, dotColor = "primary", rows }) {
 function App() {
   const [refreshIn, setRefreshIn] = React.useState(120);
   const [isFs, setIsFs] = React.useState(false);
+  const [now, setNow] = React.useState(new Date());
 
   React.useEffect(() => {
-    const id = setInterval(() => setRefreshIn(r => r <= 1 ? 120 : r - 1), 1000);
+    const id = setInterval(() => {
+      setRefreshIn(r => r <= 1 ? 120 : r - 1);
+      setNow(new Date());
+    }, 1000);
     return () => clearInterval(id);
   }, []);
+
+  // Live clock + elapsed (Asia/Bangkok)
+  const fmtClock = (d) => new Intl.DateTimeFormat('en-GB', {
+    timeZone: 'Asia/Bangkok', hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false
+  }).format(d);
+  const fmtStartTime = (iso) => new Intl.DateTimeFormat('en-GB', {
+    timeZone: 'Asia/Bangkok', hour: '2-digit', minute: '2-digit', hour12: false
+  }).format(new Date(iso));
+  const fmtElapsed = (startIso, nowDate) => {
+    const ms = nowDate - new Date(startIso);
+    if (ms < 0) return "0:00:00";
+    const s = Math.floor(ms / 1000);
+    const h = Math.floor(s / 3600);
+    const m = Math.floor((s % 3600) / 60);
+    const sec = s % 60;
+    return `${h}:${String(m).padStart(2,'0')}:${String(sec).padStart(2,'0')}`;
+  };
 
   React.useEffect(() => {
     const onChange = () => setIsFs(!!document.fullscreenElement);
@@ -1029,23 +1050,28 @@ function App() {
 
         <div className="th-stats">
           <div className="th-stat">
+            <div className="th-stat-label">Venue</div>
+            <div className="th-stat-value">{DATA.event.venue}</div>
+          </div>
+          <div className="th-divider"></div>
+          <div className="th-stat">
             <div className="th-stat-label">Category</div>
-            <div className="th-stat-value">{DATA.event.location}</div>
+            <div className="th-stat-value">{DATA.event.category}</div>
           </div>
           <div className="th-divider"></div>
           <div className="th-stat">
             <div className="th-stat-label">Start</div>
-            <div className="th-stat-value mono">{DATA.event.started}</div>
+            <div className="th-stat-value mono">{fmtStartTime(DATA.event.startedAt)}</div>
           </div>
           <div className="th-divider"></div>
           <div className="th-stat">
             <div className="th-stat-label">Elapsed</div>
-            <div className="th-stat-value mono">{DATA.event.elapsed}</div>
+            <div className="th-stat-value mono">{fmtElapsed(DATA.event.startedAt, now)}</div>
           </div>
           <div className="th-divider"></div>
           <div className="th-stat">
-            <div className="th-stat-label">Conditions</div>
-            <div className="th-stat-value" style={{ fontWeight: 500 }}>{DATA.event.weather}</div>
+            <div className="th-stat-label">Now</div>
+            <div className="th-stat-value mono">{fmtClock(now)}</div>
           </div>
         </div>
 
