@@ -3823,29 +3823,43 @@
         // Responsive
         h += "@media screen and (max-width:900px) { .page { padding:8px; } .row1 { grid-template-columns:1fr!important; } .row2d { grid-template-columns:repeat(3,1fr)!important; } .row3r { grid-template-columns:repeat(2,1fr)!important; } .time-ch-wrap { height:140px; } }";
         h += "@media screen and (max-width:600px) { .row2d { grid-template-columns:1fr!important; } .row3r { grid-template-columns:1fr!important; } }";
-        // Fullscreen mode — scale UI for wallboard / TV view (fills viewport, vh-based heights)
+        // Fullscreen mode — wallboard layout (flex column fills viewport, rows grow)
         h += "body:-webkit-full-screen, body:fullscreen { background:#0f172a; margin:0; }";
-        h += "body:fullscreen .page { max-width:none !important; width:100vw !important; margin:0 !important; padding:14px 22px 18px !important; background:#fff; min-height:100vh; box-sizing:border-box; }";
-        // Header / toolbar
-        h += "body:fullscreen .hdr h1 { font-size:26pt !important; line-height:1.15; }";
-        h += "body:fullscreen .sub { font-size:13pt !important; }";
-        h += "body:fullscreen .toolbar { padding:8px 0 !important; font-size:11pt !important; }";
-        h += "body:fullscreen .tab-btn { font-size:11pt !important; padding:8px 18px !important; }";
-        // Card titles + stat
-        h += "body:fullscreen .card-title, body:fullscreen .stit { font-size:13pt !important; }";
-        h += "body:fullscreen .stat-num { font-size:54pt !important; line-height:1; }";
+        h += "body:fullscreen html { height:100vh; }";
+        // .page becomes flex column filling viewport
+        h += "body:fullscreen .page { max-width:none !important; width:100vw !important; height:100vh !important; margin:0 !important; padding:12px 20px !important; background:#fff; box-sizing:border-box; display:flex !important; flex-direction:column; gap:10px; overflow:hidden; }";
+        // Fixed-height bands
+        h += "body:fullscreen .hdr { flex:0 0 auto; padding:8px 16px !important; }";
+        h += "body:fullscreen .toolbar { flex:0 0 auto; padding:4px 0 !important; }";
+        // Tab dash takes all remaining space, rows inside grow
+        h += "body:fullscreen #tab-dash { flex:1 1 auto; display:flex !important; flex-direction:column; gap:10px; min-height:0; }";
+        h += "body:fullscreen #tab-dash .row1 { flex:0 0 auto; }";
+        h += "body:fullscreen #tab-dash .row2d { flex:1 1 0; min-height:0; margin-bottom:0 !important; }";
+        h += "body:fullscreen #tab-dash .row3r { flex:1 1 0; min-height:0; }";
+        // Cards inside rows fill their grid cell
+        h += "body:fullscreen .row2d > .card, body:fullscreen .row3r > .card { display:flex; flex-direction:column; min-height:0; height:100%; }";
+        // Chart wrappers fill remaining card space
+        h += "body:fullscreen .chwrap { flex:1 1 auto !important; height:auto !important; min-height:150px; }";
+        h += "body:fullscreen .time-ch-wrap { height:100% !important; min-height:200px; }";
+        h += "body:fullscreen .row1 { min-height:22vh; }";
+        h += "body:fullscreen .row1 .card-time { display:flex; flex-direction:column; }";
+        h += "body:fullscreen .row1 .card-time .time-ch-wrap { flex:1; }";
+        // Lists fill card height with scrolling fallback
+        h += "body:fullscreen .row3r .card { overflow:hidden; }";
+        h += "body:fullscreen .row3r .card .rtbl { font-size:11pt; }";
+        h += "body:fullscreen .rtbl, body:fullscreen .ptbl { font-size:11pt !important; }";
+        h += "body:fullscreen .rtbl th, body:fullscreen .ptbl th { font-size:10pt !important; padding:6px 8px !important; }";
+        h += "body:fullscreen .rtbl td, body:fullscreen .ptbl td { padding:6px 8px !important; }";
+        // Typography scaling
+        h += "body:fullscreen .hdr h1 { font-size:24pt !important; line-height:1.1; margin:0; }";
+        h += "body:fullscreen .sub { font-size:12pt !important; }";
+        h += "body:fullscreen .tab-btn { font-size:11pt !important; padding:6px 16px !important; }";
+        h += "body:fullscreen .card-title, body:fullscreen .stit { font-size:12pt !important; }";
+        h += "body:fullscreen .stat-num { font-size:5.5vh !important; line-height:1; }";
         h += "body:fullscreen .stat-lbl { font-size:11pt !important; }";
-        // Chart heights — vh-based so they fill the viewport regardless of TV size
-        h += "body:fullscreen .chwrap { height:22vh !important; min-height:170px; }";
-        h += "body:fullscreen .time-ch-wrap { height:32vh !important; min-height:240px; }";
-        // Tables (lists) — larger rows for readability at distance
-        h += "body:fullscreen .rtbl, body:fullscreen .ptbl { font-size:12pt !important; }";
-        h += "body:fullscreen .rtbl th, body:fullscreen .ptbl th { font-size:11pt !important; padding:8px 10px !important; }";
-        h += "body:fullscreen .rtbl td, body:fullscreen .ptbl td { padding:8px 10px !important; }";
-        h += "body:fullscreen .badge-tri { font-size:10pt !important; padding:4px 12px !important; }";
-        // Scene Triage label/values inside dashboard
-        h += "body:fullscreen .stl { font-size:12pt !important; }";
-        h += "body:fullscreen .stn { font-size:18pt !important; font-weight:700; }";
+        h += "body:fullscreen .stl { font-size:11pt !important; }";
+        h += "body:fullscreen .stn { font-size:14pt !important; font-weight:700; }";
+        h += "body:fullscreen .badge-tri { font-size:9pt !important; padding:3px 10px !important; }";
         h += "</style></head><body><div class='page'>";
 
         // Header
