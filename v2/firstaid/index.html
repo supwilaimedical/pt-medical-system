@@ -456,10 +456,8 @@
     }
     /* New FAB for list view (+ เหตุการณ์) */
     .fa-list-fab {
-      position: fixed; left: 50%;
-      /* Above bnav (height 56 + safe-area) + 16px gap so it sits clear of "ปิดแล้ว" tab */
-      bottom: calc(72px + env(safe-area-inset-bottom));
-      transform: translateX(-50%);
+      position: fixed; left: 50%; bottom: 28px; transform: translateX(-50%);
+      /* FAB sits centered in 80px notch pocket of bnav (between เปิดอยู่ and ปิดแล้ว tabs) */
       width: 60px; height: 60px; border-radius: 50%;
       background: #16a34a; color: #fff; border: 0;
       display: flex; align-items: center; justify-content: center;
@@ -478,6 +476,9 @@
     }
     .pt-bnav.cols-3 { grid-template-columns: repeat(3, 1fr); }
     .pt-bnav.cols-4 { grid-template-columns: repeat(4, 1fr); }
+    /* Notch pattern: 2 tabs + 80px center pocket for FAB */
+    .pt-bnav.fa-bnav-notch { grid-template-columns: 1fr 80px 1fr; }
+    .pt-bnav .fa-bnav-pocket { visibility: hidden; pointer-events: none; }
     .pt-bnav a {
       display:flex; flex-direction:column; align-items:center; justify-content:center; gap:2px;
       color:#64748b; text-decoration:none; cursor:pointer;
@@ -4050,15 +4051,14 @@ if ('serviceWorker' in navigator) {
        ============================================================ -->
   <button class="fa-list-fab" id="fa-list-fab" style="display:none;" onclick="if(typeof fa_openCreateEventModal==='function') fa_openCreateEventModal();" title="เพิ่มเหตุการณ์"><i class="bi bi-plus-lg"></i></button>
 
-  <nav class="pt-bnav cols-3" id="fa-bnav-list" style="display:none;">
+  <!-- 2 tabs + center pocket for FAB (Material notch pattern). ค้นหา removed (duplicate of body search bar). -->
+  <nav class="pt-bnav fa-bnav-notch" id="fa-bnav-list" style="display:none;">
     <a href="javascript:void(0)" id="fa-bnav-active" onclick="if(typeof v2FaSetTab==='function') v2FaSetTab('active');">
       <i class="bi bi-broadcast-pin"></i><span>เปิดอยู่</span>
     </a>
+    <span class="fa-bnav-pocket" aria-hidden="true"></span>
     <a href="javascript:void(0)" id="fa-bnav-complete" onclick="if(typeof v2FaSetTab==='function') v2FaSetTab('complete');">
       <i class="bi bi-archive"></i><span>ปิดแล้ว</span>
-    </a>
-    <a href="javascript:void(0)" onclick="document.getElementById('fa-search-input')?.focus();">
-      <i class="bi bi-search"></i><span>ค้นหา</span>
     </a>
   </nav>
 
