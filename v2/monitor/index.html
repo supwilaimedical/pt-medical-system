@@ -5152,8 +5152,12 @@
       _critLogLoading = true;
       body.innerHTML = '<div class="mclm-loading"><div class="spinner-border spinner-border-sm" role="status"></div><span>กำลังโหลด...</span></div>';
       try {
-        if (!window._supabase) throw new Error('Supabase client not ready');
-        var res = await window._supabase
+        // _supabase is a top-level `const` in shared/auth.js — globally accessible by bare identifier,
+        // but NOT on `window`. Use typeof check + bare reference.
+        if (typeof _supabase === 'undefined' || !_supabase) {
+          throw new Error('Supabase client not ready');
+        }
+        var res = await _supabase
           .from('notification_log')
           .select('id, case_id, alert_type, channel, status, error, payload, created_at')
           .eq('alert_type', 'CRITICAL')
