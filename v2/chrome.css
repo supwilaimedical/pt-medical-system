@@ -226,8 +226,22 @@ body[data-module="monitor"] .v2-mobile-rail-strip a.active {
   color: var(--accent) !important;
 }
 
-/* ===== MOBILE — NO layout overrides (module's native CSS handles layout).
-   Only color-related tweaks kept in earlier blocks. Aggressive layout rules removed. */
+/* ===== MOBILE per-module fixes ===== */
+@media (max-width: 991px) {
+  /* Transport list view header — clear hamburger (top:8 left:8 width:40 → need padding-left ~56) */
+  body[data-module="transport"] #dashboard-view > .d-flex.justify-content-between.align-items-end {
+    padding-left: 56px !important;
+  }
+  /* Transport bnav notch — 5 cells with 80px pocket for FAB */
+  body[data-module="transport"] .pt-bnav.pt-bnav-notch {
+    grid-template-columns: 1fr 1fr 80px 1fr 1fr !important;
+  }
+  body[data-module="transport"] .pt-bnav .pt-bnav-pocket {
+    display: block;
+    pointer-events: none;
+    visibility: hidden;
+  }
+}
 
 /* ===== ADMIN MOBILE — sidebar drawer (when open) should also be navy ===== */
 @media (max-width: 991px) {

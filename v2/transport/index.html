@@ -1137,7 +1137,7 @@
       .fab-btn { bottom:16px; right:16px; width:48px; height:48px; font-size:1.2rem; }
     }
   </style>
-  <link rel="stylesheet" href="../chrome.css?v=20260517d">
+  <link rel="stylesheet" href="../chrome.css?v=20260517e">
 </head>
 <body data-module="transport">
 
@@ -8958,13 +8958,15 @@
        Two variants: pt-bnav (dashboard) + pt-bnav-form (form view).
        All buttons reuse existing v2SetListTab / v2GoToStep / v2QuickAction.
        ============================================================ -->
-  <nav class="pt-bnav" id="pt-bnav" style="display:none;" aria-label="Bottom navigation">
+  <!-- 5 cells: 2 tabs + center pocket for FAB + 2 tabs (notch pattern for centered FAB) -->
+  <nav class="pt-bnav pt-bnav-notch" id="pt-bnav" style="display:none;" aria-label="Bottom navigation">
     <a href="javascript:void(0)" data-list-tab="all" onclick="if(typeof v2SetListTab==='function') v2SetListTab('all');">
       <i class="bi bi-list-ul"></i><span>ทั้งหมด</span>
     </a>
     <a href="javascript:void(0)" data-list-tab="active" onclick="if(typeof v2SetListTab==='function') v2SetListTab('active');">
       <i class="bi bi-broadcast-pin"></i><span>Active</span>
     </a>
+    <span class="pt-bnav-pocket" aria-hidden="true"></span>
     <a href="javascript:void(0)" data-list-tab="closed" onclick="if(typeof v2SetListTab==='function') v2SetListTab('closed');">
       <i class="bi bi-archive"></i><span>ปิดแล้ว</span>
     </a>
