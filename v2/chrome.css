@@ -140,29 +140,82 @@ body[data-module] .v2-subnav select.form-select option {
   background: var(--chrome-bg-3); color: var(--chrome-text);
 }
 
-/* ===== TOPBAR — glass navy (sticky inside view-section) ===== */
+/* ===== TOPBAR — glass navy (catches per-module sticky header classes) ===== */
 body[data-module] .view-section > .d-flex.justify-content-between.align-items-end,
 body[data-module] .v2-topbar,
-body[data-module] .topbar-sticky {
+body[data-module] .topbar-sticky,
+body[data-module] .v2-colheader,
+body[data-module] .v2-gps-colheader,
+body[data-module] .v2-form-topbar,
+body[data-module] .fa-colhead,
+body[data-module] .monitor-page-header,
+body[data-module="admin"] .admin-topbar {
   background: var(--chrome-glass) !important;
   backdrop-filter: blur(14px) saturate(180%);
   -webkit-backdrop-filter: blur(14px) saturate(180%);
   border-bottom: 1px solid var(--chrome-line) !important;
   color: var(--chrome-text) !important;
 }
+body[data-module] .v2-topbar h2, body[data-module] .v2-topbar h3, body[data-module] .v2-topbar h4,
+body[data-module] .v2-colheader h2, body[data-module] .v2-colheader h3, body[data-module] .v2-colheader h4,
+body[data-module] .v2-colheader .title,
+body[data-module] .v2-gps-colheader .title,
+body[data-module] .v2-form-topbar h2, body[data-module] .v2-form-topbar h3,
+body[data-module] .fa-colhead .title,
+body[data-module] .fa-colhead h2, body[data-module] .fa-colhead h3,
+body[data-module] .monitor-page-header h2, body[data-module] .monitor-page-header h3, body[data-module] .monitor-page-header h4,
 body[data-module] .view-section > .d-flex.justify-content-between.align-items-end h2,
 body[data-module] .view-section > .d-flex.justify-content-between.align-items-end h3,
 body[data-module] .view-section > .d-flex.justify-content-between.align-items-end h4,
-body[data-module] .v2-topbar h2,
-body[data-module] .v2-topbar h3,
-body[data-module] .v2-topbar h4 {
+body[data-module="admin"] .admin-topbar .title {
   color: var(--chrome-text) !important;
 }
-body[data-module] .view-section > .d-flex.justify-content-between.align-items-end .text-muted,
-body[data-module] .view-section > .d-flex.justify-content-between.align-items-end small,
+body[data-module] .v2-colheader .sub,
+body[data-module] .v2-gps-colheader .sub,
+body[data-module] .fa-colhead .sub,
+body[data-module] .monitor-page-header .sub,
 body[data-module] .v2-topbar .text-muted,
-body[data-module] .v2-topbar small {
+body[data-module] .v2-topbar small,
+body[data-module] .view-section > .d-flex.justify-content-between.align-items-end .text-muted,
+body[data-module] .view-section > .d-flex.justify-content-between.align-items-end small {
   color: var(--chrome-text-3) !important;
+}
+/* Icons in topbar titles → accent color */
+body[data-module] .v2-colheader .title .bi,
+body[data-module] .v2-gps-colheader .title .bi,
+body[data-module] .fa-colhead .title .bi,
+body[data-module] .monitor-page-header h3 .bi {
+  color: var(--accent) !important;
+}
+
+/* ===== RIGHT COLUMN — elevated navy panel (per-module classes) ===== */
+body[data-module] .fa-dash-right,
+body[data-module] .fa-evt-right,
+body[data-module] .v2-right-col,
+body[data-module] .right-col {
+  background: var(--chrome-bg-3) !important;
+  border-left: 1px solid var(--chrome-line) !important;
+  color: var(--chrome-text-2) !important;
+}
+body[data-module] .fa-rc-section,
+body[data-module] .v2-right-col .section-label,
+body[data-module] .right-col .section-label {
+  color: var(--chrome-text-3) !important;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  font-size: 11px !important;
+  border-top: 1px solid var(--chrome-line) !important;
+}
+body[data-module] .fa-dash-right .card,
+body[data-module] .fa-evt-right .card {
+  background: transparent !important;
+  color: var(--chrome-text-2) !important;
+}
+body[data-module] .fa-dash-right .card-header,
+body[data-module] .fa-evt-right .card-header {
+  background: var(--chrome-bg-4) !important;
+  color: var(--chrome-text) !important;
+  border-bottom: 1px solid var(--chrome-line) !important;
 }
 
 /* ===== BOTTOM NAV (mobile) — floating glass navy ===== */
@@ -261,6 +314,16 @@ body[data-module] .v2-mobile-nav-toggle {
   body[data-module] .v2-subnav-header,
   body[data-module] .v2-topbar,
   body[data-module] .topbar-sticky,
+  body[data-module] .v2-colheader,
+  body[data-module] .v2-gps-colheader,
+  body[data-module] .v2-form-topbar,
+  body[data-module] .fa-colhead,
+  body[data-module] .monitor-page-header,
+  body[data-module="admin"] .admin-topbar,
+  body[data-module] .fa-dash-right,
+  body[data-module] .fa-evt-right,
+  body[data-module] .v2-right-col,
+  body[data-module] .right-col,
   body[data-module] .view-section > .d-flex.justify-content-between.align-items-end {
     background: #fff !important;
     color: #0f172a !important;
