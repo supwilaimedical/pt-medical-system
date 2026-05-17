@@ -92,7 +92,7 @@
     .reg-gender-btn:hover { border-color: var(--gc); color: var(--gc); }
     .reg-gender-btn.active { border-color: var(--gc); background: var(--gc); color:#fff; box-shadow: 0 2px 6px rgba(0,0,0,0.15); }
   </style>
-  <link rel="stylesheet" href="../chrome.css?v=20260517l">
+  <link rel="stylesheet" href="../chrome.css?v=20260517m">
 </head>
 <body data-module="firstaid">
 <!-- V2 Side Rail + Subnav + sticky col-header -->
@@ -316,6 +316,14 @@
   body{ padding-right:0; }
   @media (min-width:1200px){
     body.fa-has-rightcol{ padding-right:280px; }
+    /* Colhead spans across main + right col area (subnav-edge → viewport-right). */
+    .fa-colhead{
+      position:fixed !important; top:0; left:296px; right:0;
+      margin:0 !important; z-index:30;  /* above right col z:5 */
+    }
+    /* Push content + right col below fixed colhead (~56px tall) */
+    #fa-dashboard-view, #fa-event-view{ padding-top:64px !important; }
+    .fa-dash-right, .fa-evt-right{ top:64px !important; }
   }
   @media (max-width:1199px){ .fa-dash-right{ display:none; } }
 
