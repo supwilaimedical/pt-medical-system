@@ -278,9 +278,37 @@ body[data-module="firstaid"] .fa-dash-right .text-muted,
 body[data-module="firstaid"] .fa-dash-right small {
   color: var(--chrome-text-3) !important;
 }
-/* Firstaid topbar — make it span full viewport width above right col */
+/* Firstaid topbar — span full viewport width above right col (desktop ≥1200px) */
 body[data-module="firstaid"] .fa-colhead {
-  z-index: 11 !important;  /* above right col (z-index:5) */
+  z-index: 11 !important;
+}
+@media (min-width: 1200px) {
+  body[data-module="firstaid"].fa-has-rightcol .fa-colhead {
+    position: fixed !important;
+    top: 0;
+    /* left = rail (56) + subnav (240) = 296px when subnav visible; else 56 */
+    left: 296px;
+    right: 0;
+    margin: 0 !important;
+    z-index: 11;
+  }
+  /* When subnav hidden (e.g., admin page), topbar starts after rail only */
+  body[data-module="firstaid"].fa-has-rightcol:not(.v2-has-subnav) .fa-colhead {
+    left: 56px;
+  }
+  /* Push main content area down so it's not hidden under fixed topbar */
+  body[data-module="firstaid"].fa-has-rightcol .view-section {
+    padding-top: 64px;
+  }
+}
+@media (min-width: 992px) and (max-width: 1199px) {
+  body[data-module="firstaid"] .fa-colhead {
+    position: fixed !important;
+    top: 0; left: 296px; right: 0;
+    margin: 0 !important;
+    z-index: 11;
+  }
+  body[data-module="firstaid"] .view-section { padding-top: 64px; }
 }
 
 /* Monitor wide GPS pane internals */
