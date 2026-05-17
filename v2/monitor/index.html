@@ -893,25 +893,10 @@
   }
 
   /* ===== Critical Log Modal (responsive: bottom sheet on mobile portrait, centered on PC/landscape) ===== */
-  /* Header button (PC always-visible) */
-  .monitor-page-header .mph-crit-log {
-    display:inline-flex; align-items:center; gap:6px;
-    padding:6px 12px;
-    background:var(--chrome-bg-4, #244a6f);
-    color:var(--chrome-text, #f8fafc);
-    border:1px solid var(--chrome-line-2, rgba(255,255,255,0.14));
-    border-radius:999px; cursor:pointer;
-    font-size:12.5px; font-weight:600;
-    transition: background .15s, color .15s, border-color .15s;
-  }
-  .monitor-page-header .mph-crit-log:hover {
-    background:rgba(248,113,113,.18); color:#fca5a5;
-    border-color:rgba(248,113,113,.4);
-  }
-  .monitor-page-header .mph-crit-log .bi { color:#f87171; }
-  @media (max-width:767px) {
-    .monitor-page-header .mph-crit-log .lbl { display:none; }
-    .monitor-page-header .mph-crit-log { padding:6px 10px; }
+  /* Hide badge count when zero (cleaner subnav crit link) */
+  #v2-mon-crit-link .badge-mini.danger:empty,
+  #v2-mon-crit-link .badge-mini.danger[data-count="0"] {
+    display:none;
   }
 
   /* Backdrop */
@@ -1147,9 +1132,9 @@
     <span><i class="bi bi-bandaid"></i> ปฐมพยาบาล</span>
     <span id="v2-mon-fa-count" class="badge-mini">0</span>
   </a>
-  <a href="javascript:void(0)" id="v2-mon-crit-link" onclick="monCritLogOpen()" style="display:none;">
+  <a href="javascript:void(0)" id="v2-mon-crit-link" onclick="monCritLogOpen()" title="ประวัติแจ้งเตือนวิกฤต 10 รายการล่าสุด">
     <span><i class="bi bi-exclamation-triangle"></i> วิกฤต</span>
-    <span id="v2-mon-crit-count" class="badge-mini danger">0</span>
+    <span id="v2-mon-crit-count" class="badge-mini danger" data-count="0"></span>
   </a>
 
 </aside>
@@ -1220,13 +1205,15 @@
     var critLink = document.getElementById('v2-mon-crit-link');
     if(tc && tc2) tc2.textContent = tc.textContent;
     if(fc && fc2) fc2.textContent = fc.textContent;
-    if(cc && cc2) cc2.textContent = cc.textContent;
+    if(cc && cc2){
+      var nv = parseInt(cc.textContent, 10) || 0;
+      cc2.textContent = nv > 0 ? String(nv) : '';
+      cc2.setAttribute('data-count', String(nv));
+    }
     if(lr && lr2) lr2.textContent = lr.textContent;
     if(cd && cd2) cd2.textContent = cd.textContent;
-    if(critLink){
-      var n = cc ? parseInt(cc.textContent,10) : 0;
-      critLink.style.display = (n > 0) ? '' : 'none';
-    }
+    /* crit-link is always visible now (opens modal regardless of active critical count).
+       Badge auto-hides when count = 0 (see :empty / [data-count="0"] CSS). */
   }
   function init(){
     showAdminRail();
@@ -1350,9 +1337,6 @@
                         <h3><i class="bi bi-activity"></i> ศูนย์ควบคุม</h3>
                         <div class="sub">Monitor · เรียลไทม์</div>
                     </div>
-                    <button type="button" id="mph-crit-log-btn" class="mph-crit-log" onclick="monCritLogOpen()" title="ประวัติแจ้งเตือนวิกฤต 10 รายการล่าสุด">
-                        <i class="bi bi-exclamation-triangle-fill"></i> <span class="lbl">วิกฤต</span>
-                    </button>
                     <button type="button" id="mph-wallboard-btn" class="mph-wallboard" onclick="monitorToggleWallboard()" title="Wallboard mode (เปิด GPS pane ขวา)">
                         <i class="bi bi-tv"></i> <span class="lbl">Wallboard</span>
                     </button>
