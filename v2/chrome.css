@@ -243,6 +243,46 @@ body[data-module] .fa-evt-right .card-header {
   color: var(--chrome-text) !important;
   border-bottom: 1px solid var(--chrome-line) !important;
 }
+/* Firstaid right rail — push under topbar; force all text to chrome-text */
+body[data-module="firstaid"] .fa-dash-right {
+  top: 62px !important;  /* clear fa-colhead height */
+  border-top: 1px solid var(--chrome-line) !important;
+}
+body[data-module="firstaid"] .fa-dash-right * {
+  color: var(--chrome-text-2);
+}
+body[data-module="firstaid"] .fa-dash-right .fa-rc-section {
+  color: var(--chrome-text-3) !important;
+}
+body[data-module="firstaid"] .fa-dash-right .fa-rc-value,
+body[data-module="firstaid"] .fa-dash-right .fa-rc-val,
+body[data-module="firstaid"] .fa-dash-right strong,
+body[data-module="firstaid"] .fa-dash-right b {
+  color: var(--chrome-text) !important;
+}
+/* Bootstrap badges/list rows inside right col */
+body[data-module="firstaid"] .fa-dash-right .badge {
+  background: var(--chrome-bg-4) !important;
+  color: var(--chrome-text) !important;
+}
+body[data-module="firstaid"] .fa-dash-right .list-group-item,
+body[data-module="firstaid"] .fa-dash-right .row {
+  background: transparent !important;
+  color: var(--chrome-text-2) !important;
+  border-color: var(--chrome-line) !important;
+}
+body[data-module="firstaid"] .fa-dash-right a {
+  color: var(--accent) !important;
+}
+body[data-module="firstaid"] .fa-dash-right .text-muted,
+body[data-module="firstaid"] .fa-dash-right small {
+  color: var(--chrome-text-3) !important;
+}
+/* Firstaid topbar — make it span full viewport width above right col */
+body[data-module="firstaid"] .fa-colhead {
+  z-index: 11 !important;  /* above right col (z-index:5) */
+}
+
 /* Monitor wide GPS pane internals */
 body[data-module="monitor"] #monitor-wide-gps-pane .mwgp-head,
 body[data-module="monitor"] #monitor-wide-gps-pane .mwgp-vh {
