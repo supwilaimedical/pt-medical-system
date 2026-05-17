@@ -348,13 +348,25 @@ body[data-module="monitor"] #monitor-wide-gps-pane .mwgp-head h3 {
 body[data-module="monitor"] #monitor-wide-gps-pane .mwgp-head .bi {
   color: var(--accent) !important;
 }
-/* ===== UNIVERSAL FIXED TOPBAR REMOVED =====
-   Aggressive position:fixed broke too many layouts. Topbar stays sticky (native).
-   But: bump z-index so sticky topbar wins over fixed right-cols overlapping top area. */
+/* ===== TOPBAR-OVER-RIGHTCOL (desktop ≥992px) =====
+   For modules with right column, push rightcol down 64px so topbar (sticky in main column) appears ABOVE rightcol visually.
+   For GPS, rightcol is a flex item not position:fixed — use padding-top to push content down.
+   For Fleet, rightcol is position:fixed top:0 — change top to 64. */
 @media (min-width: 992px) {
+  /* Fleet: rightcol fixed → push top down */
+  body[data-module="fleet"] .fleet-rc {
+    top: 64px !important;
+  }
+  /* GPS: rightcol is flex item → padding-top pushes inner content down */
+  body[data-module="gps"] .v2-gps-rightcol {
+    padding-top: 56px !important;
+  }
+  /* Bump topbar z-index above any fixed sibling */
   body[data-module="fleet"] .v2-colheader,
-  body[data-module="gps"]   .v2-gps-colheader {
-    z-index: 30 !important;  /* above right-cols (.fleet-rc / .v2-gps-rightcol have no z-index = auto) */
+  body[data-module="gps"]   .v2-gps-colheader,
+  body[data-module="firstaid"] .fa-colhead,
+  body[data-module="monitor"]  .monitor-page-header {
+    z-index: 30 !important;
   }
 }
 
