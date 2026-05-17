@@ -5226,17 +5226,53 @@
         if (_critLogFilter === 'sent') {
           query = query.eq('status', 'sent');
         }
+        // Fetch extra rows (50) for client-side grouping; LINE + TG of same event = 2 rows
+        // collapse to 1 visual group. After grouping we slice to 10 groups.
         var res = await query
           .order('created_at', { ascending: false })
-          .limit(10);
+          .limit(50);
         if (res.error) throw res.error;
-        _critLogRender(res.data || []);
+        _critLogRender(_critLogGroup(res.data || []).slice(0, 10));
       } catch (err) {
         body.innerHTML = '<div class="mclm-empty"><i class="bi bi-exclamation-circle" style="color:#fca5a5;"></i><span>โหลดไม่สำเร็จ: ' + _critLogEsc2(err.message || String(err)) + '</span></div>';
       } finally {
         _critLogLoading = false;
       }
     };
+
+    /* Group consecutive rows that represent the SAME event sent to multiple channels.
+       LINE + TG of one critical alert are inserted as 2 rows with near-identical
+       timestamps (same Worker batch insert). Group key = case_id + status + 5s bucket. */
+    function _critLogGroup(rows) {
+      var groups = [];
+      var seen = Object.create(null);
+      rows.forEach(function(r){
+        var ts = new Date(r.created_at).getTime();
+        if (!isFinite(ts)) ts = 0;
+        var bucket = Math.floor(ts / 5000); // 5-second window
+        var key = (r.case_id || '') + '|' + (r.status || '') + '|' + bucket;
+        if (seen[key] != null) {
+          var g = groups[seen[key]];
+          var ch = r.channel || '';
+          if (ch && g.channels.indexOf(ch) === -1) g.channels.push(ch);
+          // Keep earliest timestamp as representative (rows already DESC, so first = latest in bucket)
+          // Preserve payload from richer row (one with .alerts or .severity)
+          if (!g.payload && r.payload) g.payload = r.payload;
+        } else {
+          seen[key] = groups.length;
+          groups.push({
+            case_id: r.case_id,
+            status: r.status,
+            created_at: r.created_at,
+            payload: r.payload,
+            alert_type: r.alert_type,
+            channels: r.channel ? [r.channel] : [],
+            error: r.error
+          });
+        }
+      });
+      return groups;
+    }
 
     function _critLogEsc2(s) {
       // Local sanitizer (escapeHtml may not be loaded yet)
@@ -5307,11 +5343,17 @@
           var safeId = _critLogEsc2(r.case_id);
           clickAttr = ' onclick="monCritLogClose(); monitorPreviewCase(\'' + safeId + '\')" title="คลิกเพื่อเปิดเคส"';
         }
+        // Channels: render one pill per channel (LINE / TG / etc).
+        // If grouping found multiple channels for same event, show all.
+        var channels = (r.channels && r.channels.length) ? r.channels : (r.channel ? [r.channel] : []);
+        var channelsHtml = channels.map(function(c){
+          return '<span class="mclm-row-channel">' + _critLogEsc2(_critLogChannelLabel(c)) + '</span>';
+        }).join('');
         return '<div class="mclm-row"' + clickAttr + '>' +
           '<div class="mclm-row-top">' +
             '<span class="mclm-row-time">' + _critLogEsc2(_critLogFmtTime(r.created_at)) + '</span>' +
             '<span class="mclm-row-pill ' + status + '">' + _critLogEsc2(_critLogStatusLabel(r.status)) + '</span>' +
-            '<span class="mclm-row-channel">' + _critLogEsc2(_critLogChannelLabel(r.channel)) + '</span>' +
+            channelsHtml +
           '</div>' +
           '<div class="mclm-row-case">#' + _critLogEsc2(caseShort) + (r.case_id ? ' <i class="bi bi-box-arrow-up-right"></i>' : '') + '</div>' +
           _critLogVitalsHtml(r.payload) +
