@@ -428,7 +428,10 @@
     body.monitor-wide-active #monitor-wide-gps-pane{
       display:flex; flex-direction:column; position:fixed; top:0; right:0; bottom:0;
       width: var(--mwgp-w); background:#f8fafc; color:#0f172a;
-      border-left:1px solid #e2e8f0; z-index:20; overflow:hidden;
+      /* border-left removed — created visible 1px white seam between navy main
+         topbar and navy pane head (both use --chrome-bg-3 from chrome.css).
+         Panes now butt seamlessly. */
+      z-index:20; overflow:hidden;
       font-family: inherit;
     }
     /* Header — exact same height/padding as .monitor-page-header so the
