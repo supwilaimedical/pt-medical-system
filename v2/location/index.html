@@ -104,7 +104,7 @@
   }
   body[data-module="location"] .v2-subnav-header {
     background: var(--chrome-bg-3) !important;
-    border-bottom: 1px solid var(--chrome-line) !important;
+    border-bottom: 0 !important;  /* avoid double-line with section border-top */
   }
   body[data-module="location"] .v2-subnav-header .title {
     color: var(--chrome-text) !important;
@@ -118,7 +118,7 @@
   /* "เพิ่มสถานที่ใหม่" wrapper (inline-styled <div>) */
   body[data-module="location"] .v2-subnav > div[style*="border-bottom"] {
     background: var(--chrome-bg-3) !important;
-    border-bottom: 1px solid var(--chrome-line) !important;
+    border-bottom: 0 !important;  /* no white line below CTA */
   }
   body[data-module="location"] .v2-subnav-section {
     color: var(--chrome-text-3) !important;
@@ -129,6 +129,7 @@
   }
   body[data-module="location"] .v2-subnav a {
     color: var(--chrome-text-2) !important;
+    border-bottom: 0 !important;  /* nuke inline #f1f5f9 white lines on navy */
     transition: background 150ms, color 150ms !important;
   }
   body[data-module="location"] .v2-subnav a:hover {

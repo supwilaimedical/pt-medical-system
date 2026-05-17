@@ -95,7 +95,9 @@ body[data-module] .v2-subnav {
 }
 body[data-module] .v2-subnav-header {
   background: var(--chrome-bg-3) !important;
-  border-bottom: 1px solid var(--chrome-line) !important;
+  /* No border-bottom — would create double-line with section border-top below it.
+     Section padding-top provides enough visual separation. */
+  border-bottom: 0 !important;
 }
 body[data-module] .v2-subnav-header .title {
   color: var(--chrome-text) !important;
@@ -142,7 +144,8 @@ body[data-module] .v2-subnav a.active .bi { opacity: 1 !important; }
 /* Inline-styled wrapper inside subnav (e.g., "+ เพิ่ม..." button block) */
 body[data-module] .v2-subnav > div[style*="border-bottom"] {
   background: var(--chrome-bg-3) !important;
-  border-bottom: 1px solid var(--chrome-line) !important;
+  /* No border-bottom — was the "1 white line" user saw under Transport CTA. */
+  border-bottom: 0 !important;
 }
 /* Dropdowns inside subnav */
 body[data-module] .v2-subnav select.form-select {
@@ -392,6 +395,13 @@ body[data-module="admin"] .admin-sidebar .sidebar-footer * {
   color: var(--chrome-text-3) !important;
 }
 
+/* ===== MONITOR — match topbar to subnav + wide pane (all 3 cols same navy) ===== */
+body[data-module="monitor"] .monitor-page-header {
+  background: var(--chrome-bg-3) !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
 /* ===== MONITOR wide GPS pane (when wallboard mode active) ===== */
 body[data-module="monitor"] #monitor-wide-gps-pane .mwgp-head {
   background: var(--chrome-bg-3) !important;
@@ -434,7 +444,7 @@ body[data-module="monitor"] #monitor-wide-gps-pane .mwgp-head .bi {
   body[data-module="fleet"] .v2-colheader {
     position: fixed !important;
     top: 0 !important;
-    left: 240px !important;  /* subnav width */
+    left: 296px !important;  /* rail 56 + subnav 240 (was 240 → overlapped subnav by 56px) */
     right: 0 !important;
     margin: 0 !important;
     z-index: 30 !important;
