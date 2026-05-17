@@ -277,37 +277,42 @@
   .v2-subnav a.active .bi{ opacity:1; }
   .v2-subnav button .bi{ margin-right:4px; }
 
-  /* Monitor-specific Live Status widget in subnav */
+  /* Monitor-specific Live Status widget in subnav — uses chrome tokens for navy theme */
   .v2-mon-live{
-    padding:14px 16px; background:#fff; border-bottom:1px solid #e2e8f0;
+    padding:14px 16px;
+    background:transparent;
+    border-bottom:1px solid var(--chrome-line-2, rgba(255,255,255,0.08));
   }
   .v2-mon-live .live-row{
     display:flex; align-items:center; gap:8px; margin-bottom:8px;
   }
   .v2-mon-live .live-badge{
     display:inline-flex; align-items:center; gap:5px;
-    padding:3px 9px; border-radius:999px; background:#dcfce7;
-    color:#166534; font-weight:700; font-size:11px;
+    padding:3px 9px; border-radius:999px;
+    background:rgba(34,197,94,0.18); color:#86efac;
+    font-weight:700; font-size:11px;
   }
   .v2-mon-live .live-badge .dot{
-    width:7px; height:7px; border-radius:50%; background:#16a34a;
+    width:7px; height:7px; border-radius:50%; background:#22c55e;
     animation:v2-live-pulse 1.4s ease-in-out infinite;
   }
   @keyframes v2-live-pulse{ 0%,100%{opacity:1;} 50%{opacity:.4;} }
-  .v2-mon-live .last-update{ font-size:11px; color:#64748b; }
-  .v2-mon-live .last-update b{ color:#0f172a; }
+  .v2-mon-live .last-update{ font-size:11px; color:var(--chrome-text-3, #94a3b8); }
+  .v2-mon-live .last-update b{ color:var(--chrome-text, #f8fafc); }
   .v2-mon-live .refresh-btn{
     width:100%; padding:8px; font-size:12.5px; font-weight:600;
-    background:#0ea5e9; color:#fff; border:none; border-radius:8px;
+    background:var(--accent, #c4b5fd); color:var(--accent-ink, #3b0764);
+    border:none; border-radius:8px;
     cursor:pointer; display:flex; align-items:center; justify-content:center; gap:6px;
-    transition:background .15s;
+    transition:filter .15s, transform .1s;
   }
-  .v2-mon-live .refresh-btn:hover{ background:#0284c7; }
+  .v2-mon-live .refresh-btn:hover{ filter:brightness(1.08); }
+  .v2-mon-live .refresh-btn:active{ transform:scale(0.98); }
   .v2-mon-live .countdown-row{
     display:flex; align-items:center; justify-content:space-between;
-    margin-top:8px; font-size:11px; color:#64748b;
+    margin-top:8px; font-size:11px; color:var(--chrome-text-3, #94a3b8);
   }
-  .v2-mon-live .countdown-row b{ color:#0369a1; font-weight:700; }
+  .v2-mon-live .countdown-row b{ color:var(--accent, #c4b5fd); font-weight:700; }
 
   /* Subnav footer (account) */
   .v2-subnav .v2-subnav-footer{
