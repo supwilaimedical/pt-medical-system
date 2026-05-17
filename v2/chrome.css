@@ -221,11 +221,13 @@ body[data-module] .right-col {
     margin: 0 !important;
     z-index: 11;
   }
-  /* Push view-section / dashboard / admin-main down to clear fixed topbar */
+  /* Push main content area down to clear fixed topbar (per-module containers) */
   body[data-module] .view-section,
   body[data-module] #dashboard-view,
-  body[data-module="admin"] .admin-main {
-    padding-top: 64px;
+  body[data-module="admin"] .admin-main,
+  body[data-module="fleet"] #app-main-wrapper,
+  body[data-module="gps"] #app-main-wrapper {
+    padding-top: 64px !important;
   }
 }
 
