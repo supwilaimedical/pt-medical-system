@@ -28,14 +28,14 @@ body[data-module] {
   --accent-glow:  rgba(56,189,248,0.40);
 }
 
-/* ===== PER-MODULE ACCENT ===== */
-body[data-module="location"]  { --accent:#facc15; --accent-ink:#713f12; --accent-soft:rgba(250,204,21,0.16); --accent-glow:rgba(250,204,21,0.40); }
-body[data-module="transport"] { --accent:#38bdf8; --accent-ink:#0c4a6e; --accent-soft:rgba(56,189,248,0.16); --accent-glow:rgba(56,189,248,0.40); }
-body[data-module="firstaid"]  { --accent:#10b981; --accent-ink:#064e3b; --accent-soft:rgba(16,185,129,0.16); --accent-glow:rgba(16,185,129,0.40); }
-body[data-module="gps"]       { --accent:#fb7185; --accent-ink:#881337; --accent-soft:rgba(251,113,133,0.16); --accent-glow:rgba(251,113,133,0.40); }
-body[data-module="fleet"]     { --accent:#60a5fa; --accent-ink:#1e3a8a; --accent-soft:rgba(96,165,250,0.16); --accent-glow:rgba(96,165,250,0.40); }
-body[data-module="monitor"]   { --accent:#a78bfa; --accent-ink:#4c1d95; --accent-soft:rgba(167,139,250,0.16); --accent-glow:rgba(167,139,250,0.40); }
-body[data-module="admin"]     { --accent:#fb923c; --accent-ink:#7c2d12; --accent-soft:rgba(251,146,60,0.16); --accent-glow:rgba(251,146,60,0.40); }
+/* ===== PER-MODULE ACCENT (brightened for navy bg + bumped soft opacity to 0.22) ===== */
+body[data-module="location"]  { --accent:#fde047; --accent-ink:#422006; --accent-soft:rgba(253,224,71,0.22);  --accent-glow:rgba(253,224,71,0.45); }
+body[data-module="transport"] { --accent:#7dd3fc; --accent-ink:#0c4a6e; --accent-soft:rgba(125,211,252,0.22); --accent-glow:rgba(125,211,252,0.45); }
+body[data-module="firstaid"]  { --accent:#34d399; --accent-ink:#022c22; --accent-soft:rgba(52,211,153,0.22);  --accent-glow:rgba(52,211,153,0.45); }
+body[data-module="gps"]       { --accent:#fda4af; --accent-ink:#881337; --accent-soft:rgba(253,164,175,0.22); --accent-glow:rgba(253,164,175,0.45); }
+body[data-module="fleet"]     { --accent:#93c5fd; --accent-ink:#1e3a8a; --accent-soft:rgba(147,197,253,0.22); --accent-glow:rgba(147,197,253,0.45); }
+body[data-module="monitor"]   { --accent:#c4b5fd; --accent-ink:#3b0764; --accent-soft:rgba(196,181,253,0.22); --accent-glow:rgba(196,181,253,0.45); }
+body[data-module="admin"]     { --accent:#fdba74; --accent-ink:#7c2d12; --accent-soft:rgba(253,186,116,0.22); --accent-glow:rgba(253,186,116,0.45); }
 
 /* ===== RAIL (sidebar — desktop + mobile drawer) ===== */
 body[data-module] .v2-rail {
@@ -120,8 +120,9 @@ body[data-module] .v2-subnav a.active {
   position: relative;
 }
 body[data-module] .v2-subnav a.active::before {
-  content: ""; position: absolute; left: 0; top: 6px; bottom: 6px;
-  width: 3px; background: var(--accent); border-radius: 0 2px 2px 0;
+  content: ""; position: absolute; left: 0; top: 4px; bottom: 4px;
+  width: 4px; background: var(--accent); border-radius: 0 3px 3px 0;
+  box-shadow: 0 0 8px var(--accent-glow);
 }
 body[data-module] .v2-subnav a .bi { opacity: 0.85 !important; }
 body[data-module] .v2-subnav a.active .bi { opacity: 1 !important; }
