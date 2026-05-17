@@ -206,14 +206,17 @@ body[data-module] .right-col {
 /* ===== UNIVERSAL FIXED TOPBAR (desktop ≥992px) — spans full viewport over right col ===== */
 /* All per-module topbar/colheader classes get position:fixed, full width minus rail+subnav.
    Right column kept white (overlapped under topbar via z-index). */
+/* GPS EXCLUDED — uses .v2-gps-wrap height:100vh flex; fixed topbar would break map sizing.
+   GPS topbar inherits glass-navy styling from the general topbar rule but stays sticky-in-flex. */
 @media (min-width: 992px) {
-  body[data-module] .fa-colhead,
-  body[data-module] .v2-colheader,
-  body[data-module] .v2-gps-colheader,
-  body[data-module] .v2-form-topbar,
-  body[data-module] .monitor-page-header,
-  body[data-module="admin"] .admin-topbar,
-  body[data-module] #dashboard-view > .d-flex.justify-content-between.align-items-end {
+  body[data-module="location"]  .v2-colheader,
+  body[data-module="location"]  .view-section > .d-flex.justify-content-between.align-items-end,
+  body[data-module="transport"] .v2-form-topbar,
+  body[data-module="transport"] #dashboard-view > .d-flex.justify-content-between.align-items-end,
+  body[data-module="firstaid"]  .fa-colhead,
+  body[data-module="fleet"]     .v2-colheader,
+  body[data-module="monitor"]   .monitor-page-header,
+  body[data-module="admin"]     .admin-topbar {
     position: fixed !important;
     top: 0;
     left: 296px;  /* rail (56) + subnav (240) */
@@ -222,11 +225,14 @@ body[data-module] .right-col {
     z-index: 11;
   }
   /* Push main content area down to clear fixed topbar (per-module containers) */
-  body[data-module] .view-section,
-  body[data-module] #dashboard-view,
-  body[data-module="admin"] .admin-main,
-  body[data-module="fleet"] #app-main-wrapper,
-  body[data-module="gps"] #app-main-wrapper {
+  body[data-module="location"]  .view-section,
+  body[data-module="transport"] .view-section,
+  body[data-module="transport"] #dashboard-view,
+  body[data-module="firstaid"]  .view-section,
+  body[data-module="firstaid"]  #fa-dashboard-view,
+  body[data-module="fleet"]     #app-main-wrapper,
+  body[data-module="monitor"]   #app-main-wrapper,
+  body[data-module="admin"]     .admin-main {
     padding-top: 64px !important;
   }
 }
