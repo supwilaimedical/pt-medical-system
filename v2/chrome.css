@@ -273,14 +273,40 @@ body[data-module="monitor"] .v2-mobile-rail-strip a.active {
     height: 100dvh !important;
   }
 
-  /* ===== MOBILE TOPBAR — leave room for hamburger (top:8 left:8 = 56px wide w/ margin) ===== */
+  /* ===== MOBILE TOPBAR — leave room for hamburger (button ~56px visual width w/ shadow) ===== */
   body[data-module="transport"] #dashboard-view > .d-flex.justify-content-between.align-items-end,
   body[data-module="transport"] .v2-form-topbar .v2-tb-row1,
   body[data-module="firstaid"]  .fa-colhead,
   body[data-module="fleet"]     .v2-colheader,
   body[data-module="monitor"]   .monitor-page-header,
   body[data-module] .v2-colheader {
-    padding-left: 60px !important;
+    padding-left: 64px !important;
+  }
+  /* Transport: ensure dashboard-header text doesn't get clipped at left edge */
+  body[data-module="transport"] #dashboard-view .dashboard-header,
+  body[data-module="transport"] #dashboard-view .tr-colhead-left {
+    padding-left: 0 !important;
+    margin-left: 0 !important;
+  }
+
+  /* Mobile dvh fix — Samsung/iOS browser chrome eats viewport at bottom */
+  body[data-module] {
+    min-height: 100dvh;
+  }
+  /* Lift bnav above any other fixed/floating element */
+  body[data-module] .pt-bnav {
+    z-index: 1080 !important;
+  }
+  /* Generous bottom padding so list/sheet content always shows last items */
+  body[data-module] #app-main-wrapper,
+  body[data-module] .view-section,
+  body[data-module] main,
+  body[data-module] .fa-list-grid,
+  body[data-module] #fa-list-grid,
+  body[data-module] .v2-gps-rightcol,
+  body[data-module] .v2-gps-main,
+  body[data-module] .pt-bsheet-body {
+    padding-bottom: calc(96px + env(safe-area-inset-bottom)) !important;
   }
 }
 
