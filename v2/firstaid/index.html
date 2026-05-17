@@ -92,7 +92,7 @@
     .reg-gender-btn:hover { border-color: var(--gc); color: var(--gc); }
     .reg-gender-btn.active { border-color: var(--gc); background: var(--gc); color:#fff; box-shadow: 0 2px 6px rgba(0,0,0,0.15); }
   </style>
-  <link rel="stylesheet" href="../chrome.css?v=20260517k">
+  <link rel="stylesheet" href="../chrome.css?v=20260517l">
 </head>
 <body data-module="firstaid">
 <!-- V2 Side Rail + Subnav + sticky col-header -->
@@ -253,7 +253,10 @@
   .view-section > .container, .view-section > .container-fluid{ max-width:1200px; }
   .fa-colhead{
     background:#fff; border-bottom:1px solid #e2e8f0;
-    padding:10px 18px; margin:0; position:sticky; top:0; z-index:10;
+    /* Negative margin extends background to viewport edges past view-section padding.
+       Desktop view-section padding:18px → margin -18. Mobile (<=991) padding:12px → -12 (override below).
+       Match exactly to avoid horizontal overflow (which causes scrollbar + bnav lift). */
+    padding:10px 18px; margin:0 -18px 0; position:sticky; top:0; z-index:10;
     display:flex; align-items:flex-end; justify-content:space-between; gap:10px;
   }
   .fa-colhead .fa-colhead-left{ min-width:0; flex:1; }
@@ -267,7 +270,8 @@
   }
   .fa-colhead .spacer{ flex:0; }
   @media (max-width:991px){
-    .fa-colhead{ padding:12px 14px 12px 60px !important; min-height:60px; }
+    /* Mobile view-section uses 12px padding → match margin to -12 (was -18 → 6px overflow). */
+    .fa-colhead{ padding:12px 14px 12px 60px !important; margin:0 -12px 0 !important; min-height:60px; }
     .fa-colhead .title{ font-size:16px !important; font-weight:700 !important; }
     .fa-colhead .sub{ font-size:12px !important; margin-top:4px !important; }
   }
