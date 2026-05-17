@@ -212,22 +212,23 @@
   }
   body[data-module="location"] .pt-bsheet-body { color: var(--chrome-text-2) !important; }
 
-  /* ===== FAB — accent glow + lift on hover ===== */
+  /* ===== FAB — uses per-module --accent (Location=amber) with glow + lift ===== */
   body[data-module="location"] #loc-fab {
-    background: linear-gradient(135deg, #16a34a 0%, #15803d 100%) !important;
+    background: linear-gradient(135deg, var(--accent) 0%, color-mix(in srgb, var(--accent), #000 18%) 100%) !important;
+    color: var(--accent-ink) !important;
     box-shadow:
-      0 6px 20px rgba(22,163,74,0.45),
+      0 6px 20px var(--accent-glow),
       0 16px 40px rgba(10,25,41,0.30),
-      inset 0 1px 0 rgba(255,255,255,0.20),
+      inset 0 1px 0 rgba(255,255,255,0.30),
       0 0 0 4px rgba(248,250,252,0.92) !important;
     transition: transform 150ms cubic-bezier(0.16,1,0.3,1), box-shadow 150ms !important;
   }
   body[data-module="location"] #loc-fab:hover {
     transform: translateX(-50%) scale(1.06) !important;
     box-shadow:
-      0 8px 26px rgba(22,163,74,0.55),
+      0 8px 26px var(--accent-glow),
       0 20px 48px rgba(10,25,41,0.35),
-      inset 0 1px 0 rgba(255,255,255,0.25),
+      inset 0 1px 0 rgba(255,255,255,0.35),
       0 0 0 4px rgba(248,250,252,0.95) !important;
   }
   body[data-module="location"] #loc-fab:active {
