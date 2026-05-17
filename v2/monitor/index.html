@@ -1707,14 +1707,19 @@
         monitorUpdateWideGpsPane();
     }
 
-    // Use matchMedia change listener — fires INSTANTLY at the exact moment
-    // viewport crosses the 1900px threshold (only matters in 'auto' mode).
+    // Use matchMedia change listeners — fire INSTANTLY when viewport crosses
+    // EITHER threshold: 1900 (auto-show breakpoint) OR 1100 (hard mobile floor).
+    // Bug fix: previously only listened to 1900px → resizing from desktop
+    // straight down to mobile would skip below 1100 without re-checking, leaving
+    // the pane stuck visible on phones.
     (function _wireWideMql(){
         try {
-            var mql = window.matchMedia('(min-width: 1900px)');
             var handler = function(){ monitorUpdateWideGpsPane(); };
-            if (mql.addEventListener) mql.addEventListener('change', handler);
-            else if (mql.addListener) mql.addListener(handler); // Safari fallback
+            ['(min-width: 1900px)', '(min-width: 1100px)'].forEach(function(q){
+                var mql = window.matchMedia(q);
+                if (mql.addEventListener) mql.addEventListener('change', handler);
+                else if (mql.addListener) mql.addListener(handler); // Safari fallback
+            });
         } catch(e) { console.warn('matchMedia listener:', e); }
     })();
 
