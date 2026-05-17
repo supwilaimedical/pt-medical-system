@@ -255,12 +255,32 @@ body[data-module="monitor"] .v2-mobile-rail-strip a.active {
 @media (max-width: 1024px) and (orientation: portrait) {
   body[data-module] #app-main-wrapper,
   body[data-module] .view-section,
-  body[data-module] main {
-    padding-bottom: calc(64px + env(safe-area-inset-bottom)) !important;
+  body[data-module] main,
+  body[data-module] .fa-list-grid,
+  body[data-module] #fa-list-grid,
+  body[data-module] .v2-gps-rightcol,
+  body[data-module] .v2-gps-main,
+  body[data-module] .pt-bsheet-body {
+    padding-bottom: calc(72px + env(safe-area-inset-bottom)) !important;
   }
-  /* Ensure bnav z-index above everything */
+  /* Bnav z-index above modals and bottom sheets */
   body[data-module] .pt-bnav {
     z-index: 1050 !important;
+  }
+  /* GPS uses 100vh layout — switch to 100dvh on mobile (avoids browser bottom-bar cut) */
+  body[data-module="gps"] .v2-gps-wrap,
+  body[data-module="gps"] .gps-layout {
+    height: 100dvh !important;
+  }
+
+  /* ===== MOBILE TOPBAR — leave room for hamburger (top:8 left:8 = 56px wide w/ margin) ===== */
+  body[data-module="transport"] #dashboard-view > .d-flex.justify-content-between.align-items-end,
+  body[data-module="transport"] .v2-form-topbar .v2-tb-row1,
+  body[data-module="firstaid"]  .fa-colhead,
+  body[data-module="fleet"]     .v2-colheader,
+  body[data-module="monitor"]   .monitor-page-header,
+  body[data-module] .v2-colheader {
+    padding-left: 60px !important;
   }
 }
 
@@ -309,13 +329,20 @@ body[data-module="admin"] .admin-sidebar .sidebar-group:first-of-type .sidebar-g
 body[data-module="admin"] .admin-sidebar .sidebar-modswitch {
   background: rgba(0,0,0,0.20) !important;
   border-bottom: 1px solid var(--chrome-line) !important;
-  padding: 6px 4px !important;
+  padding: 14px 12px 10px !important;
 }
 body[data-module="admin"] .admin-sidebar .sidebar-modswitch a {
-  color: var(--chrome-text-3) !important;
+  background: var(--chrome-bg-4) !important;
+  border: 1px solid var(--chrome-line-2) !important;
+  color: var(--chrome-text) !important;
 }
 body[data-module="admin"] .admin-sidebar .sidebar-modswitch a:hover {
+  background: var(--accent-soft) !important;
+  border-color: var(--accent) !important;
   color: var(--accent) !important;
+}
+body[data-module="admin"] .admin-sidebar .sidebar-modswitch a .bi {
+  color: inherit !important;
 }
 body[data-module="admin"] .admin-sidebar .sidebar-back {
   color: var(--chrome-text-2) !important;
