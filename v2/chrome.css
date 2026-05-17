@@ -319,6 +319,23 @@ body[data-module="monitor"] .v2-mobile-rail-strip a.active {
   }
 }
 
+/* ===== ADMIN TOPBAR BUTTONS — burger + topbar-back need contrast on navy bg ===== */
+body[data-module="admin"] .admin-topbar .burger,
+body[data-module="admin"] .admin-topbar .topbar-back {
+  background: var(--chrome-bg-4) !important;
+  border: 1px solid var(--chrome-line-2) !important;
+  color: var(--chrome-text) !important;
+}
+body[data-module="admin"] .admin-topbar .burger:hover,
+body[data-module="admin"] .admin-topbar .topbar-back:hover {
+  background: var(--accent-soft) !important;
+  border-color: var(--accent) !important;
+  color: var(--accent) !important;
+}
+body[data-module="admin"] .admin-topbar .title {
+  color: var(--chrome-text) !important;
+}
+
 /* ===== ADMIN SIDEBAR — admin.html uses .admin-sidebar (NOT .v2-rail/.v2-subnav) ===== */
 body[data-module="admin"] .admin-sidebar {
   background: linear-gradient(180deg, var(--chrome-bg-2) 0%, var(--chrome-bg-3) 100%) !important;
