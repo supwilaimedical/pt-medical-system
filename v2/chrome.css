@@ -255,6 +255,26 @@ body[data-module="monitor"] .v2-mobile-rail-strip a.active {
   }
 }
 
+/* ===== TABLET PORTRAIT (992-1024px) — Transport JS still shows BNAV here, but old @<=991 missed it ===== */
+@media (min-width: 992px) and (max-width: 1024px) and (orientation: portrait) {
+  /* Transport bnav notch — 5 cells with 80px pocket for FAB */
+  body[data-module="transport"] .pt-bnav.pt-bnav-notch {
+    grid-template-columns: 1fr 1fr 80px 1fr 1fr !important;
+  }
+  body[data-module] .pt-bnav .pt-bnav-pocket,
+  body[data-module] .pt-bnav .fa-bnav-pocket {
+    display: block;
+    pointer-events: none;
+    visibility: hidden;
+  }
+  body[data-module] #loc-fab,
+  body[data-module] .fab-btn,
+  body[data-module] #fa-list-fab,
+  body[data-module] [id$="-fab"]:not(.no-chrome) {
+    z-index: 1090 !important;
+  }
+}
+
 /* ===== ADMIN MOBILE — sidebar drawer (when open) should also be navy ===== */
 @media (max-width: 991px) {
   body[data-module="admin"] .admin-sidebar {
