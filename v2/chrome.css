@@ -211,33 +211,8 @@ body[data-module] .right-col {
 /* ===== UNIVERSAL FIXED TOPBAR (desktop ≥992px) — spans full viewport over right col ===== */
 /* All per-module topbar/colheader classes get position:fixed, full width minus rail+subnav.
    Right column kept white (overlapped under topbar via z-index). */
-/* ===== GPS — topbar absolute-positioned across the flex wrap so it overlays right col too ===== */
-@media (min-width: 992px) {
-  body[data-module="gps"] .v2-gps-wrap {
-    position: relative;
-  }
-  body[data-module="gps"] .v2-gps-colheader {
-    position: absolute !important;
-    top: 0; left: 0; right: 0;
-    z-index: 11;
-    margin: 0 !important;
-  }
-  body[data-module="gps"] .v2-gps-main,
-  body[data-module="gps"] .v2-gps-rightcol {
-    padding-top: 64px !important;
-  }
-}
-
-/* ===== FLEET — bump padding to clear ~68-72px colheader (had padding:14+14+title-line~28 ≈ 56px + border) ===== */
-@media (min-width: 992px) {
-  body[data-module="fleet"] #app-main-wrapper {
-    padding-top: 80px !important;
-  }
-  body[data-module="fleet"] .v2-colheader {
-    margin: 0 !important;
-    padding: 14px 24px !important;
-  }
-}
+/* ===== GPS / FLEET layout overrides REMOVED — module's native sticky layout works.
+   chrome.css now only handles COLORS (bg/text/border). Layout stays untouched. */
 
 /* ===== MONITOR — subnav has .v2-mobile-rail-strip (white gap) + ensure subnav matches topbar ===== */
 body[data-module="monitor"] .v2-mobile-rail-strip {
@@ -251,75 +226,8 @@ body[data-module="monitor"] .v2-mobile-rail-strip a.active {
   color: var(--accent) !important;
 }
 
-/* ===== MOBILE — ensure main content has padding-bottom so it doesn't hide behind bnav ===== */
-@media (max-width: 1024px) and (orientation: portrait) {
-  body[data-module] #app-main-wrapper,
-  body[data-module] .view-section,
-  body[data-module] main,
-  body[data-module] .fa-list-grid,
-  body[data-module] #fa-list-grid,
-  body[data-module] .v2-gps-rightcol,
-  body[data-module] .v2-gps-main,
-  body[data-module] .pt-bsheet-body {
-    padding-bottom: calc(72px + env(safe-area-inset-bottom)) !important;
-  }
-  /* Bnav z-index above modals and bottom sheets */
-  body[data-module] .pt-bnav {
-    z-index: 1050 !important;
-  }
-  /* GPS uses 100vh layout — switch to 100dvh on mobile (avoids browser bottom-bar cut) */
-  body[data-module="gps"] .v2-gps-wrap,
-  body[data-module="gps"] .gps-layout {
-    height: 100dvh !important;
-  }
-
-  /* ===== MOBILE TOPBAR — leave room for hamburger (button ~56px visual width w/ shadow) ===== */
-  body[data-module="transport"] #dashboard-view > .d-flex.justify-content-between.align-items-end,
-  body[data-module="transport"] .v2-form-topbar .v2-tb-row1,
-  body[data-module="firstaid"]  .fa-colhead,
-  body[data-module="fleet"]     .v2-colheader,
-  body[data-module="monitor"]   .monitor-page-header,
-  body[data-module] .v2-colheader {
-    padding-left: 64px !important;
-  }
-  /* Transport: ensure dashboard-header text doesn't get clipped at left edge */
-  body[data-module="transport"] #dashboard-view .dashboard-header,
-  body[data-module="transport"] #dashboard-view .tr-colhead-left {
-    padding-left: 0 !important;
-    margin-left: 0 !important;
-  }
-
-  /* Mobile dvh fix — Samsung/iOS browser chrome eats viewport at bottom */
-  body[data-module] {
-    min-height: 100dvh;
-  }
-  /* Lift bnav above any other fixed/floating element */
-  body[data-module] .pt-bnav {
-    z-index: 1080 !important;
-  }
-  /* Generous bottom padding so list/sheet content always shows last items */
-  body[data-module] #app-main-wrapper,
-  body[data-module] .view-section,
-  body[data-module] main,
-  body[data-module] .fa-list-grid,
-  body[data-module] #fa-list-grid,
-  body[data-module] .v2-gps-rightcol,
-  body[data-module] .v2-gps-main,
-  body[data-module] .pt-bsheet-body {
-    padding-bottom: calc(96px + env(safe-area-inset-bottom)) !important;
-  }
-
-  /* ===== FAB — position ABOVE bnav (was sinking behind it) ===== */
-  /* bnav height = 56px; gap = 12px; total offset from viewport bottom = 68px + safe-area */
-  body[data-module] #loc-fab,
-  body[data-module] .fab-btn,
-  body[data-module] #fa-list-fab,
-  body[data-module] [class*="fab-btn"],
-  body[data-module] [id$="-fab"]:not(.no-chrome) {
-    bottom: calc(72px + env(safe-area-inset-bottom)) !important;
-    z-index: 1075 !important;  /* under bnav (1080) but above content */
-  }
-}
+/* ===== MOBILE — NO layout overrides (module's native CSS handles layout).
+   Only color-related tweaks kept in earlier blocks. Aggressive layout rules removed. */
 
 /* ===== ADMIN MOBILE — sidebar drawer (when open) should also be navy ===== */
 @media (max-width: 991px) {
@@ -440,34 +348,9 @@ body[data-module="monitor"] #monitor-wide-gps-pane .mwgp-head h3 {
 body[data-module="monitor"] #monitor-wide-gps-pane .mwgp-head .bi {
   color: var(--accent) !important;
 }
-@media (min-width: 992px) {
-  body[data-module="location"]  .v2-colheader,
-  body[data-module="location"]  .view-section > .d-flex.justify-content-between.align-items-end,
-  body[data-module="transport"] .v2-form-topbar,
-  body[data-module="transport"] #dashboard-view > .d-flex.justify-content-between.align-items-end,
-  body[data-module="firstaid"]  .fa-colhead,
-  body[data-module="fleet"]     .v2-colheader,
-  body[data-module="monitor"]   .monitor-page-header,
-  body[data-module="admin"]     .admin-topbar {
-    position: fixed !important;
-    top: 0;
-    left: 296px;  /* rail (56) + subnav (240) */
-    right: 0;
-    margin: 0 !important;
-    z-index: 11;
-  }
-  /* Push main content area down to clear fixed topbar (per-module containers) */
-  body[data-module="location"]  .view-section,
-  body[data-module="transport"] .view-section,
-  body[data-module="transport"] #dashboard-view,
-  body[data-module="firstaid"]  .view-section,
-  body[data-module="firstaid"]  #fa-dashboard-view,
-  body[data-module="fleet"]     #app-main-wrapper,
-  body[data-module="monitor"]   #app-main-wrapper,
-  body[data-module="admin"]     .admin-main {
-    padding-top: 64px !important;
-  }
-}
+/* ===== UNIVERSAL FIXED TOPBAR REMOVED =====
+   Aggressive position:fixed broke too many layouts (Fleet padding, Monitor white gap, GPS map overflow).
+   Keeping native sticky behavior. Topbar still gets navy glass color from earlier rule. */
 
 /* ===== FORM TOPBAR sub-rows =====
    v2-tb-row1 = navy (main topbar — case-id, action buttons)
