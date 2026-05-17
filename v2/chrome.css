@@ -211,8 +211,34 @@ body[data-module] .right-col {
 /* ===== UNIVERSAL FIXED TOPBAR (desktop ≥992px) — spans full viewport over right col ===== */
 /* All per-module topbar/colheader classes get position:fixed, full width minus rail+subnav.
    Right column kept white (overlapped under topbar via z-index). */
-/* GPS EXCLUDED — uses .v2-gps-wrap height:100vh flex; fixed topbar would break map sizing.
-   GPS topbar inherits glass-navy styling from the general topbar rule but stays sticky-in-flex. */
+/* ===== GPS — topbar absolute-positioned across the flex wrap so it overlays right col too ===== */
+@media (min-width: 992px) {
+  body[data-module="gps"] .v2-gps-wrap {
+    position: relative;
+  }
+  body[data-module="gps"] .v2-gps-colheader {
+    position: absolute !important;
+    top: 0; left: 0; right: 0;
+    z-index: 11;
+    margin: 0 !important;
+  }
+  body[data-module="gps"] .v2-gps-main,
+  body[data-module="gps"] .v2-gps-rightcol {
+    padding-top: 64px !important;
+  }
+}
+
+/* ===== FLEET — bump padding to 72px; existing #app-main-wrapper padding:0 needs override ===== */
+@media (min-width: 992px) {
+  body[data-module="fleet"] #app-main-wrapper {
+    padding-top: 72px !important;
+  }
+  /* Fleet topbar margin:0 -24px collapses outside its container; override to align with fixed coords */
+  body[data-module="fleet"] .v2-colheader {
+    margin: 0 !important;
+    padding: 14px 24px !important;
+  }
+}
 
 /* ===== ADMIN SIDEBAR — admin.html uses .admin-sidebar (NOT .v2-rail/.v2-subnav) ===== */
 body[data-module="admin"] .admin-sidebar {
