@@ -246,7 +246,7 @@ body[data-module="firstaid"]  { --accent:#34d399; --accent-ink:#022c22; ... }
 | Side rail | `aside.v2-rail.no-print` | 56px, ≤767px hidden |
 | Subnav | `aside.v2-subnav.no-print` | 240px |
 | Topbar | `.v2-colheader.v2-colheader-left` | **Generic class** — only Fleet uses bare `.v2-colheader` |
-| Topbar fixed (chrome.css) | `position:fixed; left:240px; right:0` | Spans over rightcol ≥992 |
+| Topbar fixed (chrome.css) | `position:fixed; left:296px; right:0` | Spans over rightcol ≥992 (rail 56 + subnav 240) |
 | Right col | `aside.fleet-rc.no-print` | 280px, gated by `body.fleet-has-rc`, ≤1199 hidden |
 | Container-fluid mobile pad | `.container-fluid { padding:0 12px }` ≤767 | |
 
@@ -293,6 +293,8 @@ body[data-module="firstaid"]  { --accent:#34d399; --accent-ink:#022c22; ... }
 #### Notes
 - Wallboard mode: `body.monitor-wide-active` triggers wide GPS pane; toggle pill = `.mph-wallboard`
 - localStorage: `pt_wallboard_mode` (manual toggle), auto at viewport ≥1900px
+- **Topbar bg override** — Monitor `.monitor-page-header` gets `background: var(--chrome-bg-3) !important; backdrop-filter: none` to match subnav + wide-pane (all 3 cols same solid navy). Other modules' topbars use glass `var(--chrome-glass)` with blur — Monitor is the exception.
+- **Subnav widget pattern** — `.v2-mon-live` (Live Status widget) uses chrome tokens: `background: transparent`, `color: var(--chrome-text/-2/-3)`, refresh button `background: var(--accent); color: var(--accent-ink)` (Monitor violet auto from accent var). No border-bottom (was causing double-line with next section).
 
 ---
 
@@ -339,12 +341,13 @@ Each module ใช้ pattern ต่างกันให้ topbar ครอบ
 | Module | Pattern | chrome.css lines |
 |---|---|---|
 | **GPS** | wrap `position:relative` + colheader `position:absolute; top:0; left:0; right:0` + main + rightcol `padding-top:56px` | 403-417 |
-| **Fleet** | colheader `position:fixed; left:240px; right:0` + wrapper `padding-top:64px` + rightcol `top:64px` | 424-437 |
+| **Fleet** | colheader `position:fixed; left:296px; right:0` + wrapper `padding-top:64px` + rightcol `top:64px` | 424-437 |
 | **Transport** | `#dashboard-view > .d-flex.align-items-end` `position:fixed; left:296px; right:0` + dashboard-view `padding-top:64px` + tr-dash-right `top:64px`; v2-form-topbar same treatment | 441-470 |
 | **Firstaid** | `.fa-colhead` `position:fixed; left:296px; right:0` + view padding-top:64 + right col top:64 (inline CSS line 318-326) | (inline) |
 | **Monitor/Firstaid generic** | Just `z-index:30` defensive bump | 473-476 |
 
-**สูตร:** left = rail(56) + subnav(240) = 296 (Transport/Firstaid/Monitor) หรือ left = 240 (Fleet — no rail offset)
+**สูตร (เดียวกันทุก module):** left = rail(56) + subnav(240) = **296** สำหรับ Transport/Firstaid/Monitor/Fleet ที่มี rail+subnav.
+*Note: Fleet เคยตั้งผิดเป็น 240 → topbar ทับ subnav 56px (regression, fixed in commit 1e8126d).*
 
 ---
 
@@ -461,8 +464,27 @@ Each module ใช้ pattern ต่างกันให้ topbar ครอบ
 11. **Subnav custom widgets ต้องใช้ chrome tokens** — module-specific widgets ที่ฝังใน `.v2-subnav` (เช่น `.v2-mon-live` ใน Monitor) ห้าม hardcode `background:#fff` หรือสีตายตัว เพราะจะกลายเป็น "block สีขาว" ทับ navy subnav. ใช้:
     - `background: transparent` ให้ navy subnav โผล่
     - `color: var(--chrome-text)` / `var(--chrome-text-2)` / `var(--chrome-text-3)` สำหรับ text
-    - `border-bottom: 1px solid var(--chrome-line-2)` สำหรับ divider
+    - **ห้าม border-bottom** — จะชนกับ section border-top ของ section ถัดไป (double-line). ใช้ `padding-bottom: 18px` แทนเพื่อ separation
     - `background: var(--accent); color: var(--accent-ink)` สำหรับ CTA button (จะได้สี module-specific อัตโนมัติ)
+
+12. **Subnav clean-navy pattern — ZERO borders ภายใน subnav** (commit 2d6c4a7 + 9d53e8c):
+    - `.v2-subnav-header` → no `border-bottom` (chrome.css set to 0)
+    - `.v2-subnav-section` → no `border-top` (chrome.css set to 0, ใช้ margin-top: 12 + padding-top: 10 แทน)
+    - `.v2-subnav a` → no `border-bottom` (chrome.css set to 0)
+    - `.v2-subnav > div[style*="border-bottom"]` → no `border-bottom` (CTA wrapper)
+    - Visual hierarchy แยก section ด้วย: uppercase small caps title (--chrome-text-3 muted) + 22px gap (margin 12 + padding 10)
+
+13. **Inline `style="border-bottom:..."` ต้องลบโดยตรง** — chrome.css `!important` ควรชนะ inline normal style ตาม CSS spec แต่ user เจอ edge case ที่ browser cache/specificity ทำให้ inline ยังโผล่. หา grep `style="[^"]*border-bottom` ในไฟล์ทุก module แล้วลบทิ้งทั้งหมด (Transport line 1180, 1183, 1203 เป็นตัวอย่างที่ลบไปแล้ว).
+
+14. **Cache busting strategy:**
+    - **chrome.css changes** → bump `?v=YYYYMMDDx` query string ใน 6 ไฟล์ HTML (firstaid/transport/fleet/gps/monitor/admin). PowerShell bulk:
+      ```powershell
+      $files = @('admin.html','firstaid/index.html','fleet/index.html','gps/index.html','monitor/index.html','transport/index.html')
+      foreach ($f in $files) { ... -replace 'v=YYYYMMDDx','v=YYYYMMDDy' ... }
+      ```
+      Location ไม่ใช้ chrome.css — ไม่ต้อง bump
+    - **Inline HTML/CSS changes only** → ไม่ต้อง bump chrome.css. User ต้อง Ctrl+Shift+R หรือรอ GH Pages 600s TTL
+    - **Location inline mirror** — Location มี navy theme inline (mirror ของ chrome.css). แก้ chrome.css ต้อง mirror ใน Location ด้วยเสมอ (e.g., section border-top removal)
 
 ---
 
