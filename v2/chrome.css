@@ -237,10 +237,19 @@ body[data-module="monitor"] .v2-mobile-rail-strip a.active {
   body[data-module="transport"] .pt-bnav.pt-bnav-notch {
     grid-template-columns: 1fr 1fr 80px 1fr 1fr !important;
   }
-  body[data-module="transport"] .pt-bnav .pt-bnav-pocket {
+  body[data-module] .pt-bnav .pt-bnav-pocket,
+  body[data-module] .pt-bnav .fa-bnav-pocket {
     display: block;
     pointer-events: none;
     visibility: hidden;
+  }
+
+  /* ===== FAB z-index — must be ABOVE bnav (1080) so bottom half of FAB shows over pocket ===== */
+  body[data-module] #loc-fab,
+  body[data-module] .fab-btn,
+  body[data-module] #fa-list-fab,
+  body[data-module] [id$="-fab"]:not(.no-chrome) {
+    z-index: 1090 !important;
   }
 }
 
