@@ -357,9 +357,10 @@ body[data-module="monitor"] #monitor-wide-gps-pane .mwgp-head .bi {
   body[data-module="fleet"] .fleet-rc {
     top: 64px !important;
   }
-  /* GPS: rightcol is flex item → padding-top pushes inner content down */
-  body[data-module="gps"] .v2-gps-rightcol {
-    padding-top: 56px !important;
+  /* GPS: push rightcol's first child down to clear topbar (padding-top on flex parent doesn't always render) */
+  body[data-module="gps"] .v2-gps-rightcol > *:first-child,
+  body[data-module="gps"] .v2-gps-rightcol .v2-stats-card:first-child {
+    margin-top: 56px !important;
   }
   /* Bump topbar z-index above any fixed sibling */
   body[data-module="fleet"] .v2-colheader,
