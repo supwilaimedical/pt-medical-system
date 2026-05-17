@@ -481,12 +481,17 @@ body[data-module="location"] #loc-fab:hover {
 body[data-module="location"] #loc-fab:active {
   transform: translateX(-50%) scale(0.96) !important;
 }
-body[data-module] .fab-btn:hover,
-body[data-module] #fa-list-fab:hover {
+body[data-module] .fab-btn:hover {
   transform: scale(1.06) !important;
 }
-body[data-module] .fab-btn:active,
+/* Firstaid FAB is centered via translateX(-50%) — preserve it on hover/active */
+body[data-module] #fa-list-fab:hover {
+  transform: translateX(-50%) scale(1.06) !important;
+}
 body[data-module] #fa-list-fab:active {
+  transform: translateX(-50%) scale(0.96) !important;
+}
+body[data-module] .fab-btn:active {
   transform: scale(0.96) !important;
 }
 
