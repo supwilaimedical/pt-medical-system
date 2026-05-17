@@ -1177,10 +1177,10 @@
 
   <!-- ===== List view sub-nav (when dashboard-view is active) ===== -->
   <div id="v2-subnav-list">
-    <div style="padding:10px 14px; border-bottom:1px solid #e2e8f0;">
+    <div style="padding:10px 14px;">
       <button onclick="if(typeof openNewCase==='function') openNewCase()" style="width:100%; padding:8px; background:#0ea5e9; color:#fff; border:none; border-radius:8px; font-weight:600; font-size:13px; cursor:pointer;"><i class="bi bi-plus-lg"></i> สร้างเคสใหม่</button>
     </div>
-    <a href="javascript:void(0)" data-list-tab="all" onclick="v2SetListTab('all')" class="active" style="border-bottom:1px solid #e2e8f0;">
+    <a href="javascript:void(0)" data-list-tab="all" onclick="v2SetListTab('all')" class="active">
       <span><i class="bi bi-clipboard-check"></i> ทั้งหมด</span>
       <span id="v2-cnt-all" class="badge-mini">0</span>
     </a>
@@ -1200,7 +1200,7 @@
 
   <!-- ===== Case view sub-nav (when form-view is active) ===== -->
   <div id="v2-subnav-case" style="display:none;">
-    <div style="padding:10px 14px; border-bottom:1px solid #e2e8f0; background:#f1f5f9;">
+    <div style="padding:10px 14px; background:#f1f5f9;">
       <a href="javascript:void(0)" onclick="if(typeof showDashboard==='function') showDashboard();" style="font-size:12px; color:#0369a1; font-weight:600; padding:0; border:none;">← เคสทั้งหมด</a>
       <div id="v2-case-id" style="font-weight:700; font-size:13px; color:#0f172a; margin-top:4px;">—</div>
       <div id="v2-case-pt" style="font-size:11px; color:#64748b;">ผู้ป่วย</div>
