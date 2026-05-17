@@ -228,10 +228,12 @@ body[data-module="monitor"] .v2-mobile-rail-strip a.active {
 
 /* ===== MOBILE per-module fixes ===== */
 @media (max-width: 991px) {
-  /* Transport list view header — clear hamburger. Specificity bumped via #dashboard-view#dashboard-view
-     to win over generic body[data-module] rule (later in source). */
-  body[data-module="transport"] #dashboard-view#dashboard-view > .d-flex.justify-content-between.align-items-end {
-    padding-left: 56px !important;
+  /* Transport list view header — clear hamburger (40px @ left:8 = ends 48). 64px = 16px gap.
+     Cover both align variants (matches Location pattern). Specificity bumped via #dashboard-view#dashboard-view
+     to win over Transport's inline 60px rule. */
+  body[data-module="transport"] #dashboard-view#dashboard-view > .d-flex.justify-content-between.align-items-end,
+  body[data-module="transport"] #dashboard-view#dashboard-view > .d-flex.justify-content-between.align-items-center {
+    padding-left: 64px !important;
   }
   /* Transport bnav notch — 5 cells with 80px pocket for FAB */
   body[data-module="transport"] .pt-bnav.pt-bnav-notch {
