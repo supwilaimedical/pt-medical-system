@@ -191,6 +191,8 @@ body[data-module] .monitor-page-header h3 .bi {
 /* ===== RIGHT COLUMN — elevated navy panel (per-module classes) ===== */
 body[data-module] .fa-dash-right,
 body[data-module] .fa-evt-right,
+body[data-module] .tr-dash-right,
+body[data-module] #monitor-wide-gps-pane,
 body[data-module] .v2-right-col,
 body[data-module] .right-col {
   background: var(--chrome-bg-3) !important;
@@ -198,6 +200,7 @@ body[data-module] .right-col {
   color: var(--chrome-text-2) !important;
 }
 body[data-module] .fa-rc-section,
+body[data-module] .tr-rc-section-label,
 body[data-module] .v2-right-col .section-label,
 body[data-module] .right-col .section-label {
   color: var(--chrome-text-3) !important;
@@ -205,6 +208,29 @@ body[data-module] .right-col .section-label {
   text-transform: uppercase;
   font-size: 11px !important;
   border-top: 1px solid var(--chrome-line) !important;
+  padding-top: 10px;
+}
+body[data-module] .tr-rc-row,
+body[data-module] .tr-rc-share-row {
+  color: var(--chrome-text-2) !important;
+  background: transparent !important;
+}
+body[data-module] .tr-rc-row:hover,
+body[data-module] .tr-rc-share-row:hover {
+  background: var(--chrome-bg-4) !important;
+  color: var(--chrome-text) !important;
+}
+body[data-module] .tr-rc-row .val,
+body[data-module] .tr-rc-count {
+  color: var(--accent) !important;
+  font-weight: 700;
+}
+body[data-module] .tr-rc-empty,
+body[data-module] .tr-rc-more {
+  color: var(--chrome-text-3) !important;
+}
+body[data-module] .tr-rc-group {
+  border-bottom: 1px solid var(--chrome-line) !important;
 }
 body[data-module] .fa-dash-right .card,
 body[data-module] .fa-evt-right .card {
@@ -216,6 +242,67 @@ body[data-module] .fa-evt-right .card-header {
   background: var(--chrome-bg-4) !important;
   color: var(--chrome-text) !important;
   border-bottom: 1px solid var(--chrome-line) !important;
+}
+/* Monitor wide GPS pane internals */
+body[data-module="monitor"] #monitor-wide-gps-pane .mwgp-head,
+body[data-module="monitor"] #monitor-wide-gps-pane .mwgp-vh {
+  background: var(--chrome-bg-3) !important;
+  color: var(--chrome-text-2) !important;
+  border-color: var(--chrome-line) !important;
+}
+body[data-module="monitor"] #monitor-wide-gps-pane .mwgp-vh:hover {
+  background: var(--chrome-bg-4) !important;
+  color: var(--chrome-text) !important;
+}
+body[data-module="monitor"] #monitor-wide-gps-pane .vh-name { color: var(--chrome-text) !important; }
+body[data-module="monitor"] #monitor-wide-gps-pane .vh-addr { color: var(--chrome-text-3) !important; }
+
+/* ===== FORM TOPBAR sub-rows (Transport v2-tb-row1/row2 had explicit bg:white) ===== */
+body[data-module] .v2-form-topbar .v2-tb-row1,
+body[data-module] .v2-form-topbar .v2-tb-row2 {
+  background: transparent !important;
+  border-bottom-color: var(--chrome-line) !important;
+  color: var(--chrome-text) !important;
+}
+body[data-module] .v2-form-topbar .v2-tb-row1 #display-case-id,
+body[data-module] .v2-form-topbar .v2-tb-row1 .case-id-text {
+  color: var(--accent) !important;
+}
+body[data-module] .v2-form-topbar .v2-tb-btn {
+  background: var(--chrome-bg-4) !important;
+  color: var(--chrome-text) !important;
+  border: 1px solid var(--chrome-line-2) !important;
+}
+body[data-module] .v2-form-topbar .v2-tb-btn:hover {
+  background: var(--chrome-bg-3) !important;
+  color: var(--accent) !important;
+}
+/* Timeline strip inside form topbar — keep text readable */
+body[data-module] .v2-form-topbar .timeline-tab,
+body[data-module] .v2-form-topbar .v2-tb-row2 > * {
+  color: var(--chrome-text-2) !important;
+}
+body[data-module] .v2-form-topbar .timeline-tab.active {
+  color: var(--accent) !important;
+}
+
+/* ===== DASHBOARD VIEW page header (.d-flex...end inside view-section) ===== */
+/* Stretch to full width — remove default mt/mb margin gap */
+body[data-module] #dashboard-view > .d-flex.justify-content-between.align-items-end,
+body[data-module] .view-section > .d-flex.justify-content-between.align-items-end {
+  margin: 0 -18px 16px !important;
+  padding: 12px 18px !important;
+}
+body[data-module] #dashboard-view .dashboard-header,
+body[data-module] #dashboard-view .dashboard-header * {
+  color: var(--chrome-text) !important;
+}
+body[data-module] #dashboard-view .dashboard-header .bi {
+  color: var(--accent) !important;
+}
+body[data-module] #dashboard-view #v2-tr-dash-sub,
+body[data-module] #dashboard-view .text-muted {
+  color: var(--chrome-text-3) !important;
 }
 
 /* ===== BOTTOM NAV (mobile) — floating glass navy ===== */
@@ -322,8 +409,13 @@ body[data-module] .v2-mobile-nav-toggle {
   body[data-module="admin"] .admin-topbar,
   body[data-module] .fa-dash-right,
   body[data-module] .fa-evt-right,
+  body[data-module] .tr-dash-right,
+  body[data-module] #monitor-wide-gps-pane,
   body[data-module] .v2-right-col,
   body[data-module] .right-col,
+  body[data-module] .v2-form-topbar .v2-tb-row1,
+  body[data-module] .v2-form-topbar .v2-tb-row2,
+  body[data-module] #dashboard-view > .d-flex.justify-content-between.align-items-end,
   body[data-module] .view-section > .d-flex.justify-content-between.align-items-end {
     background: #fff !important;
     color: #0f172a !important;
