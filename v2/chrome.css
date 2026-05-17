@@ -308,6 +308,17 @@ body[data-module="monitor"] .v2-mobile-rail-strip a.active {
   body[data-module] .pt-bsheet-body {
     padding-bottom: calc(96px + env(safe-area-inset-bottom)) !important;
   }
+
+  /* ===== FAB — position ABOVE bnav (was sinking behind it) ===== */
+  /* bnav height = 56px; gap = 12px; total offset from viewport bottom = 68px + safe-area */
+  body[data-module] #loc-fab,
+  body[data-module] .fab-btn,
+  body[data-module] #fa-list-fab,
+  body[data-module] [class*="fab-btn"],
+  body[data-module] [id$="-fab"]:not(.no-chrome) {
+    bottom: calc(72px + env(safe-area-inset-bottom)) !important;
+    z-index: 1075 !important;  /* under bnav (1080) but above content */
+  }
 }
 
 /* ===== ADMIN MOBILE — sidebar drawer (when open) should also be navy ===== */
