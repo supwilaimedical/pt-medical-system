@@ -103,7 +103,9 @@ body[data-module] .v2-subnav-section {
   letter-spacing: 0.06em;
   text-transform: uppercase;
   font-size: 11px !important;
-  border-top: 1px solid var(--chrome-line) !important;
+  border-top: 1px solid var(--chrome-line-2) !important;
+  margin-top: 8px !important;
+  padding-top: 14px !important;
 }
 body[data-module] .v2-subnav a {
   color: var(--chrome-text-2) !important;
