@@ -891,6 +891,201 @@
   @media (min-width: 1025px), (orientation: landscape) {
     .pt-bnav { display:none !important; }
   }
+
+  /* ===== Critical Log Modal (responsive: bottom sheet on mobile portrait, centered on PC/landscape) ===== */
+  /* Header button (PC always-visible) */
+  .monitor-page-header .mph-crit-log {
+    display:inline-flex; align-items:center; gap:6px;
+    padding:6px 12px;
+    background:var(--chrome-bg-4, #244a6f);
+    color:var(--chrome-text, #f8fafc);
+    border:1px solid var(--chrome-line-2, rgba(255,255,255,0.14));
+    border-radius:999px; cursor:pointer;
+    font-size:12.5px; font-weight:600;
+    transition: background .15s, color .15s, border-color .15s;
+  }
+  .monitor-page-header .mph-crit-log:hover {
+    background:rgba(248,113,113,.18); color:#fca5a5;
+    border-color:rgba(248,113,113,.4);
+  }
+  .monitor-page-header .mph-crit-log .bi { color:#f87171; }
+  @media (max-width:767px) {
+    .monitor-page-header .mph-crit-log .lbl { display:none; }
+    .monitor-page-header .mph-crit-log { padding:6px 10px; }
+  }
+
+  /* Backdrop */
+  .mclm-bd {
+    position:fixed; inset:0;
+    background:rgba(15,23,42,.55);
+    -webkit-backdrop-filter:blur(2px); backdrop-filter:blur(2px);
+    z-index:2050;
+    opacity:0; pointer-events:none;
+    transition: opacity .2s ease;
+  }
+  .mclm-bd.show { opacity:1; pointer-events:auto; }
+
+  /* Modal shell */
+  .mclm {
+    position:fixed;
+    background:var(--chrome-bg-3, #1a3a5c);
+    color:var(--chrome-text, #f8fafc);
+    z-index:2060;
+    box-shadow:0 -8px 32px rgba(10,25,41,.5), 0 8px 32px rgba(10,25,41,.45);
+    display:flex; flex-direction:column;
+    border:1px solid var(--chrome-line-2, rgba(255,255,255,0.14));
+  }
+
+  /* Mobile / tablet portrait — bottom sheet pattern */
+  @media (max-width:1024px) and (orientation:portrait) {
+    .mclm {
+      left:0; right:0; bottom:0;
+      border-radius:16px 16px 0 0;
+      max-height:82vh;
+      transform:translateY(100%);
+      transition:transform .28s cubic-bezier(.32,.72,0,1);
+    }
+    .mclm.show { transform:translateY(0); }
+  }
+  /* PC / landscape — centered modal */
+  @media (min-width:1025px), (orientation:landscape) {
+    .mclm {
+      left:50%; top:50%;
+      transform:translate(-50%, calc(-50% + 16px));
+      width:min(720px, 92vw); max-height:80vh;
+      border-radius:14px;
+      opacity:0; pointer-events:none;
+      transition: opacity .2s ease, transform .2s ease;
+    }
+    .mclm.show {
+      transform:translate(-50%, -50%);
+      opacity:1; pointer-events:auto;
+    }
+    .mclm-handle { display:none; }
+  }
+
+  .mclm-handle {
+    width:36px; height:4px;
+    background:var(--chrome-text-3, #94a3b8);
+    opacity:.5; border-radius:100px;
+    margin:8px auto 4px;
+    flex-shrink:0;
+  }
+
+  .mclm-head {
+    display:flex; align-items:center; gap:12px;
+    padding:12px 16px 12px 18px;
+    border-bottom:1px solid var(--chrome-line-2, rgba(255,255,255,0.14));
+    background:var(--chrome-bg-2, #112a44);
+    border-radius:16px 16px 0 0;
+    flex-shrink:0;
+  }
+  @media (min-width:1025px), (orientation:landscape) {
+    .mclm-head { border-radius:14px 14px 0 0; }
+  }
+
+  .mclm-title {
+    flex:1; min-width:0;
+    display:flex; align-items:center; gap:8px; flex-wrap:wrap;
+    font-weight:700; font-size:14.5px;
+    color:var(--chrome-text, #f8fafc);
+  }
+  .mclm-title .bi { color:#f87171; font-size:18px; }
+  .mclm-subtitle {
+    font-weight:400; font-size:11.5px;
+    color:var(--chrome-text-3, #94a3b8);
+    margin-left:4px;
+  }
+
+  .mclm-actions { display:flex; gap:6px; flex-shrink:0; }
+  .mclm-btn {
+    width:32px; height:32px; border-radius:8px;
+    border:1px solid var(--chrome-line-2, rgba(255,255,255,0.14));
+    background:var(--chrome-bg-4, #244a6f);
+    color:var(--chrome-text-2, #cbd5e1); cursor:pointer;
+    display:inline-flex; align-items:center; justify-content:center;
+    transition: background .15s, color .15s;
+  }
+  .mclm-btn:hover {
+    background:var(--accent-soft, rgba(196,181,253,0.22));
+    color:var(--accent, #c4b5fd);
+  }
+  .mclm-btn .bi { font-size:14px; }
+
+  .mclm-body {
+    flex:1; overflow-y:auto;
+    background:var(--chrome-bg-3, #1a3a5c);
+    /* iOS momentum scroll */
+    -webkit-overflow-scrolling:touch;
+  }
+
+  .mclm-loading, .mclm-empty {
+    display:flex; align-items:center; justify-content:center; gap:10px;
+    padding:40px 16px;
+    color:var(--chrome-text-3, #94a3b8);
+    font-size:13px; text-align:center;
+  }
+  .mclm-loading .spinner-border {
+    color:var(--accent, #c4b5fd);
+    width:18px; height:18px; border-width:2px;
+  }
+  .mclm-empty .bi { font-size:16px; color:#22c55e; }
+
+  .mclm-row {
+    padding:12px 18px;
+    border-bottom:1px solid var(--chrome-line, rgba(255,255,255,0.08));
+    cursor:pointer;
+    transition: background .15s;
+  }
+  .mclm-row:last-child { border-bottom:none; }
+  .mclm-row:hover { background:var(--chrome-bg-4, #244a6f); }
+
+  .mclm-row-top {
+    display:flex; align-items:center; gap:8px; flex-wrap:wrap;
+    font-size:11.5px;
+    color:var(--chrome-text-3, #94a3b8);
+    margin-bottom:6px;
+  }
+  .mclm-row-time {
+    font-variant-numeric:tabular-nums;
+    color:var(--chrome-text-2, #cbd5e1);
+    font-weight:600;
+  }
+  .mclm-row-pill {
+    padding:1px 7px; border-radius:4px;
+    font-size:10.5px; font-weight:700;
+    text-transform:uppercase; letter-spacing:.04em;
+  }
+  .mclm-row-pill.sent { background:rgba(34,197,94,.18); color:#86efac; }
+  .mclm-row-pill.failed { background:rgba(248,113,113,.18); color:#fca5a5; }
+  .mclm-row-pill.skipped { background:rgba(148,163,184,.18); color:var(--chrome-text-3, #94a3b8); }
+  .mclm-row-channel {
+    padding:1px 7px; border-radius:4px;
+    font-size:10.5px;
+    background:var(--chrome-bg-4, #244a6f);
+    color:var(--chrome-text-2, #cbd5e1);
+    text-transform:uppercase; letter-spacing:.04em;
+  }
+
+  .mclm-row-case {
+    font-weight:700; font-size:13.5px;
+    color:var(--chrome-text, #f8fafc);
+    margin-bottom:5px;
+    font-variant-numeric:tabular-nums;
+  }
+  .mclm-row-case .bi {
+    font-size:12px; color:var(--chrome-text-3, #94a3b8);
+    margin-left:4px;
+  }
+
+  .mclm-row-vitals {
+    display:flex; flex-wrap:wrap; gap:5px;
+    font-size:11.5px;
+  }
+  .mclm-vital {
+    padding:2px 7px; border-radius:4px; font-weight:600;
+    background:rgba(248,113,113,.14); color:#fecaca;
+  }
 </style>
 
 <button class="v2-mobile-nav-toggle no-print" onclick="document.body.classList.toggle('v2-nav-open')" aria-label="เมนู" title="เมนู"><i class="bi bi-list"></i></button>
@@ -952,7 +1147,7 @@
     <span><i class="bi bi-bandaid"></i> ปฐมพยาบาล</span>
     <span id="v2-mon-fa-count" class="badge-mini">0</span>
   </a>
-  <a href="javascript:void(0)" id="v2-mon-crit-link" onclick="v2MonScrollToCritical()" style="display:none;">
+  <a href="javascript:void(0)" id="v2-mon-crit-link" onclick="monCritLogOpen()" style="display:none;">
     <span><i class="bi bi-exclamation-triangle"></i> วิกฤต</span>
     <span id="v2-mon-crit-count" class="badge-mini danger">0</span>
   </a>
@@ -1155,6 +1350,9 @@
                         <h3><i class="bi bi-activity"></i> ศูนย์ควบคุม</h3>
                         <div class="sub">Monitor · เรียลไทม์</div>
                     </div>
+                    <button type="button" id="mph-crit-log-btn" class="mph-crit-log" onclick="monCritLogOpen()" title="ประวัติแจ้งเตือนวิกฤต 10 รายการล่าสุด">
+                        <i class="bi bi-exclamation-triangle-fill"></i> <span class="lbl">วิกฤต</span>
+                    </button>
                     <button type="button" id="mph-wallboard-btn" class="mph-wallboard" onclick="monitorToggleWallboard()" title="Wallboard mode (เปิด GPS pane ขวา)">
                         <i class="bi bi-tv"></i> <span class="lbl">Wallboard</span>
                     </button>
@@ -4898,6 +5096,170 @@
     };
     </script>
 
+  <!-- ===== Critical Log Modal (responsive: PC centered, mobile bottom sheet) ===== -->
+  <div id="monCritLogBd" class="mclm-bd" onclick="monCritLogClose()"></div>
+  <div id="monCritLogModal" class="mclm" role="dialog" aria-labelledby="mclm-title" aria-hidden="true">
+    <div class="mclm-handle"></div>
+    <div class="mclm-head">
+      <div class="mclm-title" id="mclm-title">
+        <i class="bi bi-exclamation-triangle-fill"></i>
+        <span>ประวัติแจ้งเตือนวิกฤต</span>
+        <span class="mclm-subtitle">10 รายการล่าสุด</span>
+      </div>
+      <div class="mclm-actions">
+        <button type="button" class="mclm-btn" onclick="monCritLogLoad()" title="รีเฟรช">
+          <i class="bi bi-arrow-clockwise"></i>
+        </button>
+        <button type="button" class="mclm-btn" onclick="monCritLogClose()" title="ปิด (Esc)">
+          <i class="bi bi-x-lg"></i>
+        </button>
+      </div>
+    </div>
+    <div class="mclm-body" id="mclm-body">
+      <div class="mclm-loading">
+        <div class="spinner-border spinner-border-sm" role="status"></div>
+        <span>กำลังโหลด...</span>
+      </div>
+    </div>
+  </div>
+
+  <script>
+  (function(){
+    var _critLogLoading = false;
+
+    window.monCritLogOpen = async function() {
+      var bd = document.getElementById('monCritLogBd');
+      var modal = document.getElementById('monCritLogModal');
+      if (!bd || !modal) return;
+      bd.classList.add('show');
+      modal.classList.add('show');
+      modal.setAttribute('aria-hidden', 'false');
+      // Lock body scroll
+      document.body.style.overflow = 'hidden';
+      // Esc key handler
+      document.addEventListener('keydown', _critLogEsc);
+      await window.monCritLogLoad();
+    };
+
+    window.monCritLogClose = function() {
+      var bd = document.getElementById('monCritLogBd');
+      var modal = document.getElementById('monCritLogModal');
+      if (!bd || !modal) return;
+      bd.classList.remove('show');
+      modal.classList.remove('show');
+      modal.setAttribute('aria-hidden', 'true');
+      document.body.style.overflow = '';
+      document.removeEventListener('keydown', _critLogEsc);
+    };
+
+    function _critLogEsc(e) {
+      if (e.key === 'Escape') window.monCritLogClose();
+    }
+
+    window.monCritLogLoad = async function() {
+      var body = document.getElementById('mclm-body');
+      if (!body) return;
+      if (_critLogLoading) return;
+      _critLogLoading = true;
+      body.innerHTML = '<div class="mclm-loading"><div class="spinner-border spinner-border-sm" role="status"></div><span>กำลังโหลด...</span></div>';
+      try {
+        if (!window._supabase) throw new Error('Supabase client not ready');
+        var res = await window._supabase
+          .from('notification_log')
+          .select('id, case_id, alert_type, channel, status, error, payload, created_at')
+          .eq('alert_type', 'CRITICAL')
+          .order('created_at', { ascending: false })
+          .limit(10);
+        if (res.error) throw res.error;
+        _critLogRender(res.data || []);
+      } catch (err) {
+        body.innerHTML = '<div class="mclm-empty"><i class="bi bi-exclamation-circle" style="color:#fca5a5;"></i><span>โหลดไม่สำเร็จ: ' + _critLogEsc2(err.message || String(err)) + '</span></div>';
+      } finally {
+        _critLogLoading = false;
+      }
+    };
+
+    function _critLogEsc2(s) {
+      // Local sanitizer (escapeHtml may not be loaded yet)
+      return String(s == null ? '' : s)
+        .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+    }
+
+    function _critLogFmtTime(iso) {
+      try {
+        var d = new Date(iso);
+        var date = d.toLocaleDateString('th-TH', { year: '2-digit', month: 'short', day: '2-digit' });
+        var time = d.toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false });
+        return date + ' · ' + time;
+      } catch(_) { return String(iso || ''); }
+    }
+
+    function _critLogVitalsHtml(payload) {
+      if (!payload) return '';
+      var bits = [];
+      if (payload.alerts && payload.alerts.length) {
+        bits = payload.alerts.map(function(a) { return a.label || a.type || ''; }).filter(Boolean);
+      } else if (payload.severity) {
+        var s = payload.severity;
+        if (s.arrest) bits.push('ARREST');
+        if (s.spo2 != null) bits.push('SpO2 ' + s.spo2 + '%');
+        if (s.hr != null) bits.push('HR ' + s.hr);
+        if (s.rr != null) bits.push('RR ' + s.rr);
+        if (s.bp_raw) bits.push('BP ' + s.bp_raw);
+        if (s.gcs != null) bits.push('GCS ' + s.gcs);
+      }
+      if (!bits.length) return '';
+      return '<div class="mclm-row-vitals">' +
+        bits.map(function(b) { return '<span class="mclm-vital">' + _critLogEsc2(b) + '</span>'; }).join('') +
+      '</div>';
+    }
+
+    function _critLogStatusLabel(s) {
+      var k = String(s || '').toLowerCase();
+      if (k === 'sent') return 'ส่งแล้ว';
+      if (k === 'failed') return 'ล้มเหลว';
+      if (k === 'skipped') return 'ข้าม';
+      return k.toUpperCase() || '—';
+    }
+
+    function _critLogChannelLabel(c) {
+      var k = String(c || '').toLowerCase();
+      if (k === 'line') return 'LINE';
+      if (k === 'telegram') return 'TG';
+      return k.toUpperCase() || '—';
+    }
+
+    function _critLogRender(rows) {
+      var body = document.getElementById('mclm-body');
+      if (!body) return;
+      if (!rows || !rows.length) {
+        body.innerHTML = '<div class="mclm-empty"><i class="bi bi-check-circle"></i><span>ยังไม่มีประวัติแจ้งเตือนวิกฤตในระบบ</span></div>';
+        return;
+      }
+      var html = rows.map(function(r) {
+        var caseShort = String(r.case_id || '—').replace(/^CASE-/, '');
+        var status = String(r.status || '').toLowerCase();
+        var clickAttr = '';
+        if (r.case_id && typeof window.monitorPreviewCase === 'function') {
+          var safeId = _critLogEsc2(r.case_id);
+          clickAttr = ' onclick="monCritLogClose(); monitorPreviewCase(\'' + safeId + '\')" title="คลิกเพื่อเปิดเคส"';
+        }
+        return '<div class="mclm-row"' + clickAttr + '>' +
+          '<div class="mclm-row-top">' +
+            '<span class="mclm-row-time">' + _critLogEsc2(_critLogFmtTime(r.created_at)) + '</span>' +
+            '<span class="mclm-row-pill ' + status + '">' + _critLogEsc2(_critLogStatusLabel(r.status)) + '</span>' +
+            '<span class="mclm-row-channel">' + _critLogEsc2(_critLogChannelLabel(r.channel)) + '</span>' +
+          '</div>' +
+          '<div class="mclm-row-case">#' + _critLogEsc2(caseShort) + (r.case_id ? ' <i class="bi bi-box-arrow-up-right"></i>' : '') + '</div>' +
+          _critLogVitalsHtml(r.payload) +
+        '</div>';
+      }).join('');
+      body.innerHTML = html;
+    }
+  })();
+  </script>
+
   <!-- Mobile bottom nav (monitor) -->
   <nav class="pt-bnav" id="mon-bnav" style="display:none; grid-template-columns: repeat(4, 1fr) !important;">
     <a href="javascript:void(0)" onclick="if(typeof v2MonScrollTo==='function') v2MonScrollTo('monitor-transport-list')">
@@ -4906,7 +5268,7 @@
     <a href="javascript:void(0)" onclick="if(typeof v2MonScrollTo==='function') v2MonScrollTo('monitor-fa-list')">
       <i class="bi bi-bandaid"></i><span>ปฐมพยาบาล</span>
     </a>
-    <a href="javascript:void(0)" onclick="if(typeof v2MonScrollToCritical==='function') v2MonScrollToCritical()">
+    <a href="javascript:void(0)" onclick="if(typeof monCritLogOpen==='function') monCritLogOpen()">
       <i class="bi bi-exclamation-circle-fill" style="color:#dc2626;"></i><span>วิกฤต</span>
     </a>
     <a href="javascript:void(0)" onclick="if(typeof loadMonitor==='function') loadMonitor()">
