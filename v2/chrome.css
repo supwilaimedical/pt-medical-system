@@ -65,14 +65,17 @@ body[data-module] .v2-rail .v2-divider,
 body[data-module="admin"] .v2-modrail .v2-divider {
   background: var(--chrome-line) !important;
 }
-/* Logo — no frame, soft white halo (overrides shared.js inline bg/padding) */
-body[data-module] .v2-rail .v2-logo {
+/* Logo — no frame, soft white halo (overrides shared.js inline bg/padding).
+   Covers BOTH .v2-rail (most modules) AND .v2-modrail (admin). */
+body[data-module] .v2-rail .v2-logo,
+body[data-module] .v2-modrail .v2-logo {
   background: transparent !important;
   box-shadow: none !important;
   border-radius: 0 !important;
   overflow: visible !important;
 }
-body[data-module] .v2-rail .v2-logo img {
+body[data-module] .v2-rail .v2-logo img,
+body[data-module] .v2-modrail .v2-logo img {
   width: 100% !important; height: 100% !important;
   object-fit: contain !important;
   background: transparent !important;
@@ -114,6 +117,9 @@ body[data-module] .v2-subnav-section {
 }
 body[data-module] .v2-subnav a {
   color: var(--chrome-text-2) !important;
+  /* Nuke inline `border-bottom:1px solid #f1f5f9` from Transport/Location/GPS/Monitor —
+     creates visible white lines on navy. Firstaid never had this rule (= reference). */
+  border-bottom: 0 !important;
   transition: background 150ms, color 150ms !important;
 }
 body[data-module] .v2-subnav a:hover {
@@ -354,9 +360,11 @@ body[data-module="admin"] .admin-sidebar .sidebar-modswitch a .bi {
 }
 body[data-module="admin"] .admin-sidebar .sidebar-back {
   color: var(--chrome-text-2) !important;
+  background: transparent !important;
 }
 body[data-module="admin"] .admin-sidebar .sidebar-back:hover {
   color: var(--accent) !important;
+  background: var(--chrome-bg-4) !important;
 }
 body[data-module="admin"] .admin-sidebar .sidebar-item {
   color: var(--chrome-text-2) !important;
@@ -376,7 +384,9 @@ body[data-module="admin"] .admin-sidebar .sidebar-item.active::before {
   box-shadow: 0 0 8px var(--accent-glow) !important;
 }
 body[data-module="admin"] .admin-sidebar .sidebar-footer {
-  border-top: 1px solid var(--chrome-line) !important;
+  background: transparent !important;     /* was var(--asurface) = #fff → white block */
+  margin-top: 0 !important;                /* was 20px → unnecessary gap */
+  border-top: 1px solid var(--chrome-line-2) !important;
 }
 body[data-module="admin"] .admin-sidebar .sidebar-footer * {
   color: var(--chrome-text-3) !important;
