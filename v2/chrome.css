@@ -208,6 +208,71 @@ body[data-module] .right-col {
    Right column kept white (overlapped under topbar via z-index). */
 /* GPS EXCLUDED — uses .v2-gps-wrap height:100vh flex; fixed topbar would break map sizing.
    GPS topbar inherits glass-navy styling from the general topbar rule but stays sticky-in-flex. */
+
+/* ===== ADMIN SIDEBAR — admin.html uses .admin-sidebar (NOT .v2-rail/.v2-subnav) ===== */
+body[data-module="admin"] .admin-sidebar {
+  background: linear-gradient(180deg, var(--chrome-bg-2) 0%, var(--chrome-bg-3) 100%) !important;
+  border-right: 1px solid var(--chrome-line) !important;
+  color: var(--chrome-text-2) !important;
+}
+body[data-module="admin"] .admin-sidebar .sidebar-brand {
+  border-bottom: 1px solid var(--chrome-line) !important;
+}
+body[data-module="admin"] .admin-sidebar .sidebar-brand .brand-name {
+  color: var(--chrome-text) !important;
+}
+body[data-module="admin"] .admin-sidebar .sidebar-brand .brand-name .bi {
+  color: var(--accent) !important;
+}
+body[data-module="admin"] .admin-sidebar .sidebar-brand .brand-sub,
+body[data-module="admin"] .admin-sidebar .sidebar-brand #sb-admin-name {
+  color: var(--chrome-text-3) !important;
+}
+body[data-module="admin"] .admin-sidebar .sidebar-section {
+  color: var(--chrome-text-3) !important;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  font-size: 11px !important;
+  border-top: 1px solid var(--chrome-line-2) !important;
+  margin-top: 8px !important;
+  padding-top: 14px !important;
+}
+body[data-module="admin"] .admin-sidebar .sidebar-item {
+  color: var(--chrome-text-2) !important;
+  transition: background 150ms, color 150ms !important;
+}
+body[data-module="admin"] .admin-sidebar .sidebar-item:hover {
+  background: var(--chrome-bg-4) !important;
+  color: var(--chrome-text) !important;
+}
+body[data-module="admin"] .admin-sidebar .sidebar-item.active {
+  background: var(--accent-soft) !important;
+  color: var(--accent) !important;
+  font-weight: 600 !important;
+}
+body[data-module="admin"] .admin-sidebar .sidebar-item.active::before {
+  background: var(--accent) !important;
+  box-shadow: 0 0 8px var(--accent-glow) !important;
+}
+body[data-module="admin"] .admin-sidebar .sidebar-footer {
+  border-top: 1px solid var(--chrome-line) !important;
+}
+body[data-module="admin"] .admin-sidebar .sidebar-footer * {
+  color: var(--chrome-text-3) !important;
+}
+
+/* ===== MONITOR wide GPS pane (when wallboard mode active) ===== */
+body[data-module="monitor"] #monitor-wide-gps-pane .mwgp-head {
+  background: var(--chrome-bg-3) !important;
+  color: var(--chrome-text) !important;
+  border-bottom: 1px solid var(--chrome-line) !important;
+}
+body[data-module="monitor"] #monitor-wide-gps-pane .mwgp-head h3 {
+  color: var(--chrome-text) !important;
+}
+body[data-module="monitor"] #monitor-wide-gps-pane .mwgp-head .bi {
+  color: var(--accent) !important;
+}
 @media (min-width: 992px) {
   body[data-module="location"]  .v2-colheader,
   body[data-module="location"]  .view-section > .d-flex.justify-content-between.align-items-end,
