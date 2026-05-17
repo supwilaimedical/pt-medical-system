@@ -189,142 +189,43 @@ body[data-module] .monitor-page-header h3 .bi {
   color: var(--accent) !important;
 }
 
-/* ===== RIGHT COLUMN — elevated navy panel (per-module classes) ===== */
+/* ===== RIGHT COLUMN — kept WHITE per user preference (only push down to clear fixed topbar) ===== */
 body[data-module] .fa-dash-right,
 body[data-module] .fa-evt-right,
-body[data-module] .tr-dash-right,
-body[data-module] #monitor-wide-gps-pane,
+body[data-module] .tr-dash-right {
+  top: 64px !important;
+}
+/* (navy right-col block removed — right col stays default white) */
 body[data-module] .v2-right-col,
 body[data-module] .right-col {
-  background: var(--chrome-bg-3) !important;
-  border-left: 1px solid var(--chrome-line) !important;
-  color: var(--chrome-text-2) !important;
+  /* no-op placeholder for future use */
 }
-body[data-module] .fa-rc-section,
-body[data-module] .tr-rc-section-label,
-body[data-module] .v2-right-col .section-label,
-body[data-module] .right-col .section-label {
-  color: var(--chrome-text-3) !important;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  font-size: 11px !important;
-  border-top: 1px solid var(--chrome-line) !important;
-  padding-top: 10px;
-}
-body[data-module] .tr-rc-row,
-body[data-module] .tr-rc-share-row {
-  color: var(--chrome-text-2) !important;
-  background: transparent !important;
-}
-body[data-module] .tr-rc-row:hover,
-body[data-module] .tr-rc-share-row:hover {
-  background: var(--chrome-bg-4) !important;
-  color: var(--chrome-text) !important;
-}
-body[data-module] .tr-rc-row .val,
-body[data-module] .tr-rc-count {
-  color: var(--accent) !important;
-  font-weight: 700;
-}
-body[data-module] .tr-rc-empty,
-body[data-module] .tr-rc-more {
-  color: var(--chrome-text-3) !important;
-}
-body[data-module] .tr-rc-group {
-  border-bottom: 1px solid var(--chrome-line) !important;
-}
-body[data-module] .fa-dash-right .card,
-body[data-module] .fa-evt-right .card {
-  background: transparent !important;
-  color: var(--chrome-text-2) !important;
-}
-body[data-module] .fa-dash-right .card-header,
-body[data-module] .fa-evt-right .card-header {
-  background: var(--chrome-bg-4) !important;
-  color: var(--chrome-text) !important;
-  border-bottom: 1px solid var(--chrome-line) !important;
-}
-/* Firstaid right rail — push under topbar; force all text to chrome-text */
-body[data-module="firstaid"] .fa-dash-right {
-  top: 62px !important;  /* clear fa-colhead height */
-  border-top: 1px solid var(--chrome-line) !important;
-}
-body[data-module="firstaid"] .fa-dash-right * {
-  color: var(--chrome-text-2);
-}
-body[data-module="firstaid"] .fa-dash-right .fa-rc-section {
-  color: var(--chrome-text-3) !important;
-}
-body[data-module="firstaid"] .fa-dash-right .fa-rc-value,
-body[data-module="firstaid"] .fa-dash-right .fa-rc-val,
-body[data-module="firstaid"] .fa-dash-right strong,
-body[data-module="firstaid"] .fa-dash-right b {
-  color: var(--chrome-text) !important;
-}
-/* Bootstrap badges/list rows inside right col */
-body[data-module="firstaid"] .fa-dash-right .badge {
-  background: var(--chrome-bg-4) !important;
-  color: var(--chrome-text) !important;
-}
-body[data-module="firstaid"] .fa-dash-right .list-group-item,
-body[data-module="firstaid"] .fa-dash-right .row {
-  background: transparent !important;
-  color: var(--chrome-text-2) !important;
-  border-color: var(--chrome-line) !important;
-}
-body[data-module="firstaid"] .fa-dash-right a {
-  color: var(--accent) !important;
-}
-body[data-module="firstaid"] .fa-dash-right .text-muted,
-body[data-module="firstaid"] .fa-dash-right small {
-  color: var(--chrome-text-3) !important;
-}
-/* Firstaid topbar — span full viewport width above right col (desktop ≥1200px) */
-body[data-module="firstaid"] .fa-colhead {
-  z-index: 11 !important;
-}
-@media (min-width: 1200px) {
-  body[data-module="firstaid"].fa-has-rightcol .fa-colhead {
+/* right col text/badge/row navy overrides removed — defaults to white panel */
+/* ===== UNIVERSAL FIXED TOPBAR (desktop ≥992px) — spans full viewport over right col ===== */
+/* All per-module topbar/colheader classes get position:fixed, full width minus rail+subnav.
+   Right column kept white (overlapped under topbar via z-index). */
+@media (min-width: 992px) {
+  body[data-module] .fa-colhead,
+  body[data-module] .v2-colheader,
+  body[data-module] .v2-gps-colheader,
+  body[data-module] .v2-form-topbar,
+  body[data-module] .monitor-page-header,
+  body[data-module="admin"] .admin-topbar,
+  body[data-module] #dashboard-view > .d-flex.justify-content-between.align-items-end {
     position: fixed !important;
     top: 0;
-    /* left = rail (56) + subnav (240) = 296px when subnav visible; else 56 */
-    left: 296px;
+    left: 296px;  /* rail (56) + subnav (240) */
     right: 0;
     margin: 0 !important;
     z-index: 11;
   }
-  /* When subnav hidden (e.g., admin page), topbar starts after rail only */
-  body[data-module="firstaid"].fa-has-rightcol:not(.v2-has-subnav) .fa-colhead {
-    left: 56px;
-  }
-  /* Push main content area down so it's not hidden under fixed topbar */
-  body[data-module="firstaid"].fa-has-rightcol .view-section {
+  /* Push view-section / dashboard / admin-main down to clear fixed topbar */
+  body[data-module] .view-section,
+  body[data-module] #dashboard-view,
+  body[data-module="admin"] .admin-main {
     padding-top: 64px;
   }
 }
-@media (min-width: 992px) and (max-width: 1199px) {
-  body[data-module="firstaid"] .fa-colhead {
-    position: fixed !important;
-    top: 0; left: 296px; right: 0;
-    margin: 0 !important;
-    z-index: 11;
-  }
-  body[data-module="firstaid"] .view-section { padding-top: 64px; }
-}
-
-/* Monitor wide GPS pane internals */
-body[data-module="monitor"] #monitor-wide-gps-pane .mwgp-head,
-body[data-module="monitor"] #monitor-wide-gps-pane .mwgp-vh {
-  background: var(--chrome-bg-3) !important;
-  color: var(--chrome-text-2) !important;
-  border-color: var(--chrome-line) !important;
-}
-body[data-module="monitor"] #monitor-wide-gps-pane .mwgp-vh:hover {
-  background: var(--chrome-bg-4) !important;
-  color: var(--chrome-text) !important;
-}
-body[data-module="monitor"] #monitor-wide-gps-pane .vh-name { color: var(--chrome-text) !important; }
-body[data-module="monitor"] #monitor-wide-gps-pane .vh-addr { color: var(--chrome-text-3) !important; }
 
 /* ===== FORM TOPBAR sub-rows (Transport v2-tb-row1/row2 had explicit bg:white) ===== */
 body[data-module] .v2-form-topbar .v2-tb-row1,
