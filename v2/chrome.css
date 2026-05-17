@@ -390,6 +390,39 @@ body[data-module="monitor"] #monitor-wide-gps-pane .mwgp-head .bi {
     top: 64px !important;
   }
 
+  /* === Transport structural fix === */
+  /* Dashboard list view header */
+  body[data-module="transport"] #dashboard-view > .d-flex.justify-content-between.align-items-end {
+    position: fixed !important;
+    top: 0 !important;
+    left: 296px !important;  /* rail 56 + subnav 240 */
+    right: 0 !important;
+    margin: 0 !important;
+    z-index: 30 !important;
+    padding: 12px 18px !important;
+    background: var(--chrome-glass) !important;
+    backdrop-filter: blur(14px) saturate(180%);
+    -webkit-backdrop-filter: blur(14px) saturate(180%);
+  }
+  body[data-module="transport"] #dashboard-view {
+    padding-top: 64px !important;
+  }
+  body[data-module="transport"] .tr-dash-right {
+    top: 64px !important;
+  }
+  /* Form view topbar */
+  body[data-module="transport"] .v2-form-topbar {
+    position: fixed !important;
+    top: 0 !important;
+    left: 296px !important;
+    right: 0 !important;
+    margin: 0 !important;
+    z-index: 30 !important;
+  }
+  body[data-module="transport"] #form-view {
+    padding-top: 64px !important;
+  }
+
   /* === Other modules: just bump topbar z-index defensively === */
   body[data-module="firstaid"] .fa-colhead,
   body[data-module="monitor"]  .monitor-page-header {
