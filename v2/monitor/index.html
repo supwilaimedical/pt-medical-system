@@ -196,7 +196,7 @@
         }
         .monitor-toast .t-close:hover { color:#0f172a; }
     </style>
-    <link rel="stylesheet" href="../chrome.css?v=20260517o">
+    <link rel="stylesheet" href="../chrome.css?v=20260517p">
 </head>
 <body data-module="monitor" style="background: #f0f2f5; font-family: 'Sarabun', sans-serif;">
 <!-- V2 Design Overlay: Rail + Subnav + Mobile Drawer -->
@@ -279,9 +279,10 @@
 
   /* Monitor-specific Live Status widget in subnav — uses chrome tokens for navy theme */
   .v2-mon-live{
-    padding:14px 16px;
+    padding:14px 16px 18px;
     background:transparent;
-    border-bottom:1px solid var(--chrome-line-2, rgba(255,255,255,0.08));
+    /* No border-bottom — was creating double-line with next subnav-section's border-top */
+    border-bottom:0;
   }
   .v2-mon-live .live-row{
     display:flex; align-items:center; gap:8px; margin-bottom:8px;

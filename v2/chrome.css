@@ -113,9 +113,11 @@ body[data-module] .v2-subnav-section {
   letter-spacing: 0.06em;
   text-transform: uppercase;
   font-size: 11px !important;
-  border-top: 1px solid var(--chrome-line-2) !important;
-  margin-top: 8px !important;
-  padding-top: 14px !important;
+  /* No border-top — was creating visible white lines on navy.
+     Separation comes from margin-top + padding-top + small uppercase title. */
+  border-top: 0 !important;
+  margin-top: 12px !important;
+  padding-top: 10px !important;
 }
 body[data-module] .v2-subnav a {
   color: var(--chrome-text-2) !important;
