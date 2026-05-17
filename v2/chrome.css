@@ -517,10 +517,11 @@ body[data-module] .v2-form-topbar .timeline-tab.active {
 }
 
 /* ===== DASHBOARD VIEW page header (.d-flex...end inside view-section) ===== */
-/* Stretch to full width — remove default mt/mb margin gap */
+/* margin:0 (was -18px → caused horizontal overflow + scrollbar → bnav pushed up 15px).
+   Padding stays for breathing room. */
 body[data-module] #dashboard-view > .d-flex.justify-content-between.align-items-end,
 body[data-module] .view-section > .d-flex.justify-content-between.align-items-end {
-  margin: 0 -18px 16px !important;
+  margin: 0 0 16px !important;
   padding: 12px 18px !important;
 }
 body[data-module] #dashboard-view .dashboard-header,
