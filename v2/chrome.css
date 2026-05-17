@@ -349,8 +349,14 @@ body[data-module="monitor"] #monitor-wide-gps-pane .mwgp-head .bi {
   color: var(--accent) !important;
 }
 /* ===== UNIVERSAL FIXED TOPBAR REMOVED =====
-   Aggressive position:fixed broke too many layouts (Fleet padding, Monitor white gap, GPS map overflow).
-   Keeping native sticky behavior. Topbar still gets navy glass color from earlier rule. */
+   Aggressive position:fixed broke too many layouts. Topbar stays sticky (native).
+   But: bump z-index so sticky topbar wins over fixed right-cols overlapping top area. */
+@media (min-width: 992px) {
+  body[data-module="fleet"] .v2-colheader,
+  body[data-module="gps"]   .v2-gps-colheader {
+    z-index: 30 !important;  /* above right-cols (.fleet-rc / .v2-gps-rightcol have no z-index = auto) */
+  }
+}
 
 /* ===== FORM TOPBAR sub-rows =====
    v2-tb-row1 = navy (main topbar — case-id, action buttons)
