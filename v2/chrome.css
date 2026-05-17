@@ -371,12 +371,23 @@ body[data-module="monitor"] #monitor-wide-gps-pane .mwgp-head .bi {
   }
   /* Map container inside main: shrink remaining height accordingly (already flex:1 inside main column) */
 
-  /* === Fleet structural fix === */
+  /* === Fleet structural fix ===
+     Header is sticky INSIDE #app-main-wrapper which has margin-right:280px (for rightcol).
+     Pull header out via position:fixed; left:240(subnav); right:0 to span full width over rightcol.
+     Then push wrapper padding-top:64 + rightcol top:64 to clear. */
+  body[data-module="fleet"] .v2-colheader {
+    position: fixed !important;
+    top: 0 !important;
+    left: 240px !important;  /* subnav width */
+    right: 0 !important;
+    margin: 0 !important;
+    z-index: 30 !important;
+  }
+  body[data-module="fleet"] #app-main-wrapper {
+    padding-top: 64px !important;
+  }
   body[data-module="fleet"] .fleet-rc {
     top: 64px !important;
-  }
-  body[data-module="fleet"] .v2-colheader {
-    z-index: 30 !important;
   }
 
   /* === Other modules: just bump topbar z-index defensively === */
