@@ -348,23 +348,38 @@ body[data-module="monitor"] #monitor-wide-gps-pane .mwgp-head h3 {
 body[data-module="monitor"] #monitor-wide-gps-pane .mwgp-head .bi {
   color: var(--accent) !important;
 }
-/* ===== TOPBAR-OVER-RIGHTCOL (desktop ≥992px) =====
-   For modules with right column, push rightcol down 64px so topbar (sticky in main column) appears ABOVE rightcol visually.
-   For GPS, rightcol is a flex item not position:fixed — use padding-top to push content down.
-   For Fleet, rightcol is position:fixed top:0 — change top to 64. */
+/* ===== HEADER-OVER-RIGHTCOL (desktop ≥992px) =====
+   Per agent review: GPS structure is wrap > [main(>header,search,map), rightcol]. Header is INSIDE main, can't extend over rightcol naturally.
+   Fix: pull header out via position:absolute on wrap, spanning full wrap width. Both main + rightcol get padding-top to clear.
+   Fleet: rightcol position:fixed top:0 → just push top down to clear header. */
 @media (min-width: 992px) {
-  /* Fleet: rightcol fixed → push top down */
+  /* === GPS structural fix === */
+  body[data-module="gps"] .v2-gps-wrap {
+    position: relative;
+  }
+  body[data-module="gps"] .v2-gps-colheader {
+    position: absolute !important;
+    top: 0; left: 0; right: 0;
+    z-index: 30 !important;
+    margin: 0 !important;
+  }
+  body[data-module="gps"] .v2-gps-main {
+    padding-top: 56px !important;
+  }
+  body[data-module="gps"] .v2-gps-rightcol {
+    padding-top: 56px !important;
+  }
+  /* Map container inside main: shrink remaining height accordingly (already flex:1 inside main column) */
+
+  /* === Fleet structural fix === */
   body[data-module="fleet"] .fleet-rc {
     top: 64px !important;
   }
-  /* GPS: push rightcol stats card down. First-child is .v2-gps-sheet-handle (mobile bsheet handle),
-     stats card is 2nd child — target by class directly, not :first-child. */
-  body[data-module="gps"] .v2-gps-rightcol .v2-stats-card {
-    margin-top: 56px !important;
+  body[data-module="fleet"] .v2-colheader {
+    z-index: 30 !important;
   }
-  /* Bump topbar z-index above any fixed sibling */
-  body[data-module="fleet"] .v2-colheader,
-  body[data-module="gps"]   .v2-gps-colheader,
+
+  /* === Other modules: just bump topbar z-index defensively === */
   body[data-module="firstaid"] .fa-colhead,
   body[data-module="monitor"]  .monitor-page-header {
     z-index: 30 !important;
