@@ -1,13 +1,13 @@
 # Notification Webhook Setup
 
-> **Status: ✅ LIVE in production (since 2026-04-22)** — Supwilai deployed, Thegood follows in 2-4 weeks.  
+> **Status: ✅ LIVE in production (since 2026-04-22) — Supwilai.**  
 > **Version 6.0 — Updated 2026-04-25 (post-V2 migration).** Worker URL paths and payload format unchanged by V2 migration.
 
 Server-side critical-event detection via Supabase Database Webhook → Cloudflare Worker.
 
 ---
 
-## Deploy Order (per deployment — do both Supwilai + Thegood)
+## Deploy Order
 
 ### 1. Run SQL migrations in Supabase
 
@@ -24,7 +24,6 @@ sql/notifications_v2.sql    -- adds last_payload column
 cd cloudflare
 npx wrangler secret put PUBLIC_BASE_URL
 # Supwilai: https://supwilaimedical.github.io/pt-medical-system
-# Thegood:  https://officethegood.github.io/pt-medical-system
 ```
 
 ### 3. Deploy the worker

@@ -72,6 +72,6 @@ WITH CHECK (true);
 -- =====================================================================
 -- After applying: test anon access by running as anon (Supabase Studio
 -- → SQL Editor → use "anon" role) OR open public share link in incognito:
---   https://officethegood.github.io/pt-medical-system/location/share.html?token=<YOUR_TEST_TOKEN>
+--   https://supwilaimedical.github.io/pt-medical-system/location/share.html?token=<YOUR_TEST_TOKEN>
 -- Should see customer data. If 403/empty → policy tightening needed.
 -- =====================================================================

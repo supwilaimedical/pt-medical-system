@@ -1,9 +1,8 @@
 -- =====================================================
 -- Add witness signature image column to transport_consents
--- Run on BOTH databases: supwilai + thegood
+-- Run on Supwilai database.
 -- =====================================================
--- Supwilai:  rwxaalgvkzlsyfzdebcj.supabase.co
--- TheGood:   bztzsjuwyduveaqjvjma.supabase.co
+-- Supwilai: rwxaalgvkzlsyfzdebcj.supabase.co
 -- =====================================================
 
 ALTER TABLE transport_consents

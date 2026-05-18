@@ -1,10 +1,10 @@
 -- =============================================
 -- First-Aid Staff Token Feature (Supwilai V2)
 -- =============================================
--- Ported from TheGood (2026-05-05). Differences from TheGood spec:
---   - Skipped policies on fa_registry / fa_events (Supwilai already grants
---     full anon CRUD via migration/add_anon_policies.sql — auth flow uses
---     GAS HR API, not Supabase Auth)
+-- Notes:
+--   - No policies on fa_registry / fa_events (already grants full anon
+--     CRUD via migration/add_anon_policies.sql — auth flow uses GAS HR
+--     API, not Supabase Auth)
 --   - Only the new fa_event_tokens table needs RLS here.
 --
 -- Run this once in the Supwilai Supabase SQL Editor.
