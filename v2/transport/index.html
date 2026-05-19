@@ -9118,21 +9118,35 @@
     }, true);
     setInterval(_ptUpdateBnav, 1000); // safety net for view changes via JS
 
-    // Form view: set body padding-top = fixed topbar's actual height (otherwise
-    // content underneath gets covered). Recompute on resize / view change.
+    // Form view: set padding-top = fixed topbar's actual height (otherwise
+    // content underneath gets covered). The topbar height changes with
+    // patient-banner expand/collapse + Dx/CC line wrapping, so this must be
+    // dynamic. Mobile uses body padding-top (topbar overlays full width);
+    // PC uses --form-tb-h CSS var so chrome.css can apply it to #form-view
+    // (body padding-top would push the rail/sidebar too).
     function _ptSyncFormPad(){
       var formActive = document.getElementById('form-view')?.classList.contains('active');
       var mobile = _ptIsMobilePortrait();
       var topbar = document.querySelector('.v2-form-topbar');
-      if (formActive && mobile && topbar) {
+      if (formActive && topbar) {
         var h = topbar.offsetHeight;
-        document.body.style.paddingTop = h + 'px';
-        // Just the row1 button height (~52px) is enough to clear hamburger area
-        var row1 = topbar.querySelector('.v2-tb-row1');
-        document.documentElement.style.setProperty('--pt-tb-h', (row1 ? row1.offsetHeight : 50) + 'px');
+        if (mobile) {
+          document.body.style.paddingTop = h + 'px';
+          // Just the row1 button height (~52px) is enough to clear hamburger area
+          var row1 = topbar.querySelector('.v2-tb-row1');
+          document.documentElement.style.setProperty('--pt-tb-h', (row1 ? row1.offsetHeight : 50) + 'px');
+          document.documentElement.style.removeProperty('--form-tb-h');
+        } else {
+          // PC: fixed topbar overlays #form-view only; set CSS var consumed by
+          // chrome.css padding-top rule (defaults to 64px if var missing).
+          document.body.style.paddingTop = '';
+          document.documentElement.style.setProperty('--form-tb-h', h + 'px');
+          document.documentElement.style.removeProperty('--pt-tb-h');
+        }
       } else {
         document.body.style.paddingTop = '';
         document.documentElement.style.removeProperty('--pt-tb-h');
+        document.documentElement.style.removeProperty('--form-tb-h');
       }
     }
     document.addEventListener('DOMContentLoaded', _ptSyncFormPad);
