@@ -2,7 +2,17 @@
 
 UI/CSS structure ของ V2 modules. ใช้เป็น reference เวลา redesign/audit/แก้บั๊ก. ทุก class/id ในนี้คือชื่อจริงที่ใช้ใน HTML ปัจจุบัน.
 
-**Last audit:** 2026-05-17. **Files:** `v2/<module>/index.html` + `v2/chrome.css` (shared navy theme).
+**Last audit:** 2026-05-19. **Files:** `v2/<module>/index.html` + `v2/chrome.css` (shared navy theme).
+
+**Recent session (2026-05-19) — 6 PRs merged:**
+- **PR #3** `f0be0d3` + `a900ffa` — patient banner WHITE bg + dynamic `--form-tb-h` so fixed topbar doesn't cover form on PC
+- **PR #4** `90171ff` — timeline + patient banner both WHITE, strip card chrome (border/radius/shadow/margin all 0)
+- **PR #5** `d9021ac` — transport subnav case-info card: override inline `background:#f1f5f9` + dark text on navy
+- **PR #6** `8f3f560` — mobile timeline flush (no navy seam) + banner dedup (hide `#ban-mini-name`) + `#ban-op-no` font 0.78rem
+- **PR #7** `9ed78fb` — ALS row baseline (strip `pb-1`, normalize line-height) + Urgent+Consent on one row (hide details `.col-md-3`)
+- **PR #8** `78f7dae` — firstaid subnav: `.back-link` + `.event-ctx` contrast on navy chrome
+
+**PC audit verdict (live verified 2026-05-19):** 0 confirmed issues across all 7 modules. Earlier "Monitor purple CTA" + "Admin orange active" were **false positives** — both are intentional module-accent themed states (computed: `rgba(196,181,253,1)` Monitor purple CTA = designed; `rgba(253,186,116,0.22)` Admin orange = themed active). **Mobile bnav `.pt-bnav a .ct` count chip** = code-level concern (light bg not overridden by chrome.css for navy theme) — unverified live (resize hit min-width 1542 on dev machine).
 
 ---
 
@@ -106,9 +116,11 @@ body[data-module="firstaid"]  { --accent:#34d399; --accent-ink:#022c22; ... }
 | Subnav step rows | `.v2-subnav-step-item`, `.v2-subnav-step-split-item` | Toggled by body class |
 | Topbar (dashboard) | `#dashboard-view > .d-flex.justify-content-between.align-items-end` | **No dedicated class** — uses Bootstrap d-flex |
 | Topbar h3 | `h3.dashboard-header` (in `.tr-colhead-left`) | Sky icon |
-| Topbar (form view) | `.v2-form-topbar.no-print` | Has row1 (case actions) + row2 (patient banner) |
-| Form row 2 (patient banner) | `.v2-form-topbar .v2-tb-row2` aka `.patient-banner` | **White bg override** in chrome.css for readability |
+| Topbar (form view) | `.v2-form-topbar.no-print` | Has row1 (case actions/case-id) + Timeline strip + row2 (patient banner). **`position:fixed` ≥992px**, height varies with banner expand → JS sets `--form-tb-h` CSS var consumed by `#form-view { padding-top: var(--form-tb-h, 64px) }` so form content never gets covered |
+| Timeline strip (in topbar) | `.v2-tb-timeline` (added via JS `reparentTimelineAndBanner`) | **WHITE flush pane** — `background:#fff; margin:0; padding:0; border:0; border-bottom:1px solid #e2e8f0`. On mobile `.v2-form-topbar #timeline-card { margin:0; padding:0 }` overrides `#timeline-card` ID-specificity that beat my class-only rule (see Gotcha #15) |
+| Form row 2 (patient banner) | `.v2-form-topbar .v2-tb-row2` aka `.patient-banner` | **WHITE flush** — chrome.css overrides `background:#fff; color:#0f172a; border:0; border-radius:0; box-shadow:none; margin:0` (strips card chrome so pane sits flush with timeline above). Pattern documented in §14 |
 | Form action buttons | `.v2-tb-btn`, `.v2-tb-btn.primary` | |
+| Form topbar JS sync | `_ptSyncFormPad()` in transport/index.html | Sets `--form-tb-h` to `topbar.offsetHeight` on PC, `--pt-tb-h` (row1 only) on mobile. Runs on resize, step transition, banner toggle |
 | Right col | `aside#tr-dash-right.tr-dash-right.no-print` | 280px, ≥1200px, gated by `body.tr-dash-has-rc` |
 | Container override | `body:has(#dashboard-view.active) > .container { padding:0 }` | Flush layout |
 
@@ -144,6 +156,8 @@ body[data-module="firstaid"]  { --accent:#34d399; --accent-ink:#022c22; ... }
 | Subnav | `aside.v2-subnav.no-print#v2-fa-subnav` | 240px, hidden ≤991px |
 | Subnav header | `.v2-subnav-header` | Green bandaid icon |
 | Subnav CTA | `.v2-subnav-cta` | Inline "+ เพิ่มผู้ป่วย" button |
+| Subnav back link (event detail) | `.v2-subnav .back-link` | **chrome.css override** (PR #8) — inline `background:#f1f5f9` + `color:#0369a1` was unreadable on navy. Now `var(--chrome-bg-3)` bg + `var(--accent)` (firstaid green) text |
+| Subnav event ctx | `.v2-subnav .event-ctx` + `.name` + `.meta` | **chrome.css override** (PR #8) — inline `color:#0f172a` (slate-900) + `#64748b` was unreadable on navy. Now `var(--chrome-text)` + `var(--chrome-text-3)` |
 | Topbar (dashboard) | `.fa-colhead` + `.fa-colhead-left` | In `#fa-dashboard-view`, **position:fixed left:296 right:0** on PC ≥1200 |
 | Topbar (event detail) | `.fa-colhead#fa-evt-info` | In `#fa-event-detail-view`, same class reused |
 | Right col (dashboard) | `aside.fa-dash-right#fa-dash-right` | 280px, ≥1200px, `top:64px` to clear fixed colhead |
@@ -486,6 +500,26 @@ Each module ใช้ pattern ต่างกันให้ topbar ครอบ
     - **Inline HTML/CSS changes only** → ไม่ต้อง bump chrome.css. User ต้อง Ctrl+Shift+R หรือรอ GH Pages 600s TTL
     - **Location inline mirror** — Location มี navy theme inline (mirror ของ chrome.css). แก้ chrome.css ต้อง mirror ใน Location ด้วยเสมอ (e.g., section border-top removal)
 
+15. **ID-specificity beats module-class-specificity in mobile media queries** — module-level inline CSS ใช้ `#timeline-card { margin-bottom:8px !important }` ใน `@media (max-width:767px)` มี specificity `(1,0,0)` ที่ชนะ chrome-style `.v2-form-topbar .v2-tb-timeline { margin:0 !important }` `(0,2,0)`. Fix: เพิ่ม `.v2-form-topbar #timeline-card { margin:0; padding:0 }` ที่ผูกทั้ง ID + class → specificity `(1,1,0)` ชนะ. **Lesson:** เวลาจะ override mobile-specific ID rule, ต้องใช้ ID + ≥1 class.
+
+16. **Inline HTML `style="..."` ที่ chrome.css ไม่จับต้อง override ผ่าน `body[data-module="<name>"]`-scoped rule** — ตัวอย่างจาก session 2026-05-19:
+    - Transport `#v2-subnav-case > div[style="background:#f1f5f9"]` → `body[data-module="transport"] #v2-subnav-case > div[style*="background"] { background: var(--chrome-bg-3) }` (matches inline `style*="background"`)
+    - Firstaid `.back-link` ที่มี inline `background:#f1f5f9; color:#0369a1` ใน HTML → `body[data-module="firstaid"] .v2-subnav .back-link { background:var(--chrome-bg-3); color:var(--accent) }`
+    - **Pattern:** Grep selector ทุก v2/ → ถ้าเจอแค่ module เดียว = scope `body[data-module="X"]` ปลอดภัย. ถ้าเจอหลาย module = chrome.css generic rule
+    - **Why happens:** chrome.css ออกแบบมา cover `.v2-subnav a` etc. แต่ subnav children ที่เป็น `<div>` หรือ class เฉพาะ module (`.back-link`, `.event-ctx`) ไม่ match generic rule
+
+17. **Patient banner expand/collapse — info MUST not duplicate between mini-bar + details** (PR #6 + #7):
+    - **Collapsed:** `.ban-mini-bar` shows `#ban-mini-name` + `#ban-mini-triage-wrap` + `#ban-consent-card` + chevron (summary row, single line)
+    - **Expanded:** `.patient-banner:not(.ban-collapsed)` hides `#ban-mini-name` ONLY (keep triage + consent + chevron in mini-bar) AND hides `.ban-details .col-md-3` (duplicate triage badge in details)
+    - **Result:** mini-bar always shows: `[Urgent chip] [✓Consent] [chevron]` (one row). Expanded details add: ALS row, name+age, route, Dx/CC/แพ้/UD (no duplicate Urgent)
+    - **Anti-pattern:** Hide ALL mini-bar elements when expanded → chevron disappears, can't collapse
+
+18. **Audit cycle — distinguish "design intent" from "accidental seam":**
+    - **Intentional CTA buttons** (designed to stand out): module-specific accent colors are correct. E.g., Monitor `"รีเฟรชทันที"` button = `rgb(196,181,253)` purple-300 on navy = designed CTA, NOT a "white seam".
+    - **Intentional themed active states**: e.g., Admin `.sidebar-item.active` = `rgba(253,186,116,0.22)` (orange-300 22% opacity over navy = subtle warm-gray) — themed correctly even though visually distinct.
+    - **Actual seams**: hardcoded `background:#fff` or `#f1f5f9` from inline HTML/legacy CSS that chrome.css missed (e.g., Transport case-info wrapper, Firstaid back-link, Mobile `.pt-bnav a .ct` count chips).
+    - **Verification rule:** ALWAYS check computed style via JS `getComputedStyle(el).backgroundColor` before flagging. Don't trust screenshot interpretation alone. Per `/buddhist-method` Kalāma + Anatta.
+
 ---
 
 ## 11. Hard Rules (during ongoing redesign)
@@ -521,3 +555,98 @@ Each module ใช้ pattern ต่างกันให้ topbar ครอบ
 - Backup rule: GAS editor edits MUST mirror to local folder
 - PowerShell Thai gotcha: use `[IO.File]::ReadAllText($p, UTF8)` (Get-Content -Raw mangles via Win-874)
 - Commit message: include why, not just what; Co-Authored-By Claude
+
+---
+
+## 14. Transport Patient Banner — Collapsed/Expanded Pattern
+
+The patient banner (`#patient-summary-banner.patient-banner.v2-tb-row2`) is the most-used Transport widget. State pattern documented here because it's been through 4 redesigns.
+
+### DOM structure
+
+```html
+<div id="patient-summary-banner" class="patient-banner v2-tb-row2 ban-collapsed">
+  <!-- Always visible mini-bar -->
+  <div class="ban-mini-bar" onclick="togglePatientBanner(event)">
+    <span class="ban-mini-name fw-bold text-dark"><span id="ban-mini-name">-</span></span>
+    <span id="ban-mini-triage-wrap" class="badge ban-mini-triage"><span id="ban-mini-triage">-</span></span>
+    <span id="ban-consent-card" class="ban-consent-tag">
+      <i class="bi bi-file-earmark-check"></i>
+      <span id="ban-consent-text">รอลงนาม</span>
+    </span>
+    <button class="ban-toggle-btn ms-auto"><i class="bi bi-chevron-down"></i></button>
+  </div>
+
+  <!-- Toggle-able details -->
+  <div class="ban-details">
+    <!-- Row 1: ALS chip | รถเบอร์: ... | พีรพัฒน์... -->
+    <div class="row text-sm border-bottom pb-2">
+      <div class="col-12 text-primary d-flex align-items-center gap-2">
+        <span class="badge"><i class="bi bi-car-front-fill"></i> <span id="ban-op-level">-</span></span>
+        <span class="fw-medium text-dark">รถเบอร์: <span id="ban-op-no">-</span></span>
+        <span class="text-muted mx-1">|</span>
+        <span id="ban-staff-list" class="text-secondary small">-</span>
+      </div>
+    </div>
+    <!-- Row 2: name+age | triage | route -->
+    <div class="row align-items-center">
+      <div class="col-md-5"><span id="ban-name">-</span> (<span id="ban-age">-</span>)</div>
+      <div class="col-md-3"><span class="badge bg-danger-subtle"><span id="ban-triage">-</span></span></div>
+      <div class="col-md-4 text-md-end"><span id="ban-route">-</span></div>
+      <!-- Row 3: Dx/CC/แพ้/UD -->
+      <div class="col-12 mt-2 pt-2 border-top">
+        <span class="badge bg-light">Dx: <span id="ban-dx">-</span></span>
+        <span class="badge bg-light">CC: <span id="ban-cc">-</span></span>
+        <span class="badge bg-danger-subtle">แพ้: <span id="ban-allergy">-</span></span>
+        <span class="badge bg-info-subtle">UD: <span id="ban-ud">-</span></span>
+      </div>
+    </div>
+  </div>
+</div>
+```
+
+### Visibility rules (CSS-only — no JS dependency)
+
+```css
+/* Collapsed: hide details, show mini-bar in full */
+.patient-banner.ban-collapsed .ban-details { display: none; }
+
+/* Expanded: hide redundant info from mini-bar */
+.patient-banner:not(.ban-collapsed) #ban-mini-name { display: none !important; }
+.patient-banner:not(.ban-collapsed) .ban-details .row.align-items-center > .col-md-3 { display: none !important; }
+/* Note: do NOT hide #ban-mini-triage-wrap or #ban-consent-card — those stay in mini-bar always */
+```
+
+### Result by state
+
+| State | Mini-bar shows | Details shows |
+|---|---|---|
+| **Collapsed** (default mobile) | name + triage + consent + ▼ | hidden |
+| **Expanded** | triage + consent + ▲ (NO name) | ALS row, name+age, route, Dx/CC/แพ้/UD (NO triage) |
+
+### Sizing rules
+
+- **`#ban-op-no`** ("รถเบอร์: คันที่ 1 (ALS)") font-size = `0.78rem` (~12.5px) to match badge neighbors (~11-14px). Without override it inherits body 16px → looks oversized
+- **`#ban-staff-list`** `pb-1` REMOVED via chrome.css override (`padding-bottom: 0`) — was creating ~4px baseline offset vs ALS chip
+- **`.text-muted.mx-1`** separator `|` font-size = `0.78rem` (was inheriting body 16px → too big)
+- **ALS row line-heights normalized:** `.col-12.text-primary { line-height:1.5 }`, `.badge { line-height:1.4 }` → all items sit on same baseline (diff ~0.2px measured)
+
+### Mobile-specific rules (≤767px)
+
+```css
+@media (max-width: 767px) {
+  /* Timeline-card OUTSIDE topbar (defensive, legacy): keep 8px margin */
+  #timeline-card:not(.v2-tb-timeline) { margin-bottom: 8px !important; }
+  /* Timeline-card INSIDE topbar: flush */
+  .v2-form-topbar #timeline-card { margin: 0 !important; padding: 0 !important; }
+}
+```
+
+The class `.v2-tb-timeline` is added by `reparentTimelineAndBanner()` JS at runtime, so the `:not(.v2-tb-timeline)` selector is the "outside topbar" branch.
+
+### Anti-patterns
+
+- ❌ Hide ALL mini-bar children when expanded → chevron disappears, can't collapse
+- ❌ Hide `#ban-name` in details when expanded → `( age )` left dangling without name
+- ❌ Hide whole `.ban-mini-bar` → need to move toggle to details (HTML change required)
+- ✅ Hide ONLY `#ban-mini-name` + duplicate `.col-md-3` triage → 1 source of truth per data point
