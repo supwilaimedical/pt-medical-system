@@ -1915,6 +1915,16 @@
         }
     });
 
+    // Pause GPS polling when tab hidden; resume on visibility restored
+    document.addEventListener('visibilitychange', function() {
+        if (document.hidden) {
+            if (_mwgpInterval) { clearInterval(_mwgpInterval); _mwgpInterval = null; }
+        } else if (_mwgpInited && !_mwgpInterval) {
+            _mwgpInterval = setInterval(monitorMiniGpsFetchStatuses, 10000);
+            monitorMiniGpsFetchStatuses();
+        }
+    });
+
     // Render speed sparkline for a vehicle key (returns SVG markup)
     function _mwgpSparklineSvg(key) {
         var hist = _mwgpSpeedHistory[key];

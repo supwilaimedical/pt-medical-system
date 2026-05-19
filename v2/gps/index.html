@@ -2128,6 +2128,20 @@
       }
     }
 
+    // Pause auto-refresh when tab hidden; resume only if auto-refresh was ON
+    document.addEventListener('visibilitychange', function() {
+      if (document.hidden) {
+        if (_autoInterval) { clearInterval(_autoInterval); _autoInterval = null; }
+      } else {
+        // Only resume if the toggle button shows ON state
+        var btn = document.getElementById('btnAutoRefresh');
+        if (btn && btn.classList.contains('active-toggle') && !_autoInterval) {
+          _autoInterval = setInterval(fetchAllStatuses, 10000);
+          fetchAllStatuses();
+        }
+      }
+    });
+
     // =============================================
     // RENDER VEHICLE LIST
     // =============================================

@@ -537,6 +537,16 @@
       document.getElementById('errorMsg').textContent = msg;
     }
 
+    // Pause GPS polling when tab hidden; resume when visible again
+    document.addEventListener('visibilitychange', function() {
+      if (document.hidden) {
+        if (_refreshInterval) { clearInterval(_refreshInterval); _refreshInterval = null; }
+      } else if (!_refreshInterval) {
+        _refreshInterval = setInterval(fetchStatus, 10000);
+        fetchStatus();
+      }
+    });
+
     window.addEventListener('pagehide', function() {
       if (_refreshInterval) clearInterval(_refreshInterval);
       if (_expireInterval) clearInterval(_expireInterval);
