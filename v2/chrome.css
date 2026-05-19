@@ -149,6 +149,26 @@ body[data-module] .v2-subnav > div[style*="border-bottom"] {
   /* No border-bottom — was the "1 white line" user saw under Transport CTA. */
   border-bottom: 0 !important;
 }
+
+/* ===== TRANSPORT subnav case-info card =====
+   Inline styles in transport/index.html lines 1208-1212 set background:#f1f5f9
+   on the wrapper (light gray, creates a seam on navy chrome) and dark colors
+   on #v2-case-id / #v2-case-pt (unreadable on navy). Override here so the card
+   blends with the navy subnav and the text uses chrome tokens.
+   Selector targets specifically the case-info wrapper that has inline background. */
+body[data-module="transport"] #v2-subnav-case > div[style*="background"] {
+  background: var(--chrome-bg-3) !important;
+}
+body[data-module="transport"] #v2-case-id {
+  color: var(--chrome-text) !important;
+}
+body[data-module="transport"] #v2-case-pt {
+  color: var(--chrome-text-3) !important;
+}
+body[data-module="transport"] #v2-subnav-case a[href*="javascript"] {
+  color: var(--accent) !important;
+}
+
 /* Dropdowns inside subnav */
 body[data-module] .v2-subnav select.form-select {
   background-color: var(--chrome-bg-4) !important;
