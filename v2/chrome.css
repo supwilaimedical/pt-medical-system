@@ -169,6 +169,29 @@ body[data-module="transport"] #v2-subnav-case a[href*="javascript"] {
   color: var(--accent) !important;
 }
 
+/* ===== FIRSTAID subnav event context (.back-link + .event-ctx) =====
+   firstaid/index.html lines 198-216 define .back-link with bg:#f1f5f9 + dark text
+   and .event-ctx .name/.meta with slate-900/slate-500 — all unreadable on navy chrome.
+   Override here so the back link blends with the navy subnav and the event name/meta
+   use chrome text tokens. Verified via Grep: these selectors are firstaid-only. */
+body[data-module="firstaid"] .v2-subnav .back-link {
+  background: var(--chrome-bg-3) !important;
+  color: var(--accent) !important;
+  border-bottom: 1px solid var(--chrome-line) !important;
+}
+body[data-module="firstaid"] .v2-subnav .back-link:hover {
+  background: var(--chrome-bg-4) !important;
+}
+body[data-module="firstaid"] .v2-subnav .event-ctx {
+  border-bottom: 1px solid var(--chrome-line) !important;
+}
+body[data-module="firstaid"] .v2-subnav .event-ctx .name {
+  color: var(--chrome-text) !important;
+}
+body[data-module="firstaid"] .v2-subnav .event-ctx .meta {
+  color: var(--chrome-text-3) !important;
+}
+
 /* Dropdowns inside subnav */
 body[data-module] .v2-subnav select.form-select {
   background-color: var(--chrome-bg-4) !important;
