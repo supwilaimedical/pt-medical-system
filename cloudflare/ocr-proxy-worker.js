@@ -30,7 +30,23 @@ export default {
     }
 
     if (path.startsWith('/notify')) {
-      // /notify/check is called by Supabase webhook (server-to-server, no origin)
+      // /notify/check — Supabase DB webhook (server-to-server).
+      // Must carry Authorization: Bearer <WEBHOOK_SECRET> — reject anything else early,
+      // before body parsing or expensive Supabase work.
+      // NOTE: String comparison is not constant-time in JS; for production hardening use
+      //       Web Crypto HMAC or a timing-safe helper (future improvement).
+      if (path === '/notify/check') {
+        if (!env.WEBHOOK_SECRET) {
+          return new Response('Worker misconfigured: WEBHOOK_SECRET not set', { status: 500 });
+        }
+        const auth = request.headers.get('Authorization') || '';
+        const expected = 'Bearer ' + env.WEBHOOK_SECRET;
+        if (auth !== expected) {
+          return new Response('Unauthorized', { status: 401 });
+        }
+      }
+
+      // Other /notify/* routes are called by browser clients — check CORS origin.
       const isServerToServer = path === '/notify/check';
       if (!isServerToServer) {
         const origin = request.headers.get('origin') || '';
