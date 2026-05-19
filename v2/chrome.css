@@ -515,7 +515,12 @@ body[data-module] .v2-form-topbar .v2-tb-row2,
 body[data-module] .v2-form-topbar .patient-banner {
   background: #fff !important;
   color: #0f172a !important;
-  border-bottom: 1px solid #e2e8f0 !important;
+  /* Per UX 2026-05-19: strip the card chrome so the white pane sits flush —
+     no rounded corners, no outline, no drop-shadow, no side margin. */
+  border: 0 !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  margin: 0 !important;
 }
 body[data-module] .v2-form-topbar .v2-tb-row2 *,
 body[data-module] .v2-form-topbar .patient-banner * {
@@ -534,10 +539,11 @@ body[data-module] .v2-form-topbar .v2-tb-btn:hover {
   background: var(--chrome-bg-3) !important;
   color: var(--accent) !important;
 }
-/* Timeline strip inside form topbar — keep text readable */
+/* Timeline strip + Patient banner inside form topbar — both are WHITE panes now,
+   so timeline tabs + banner content use dark slate text (readable on white). */
 body[data-module] .v2-form-topbar .timeline-tab,
 body[data-module] .v2-form-topbar .v2-tb-row2 > * {
-  color: var(--chrome-text-2) !important;
+  color: #334155 !important;
 }
 body[data-module] .v2-form-topbar .timeline-tab.active {
   color: var(--accent) !important;
