@@ -2754,11 +2754,21 @@
             var eventsRes = await _supabase.from('fa_events').select('*').eq('status', 'Active');
             var events = eventsRes.data || [];
 
+            // Batch fa_registry: single .in() instead of N+1 per-event queries
+            var regsByEvent = {};
+            if (events.length > 0) {
+                var eventIds = events.map(function(ev) { return ev.event_id; });
+                var regsRes = await _supabase.from('fa_registry').select('event_id, etiology, result').in('event_id', eventIds);
+                if (regsRes.error) throw regsRes.error;
+                (regsRes.data || []).forEach(function(r) {
+                    (regsByEvent[r.event_id] = regsByEvent[r.event_id] || []).push(r);
+                });
+            }
+
             var adaptedEvents = [];
             for (var i = 0; i < events.length; i++) {
                 var ev = events[i];
-                var regsRes = await _supabase.from('fa_registry').select('etiology, result').eq('event_id', ev.event_id);
-                var regs = regsRes.data || [];
+                var regs = regsByEvent[ev.event_id] || [];
                 var stats = {
                     total: regs.length,
                     med: regs.filter(function(r) { return r.etiology === 'Med'; }).length,
