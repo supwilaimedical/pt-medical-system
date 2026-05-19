@@ -1793,7 +1793,7 @@
         } catch(e) {
             console.warn('monitorMiniGpsInit:', e.message);
             var list = document.getElementById('mwgp-list');
-            if (list) list.innerHTML = '<div class="mwgp-empty">โหลด GPS ไม่สำเร็จ: ' + (e.message || '') + '</div>';
+            if (list) list.innerHTML = '<div class="mwgp-empty">โหลด GPS ไม่สำเร็จ: ' + escapeHtml(e.message || '') + '</div>';
         }
     }
 
@@ -2772,7 +2772,7 @@
             renderMonitorFA(adaptedEvents);
         } catch(e) {
             console.error('Monitor render error:', e);
-            transportList.innerHTML = '<div class="col-12"><p class="text-danger text-center py-3 mb-0"><i class="bi bi-exclamation-triangle me-1"></i>เกิดข้อผิดพลาด: ' + (e.message || 'Unknown error') + '</p></div>';
+            transportList.innerHTML = '<div class="col-12"><p class="text-danger text-center py-3 mb-0"><i class="bi bi-exclamation-triangle me-1"></i>เกิดข้อผิดพลาด: ' + escapeHtml(e.message || 'Unknown error') + '</p></div>';
         }
         monitorHideLoading();
     }
@@ -3476,7 +3476,7 @@
                 document.getElementById('monitorPreviewBody').innerHTML = '<div class="text-center py-5 text-danger"><i class="bi bi-exclamation-circle fs-1 d-block mb-2"></i>ไม่พบข้อมูล</div>';
             }
         } catch(err) {
-            document.getElementById('monitorPreviewBody').innerHTML = '<div class="text-center py-5 text-danger"><i class="bi bi-exclamation-circle fs-1 d-block mb-2"></i>' + err.message + '</div>';
+            document.getElementById('monitorPreviewBody').innerHTML = '<div class="text-center py-5 text-danger"><i class="bi bi-exclamation-circle fs-1 d-block mb-2"></i>' + escapeHtml(err.message) + '</div>';
         }
     }
 
@@ -3526,7 +3526,7 @@
                 document.getElementById('monitorPreviewBody').innerHTML = '<div class="text-center py-5 text-danger">ไม่พบข้อมูล Event</div>';
             }
         } catch(err) {
-            document.getElementById('monitorPreviewBody').innerHTML = '<div class="text-center py-5 text-danger">' + err.message + '</div>';
+            document.getElementById('monitorPreviewBody').innerHTML = '<div class="text-center py-5 text-danger">' + escapeHtml(err.message) + '</div>';
         }
     }
 
@@ -3563,7 +3563,7 @@
                 w.document.open(); w.document.write('<html><body><h2>ไม่พบข้อมูล Event</h2></body></html>'); w.document.close();
             }
         } catch(err) {
-            w.document.open(); w.document.write('<html><body><h2>Error: ' + err.message + '</h2></body></html>'); w.document.close();
+            w.document.open(); w.document.write('<html><body><h2>Error: ' + escapeHtml(err.message) + '</h2></body></html>'); w.document.close();
         }
     }
 
