@@ -275,7 +275,7 @@
     /* ===== Card Kebab Menu (parallel with Location) ===== */
     .v2-tr-kebab-wrap{ position:relative; display:inline-block; }
     .v2-tr-kebab-btn{
-      width:34px; height:34px; border-radius:8px; border:1px solid #e2e8f0;
+      width:40px; height:40px; border-radius:8px; border:1px solid #e2e8f0;
       background:#fff; color:#64748b; cursor:pointer;
       display:inline-flex; align-items:center; justify-content:center;
       transition:all .12s;
@@ -676,7 +676,7 @@
     body .form-control, body .form-select{
       border-radius:8px !important;
       border-color:#e2e8f0 !important;
-      font-size:14px !important;
+      font-size:16px !important;
     }
     body .form-control:focus, body .form-select:focus{
       border-color:#0ea5e9 !important;
@@ -2475,22 +2475,22 @@
                   </div>
                   <div class="d-flex align-items-center px-2 py-1 border-end flex-fill">
                     <span class="text-secondary me-1">รับแจ้ง</span>
-                    <input type="text" class="form-control form-control-sm bg-transparent border-0 text-center fw-bold px-0 tl-time-input" id="tl-dispatch" placeholder="--:--" maxlength="5" oninput="maskTime(this)" onchange="onTimeManualEdit('dispatch')" style="width:44px;min-width:0;font-size:0.82rem;">
+                    <input type="text" class="form-control form-control-sm bg-transparent border-0 text-center fw-bold px-0 tl-time-input" id="tl-dispatch" placeholder="--:--" maxlength="5" oninput="maskTime(this)" onchange="onTimeManualEdit('dispatch')" style="width:44px;min-width:0;">
                     <button type="button" class="btn btn-outline-secondary btn-sm px-1 py-0 rounded-1 tl-btn" id="tl-btn-dispatch" onclick="stampNow('dispatch')" style="font-size:0.65rem;line-height:1.4;"><i class="bi bi-clock"></i></button>
                   </div>
                   <div class="d-flex align-items-center px-2 py-1 border-end flex-fill">
                     <span class="text-secondary me-1">ถึงจุดรับ</span>
-                    <input type="text" class="form-control form-control-sm bg-transparent border-0 text-center fw-bold px-0 tl-time-input" id="tl-arrive-scene" placeholder="--:--" maxlength="5" oninput="maskTime(this)" onchange="onTimeManualEdit('arrive_scene')" style="width:44px;min-width:0;font-size:0.82rem;">
+                    <input type="text" class="form-control form-control-sm bg-transparent border-0 text-center fw-bold px-0 tl-time-input" id="tl-arrive-scene" placeholder="--:--" maxlength="5" oninput="maskTime(this)" onchange="onTimeManualEdit('arrive_scene')" style="width:44px;min-width:0;">
                     <button type="button" class="btn btn-outline-secondary btn-sm px-1 py-0 rounded-1 tl-btn" id="tl-btn-arrive-scene" onclick="stampNow('arrive_scene')" style="font-size:0.65rem;line-height:1.4;"><i class="bi bi-clock"></i></button>
                   </div>
                   <div class="d-flex align-items-center px-2 py-1 border-end flex-fill">
                     <span class="text-secondary me-1">ออก</span>
-                    <input type="text" class="form-control form-control-sm bg-transparent border-0 text-center fw-bold px-0 tl-time-input" id="tl-depart-scene" placeholder="--:--" maxlength="5" oninput="maskTime(this)" onchange="onTimeManualEdit('depart_scene')" style="width:44px;min-width:0;font-size:0.82rem;">
+                    <input type="text" class="form-control form-control-sm bg-transparent border-0 text-center fw-bold px-0 tl-time-input" id="tl-depart-scene" placeholder="--:--" maxlength="5" oninput="maskTime(this)" onchange="onTimeManualEdit('depart_scene')" style="width:44px;min-width:0;">
                     <button type="button" class="btn btn-outline-secondary btn-sm px-1 py-0 rounded-1 tl-btn" id="tl-btn-depart-scene" onclick="stampNow('depart_scene')" style="font-size:0.65rem;line-height:1.4;"><i class="bi bi-clock"></i></button>
                   </div>
                   <div class="d-flex align-items-center px-2 py-1 border-end flex-fill">
                     <span class="text-secondary me-1">ถึง รพ.</span>
-                    <input type="text" class="form-control form-control-sm bg-transparent border-0 text-center fw-bold px-0 tl-time-input" id="tl-arrive-hospital" placeholder="--:--" maxlength="5" oninput="maskTime(this)" onchange="onTimeManualEdit('arrive_hospital')" style="width:44px;min-width:0;font-size:0.82rem;">
+                    <input type="text" class="form-control form-control-sm bg-transparent border-0 text-center fw-bold px-0 tl-time-input" id="tl-arrive-hospital" placeholder="--:--" maxlength="5" oninput="maskTime(this)" onchange="onTimeManualEdit('arrive_hospital')" style="width:44px;min-width:0;">
                     <button type="button" class="btn btn-outline-secondary btn-sm px-1 py-0 rounded-1 tl-btn" id="tl-btn-arrive-hospital" onclick="stampNow('arrive_hospital')" style="font-size:0.65rem;line-height:1.4;"><i class="bi bi-clock"></i></button>
                   </div>
                   <div class="d-flex align-items-center gap-1 px-2 py-1 bg-light flex-wrap" id="tl-ems-durations" style="font-size:0.7rem;">
@@ -2509,12 +2509,12 @@
                   </div>
                   <div class="d-flex align-items-center px-2 py-1 border-end flex-fill">
                     <span class="text-secondary me-1">ออกต้นทาง</span>
-                    <input type="text" class="form-control form-control-sm bg-transparent border-0 text-center fw-bold px-0 tl-time-input" id="tl-depart-origin" placeholder="--:--" maxlength="5" oninput="maskTime(this)" onchange="onTimeManualEdit('depart_origin')" style="width:44px;min-width:0;font-size:0.82rem;">
+                    <input type="text" class="form-control form-control-sm bg-transparent border-0 text-center fw-bold px-0 tl-time-input" id="tl-depart-origin" placeholder="--:--" maxlength="5" oninput="maskTime(this)" onchange="onTimeManualEdit('depart_origin')" style="width:44px;min-width:0;">
                     <button type="button" class="btn btn-outline-secondary btn-sm px-1 py-0 rounded-1 tl-btn" id="tl-btn-depart-origin" onclick="stampNow('depart_origin')" style="font-size:0.65rem;line-height:1.4;"><i class="bi bi-clock"></i></button>
                   </div>
                   <div class="d-flex align-items-center px-2 py-1 border-end flex-fill">
                     <span class="text-secondary me-1">ถึงปลายทาง</span>
-                    <input type="text" class="form-control form-control-sm bg-transparent border-0 text-center fw-bold px-0 tl-time-input" id="tl-arrive-dest" placeholder="--:--" maxlength="5" oninput="maskTime(this)" onchange="onTimeManualEdit('arrive_dest')" style="width:44px;min-width:0;font-size:0.82rem;">
+                    <input type="text" class="form-control form-control-sm bg-transparent border-0 text-center fw-bold px-0 tl-time-input" id="tl-arrive-dest" placeholder="--:--" maxlength="5" oninput="maskTime(this)" onchange="onTimeManualEdit('arrive_dest')" style="width:44px;min-width:0;">
                     <button type="button" class="btn btn-outline-secondary btn-sm px-1 py-0 rounded-1 tl-btn" id="tl-btn-arrive-dest" onclick="stampNow('arrive_dest')" style="font-size:0.65rem;line-height:1.4;"><i class="bi bi-clock"></i></button>
                   </div>
                   <div class="d-flex align-items-center px-2 py-1 bg-light" id="tl-refer-durations" style="font-size:0.7rem;">
@@ -4409,7 +4409,9 @@
             if (mode === 'manual_off') {
                 updateData = { is_public: false, public_token: null, public_expiry: null };
             } else {
-                var token = 'pt-' + Date.now() + '-' + Math.random().toString(36).substring(2, 10);
+                var bytes = new Uint8Array(16);
+                crypto.getRandomValues(bytes);
+                var token = 'pt-' + Array.from(bytes).map(function(b){ return b.toString(16).padStart(2,'0'); }).join('');
                 updateData = { is_public: true, public_token: token };
                 if (mode === 'auto24h') {
                     var expiry = new Date(); expiry.setHours(expiry.getHours() + 24);
