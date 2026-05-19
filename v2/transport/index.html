@@ -275,7 +275,7 @@
     /* ===== Card Kebab Menu (parallel with Location) ===== */
     .v2-tr-kebab-wrap{ position:relative; display:inline-block; }
     .v2-tr-kebab-btn{
-      width:34px; height:34px; border-radius:8px; border:1px solid #e2e8f0;
+      width:40px; height:40px; border-radius:8px; border:1px solid #e2e8f0;
       background:#fff; color:#64748b; cursor:pointer;
       display:inline-flex; align-items:center; justify-content:center;
       transition:all .12s;
@@ -676,7 +676,7 @@
     body .form-control, body .form-select{
       border-radius:8px !important;
       border-color:#e2e8f0 !important;
-      font-size:14px !important;
+      font-size:16px !important;
     }
     body .form-control:focus, body .form-select:focus{
       border-color:#0ea5e9 !important;
@@ -2475,22 +2475,22 @@
                   </div>
                   <div class="d-flex align-items-center px-2 py-1 border-end flex-fill">
                     <span class="text-secondary me-1">รับแจ้ง</span>
-                    <input type="text" class="form-control form-control-sm bg-transparent border-0 text-center fw-bold px-0 tl-time-input" id="tl-dispatch" placeholder="--:--" maxlength="5" oninput="maskTime(this)" onchange="onTimeManualEdit('dispatch')" style="width:44px;min-width:0;font-size:0.82rem;">
+                    <input type="text" class="form-control form-control-sm bg-transparent border-0 text-center fw-bold px-0 tl-time-input" id="tl-dispatch" placeholder="--:--" maxlength="5" oninput="maskTime(this)" onchange="onTimeManualEdit('dispatch')" style="width:44px;min-width:0;">
                     <button type="button" class="btn btn-outline-secondary btn-sm px-1 py-0 rounded-1 tl-btn" id="tl-btn-dispatch" onclick="stampNow('dispatch')" style="font-size:0.65rem;line-height:1.4;"><i class="bi bi-clock"></i></button>
                   </div>
                   <div class="d-flex align-items-center px-2 py-1 border-end flex-fill">
                     <span class="text-secondary me-1">ถึงจุดรับ</span>
-                    <input type="text" class="form-control form-control-sm bg-transparent border-0 text-center fw-bold px-0 tl-time-input" id="tl-arrive-scene" placeholder="--:--" maxlength="5" oninput="maskTime(this)" onchange="onTimeManualEdit('arrive_scene')" style="width:44px;min-width:0;font-size:0.82rem;">
+                    <input type="text" class="form-control form-control-sm bg-transparent border-0 text-center fw-bold px-0 tl-time-input" id="tl-arrive-scene" placeholder="--:--" maxlength="5" oninput="maskTime(this)" onchange="onTimeManualEdit('arrive_scene')" style="width:44px;min-width:0;">
                     <button type="button" class="btn btn-outline-secondary btn-sm px-1 py-0 rounded-1 tl-btn" id="tl-btn-arrive-scene" onclick="stampNow('arrive_scene')" style="font-size:0.65rem;line-height:1.4;"><i class="bi bi-clock"></i></button>
                   </div>
                   <div class="d-flex align-items-center px-2 py-1 border-end flex-fill">
                     <span class="text-secondary me-1">ออก</span>
-                    <input type="text" class="form-control form-control-sm bg-transparent border-0 text-center fw-bold px-0 tl-time-input" id="tl-depart-scene" placeholder="--:--" maxlength="5" oninput="maskTime(this)" onchange="onTimeManualEdit('depart_scene')" style="width:44px;min-width:0;font-size:0.82rem;">
+                    <input type="text" class="form-control form-control-sm bg-transparent border-0 text-center fw-bold px-0 tl-time-input" id="tl-depart-scene" placeholder="--:--" maxlength="5" oninput="maskTime(this)" onchange="onTimeManualEdit('depart_scene')" style="width:44px;min-width:0;">
                     <button type="button" class="btn btn-outline-secondary btn-sm px-1 py-0 rounded-1 tl-btn" id="tl-btn-depart-scene" onclick="stampNow('depart_scene')" style="font-size:0.65rem;line-height:1.4;"><i class="bi bi-clock"></i></button>
                   </div>
                   <div class="d-flex align-items-center px-2 py-1 border-end flex-fill">
                     <span class="text-secondary me-1">ถึง รพ.</span>
-                    <input type="text" class="form-control form-control-sm bg-transparent border-0 text-center fw-bold px-0 tl-time-input" id="tl-arrive-hospital" placeholder="--:--" maxlength="5" oninput="maskTime(this)" onchange="onTimeManualEdit('arrive_hospital')" style="width:44px;min-width:0;font-size:0.82rem;">
+                    <input type="text" class="form-control form-control-sm bg-transparent border-0 text-center fw-bold px-0 tl-time-input" id="tl-arrive-hospital" placeholder="--:--" maxlength="5" oninput="maskTime(this)" onchange="onTimeManualEdit('arrive_hospital')" style="width:44px;min-width:0;">
                     <button type="button" class="btn btn-outline-secondary btn-sm px-1 py-0 rounded-1 tl-btn" id="tl-btn-arrive-hospital" onclick="stampNow('arrive_hospital')" style="font-size:0.65rem;line-height:1.4;"><i class="bi bi-clock"></i></button>
                   </div>
                   <div class="d-flex align-items-center gap-1 px-2 py-1 bg-light flex-wrap" id="tl-ems-durations" style="font-size:0.7rem;">
@@ -2509,12 +2509,12 @@
                   </div>
                   <div class="d-flex align-items-center px-2 py-1 border-end flex-fill">
                     <span class="text-secondary me-1">ออกต้นทาง</span>
-                    <input type="text" class="form-control form-control-sm bg-transparent border-0 text-center fw-bold px-0 tl-time-input" id="tl-depart-origin" placeholder="--:--" maxlength="5" oninput="maskTime(this)" onchange="onTimeManualEdit('depart_origin')" style="width:44px;min-width:0;font-size:0.82rem;">
+                    <input type="text" class="form-control form-control-sm bg-transparent border-0 text-center fw-bold px-0 tl-time-input" id="tl-depart-origin" placeholder="--:--" maxlength="5" oninput="maskTime(this)" onchange="onTimeManualEdit('depart_origin')" style="width:44px;min-width:0;">
                     <button type="button" class="btn btn-outline-secondary btn-sm px-1 py-0 rounded-1 tl-btn" id="tl-btn-depart-origin" onclick="stampNow('depart_origin')" style="font-size:0.65rem;line-height:1.4;"><i class="bi bi-clock"></i></button>
                   </div>
                   <div class="d-flex align-items-center px-2 py-1 border-end flex-fill">
                     <span class="text-secondary me-1">ถึงปลายทาง</span>
-                    <input type="text" class="form-control form-control-sm bg-transparent border-0 text-center fw-bold px-0 tl-time-input" id="tl-arrive-dest" placeholder="--:--" maxlength="5" oninput="maskTime(this)" onchange="onTimeManualEdit('arrive_dest')" style="width:44px;min-width:0;font-size:0.82rem;">
+                    <input type="text" class="form-control form-control-sm bg-transparent border-0 text-center fw-bold px-0 tl-time-input" id="tl-arrive-dest" placeholder="--:--" maxlength="5" oninput="maskTime(this)" onchange="onTimeManualEdit('arrive_dest')" style="width:44px;min-width:0;">
                     <button type="button" class="btn btn-outline-secondary btn-sm px-1 py-0 rounded-1 tl-btn" id="tl-btn-arrive-dest" onclick="stampNow('arrive_dest')" style="font-size:0.65rem;line-height:1.4;"><i class="bi bi-clock"></i></button>
                   </div>
                   <div class="d-flex align-items-center px-2 py-1 bg-light" id="tl-refer-durations" style="font-size:0.7rem;">
@@ -3229,6 +3229,7 @@
     var isPopulating = false;
     var formDirty = false;
     var loadedCaseStatus = '';
+    var _loadedRowVersion = 1;     // OCC token — captured on case open and after each successful save
     var editModal;
     // Realtime form-merge state
     var _loadedRawSnapshot = {};      // last-loaded form values (per name) — used to detect user-touched fields
@@ -3253,9 +3254,12 @@
 
     function generateCaseId() {
        var now = new Date();
-       var prefix = now.toISOString().slice(0,10).replace(/-/g,"");
-       var random = Math.floor(Math.random() * 1000).toString().padStart(3, '0');
-       return 'CASE-' + prefix + '-' + random;
+       var y = now.getFullYear();
+       var m = (now.getMonth() + 1).toString().padStart(2, '0');
+       var d = now.getDate().toString().padStart(2, '0');
+       var prefix = y + m + d;                              // local-time YYYYMMDD
+       var ms = now.getTime().toString().slice(-6);         // 6-digit ms suffix
+       return 'CASE-' + prefix + '-' + ms;
     }
 
     // GAS compatibility stubs (no-ops for Supabase version)
@@ -3444,6 +3448,8 @@
 
             // Re-snapshot to absorb remote-merged values (so subsequent merges work correctly)
             _snapshotFormState();
+            // Update OCC baseline from the remote row so the next save uses the current version.
+            _loadedRowVersion = row.row_version || _loadedRowVersion;
 
             if (updatedCount > 0 || keptCount > 0) {
                 // Dedup: max 1 toast per 4s. If a toast was just shown, skip
@@ -3703,12 +3709,12 @@
                 var parts = val.split('/');
                 var sys = parseInt(parts[0], 10);
                 var dia = parseInt(parts[1], 10);
-                return sys >= 30 && sys <= 300 && dia >= 10 && dia <= 200;
+                return sys >= 40 && sys <= 300 && dia >= 20 && dia <= 200;
             }
         },
         pr: { min: 0, max: 300, message: 'PR ต้องอยู่ระหว่าง 0-300 /min (หรือ "-" ถ้าวัดไม่ได้)', validate: function(val) { if (!val) return true; if (isUnmeasurable(val)) return true; var n = parseInt(val, 10); return !isNaN(n) && n >= this.min && n <= this.max; } },
         rr: { min: 0, max: 80, message: 'RR ต้องอยู่ระหว่าง 0-80 /min (หรือ "-" ถ้าวัดไม่ได้)', validate: function(val) { if (!val) return true; if (isUnmeasurable(val)) return true; var n = parseInt(val, 10); return !isNaN(n) && n >= this.min && n <= this.max; } },
-        temp: { min: 30.0, max: 45.0, message: 'Temp ต้องอยู่ระหว่าง 30.0-45.0 °C (หรือ "-" ถ้าวัดไม่ได้)', validate: function(val) { if (!val) return true; if (isUnmeasurable(val)) return true; var n = parseFloat(val); return !isNaN(n) && n >= this.min && n <= this.max; } },
+        temp: { min: 28.0, max: 45.0, message: 'Temp ต้องอยู่ระหว่าง 28.0-45.0 °C (หรือ "-" ถ้าวัดไม่ได้)', validate: function(val) { if (!val) return true; if (isUnmeasurable(val)) return true; var n = parseFloat(val); return !isNaN(n) && n >= this.min && n <= this.max; } },
         spo2: { min: 0, max: 100, message: 'SpO2 ต้องอยู่ระหว่าง 0-100% (หรือ "-" ถ้าวัดไม่ได้)', validate: function(val) { if (!val) return true; if (isUnmeasurable(val)) return true; var n = parseInt(val, 10); return !isNaN(n) && n >= this.min && n <= this.max; } },
         dtx: { min: 0, max: 999, message: 'DTX ต้องอยู่ระหว่าง 0-999 mg/dL (หรือ "-" ถ้าวัดไม่ได้)', validate: function(val) { if (!val) return true; if (isUnmeasurable(val)) return true; var n = parseInt(val, 10); return !isNaN(n) && n >= this.min && n <= this.max; } },
         age: { min: 0, max: 200, message: 'อายุต้องอยู่ระหว่าง 0-200 ปี', validate: function(val) { if (!val) return true; var n = parseInt(val, 10); return !isNaN(n) && n >= this.min && n <= this.max; } }
@@ -4409,7 +4415,9 @@
             if (mode === 'manual_off') {
                 updateData = { is_public: false, public_token: null, public_expiry: null };
             } else {
-                var token = 'pt-' + Date.now() + '-' + Math.random().toString(36).substring(2, 10);
+                var bytes = new Uint8Array(16);
+                crypto.getRandomValues(bytes);
+                var token = 'pt-' + Array.from(bytes).map(function(b){ return b.toString(16).padStart(2,'0'); }).join('');
                 updateData = { is_public: true, public_token: token };
                 if (mode === 'auto24h') {
                     var expiry = new Date(); expiry.setHours(expiry.getHours() + 24);
@@ -4596,12 +4604,7 @@
           f.status.value = 'Completed';
       }
 
-      if(isCompleted) {
-         f.status.value = "Completed";
-         loadedCaseStatus = "Completed";
-         updateStatusDisplay("Completed");
-         setReadOnlyMode(true);
-      }
+      var statusToSave = isCompleted ? "Completed" : f.status.value;
 
       isSaving = true;
       if(!silent) Swal.fire({title: 'Saving...', didOpen: function() { Swal.showLoading(); }});
@@ -4615,7 +4618,7 @@
       try {
           var payload = {
               case_id: caseId,
-              status: f.status.value,
+              status: statusToSave,
               triage_level: f.triage_level.value,
               op_info: {
                   level: f.op_level.value,
@@ -4640,10 +4643,58 @@
               payload.opened_by = getUserName() || 'Unknown';
               payload.opened_at = new Date().toISOString();
           }
-          var resp = await _supabase.from('cases').upsert(payload, { onConflict: 'case_id' });
+          var resp;
+          if (isNewCase) {
+              // INSERT — column default sets row_version = 1; trigger is a no-op on INSERT.
+              resp = await _supabase.from('cases').insert(payload).select('row_version').maybeSingle();
+          } else {
+              // UPDATE with optimistic version predicate — prevents last-write-wins (Race C + E).
+              resp = await _supabase.from('cases')
+                  .update(payload)
+                  .eq('case_id', caseId)
+                  .eq('row_version', _loadedRowVersion)
+                  .select('row_version').maybeSingle();
+          }
 
           isSaving = false;
           if (resp.error) throw resp.error;
+
+          if (!isNewCase && !resp.data) {
+              // VERSION CONFLICT — another device saved this case after we loaded it.
+              // Do NOT auto-retry (would clobber remote changes). Pull latest + ask user to re-save.
+              if (!silent) {
+                  Swal.fire({
+                      icon: 'warning',
+                      title: 'ข้อมูลถูกอัปเดตจากเครื่องอื่น',
+                      html: 'กำลัง refresh ข้อมูลล่าสุด<br>กรุณาตรวจสอบและบันทึกอีกครั้ง',
+                      timer: 4000,
+                      timerProgressBar: true,
+                      showConfirmButton: false
+                  });
+              }
+              // Replay pending merge then schedule a fresh merge to pull remote state.
+              if (_pendingMergeCaseId) {
+                  var _conflictPendingId = _pendingMergeCaseId;
+                  _pendingMergeCaseId = null;
+                  setTimeout(function(){ _scheduleRemoteCaseMerge(_conflictPendingId); }, 50);
+              } else {
+                  setTimeout(function(){ _scheduleRemoteCaseMerge(caseId); }, 100);
+              }
+              if (callback) callback(new Error('VERSION_CONFLICT'));
+              return;
+          }
+
+          // Success — advance local OCC token to server-confirmed version.
+          if (resp.data && resp.data.row_version != null) {
+              _loadedRowVersion = resp.data.row_version;
+          }
+
+          if (isCompleted) {
+              f.status.value = "Completed";
+              loadedCaseStatus = "Completed";
+              updateStatusDisplay("Completed");
+              setReadOnlyMode(true);
+          }
 
           f.caseId.value = caseId;
           document.getElementById('display-case-id').innerText = caseId;
@@ -4676,6 +4727,13 @@
           isSaving = false;
           console.error("Error saving: ", err);
           if(!silent) Swal.fire('Error', 'Failed to save: ' + (err.message || 'Unknown'), 'error');
+          // Replay any pending realtime merge that was queued during this failed save
+          if (_pendingMergeCaseId) {
+              var pid = _pendingMergeCaseId;
+              _pendingMergeCaseId = null;
+              setTimeout(function(){ _scheduleRemoteCaseMerge(pid); }, 50);
+          }
+          if (callback) callback(err);
       }
     }
 
@@ -4703,6 +4761,7 @@
             };
 
             loadedCaseStatus = data.status || "Active";
+            _loadedRowVersion = row.row_version || 1;   // OCC baseline
 
             resetFormState();
 
@@ -5433,7 +5492,7 @@
        if (container) {
            container.appendChild(div);
            updateIVSummaryCount();
-           if (!data) { formDirty = true; saveData(false, true); }
+           if (!data) { formDirty = true; saveData(false, true); logActivity('ADD_IV', document.getElementById('caseId').value, context); }
        }
     }
 
@@ -5701,7 +5760,7 @@
                     '<button type="button" class="btn btn-primary px-3 fw-medium" onclick="lockAndSaveRow(this)">' +
                         '<i class="bi bi-check-lg"></i>' +
                     '</button>') +
-                    '<button type="button" class="btn btn-light text-danger border" onclick="this.closest(\'.vital-log-entry\').remove(); formDirty=true; saveData(false,true);">' +
+                    '<button type="button" class="btn btn-light text-danger border" onclick="this.closest(\'.vital-log-entry\').remove(); formDirty=true; logActivity(\'DELETE_VITALS\', document.getElementById(\'caseId\').value, \'ลบ vitals row\'); saveData(false,true);">' +
                         '<i class="bi bi-trash"></i>' +
                     '</button>' +
                 '</div>' +
@@ -5713,7 +5772,7 @@
           attachVitalValidation(entry);
       }
 
-      if(isNew) { formDirty = true; saveData(false, true); }
+      if(isNew) { formDirty = true; saveData(false, true); logActivity('ADD_VITALS', document.getElementById('caseId').value, timeStr); }
     }
 
     // --- ARREST LOG (inside Vitals Log container) ---
@@ -5827,7 +5886,7 @@
                     '<button type="button" class="btn btn-danger px-3 fw-medium" onclick="lockAndSaveRow(this)">' +
                         '<i class="bi bi-check-lg"></i>' +
                     '</button>') +
-                    '<button type="button" class="btn btn-light text-danger border" onclick="this.closest(\'.arrest-log-entry\').remove(); formDirty=true; saveData(false,true);">' +
+                    '<button type="button" class="btn btn-light text-danger border" onclick="this.closest(\'.arrest-log-entry\').remove(); formDirty=true; logActivity(\'DELETE_VITALS\', document.getElementById(\'caseId\').value, \'ลบ arrest row\'); saveData(false,true);">' +
                         '<i class="bi bi-trash"></i>' +
                     '</button>' +
                 '</div>' +
@@ -5835,7 +5894,7 @@
         '</div>';
 
       container.appendChild(entry);
-      if (isNew) { formDirty = true; saveData(false, true); }
+      if (isNew) { formDirty = true; saveData(false, true); logActivity('ARREST_LOG', document.getElementById('caseId').value, timeStr); }
     }
 
     function stampArrestLogNow(btn, selector) {
@@ -6168,6 +6227,26 @@
 
     // --- CONFIRM CLOSE CASE ---
     function confirmCloseCase() {
+        // Safety guard: require at least 1 on-transport vital entry when closing from Step 2
+        // (Step 3 = user explicitly visited vitals section → allowed regardless of entry count)
+        var step = (typeof currentStep === 'function') ? currentStep() : 3;
+        var vitals = (typeof getVitalsArray === 'function') ? getVitalsArray() : [];
+        if (step < 3 && vitals.length === 0) {
+            Swal.fire({
+                icon: 'warning',
+                title: 'ยังไม่มีข้อมูล Vital Signs ระหว่างนำส่ง',
+                html: 'ต้องบันทึก vital signs อย่างน้อย 1 ครั้งใน <strong>Step 3</strong> ก่อนปิดเคส',
+                showCancelButton: true,
+                confirmButtonText: '<i class="bi bi-arrow-right me-1"></i> ไป Step 3',
+                cancelButtonText: 'ยกเลิก',
+                confirmButtonColor: '#0ea5e9',
+                cancelButtonColor: '#6c757d',
+                reverseButtons: true
+            }).then(function(result) {
+                if (result.isConfirmed && typeof goToStep === 'function') goToStep(3);
+            });
+            return;
+        }
         var ptName = document.querySelector('input[name="pt_name"]').value || 'ไม่ระบุชื่อ';
         Swal.fire({
             title: 'ยืนยันปิดเคส?',
@@ -7833,43 +7912,27 @@
     var consentVersions = []; // all versions from DB
     var consentActiveVersion = null; // current active version
 
-    // Save consent to Supabase (creates new version, marks old as superseded)
+    // Save consent to Supabase (atomic: supersede old + insert new in one DB transaction)
     async function saveConsentToDB(caseId, formData) {
       try {
-        // 1) Mark existing active consent as superseded
-        var existing = await _supabase
-          .from('transport_consents')
-          .select('id, version')
-          .eq('case_id', caseId)
-          .eq('status', 'active')
-          .order('version', { ascending: false })
-          .limit(1);
+        // Single atomic RPC call — eliminates race condition where 2 devices
+        // re-sign simultaneously and both produce an 'active' row (#24, #25).
+        // The function uses SELECT FOR UPDATE to lock rows for this case_id,
+        // then supersedes the current active row and inserts a new one.
+        var rpcResult = await _supabase.rpc('sign_consent_atomic', {
+          p_case_id:                  caseId,
+          p_consent_data:             formData.data,
+          p_signature_image:          formData.data.signatureDataUrl || '',
+          p_signed_by:                formData.data.consenterName || '',
+          p_relationship:             formData.data.relationship || '',
+          p_witness_name:             formData.data.witnessName || '',
+          p_witness_signature_image:  formData.data.witnessSignatureDataUrl || '',
+          p_signed_at:                formData.data.signatureTimestamp || new Date().toISOString()
+        });
 
-        var nextVersion = 1;
-        if (existing.data && existing.data.length > 0) {
-          nextVersion = existing.data[0].version + 1;
-          await _supabase
-            .from('transport_consents')
-            .update({ status: 'superseded', superseded_at: new Date().toISOString() })
-            .eq('id', existing.data[0].id);
-        }
+        if (rpcResult.error) { console.error('Save consent error:', rpcResult.error); return null; }
 
-        // 2) Insert new version
-        var row = {
-          case_id: caseId,
-          version: nextVersion,
-          signed_at: formData.data.signatureTimestamp || new Date().toISOString(),
-          signed_by: formData.data.consenterName || '',
-          relationship: formData.data.relationship || '',
-          consent_data: formData.data,
-          signature_image: formData.data.signatureDataUrl || '',
-          witness_name: formData.data.witnessName || '',
-          witness_signature_image: formData.data.witnessSignatureDataUrl || '',
-          status: 'active'
-        };
-
-        var res = await _supabase.from('transport_consents').insert(row);
-        if (res.error) { console.error('Save consent error:', res.error); return null; }
+        var nextVersion = rpcResult.data && rpcResult.data.version;
 
         // Auto-set NR Status = DNR on the case when consent has DNR items checked
         try {
@@ -8505,8 +8568,8 @@
         closeConsentModal();
 
         if (!isDashboardMode) {
-          consentSigned = true;
           // Sync consent data back to Transport form (fill empty fields)
+          // (consentSigned will be set only after DB write succeeds)
           // ── Only in Device-A mode (editing form). In dashboard mode we must NOT
           //    touch main-form because it might belong to a different case.
           try {
@@ -8542,6 +8605,10 @@
         if (caseId) {
           Swal.fire({ title: 'กำลังบันทึก Consent...', didOpen: function() { Swal.showLoading(); }, allowOutsideClick: false });
           var ver = await saveConsentToDB(caseId, consentData);
+          if (ver) {
+            if (!isDashboardMode) consentSigned = true;
+            logActivity('SIGN_CONSENT', caseId, 'version ' + ver);
+          }
 
           // ── Sync consent idCard back into the case (both modes). ──
           // Critical: wrong/missing patient ID on the case has legal/medical consequences.
@@ -8573,13 +8640,17 @@
             consentVersions = vers;
             consentActiveVersion = vers.find(function(v) { return v.status === 'active'; });
           }
-          Swal.fire({
-            icon: 'success',
-            title: 'ลงนามสำเร็จ',
-            text: ver ? 'บันทึกฉบับที่ ' + ver + ' เรียบร้อยแล้ว' : 'บันทึกหนังสือยินยอมเรียบร้อยแล้ว',
-            timer: 2000,
-            showConfirmButton: false
-          });
+          if (ver) {
+            Swal.fire({
+              icon: 'success',
+              title: 'ลงนามสำเร็จ',
+              text: 'บันทึกฉบับที่ ' + ver + ' เรียบร้อยแล้ว',
+              timer: 2000,
+              showConfirmButton: false
+            });
+          } else {
+            Swal.fire({ icon: 'error', title: 'บันทึกไม่สำเร็จ', text: 'ไม่สามารถบันทึกหนังสือยินยอมได้ กรุณาลองใหม่', confirmButtonText: 'ตกลง' });
+          }
         } else {
           Swal.fire({ icon: 'success', title: 'ลงนามสำเร็จ', timer: 2000, showConfirmButton: false });
         }

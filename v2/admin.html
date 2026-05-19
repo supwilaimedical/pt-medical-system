@@ -393,6 +393,19 @@
     .page-header h1 { font-size:19px; }
     .section-body, .section-header { padding-left:16px; padding-right:16px; }
     .log-row { grid-template-columns:1fr; gap:4px; }
+    /* Bottom nav */
+    .pt-bnav { position:fixed; left:0; right:0; bottom:0; z-index:1030;
+      background:#fff; border-top:1px solid #e2e8f0;
+      padding:4px 4px calc(4px + env(safe-area-inset-bottom));
+      display:grid; grid-template-columns:repeat(3, 1fr); height:56px; }
+    .pt-bnav a { display:flex; flex-direction:column; align-items:center; justify-content:center; gap:2px;
+      color:#64748b; text-decoration:none; cursor:pointer; font-size:11px; font-weight:600;
+      background:transparent; border:0; }
+    .pt-bnav a i { font-size:18px; line-height:1; }
+    .pt-bnav a.active { color:#0ea5e9; }
+  }
+  @media (min-width:1025px), (orientation:landscape) {
+    .pt-bnav { display:none !important; }
   }
 </style>
 <link rel="stylesheet" href="chrome.css?v=20260517p">
@@ -2848,6 +2861,42 @@
       }
     } catch(_){}
   });
+</script>
+
+<!-- Mobile bottom nav (admin) — visible on ≤1024px portrait only -->
+<nav class="pt-bnav" id="adm-bnav" style="display:none;">
+  <a href="javascript:void(0)" id="adm-bnav-settings" onclick="_admBnavGo('organization')">
+    <i class="bi bi-gear"></i><span>ตั้งค่า</span>
+  </a>
+  <a href="javascript:void(0)" id="adm-bnav-activity" onclick="_admBnavGo('activity')">
+    <i class="bi bi-clock-history"></i><span>Activity Log</span>
+  </a>
+  <a href="javascript:void(0)" id="adm-bnav-overview" onclick="_admBnavGo('overview')">
+    <i class="bi bi-files"></i><span>ภาพรวม</span>
+  </a>
+</nav>
+
+<script>
+(function(){
+  window._admBnavGo = function(sec) {
+    var el = document.querySelector('.sidebar-item[onclick*="adm_show(\'' + sec + '\'"]');
+    if (typeof adm_show === 'function') adm_show(sec, el);
+    if (sec === 'activity' && typeof loadActivityLog === 'function') loadActivityLog(1);
+    if (sec === 'overview' && typeof loadSystemOverview === 'function') loadSystemOverview();
+    // Mark active bnav item
+    document.querySelectorAll('#adm-bnav a').forEach(function(a){ a.classList.remove('active'); });
+    var active = document.getElementById('adm-bnav-' + (sec === 'organization' ? 'settings' : sec));
+    if (active) active.classList.add('active');
+  };
+  function _admIsMobilePortrait(){ try { return window.matchMedia('(max-width: 1024px) and (orientation: portrait)').matches; } catch(_){ return false; } }
+  function _admUpdateBnav(){
+    var bnav = document.getElementById('adm-bnav'); if (!bnav) return;
+    bnav.style.display = _admIsMobilePortrait() ? '' : 'none';
+  }
+  document.addEventListener('DOMContentLoaded', _admUpdateBnav);
+  window.addEventListener('resize', _admUpdateBnav);
+  setInterval(_admUpdateBnav, 1500);
+})();
 </script>
 </body>
 </html>

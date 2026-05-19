@@ -190,7 +190,7 @@
       background: var(--slate-50);
       border: 1px solid var(--slate-200);
       border-radius: 8px;
-      font-size: 0.85rem;
+      font-size: 16px;
       transition: all 0.15s;
     }
     .panel-search input:focus {
@@ -428,7 +428,7 @@
       /* Search + filter row tighter on mobile */
       .panel-search-filter-row{ gap:6px; margin-top:8px; }
       .panel-search-filter-row .filter-tab{ padding:5px 8px; font-size:0.7rem; }
-      .panel-search input{ padding:7px 10px 7px 30px; font-size:0.8rem; }
+      .panel-search input{ padding:7px 10px 7px 30px; font-size:16px; }
       .panel-search i{ left:9px; font-size:0.82rem; }
     }
 
@@ -2127,6 +2127,20 @@
         btn.classList.add('active-toggle');
       }
     }
+
+    // Pause auto-refresh when tab hidden; resume only if auto-refresh was ON
+    document.addEventListener('visibilitychange', function() {
+      if (document.hidden) {
+        if (_autoInterval) { clearInterval(_autoInterval); _autoInterval = null; }
+      } else {
+        // Only resume if the toggle button shows ON state
+        var btn = document.getElementById('btnAutoRefresh');
+        if (btn && btn.classList.contains('active-toggle') && !_autoInterval) {
+          _autoInterval = setInterval(fetchAllStatuses, 10000);
+          fetchAllStatuses();
+        }
+      }
+    });
 
     // =============================================
     // RENDER VEHICLE LIST

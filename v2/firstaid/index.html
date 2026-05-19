@@ -68,7 +68,13 @@
       background: transparent; color: #6c757d; border: 1px solid transparent;
       transition: all 0.2s; font-size: 0.85rem;
     }
-    .fa-qty-btn { width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; padding: 0; }
+    .fa-qty-btn { width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; padding: 0; }
+    /* iOS zoom prevention — force ≥16px on all form inputs on mobile */
+    @media (max-width: 768px) {
+      .form-control, .form-select, input.form-control-sm, select.form-select-sm {
+        font-size: 16px !important;
+      }
+    }
     .fa-qty-input { width: 50px; border-radius: 8px; }
     .fa-table-hide-mobile {}
     @media (max-width: 767px) {
@@ -2145,10 +2151,12 @@
     }
 
     function _fa_genTokenStr() {
-        // 6 chars, A-Z minus O/I, 2-9 minus 0/1 (no ambiguous chars)
+        // 8 chars, A-Z minus O/I, 2-9 minus 0/1 (no ambiguous chars) — CSPRNG
         var chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+        var bytes = new Uint8Array(8);
+        crypto.getRandomValues(bytes);
         var s = '';
-        for (var i = 0; i < 6; i++) s += chars.charAt(Math.floor(Math.random() * chars.length));
+        for (var i = 0; i < 8; i++) s += chars.charAt(bytes[i] % 32);
         return s;
     }
 

@@ -191,8 +191,9 @@
             padding:1px 7px; border-radius:4px; font-weight:600;
         }
         .monitor-toast .t-close {
-            position:absolute; top:8px; right:10px; background:transparent;
+            position:absolute; top:4px; right:6px; background:transparent;
             border:0; color:#94a3b8; font-size:1.1rem; padding:0; line-height:1;
+            width:40px; height:40px; display:flex; align-items:center; justify-content:center; cursor:pointer;
         }
         .monitor-toast .t-close:hover { color:#0f172a; }
     </style>
@@ -1792,7 +1793,7 @@
         } catch(e) {
             console.warn('monitorMiniGpsInit:', e.message);
             var list = document.getElementById('mwgp-list');
-            if (list) list.innerHTML = '<div class="mwgp-empty">โหลด GPS ไม่สำเร็จ: ' + (e.message || '') + '</div>';
+            if (list) list.innerHTML = '<div class="mwgp-empty">โหลด GPS ไม่สำเร็จ: ' + escapeHtml(e.message || '') + '</div>';
         }
     }
 
@@ -1911,6 +1912,16 @@
                 btn.innerHTML = '<i class="bi bi-arrows-angle-expand"></i>';
                 btn.title = 'Fullscreen เข้า/ออก';
             }
+        }
+    });
+
+    // Pause GPS polling when tab hidden; resume on visibility restored
+    document.addEventListener('visibilitychange', function() {
+        if (document.hidden) {
+            if (_mwgpInterval) { clearInterval(_mwgpInterval); _mwgpInterval = null; }
+        } else if (_mwgpInited && !_mwgpInterval) {
+            _mwgpInterval = setInterval(monitorMiniGpsFetchStatuses, 10000);
+            monitorMiniGpsFetchStatuses();
         }
     });
 
@@ -2743,11 +2754,21 @@
             var eventsRes = await _supabase.from('fa_events').select('*').eq('status', 'Active');
             var events = eventsRes.data || [];
 
+            // Batch fa_registry: single .in() instead of N+1 per-event queries
+            var regsByEvent = {};
+            if (events.length > 0) {
+                var eventIds = events.map(function(ev) { return ev.event_id; });
+                var regsRes = await _supabase.from('fa_registry').select('event_id, etiology, result').in('event_id', eventIds);
+                if (regsRes.error) throw regsRes.error;
+                (regsRes.data || []).forEach(function(r) {
+                    (regsByEvent[r.event_id] = regsByEvent[r.event_id] || []).push(r);
+                });
+            }
+
             var adaptedEvents = [];
             for (var i = 0; i < events.length; i++) {
                 var ev = events[i];
-                var regsRes = await _supabase.from('fa_registry').select('etiology, result').eq('event_id', ev.event_id);
-                var regs = regsRes.data || [];
+                var regs = regsByEvent[ev.event_id] || [];
                 var stats = {
                     total: regs.length,
                     med: regs.filter(function(r) { return r.etiology === 'Med'; }).length,
@@ -2761,7 +2782,7 @@
             renderMonitorFA(adaptedEvents);
         } catch(e) {
             console.error('Monitor render error:', e);
-            transportList.innerHTML = '<div class="col-12"><p class="text-danger text-center py-3 mb-0"><i class="bi bi-exclamation-triangle me-1"></i>เกิดข้อผิดพลาด: ' + (e.message || 'Unknown error') + '</p></div>';
+            transportList.innerHTML = '<div class="col-12"><p class="text-danger text-center py-3 mb-0"><i class="bi bi-exclamation-triangle me-1"></i>เกิดข้อผิดพลาด: ' + escapeHtml(e.message || 'Unknown error') + '</p></div>';
         }
         monitorHideLoading();
     }
@@ -3465,7 +3486,7 @@
                 document.getElementById('monitorPreviewBody').innerHTML = '<div class="text-center py-5 text-danger"><i class="bi bi-exclamation-circle fs-1 d-block mb-2"></i>ไม่พบข้อมูล</div>';
             }
         } catch(err) {
-            document.getElementById('monitorPreviewBody').innerHTML = '<div class="text-center py-5 text-danger"><i class="bi bi-exclamation-circle fs-1 d-block mb-2"></i>' + err.message + '</div>';
+            document.getElementById('monitorPreviewBody').innerHTML = '<div class="text-center py-5 text-danger"><i class="bi bi-exclamation-circle fs-1 d-block mb-2"></i>' + escapeHtml(err.message) + '</div>';
         }
     }
 
@@ -3515,7 +3536,7 @@
                 document.getElementById('monitorPreviewBody').innerHTML = '<div class="text-center py-5 text-danger">ไม่พบข้อมูล Event</div>';
             }
         } catch(err) {
-            document.getElementById('monitorPreviewBody').innerHTML = '<div class="text-center py-5 text-danger">' + err.message + '</div>';
+            document.getElementById('monitorPreviewBody').innerHTML = '<div class="text-center py-5 text-danger">' + escapeHtml(err.message) + '</div>';
         }
     }
 
@@ -3552,7 +3573,7 @@
                 w.document.open(); w.document.write('<html><body><h2>ไม่พบข้อมูล Event</h2></body></html>'); w.document.close();
             }
         } catch(err) {
-            w.document.open(); w.document.write('<html><body><h2>Error: ' + err.message + '</h2></body></html>'); w.document.close();
+            w.document.open(); w.document.write('<html><body><h2>Error: ' + escapeHtml(err.message) + '</h2></body></html>'); w.document.close();
         }
     }
 
