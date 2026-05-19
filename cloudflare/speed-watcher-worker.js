@@ -34,6 +34,20 @@ export default {
 
   async fetch(request, env, ctx) {
     const url = new URL(request.url);
+
+    // Auth gate — all HTTP-triggered routes require Authorization: Bearer <WORKER_SECRET>.
+    // The cron path (scheduled) never passes through here; only manual/admin HTTP calls do.
+    // NOTE: String comparison is not constant-time in JS; for production hardening use
+    //       Web Crypto HMAC or a timing-safe helper (future improvement).
+    if (!env.WORKER_SECRET) {
+      return jsonResponse({ error: 'Worker misconfigured: WORKER_SECRET not set' }, 500);
+    }
+    const auth = request.headers.get('Authorization') || '';
+    const expected = 'Bearer ' + env.WORKER_SECRET;
+    if (auth !== expected) {
+      return jsonResponse({ error: 'Unauthorized' }, 401);
+    }
+
     if (url.pathname === '/run') {
       const dry = url.searchParams.get('dry') === '1';
       const result = await runCycle(env, { dry });
