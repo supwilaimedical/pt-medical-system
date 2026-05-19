@@ -487,8 +487,11 @@ body[data-module="monitor"] #monitor-wide-gps-pane .mwgp-head .bi {
     margin: 0 !important;
     z-index: 30 !important;
   }
+  /* padding-top uses --form-tb-h set by _ptSyncFormPad() in transport/index.html
+     so it tracks the actual topbar height (case-id row + Timeline + patient
+     banner with Dx/CC). Falls back to 64px if JS hasn't run yet. */
   body[data-module="transport"] #form-view {
-    padding-top: 64px !important;
+    padding-top: var(--form-tb-h, 64px) !important;
   }
 
   /* === Other modules: just bump topbar z-index defensively === */
