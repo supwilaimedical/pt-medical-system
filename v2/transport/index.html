@@ -579,7 +579,15 @@
 
     /* ===== Mobile Timeline: shrunk further (2-col grid, smaller inputs/labels) ===== */
     @media (max-width:767px){
-      #timeline-card{ margin-bottom:8px !important; }
+      /* Timeline-card outside topbar = keep legacy 8px spacing (defensive: before reparent).
+         Inside topbar = flush — no margin (was creating 8px navy seam between Timeline white
+         pane and patient-banner) + no padding (shared/styles.css .island-card adds 1rem on
+         mobile which makes the Timeline strip ~32px taller than needed). */
+      #timeline-card:not(.v2-tb-timeline){ margin-bottom:8px !important; }
+      .v2-form-topbar #timeline-card{
+        margin:0 !important;
+        padding:0 !important;
+      }
       #tl-ems > .d-flex.flex-wrap,
       #tl-refer > .d-flex.flex-wrap{
         display:grid !important;
@@ -842,6 +850,19 @@
     .patient-banner.ban-collapsed .ban-toggle-btn .bi { transform: rotate(0deg); }
     .patient-banner:not(.ban-collapsed) .ban-toggle-btn .bi { transform: rotate(180deg); }
     .ban-details { padding: 8px 10px 4px; }
+
+    /* When expanded: hide info in mini-bar that's already shown in details (no redundancy).
+       Keep #ban-consent-card (consent status — only place it appears) + chevron toggle. */
+    .patient-banner:not(.ban-collapsed) #ban-mini-name,
+    .patient-banner:not(.ban-collapsed) #ban-mini-triage-wrap {
+      display: none !important;
+    }
+
+    /* "รถเบอร์: คันที่ X (ALS)" line — span has no size class so it inherits body 16px.
+       Surrounding chips/staff text are 11-14px. Shrink to 0.78rem (~12.5px) to blend. */
+    .patient-banner .ban-details .fw-medium.text-dark {
+      font-size: 0.78rem !important;
+    }
 
     /* Consent Modal Fullscreen */
     .consent-modal-overlay {
