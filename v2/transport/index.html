@@ -851,16 +851,37 @@
     .patient-banner:not(.ban-collapsed) .ban-toggle-btn .bi { transform: rotate(180deg); }
     .ban-details { padding: 8px 10px 4px; }
 
-    /* When expanded: hide info in mini-bar that's already shown in details (no redundancy).
-       Keep #ban-consent-card (consent status — only place it appears) + chevron toggle. */
-    .patient-banner:not(.ban-collapsed) #ban-mini-name,
-    .patient-banner:not(.ban-collapsed) #ban-mini-triage-wrap {
+    /* When expanded: hide name from mini-bar (already in details).
+       Keep #ban-mini-triage-wrap (Urgent chip) and #ban-consent-card so the mini-bar
+       row "Urgent | ✓ลงนามแล้ว | ▼" gives a one-row summary of status.
+       The duplicate Urgent badge in .ban-details is hidden via the rule below. */
+    .patient-banner:not(.ban-collapsed) #ban-mini-name {
+      display: none !important;
+    }
+    /* Hide details-level triage badge (.col-md-3) — same info already in mini-bar */
+    .patient-banner:not(.ban-collapsed) .ban-details .row.align-items-center > .col-md-3 {
       display: none !important;
     }
 
     /* "รถเบอร์: คันที่ X (ALS)" line — span has no size class so it inherits body 16px.
        Surrounding chips/staff text are 11-14px. Shrink to 0.78rem (~12.5px) to blend. */
     .patient-banner .ban-details .fw-medium.text-dark {
+      font-size: 0.78rem !important;
+    }
+
+    /* ALS row baseline fix — items had mixed line-heights and pb-1 made staff text
+       sit lower. Normalize so chip + รถเบอร์ + separator + staff sit on same baseline. */
+    .patient-banner .ban-details .row.text-sm .col-12.text-primary {
+      line-height: 1.5 !important;
+    }
+    .patient-banner .ban-details .row.text-sm .col-12.text-primary .badge {
+      line-height: 1.4 !important;
+    }
+    .patient-banner .ban-details #ban-staff-list {
+      padding-bottom: 0 !important;
+      vertical-align: middle;
+    }
+    .patient-banner .ban-details .row.text-sm .text-muted.mx-1 {
       font-size: 0.78rem !important;
     }
 
