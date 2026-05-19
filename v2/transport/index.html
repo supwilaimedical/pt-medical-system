@@ -475,13 +475,17 @@
     @media (min-width: 768px){ #v2-quick-panel{ left:56px !important; } }
     @media (min-width: 992px){ #v2-quick-panel{ left:296px !important; } }
 
-    /* Timeline row inside static topbar — transparent so navy chrome shows through (no white seam) */
+    /* Timeline row inside static topbar — WHITE pane with dark text (no card frame).
+       Per UX request 2026-05-19: user found navy timeline hard to read; banner also white. */
     .v2-form-topbar .v2-tb-timeline{
       margin:0 !important; border:0 !important;
-      border-bottom:1px solid var(--chrome-line, rgba(255,255,255,.08)) !important;
+      border-bottom:1px solid #e2e8f0 !important;
       border-radius:0 !important; border-left:0 !important;
-      background:transparent !important; box-shadow:none !important;
+      background:#fff !important; color:#0f172a !important;
+      box-shadow:none !important;
     }
+    .v2-form-topbar .v2-tb-timeline,
+    .v2-form-topbar .v2-tb-timeline *{ color:inherit; }
     .v2-form-topbar .v2-tb-timeline > div{ font-size:0.78rem; }
 
     /* ===== Mobile Hamburger Nav ===== */
