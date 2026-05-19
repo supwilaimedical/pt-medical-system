@@ -499,8 +499,8 @@ body[data-module="monitor"] #monitor-wide-gps-pane .mwgp-head .bi {
 }
 
 /* ===== FORM TOPBAR sub-rows =====
-   v2-tb-row1 = navy (main topbar — case-id, action buttons)
-   v2-tb-row2 = WHITE (patient banner — name + triage + consent need light bg for readability) */
+   Both rows now transparent so navy chrome shows through continuously (no white seam).
+   Text colour switches to chrome-text so name/triage/consent stay readable on navy. */
 body[data-module] .v2-form-topbar .v2-tb-row1 {
   background: transparent !important;
   border-bottom-color: var(--chrome-line) !important;
@@ -508,9 +508,9 @@ body[data-module] .v2-form-topbar .v2-tb-row1 {
 }
 body[data-module] .v2-form-topbar .v2-tb-row2,
 body[data-module] .v2-form-topbar .patient-banner {
-  background: #fff !important;
-  color: #0f172a !important;
-  border-bottom: 1px solid #e2e8f0 !important;
+  background: transparent !important;
+  color: var(--chrome-text) !important;
+  border-bottom: 1px solid var(--chrome-line) !important;
 }
 body[data-module] .v2-form-topbar .v2-tb-row2 *,
 body[data-module] .v2-form-topbar .patient-banner * {

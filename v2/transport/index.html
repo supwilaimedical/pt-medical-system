@@ -475,11 +475,12 @@
     @media (min-width: 768px){ #v2-quick-panel{ left:56px !important; } }
     @media (min-width: 992px){ #v2-quick-panel{ left:296px !important; } }
 
-    /* Timeline row inside static topbar */
+    /* Timeline row inside static topbar — transparent so navy chrome shows through (no white seam) */
     .v2-form-topbar .v2-tb-timeline{
-      margin:0 !important; border:0 !important; border-bottom:1px solid #f1f5f9 !important;
+      margin:0 !important; border:0 !important;
+      border-bottom:1px solid var(--chrome-line, rgba(255,255,255,.08)) !important;
       border-radius:0 !important; border-left:0 !important;
-      background:#fff !important; box-shadow:none !important;
+      background:transparent !important; box-shadow:none !important;
     }
     .v2-form-topbar .v2-tb-timeline > div{ font-size:0.78rem; }
 
