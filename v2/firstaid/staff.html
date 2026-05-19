@@ -134,9 +134,13 @@
     .empty-state { text-align: center; padding: 32px 16px; color: #94a3b8; }
     .empty-state .bi { font-size: 2.5rem; opacity: 0.5; margin-bottom: 8px; }
 
-    @media (max-width: 480px) {
+    @media (max-width: 768px) {
       .staff-card { padding: 12px; }
       .form-grid input, .form-grid select, .form-grid textarea { font-size: 16px; } /* prevent iOS zoom */
+      /* iOS zoom prevention — force ≥16px on all form inputs */
+      .form-control, .form-select, input.form-control-sm, select.form-select-sm {
+        font-size: 16px !important;
+      }
     }
   </style>
 </head>
