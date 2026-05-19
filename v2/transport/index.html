@@ -4598,12 +4598,7 @@
           f.status.value = 'Completed';
       }
 
-      if(isCompleted) {
-         f.status.value = "Completed";
-         loadedCaseStatus = "Completed";
-         updateStatusDisplay("Completed");
-         setReadOnlyMode(true);
-      }
+      var statusToSave = isCompleted ? "Completed" : f.status.value;
 
       isSaving = true;
       if(!silent) Swal.fire({title: 'Saving...', didOpen: function() { Swal.showLoading(); }});
@@ -4617,7 +4612,7 @@
       try {
           var payload = {
               case_id: caseId,
-              status: f.status.value,
+              status: statusToSave,
               triage_level: f.triage_level.value,
               op_info: {
                   level: f.op_level.value,
@@ -4646,6 +4641,13 @@
 
           isSaving = false;
           if (resp.error) throw resp.error;
+
+          if (isCompleted) {
+              f.status.value = "Completed";
+              loadedCaseStatus = "Completed";
+              updateStatusDisplay("Completed");
+              setReadOnlyMode(true);
+          }
 
           f.caseId.value = caseId;
           document.getElementById('display-case-id').innerText = caseId;
