@@ -7867,43 +7867,27 @@
     var consentVersions = []; // all versions from DB
     var consentActiveVersion = null; // current active version
 
-    // Save consent to Supabase (creates new version, marks old as superseded)
+    // Save consent to Supabase (atomic: supersede old + insert new in one DB transaction)
     async function saveConsentToDB(caseId, formData) {
       try {
-        // 1) Mark existing active consent as superseded
-        var existing = await _supabase
-          .from('transport_consents')
-          .select('id, version')
-          .eq('case_id', caseId)
-          .eq('status', 'active')
-          .order('version', { ascending: false })
-          .limit(1);
+        // Single atomic RPC call — eliminates race condition where 2 devices
+        // re-sign simultaneously and both produce an 'active' row (#24, #25).
+        // The function uses SELECT FOR UPDATE to lock rows for this case_id,
+        // then supersedes the current active row and inserts a new one.
+        var rpcResult = await _supabase.rpc('sign_consent_atomic', {
+          p_case_id:                  caseId,
+          p_consent_data:             formData.data,
+          p_signature_image:          formData.data.signatureDataUrl || '',
+          p_signed_by:                formData.data.consenterName || '',
+          p_relationship:             formData.data.relationship || '',
+          p_witness_name:             formData.data.witnessName || '',
+          p_witness_signature_image:  formData.data.witnessSignatureDataUrl || '',
+          p_signed_at:                formData.data.signatureTimestamp || new Date().toISOString()
+        });
 
-        var nextVersion = 1;
-        if (existing.data && existing.data.length > 0) {
-          nextVersion = existing.data[0].version + 1;
-          await _supabase
-            .from('transport_consents')
-            .update({ status: 'superseded', superseded_at: new Date().toISOString() })
-            .eq('id', existing.data[0].id);
-        }
+        if (rpcResult.error) { console.error('Save consent error:', rpcResult.error); return null; }
 
-        // 2) Insert new version
-        var row = {
-          case_id: caseId,
-          version: nextVersion,
-          signed_at: formData.data.signatureTimestamp || new Date().toISOString(),
-          signed_by: formData.data.consenterName || '',
-          relationship: formData.data.relationship || '',
-          consent_data: formData.data,
-          signature_image: formData.data.signatureDataUrl || '',
-          witness_name: formData.data.witnessName || '',
-          witness_signature_image: formData.data.witnessSignatureDataUrl || '',
-          status: 'active'
-        };
-
-        var res = await _supabase.from('transport_consents').insert(row);
-        if (res.error) { console.error('Save consent error:', res.error); return null; }
+        var nextVersion = rpcResult.data && rpcResult.data.version;
 
         // Auto-set NR Status = DNR on the case when consent has DNR items checked
         try {
