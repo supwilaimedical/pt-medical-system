@@ -1615,7 +1615,7 @@
   window.addEventListener('resize', _flUpdate);
   setInterval(_flUpdate, 1500);
   var sheet = document.getElementById('pt-bsheet'); var bd = document.getElementById('pt-bsheet-bd');
-  document.getElementById('fleet-bnav-more')?.addEventListener('click', function(){ sheet.classList.add('show'); bd.classList.add('show'); });
+  // #fleet-bnav-more does not exist in HTML — listener removed to avoid dead code
   bd?.addEventListener('click', function(){ sheet.classList.remove('show'); bd.classList.remove('show'); });
   document.getElementById('pt-bsheet-close-btn')?.addEventListener('click', function(){ sheet.classList.remove('show'); bd.classList.remove('show'); });
 
