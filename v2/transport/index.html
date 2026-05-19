@@ -8519,8 +8519,8 @@
         closeConsentModal();
 
         if (!isDashboardMode) {
-          consentSigned = true;
           // Sync consent data back to Transport form (fill empty fields)
+          // (consentSigned will be set only after DB write succeeds)
           // ── Only in Device-A mode (editing form). In dashboard mode we must NOT
           //    touch main-form because it might belong to a different case.
           try {
@@ -8556,7 +8556,10 @@
         if (caseId) {
           Swal.fire({ title: 'กำลังบันทึก Consent...', didOpen: function() { Swal.showLoading(); }, allowOutsideClick: false });
           var ver = await saveConsentToDB(caseId, consentData);
-          if (ver) logActivity('SIGN_CONSENT', caseId, 'version ' + ver);
+          if (ver) {
+            if (!isDashboardMode) consentSigned = true;
+            logActivity('SIGN_CONSENT', caseId, 'version ' + ver);
+          }
 
           // ── Sync consent idCard back into the case (both modes). ──
           // Critical: wrong/missing patient ID on the case has legal/medical consequences.
@@ -8588,13 +8591,17 @@
             consentVersions = vers;
             consentActiveVersion = vers.find(function(v) { return v.status === 'active'; });
           }
-          Swal.fire({
-            icon: 'success',
-            title: 'ลงนามสำเร็จ',
-            text: ver ? 'บันทึกฉบับที่ ' + ver + ' เรียบร้อยแล้ว' : 'บันทึกหนังสือยินยอมเรียบร้อยแล้ว',
-            timer: 2000,
-            showConfirmButton: false
-          });
+          if (ver) {
+            Swal.fire({
+              icon: 'success',
+              title: 'ลงนามสำเร็จ',
+              text: 'บันทึกฉบับที่ ' + ver + ' เรียบร้อยแล้ว',
+              timer: 2000,
+              showConfirmButton: false
+            });
+          } else {
+            Swal.fire({ icon: 'error', title: 'บันทึกไม่สำเร็จ', text: 'ไม่สามารถบันทึกหนังสือยินยอมได้ กรุณาลองใหม่', confirmButtonText: 'ตกลง' });
+          }
         } else {
           Swal.fire({ icon: 'success', title: 'ลงนามสำเร็จ', timer: 2000, showConfirmButton: false });
         }
