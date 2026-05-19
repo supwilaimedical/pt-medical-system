@@ -3253,9 +3253,12 @@
 
     function generateCaseId() {
        var now = new Date();
-       var prefix = now.toISOString().slice(0,10).replace(/-/g,"");
-       var random = Math.floor(Math.random() * 1000).toString().padStart(3, '0');
-       return 'CASE-' + prefix + '-' + random;
+       var y = now.getFullYear();
+       var m = (now.getMonth() + 1).toString().padStart(2, '0');
+       var d = now.getDate().toString().padStart(2, '0');
+       var prefix = y + m + d;                              // local-time YYYYMMDD
+       var ms = now.getTime().toString().slice(-6);         // 6-digit ms suffix
+       return 'CASE-' + prefix + '-' + ms;
     }
 
     // GAS compatibility stubs (no-ops for Supabase version)
