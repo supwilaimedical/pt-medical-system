@@ -3706,12 +3706,12 @@
                 var parts = val.split('/');
                 var sys = parseInt(parts[0], 10);
                 var dia = parseInt(parts[1], 10);
-                return sys >= 30 && sys <= 300 && dia >= 10 && dia <= 200;
+                return sys >= 40 && sys <= 300 && dia >= 20 && dia <= 200;
             }
         },
         pr: { min: 0, max: 300, message: 'PR ต้องอยู่ระหว่าง 0-300 /min (หรือ "-" ถ้าวัดไม่ได้)', validate: function(val) { if (!val) return true; if (isUnmeasurable(val)) return true; var n = parseInt(val, 10); return !isNaN(n) && n >= this.min && n <= this.max; } },
         rr: { min: 0, max: 80, message: 'RR ต้องอยู่ระหว่าง 0-80 /min (หรือ "-" ถ้าวัดไม่ได้)', validate: function(val) { if (!val) return true; if (isUnmeasurable(val)) return true; var n = parseInt(val, 10); return !isNaN(n) && n >= this.min && n <= this.max; } },
-        temp: { min: 30.0, max: 45.0, message: 'Temp ต้องอยู่ระหว่าง 30.0-45.0 °C (หรือ "-" ถ้าวัดไม่ได้)', validate: function(val) { if (!val) return true; if (isUnmeasurable(val)) return true; var n = parseFloat(val); return !isNaN(n) && n >= this.min && n <= this.max; } },
+        temp: { min: 28.0, max: 45.0, message: 'Temp ต้องอยู่ระหว่าง 28.0-45.0 °C (หรือ "-" ถ้าวัดไม่ได้)', validate: function(val) { if (!val) return true; if (isUnmeasurable(val)) return true; var n = parseFloat(val); return !isNaN(n) && n >= this.min && n <= this.max; } },
         spo2: { min: 0, max: 100, message: 'SpO2 ต้องอยู่ระหว่าง 0-100% (หรือ "-" ถ้าวัดไม่ได้)', validate: function(val) { if (!val) return true; if (isUnmeasurable(val)) return true; var n = parseInt(val, 10); return !isNaN(n) && n >= this.min && n <= this.max; } },
         dtx: { min: 0, max: 999, message: 'DTX ต้องอยู่ระหว่าง 0-999 mg/dL (หรือ "-" ถ้าวัดไม่ได้)', validate: function(val) { if (!val) return true; if (isUnmeasurable(val)) return true; var n = parseInt(val, 10); return !isNaN(n) && n >= this.min && n <= this.max; } },
         age: { min: 0, max: 200, message: 'อายุต้องอยู่ระหว่าง 0-200 ปี', validate: function(val) { if (!val) return true; var n = parseInt(val, 10); return !isNaN(n) && n >= this.min && n <= this.max; } }
