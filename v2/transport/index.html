@@ -4678,6 +4678,13 @@
           isSaving = false;
           console.error("Error saving: ", err);
           if(!silent) Swal.fire('Error', 'Failed to save: ' + (err.message || 'Unknown'), 'error');
+          // Replay any pending realtime merge that was queued during this failed save
+          if (_pendingMergeCaseId) {
+              var pid = _pendingMergeCaseId;
+              _pendingMergeCaseId = null;
+              setTimeout(function(){ _scheduleRemoteCaseMerge(pid); }, 50);
+          }
+          if (callback) callback(err);
       }
     }
 
