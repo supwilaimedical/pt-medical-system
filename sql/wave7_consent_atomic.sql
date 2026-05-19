@@ -97,14 +97,17 @@ DECLARE
     v_new_version   INT;
     v_new_id        UUID;
 BEGIN
-    -- Lock all rows for this case_id to eliminate concurrent re-sign race.
-    -- FOR UPDATE acquires row-level lock; concurrent call blocks until this
-    -- transaction commits or rolls back.
+    -- Serialize concurrent calls for the SAME case_id using a transaction-scoped
+    -- advisory lock. We can't use SELECT ... FOR UPDATE with MAX() — Postgres
+    -- rejects FOR UPDATE on aggregates (ERROR 0A000). Advisory lock by case_id
+    -- hash gives the same "one signer at a time per case" guarantee. The partial
+    -- unique index idx_transport_consents_one_active is the defense-in-depth.
+    PERFORM pg_advisory_xact_lock(hashtext('consent_' || p_case_id));
+
     SELECT COALESCE(MAX(version), 0)
     INTO v_existing_max
     FROM transport_consents
-    WHERE case_id = p_case_id
-    FOR UPDATE;
+    WHERE case_id = p_case_id;
 
     v_new_version := v_existing_max + 1;
 
