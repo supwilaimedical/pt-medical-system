@@ -157,7 +157,7 @@
     <h3 class="text-center">เจ้าหน้าที่ part-time</h3>
     <p class="text-center mb-4">กรุณาใส่ Token ที่ได้รับจาก admin</p>
     <div class="mb-3">
-      <input type="text" id="gate-token" class="form-control form-control-lg" maxlength="6" placeholder="XXXXXX" autocomplete="off" autocorrect="off" autocapitalize="characters" spellcheck="false">
+      <input type="text" id="gate-token" class="form-control form-control-lg" maxlength="8" placeholder="XXXXXXXX" autocomplete="off" autocorrect="off" autocapitalize="characters" spellcheck="false">
     </div>
     <button class="btn btn-primary w-100 rounded-pill py-2 fw-bold" onclick="staffVerifyTokenInput()">
       <i class="bi bi-key-fill me-1"></i> เข้าใช้งาน
@@ -472,8 +472,8 @@
   // ===== TOKEN VERIFY FLOW =====
   async function staffVerifyToken(token) {
     token = (token || '').trim().toUpperCase();
-    if (!/^[A-Z0-9]{6}$/.test(token)) {
-      return { ok: false, msg: 'Token ต้องเป็น 6 ตัวอักษร/ตัวเลข' };
+    if (!/^[A-Z0-9]{8}$/.test(token)) {
+      return { ok: false, msg: 'Token ต้องเป็น 8 ตัวอักษร/ตัวเลข' };
     }
     try {
       var { data: tokenRow, error: tokErr } = await _supabase.from('fa_event_tokens')
@@ -580,12 +580,12 @@
 
   // ===== AUTO-LOGIN from URL ?t= or saved state =====
   async function bootstrap() {
-    // Wire input — uppercase + auto-submit on 6 chars
+    // Wire input — uppercase + auto-submit on 8 chars
     var input = document.getElementById('gate-token');
     if (input) {
       input.addEventListener('input', function(){
         this.value = (this.value || '').toUpperCase().replace(/[^A-Z0-9]/g, '');
-        if (this.value.length === 6) staffVerifyTokenInput();
+        if (this.value.length === 8) staffVerifyTokenInput();
       });
       input.addEventListener('keydown', function(e){
         if (e.key === 'Enter') staffVerifyTokenInput();

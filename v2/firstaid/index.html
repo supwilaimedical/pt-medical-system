@@ -2151,10 +2151,12 @@
     }
 
     function _fa_genTokenStr() {
-        // 6 chars, A-Z minus O/I, 2-9 minus 0/1 (no ambiguous chars)
+        // 8 chars, A-Z minus O/I, 2-9 minus 0/1 (no ambiguous chars) — CSPRNG
         var chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+        var bytes = new Uint8Array(8);
+        crypto.getRandomValues(bytes);
         var s = '';
-        for (var i = 0; i < 6; i++) s += chars.charAt(Math.floor(Math.random() * chars.length));
+        for (var i = 0; i < 8; i++) s += chars.charAt(bytes[i] % 32);
         return s;
     }
 
