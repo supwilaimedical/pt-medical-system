@@ -876,6 +876,54 @@
 
         <div class="settings-section">
           <div class="section-header">
+            <h2><i class="bi bi-speedometer2"></i> Speed Alert (เตือนความเร็วเกินกำหนด)</h2>
+            <p>ตรวจความเร็วของรถจาก GPS — ส่งแจ้งเตือน Line/TG เมื่อเกิน threshold + แสดง warning badge บน Monitor wallboard</p>
+          </div>
+          <div class="section-body">
+            <div class="form-row">
+              <div><div class="form-row-label">เปิดใช้งาน</div><div class="form-row-desc">ปิด = หยุดส่ง Line/TG alert (แต่ wallboard badge ยังทำงาน)</div></div>
+              <div class="form-row-input">
+                <select class="aselect" id="notify-speed-enabled" style="max-width:200px;">
+                  <option value="false">ปิด</option>
+                  <option value="true">เปิด</option>
+                </select>
+              </div>
+            </div>
+            <div class="form-row">
+              <div><div class="form-row-label">Alert threshold (Line/TG)</div><div class="form-row-desc">ความเร็ว (km/h) ที่จะส่งแจ้งเตือนผ่าน Line/Telegram — default 130</div></div>
+              <div class="form-row-input">
+                <input class="ainput" type="number" min="60" max="220" step="5" id="notify-speed-threshold" placeholder="130" style="max-width:180px;">
+              </div>
+            </div>
+            <div class="form-row">
+              <div><div class="form-row-label">Warning badge (Monitor wallboard)</div><div class="form-row-desc">ความเร็ว (km/h) ที่จะแสดง badge สีแดง pulse บน Monitor wallboard — default 120 (ควรน้อยกว่าหรือเท่ากับ Alert threshold)</div></div>
+              <div class="form-row-input">
+                <input class="ainput" type="number" min="60" max="220" step="5" id="notify-speed-warn" placeholder="120" style="max-width:180px;">
+              </div>
+            </div>
+            <div class="form-row">
+              <div><div class="form-row-label">Max alerts ต่อ trip</div><div class="form-row-desc">ส่งซ้ำได้กี่ครั้งต่อรถ-1-trip (กัน spam) — default 2</div></div>
+              <div class="form-row-input">
+                <input class="ainput" type="number" min="1" max="10" step="1" id="notify-speed-max-alerts" placeholder="2" style="max-width:140px;">
+              </div>
+            </div>
+            <div class="form-row">
+              <div><div class="form-row-label">Allowlist รถเบอร์ (optional)</div><div class="form-row-desc">รหัสรถที่จะตรวจ คั่นด้วย comma เช่น <code>51041,51040</code> — เว้นว่าง = ตรวจทุกคัน</div></div>
+              <div class="form-row-input">
+                <input class="ainput" id="notify-speed-vehicles" placeholder="51041,51040 (ปล่อยว่างถ้าตรวจทุกคัน)">
+              </div>
+            </div>
+            <div class="form-row">
+              <div><div class="form-row-label">บันทึก</div></div>
+              <div class="form-row-input">
+                <button class="abtn abtn-primary" onclick="saveSpeedAlert()"><i class="bi bi-check-lg"></i> บันทึก</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="settings-section">
+          <div class="section-header">
             <h2><i class="bi bi-clock-history"></i> Recent Send Log</h2>
             <p>50 รายการล่าสุด (auto-cleanup &gt; 30 วัน)</p>
           </div>
@@ -1508,6 +1556,13 @@
       document.getElementById('notify-telegram-enabled').value  = ov('NOTIFY_TELEGRAM_ENABLED') || 'false';
       document.getElementById('notify-telegram-chat').value     = ov('NOTIFY_TELEGRAM_CHAT_ID') || '';
       renderNotifyEvents(s);
+
+      // Speed Alert
+      document.getElementById('notify-speed-enabled').value     = ov('SPEED_WATCH_ENABLED') || 'false';
+      document.getElementById('notify-speed-threshold').value   = ov('SPEED_THRESHOLD_KMH') || '130';
+      document.getElementById('notify-speed-warn').value        = ov('SPEED_WARN_KMH') || '120';
+      document.getElementById('notify-speed-max-alerts').value  = ov('SPEED_MAX_ALERTS_PER_EVENT') || '2';
+      document.getElementById('notify-speed-vehicles').value    = ov('SPEED_WATCH_VEHICLES') || '';
 
       // Map Provider
       var mp = s['MAP_PROVIDER'] || 'leaflet';
@@ -2765,6 +2820,36 @@
       ]);
       if (typeof settingsRefresh === 'function') await settingsRefresh(_supabase);
       Swal.fire({ icon:'success', title:'บันทึกแล้ว', timer:1200, showConfirmButton:false });
+    } catch(e) { Swal.fire('Error', e.message || 'save failed', 'error'); }
+  }
+
+  async function saveSpeedAlert() {
+    var en       = document.getElementById('notify-speed-enabled').value;
+    var thr      = document.getElementById('notify-speed-threshold').value.trim();
+    var warn     = document.getElementById('notify-speed-warn').value.trim();
+    var maxAlt   = document.getElementById('notify-speed-max-alerts').value.trim();
+    var vehicles = document.getElementById('notify-speed-vehicles').value.trim();
+
+    // Validate (explicit per working-rules: no silent magic defaults)
+    var thrN  = parseInt(thr, 10);
+    var warnN = parseInt(warn, 10);
+    var maxN  = parseInt(maxAlt, 10);
+    if (!(thrN >= 60 && thrN <= 220))   { Swal.fire('Invalid', 'Alert threshold ต้องอยู่ระหว่าง 60–220 km/h', 'error'); return; }
+    if (!(warnN >= 60 && warnN <= 220)) { Swal.fire('Invalid', 'Warning badge threshold ต้องอยู่ระหว่าง 60–220 km/h', 'error'); return; }
+    if (warnN > thrN) { Swal.fire('Warning', 'Warning badge ('+warnN+') มากกว่า Alert threshold ('+thrN+') — wallboard จะแสดง badge แต่ยังไม่ส่ง Line/TG. ตั้งใจหรือเปล่า?', 'warning'); }
+    if (!(maxN >= 1 && maxN <= 10))     { Swal.fire('Invalid', 'Max alerts ต้องอยู่ระหว่าง 1–10', 'error'); return; }
+
+    Swal.fire({ title:'Saving...', didOpen:function(){ Swal.showLoading(); } });
+    try {
+      await _supabase.from('settings').upsert([
+        { key:'SPEED_WATCH_ENABLED',         value: en },
+        { key:'SPEED_THRESHOLD_KMH',         value: String(thrN) },
+        { key:'SPEED_WARN_KMH',              value: String(warnN) },
+        { key:'SPEED_MAX_ALERTS_PER_EVENT',  value: String(maxN) },
+        { key:'SPEED_WATCH_VEHICLES',        value: vehicles }
+      ]);
+      if (typeof settingsRefresh === 'function') await settingsRefresh(_supabase);
+      Swal.fire({ icon:'success', title:'บันทึกแล้ว', text:'Monitor wallboard ต้อง refresh เพื่อใช้ค่าใหม่', timer:2000, showConfirmButton:false });
     } catch(e) { Swal.fire('Error', e.message || 'save failed', 'error'); }
   }
 
