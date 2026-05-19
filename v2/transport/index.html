@@ -6182,6 +6182,26 @@
 
     // --- CONFIRM CLOSE CASE ---
     function confirmCloseCase() {
+        // Safety guard: require at least 1 on-transport vital entry when closing from Step 2
+        // (Step 3 = user explicitly visited vitals section → allowed regardless of entry count)
+        var step = (typeof currentStep === 'function') ? currentStep() : 3;
+        var vitals = (typeof getVitalsArray === 'function') ? getVitalsArray() : [];
+        if (step < 3 && vitals.length === 0) {
+            Swal.fire({
+                icon: 'warning',
+                title: 'ยังไม่มีข้อมูล Vital Signs ระหว่างนำส่ง',
+                html: 'ต้องบันทึก vital signs อย่างน้อย 1 ครั้งใน <strong>Step 3</strong> ก่อนปิดเคส',
+                showCancelButton: true,
+                confirmButtonText: '<i class="bi bi-arrow-right me-1"></i> ไป Step 3',
+                cancelButtonText: 'ยกเลิก',
+                confirmButtonColor: '#0ea5e9',
+                cancelButtonColor: '#6c757d',
+                reverseButtons: true
+            }).then(function(result) {
+                if (result.isConfirmed && typeof goToStep === 'function') goToStep(3);
+            });
+            return;
+        }
         var ptName = document.querySelector('input[name="pt_name"]').value || 'ไม่ระบุชื่อ';
         Swal.fire({
             title: 'ยืนยันปิดเคส?',
