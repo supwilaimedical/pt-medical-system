@@ -1,7 +1,7 @@
 // PT Medical System — Configuration
 // APP_VERSION: bump on every significant update + add entry in memory/version.md
-window.APP_VERSION = '2.0.1';
-window.APP_VERSION_DATE = '2026-04-25';
+window.APP_VERSION = '2.3';
+window.APP_VERSION_DATE = '2026-05-19';
 window.APP_VERSION_LABEL = 'Full Release';
 
 const CONFIG = {
