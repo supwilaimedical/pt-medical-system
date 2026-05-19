@@ -518,7 +518,7 @@
     body.monitor-wide-active #monitor-wide-gps-pane .mwgp-vh .vh-age.stale{ color:#d97706; font-weight:600; }
     body.monitor-wide-active #monitor-wide-gps-pane .mwgp-vh .vh-age i{ font-size:10px; }
 
-    /* Speed warning badge (>120 km/h) */
+    /* Speed warning badge (threshold from Admin → การแจ้งเตือน → SPEED_WARN_KMH, default 120) */
     body.monitor-wide-active #monitor-wide-gps-pane .vh-warn{
       display:inline-block; margin-top:4px; padding:1px 6px; border-radius:4px;
       background:#fee2e2; color:#991b1b; font-size:9.5px; font-weight:700;
@@ -1685,7 +1685,17 @@
     var _mwgpAutoCycle = false;
     var _mwgpAutoCycleIdx = -1;
     var _mwgpAutoCycleTimer = null;
-    var SPEED_WARN = 120;          // km/h threshold
+    // km/h threshold for wallboard warning badge (function-form: reads fresh each call).
+    // Admin can override via DB setting SPEED_WARN_KMH (Admin → การแจ้งเตือน → Speed Alert).
+    // Fallback 120 explicit if settings helper missing or DB row absent.
+    // Function (not var) so we don't capture stale value at parse time before settings.js loads.
+    function SPEED_WARN() {
+      try {
+        var v = (typeof settingsGet === 'function') ? settingsGet('SPEED_WARN_KMH') : null;
+        var n = v != null && v !== '' ? parseInt(v, 10) : NaN;
+        return (n >= 60 && n <= 220) ? n : 120;
+      } catch(e) { return 120; }
+    }
 
     // Wallboard mode override: localStorage 'pt_wallboard_mode' = 'on' / 'off' / null(=auto)
     // - 'on'  → force show pane (regardless of viewport, except < 1100px)
@@ -1930,7 +1940,7 @@
         var hist = _mwgpSpeedHistory[key];
         if (!hist || hist.length < 2) return '<div style="font-size:10.5px;color:#94a3b8;text-align:center;padding:8px 0;">ยังไม่มีประวัติ</div>';
         var W = 220, H = 32, PAD = 2;
-        var maxV = Math.max(SPEED_WARN, Math.max.apply(null, hist.map(function(p){ return p.speed; })));
+        var maxV = Math.max(SPEED_WARN(), Math.max.apply(null, hist.map(function(p){ return p.speed; })));
         if (maxV < 1) maxV = 1;
         var n = hist.length;
         var pts = hist.map(function(p, i){
@@ -2050,7 +2060,7 @@
             var speedNum = r.s.speed != null ? r.s.speed : 0;
             var ageStr = _mwgpFormatGpsAge(r.s);
             var ageStale = ageStr && /นาที|ชม/.test(ageStr);
-            var warnBadge = (r.kind !== 'offline' && speedNum > SPEED_WARN)
+            var warnBadge = (r.kind !== 'offline' && speedNum > SPEED_WARN())
                 ? '<div class="vh-warn">⚠ ' + Math.round(speedNum) + ' KM/H</div>' : '';
             var speedHtml;
             if (r.kind === 'offline') {
