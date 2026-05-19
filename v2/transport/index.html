@@ -5433,7 +5433,7 @@
        if (container) {
            container.appendChild(div);
            updateIVSummaryCount();
-           if (!data) { formDirty = true; saveData(false, true); }
+           if (!data) { formDirty = true; saveData(false, true); logActivity('ADD_IV', document.getElementById('caseId').value, context); }
        }
     }
 
@@ -5701,7 +5701,7 @@
                     '<button type="button" class="btn btn-primary px-3 fw-medium" onclick="lockAndSaveRow(this)">' +
                         '<i class="bi bi-check-lg"></i>' +
                     '</button>') +
-                    '<button type="button" class="btn btn-light text-danger border" onclick="this.closest(\'.vital-log-entry\').remove(); formDirty=true; saveData(false,true);">' +
+                    '<button type="button" class="btn btn-light text-danger border" onclick="this.closest(\'.vital-log-entry\').remove(); formDirty=true; logActivity(\'DELETE_VITALS\', document.getElementById(\'caseId\').value, \'ลบ vitals row\'); saveData(false,true);">' +
                         '<i class="bi bi-trash"></i>' +
                     '</button>' +
                 '</div>' +
@@ -5713,7 +5713,7 @@
           attachVitalValidation(entry);
       }
 
-      if(isNew) { formDirty = true; saveData(false, true); }
+      if(isNew) { formDirty = true; saveData(false, true); logActivity('ADD_VITALS', document.getElementById('caseId').value, timeStr); }
     }
 
     // --- ARREST LOG (inside Vitals Log container) ---
@@ -5827,7 +5827,7 @@
                     '<button type="button" class="btn btn-danger px-3 fw-medium" onclick="lockAndSaveRow(this)">' +
                         '<i class="bi bi-check-lg"></i>' +
                     '</button>') +
-                    '<button type="button" class="btn btn-light text-danger border" onclick="this.closest(\'.arrest-log-entry\').remove(); formDirty=true; saveData(false,true);">' +
+                    '<button type="button" class="btn btn-light text-danger border" onclick="this.closest(\'.arrest-log-entry\').remove(); formDirty=true; logActivity(\'DELETE_VITALS\', document.getElementById(\'caseId\').value, \'ลบ arrest row\'); saveData(false,true);">' +
                         '<i class="bi bi-trash"></i>' +
                     '</button>' +
                 '</div>' +
@@ -5835,7 +5835,7 @@
         '</div>';
 
       container.appendChild(entry);
-      if (isNew) { formDirty = true; saveData(false, true); }
+      if (isNew) { formDirty = true; saveData(false, true); logActivity('ARREST_LOG', document.getElementById('caseId').value, timeStr); }
     }
 
     function stampArrestLogNow(btn, selector) {
@@ -8542,6 +8542,7 @@
         if (caseId) {
           Swal.fire({ title: 'กำลังบันทึก Consent...', didOpen: function() { Swal.showLoading(); }, allowOutsideClick: false });
           var ver = await saveConsentToDB(caseId, consentData);
+          if (ver) logActivity('SIGN_CONSENT', caseId, 'version ' + ver);
 
           // ── Sync consent idCard back into the case (both modes). ──
           // Critical: wrong/missing patient ID on the case has legal/medical consequences.
