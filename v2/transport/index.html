@@ -3229,6 +3229,7 @@
     var isPopulating = false;
     var formDirty = false;
     var loadedCaseStatus = '';
+    var _loadedRowVersion = 1;     // OCC token — captured on case open and after each successful save
     var editModal;
     // Realtime form-merge state
     var _loadedRawSnapshot = {};      // last-loaded form values (per name) — used to detect user-touched fields
@@ -3447,6 +3448,8 @@
 
             // Re-snapshot to absorb remote-merged values (so subsequent merges work correctly)
             _snapshotFormState();
+            // Update OCC baseline from the remote row so the next save uses the current version.
+            _loadedRowVersion = row.row_version || _loadedRowVersion;
 
             if (updatedCount > 0 || keptCount > 0) {
                 // Dedup: max 1 toast per 4s. If a toast was just shown, skip
@@ -4640,10 +4643,51 @@
               payload.opened_by = getUserName() || 'Unknown';
               payload.opened_at = new Date().toISOString();
           }
-          var resp = await _supabase.from('cases').upsert(payload, { onConflict: 'case_id' });
+          var resp;
+          if (isNewCase) {
+              // INSERT — column default sets row_version = 1; trigger is a no-op on INSERT.
+              resp = await _supabase.from('cases').insert(payload).select('row_version').maybeSingle();
+          } else {
+              // UPDATE with optimistic version predicate — prevents last-write-wins (Race C + E).
+              resp = await _supabase.from('cases')
+                  .update(payload)
+                  .eq('case_id', caseId)
+                  .eq('row_version', _loadedRowVersion)
+                  .select('row_version').maybeSingle();
+          }
 
           isSaving = false;
           if (resp.error) throw resp.error;
+
+          if (!isNewCase && !resp.data) {
+              // VERSION CONFLICT — another device saved this case after we loaded it.
+              // Do NOT auto-retry (would clobber remote changes). Pull latest + ask user to re-save.
+              if (!silent) {
+                  Swal.fire({
+                      icon: 'warning',
+                      title: 'ข้อมูลถูกอัปเดตจากเครื่องอื่น',
+                      html: 'กำลัง refresh ข้อมูลล่าสุด<br>กรุณาตรวจสอบและบันทึกอีกครั้ง',
+                      timer: 4000,
+                      timerProgressBar: true,
+                      showConfirmButton: false
+                  });
+              }
+              // Replay pending merge then schedule a fresh merge to pull remote state.
+              if (_pendingMergeCaseId) {
+                  var _conflictPendingId = _pendingMergeCaseId;
+                  _pendingMergeCaseId = null;
+                  setTimeout(function(){ _scheduleRemoteCaseMerge(_conflictPendingId); }, 50);
+              } else {
+                  setTimeout(function(){ _scheduleRemoteCaseMerge(caseId); }, 100);
+              }
+              if (callback) callback(new Error('VERSION_CONFLICT'));
+              return;
+          }
+
+          // Success — advance local OCC token to server-confirmed version.
+          if (resp.data && resp.data.row_version != null) {
+              _loadedRowVersion = resp.data.row_version;
+          }
 
           if (isCompleted) {
               f.status.value = "Completed";
@@ -4717,6 +4761,7 @@
             };
 
             loadedCaseStatus = data.status || "Active";
+            _loadedRowVersion = row.row_version || 1;   // OCC baseline
 
             resetFormState();
 
