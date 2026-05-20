@@ -3778,92 +3778,152 @@
             } catch(e) {}
         }
 
-        // Logo
+        // Logo — from navbar or admin settings
         var logoSrc = '';
         var navLogo = document.getElementById('navbar-logo');
         if (navLogo && navLogo.src && navLogo.style.display !== 'none') logoSrc = navLogo.src;
+        if (!logoSrc && typeof APP_LOGO_BASE64 !== 'undefined' && APP_LOGO_BASE64) logoSrc = APP_LOGO_BASE64;
+        if (!logoSrc && typeof APP_LOGO_URL !== 'undefined' && APP_LOGO_URL) logoSrc = APP_LOGO_URL;
 
-        // Build HTML document
-        var h = '<!DOCTYPE html><html><head><meta charset="UTF-8"><title>PT Record - ' + esc(data.id) + '</title><style>' + monitorPrintCSS() + '</style></head><body>';
-        h += '<div class="page">';
+        // --- Arrest pre object ---
+        var arrestPre = {
+            active:   gc('arrest_pre_arrest'),
+            time:     g('arrest_pre_time'),
+            cprTime:  g('arrest_pre_cpr_time'),
+            rhythm:   g('arrest_pre_rhythm'),
+            outcome:  g('arrest_pre_outcome'),
+            roscTime: g('arrest_pre_rosc_time'),
+            deadTime: g('arrest_pre_dead_time'),
+            note:     g('arrest_pre_note')
+        };
 
-        // Header
-        h += '<table class="header-tbl"><tr>';
-        if (logoSrc) h += '<td style="width:60px;vertical-align:middle;padding-left:0;"><img src="' + logoSrc + '" style="height:50px;"></td>';
-        h += '<td style="vertical-align:middle;"><div class="org-name">' + esc(typeof PRINT_HEADER !== 'undefined' ? PRINT_HEADER : '') + '</div>';
-        h += '<div class="doc-title">PATIENT TRANSPORT RECORD (แบบบันทึกการนำส่งผู้ป่วย)</div></td>';
-        h += '<td style="text-align:right;vertical-align:top;white-space:nowrap;padding-right:0;width:1%;">';
-        h += '<div class="doc-no">Doc No: <b>' + esc(data.id) + '</b></div>';
-        h += '<div class="doc-no">Status: <b>' + esc(data.status || '-') + '</b></div>';
-        h += '<div class="doc-no">NR Status: <b>' + esc(nrStatus) + '</b></div>';
-        h += '<div style="margin-top:4px;"><span class="triage-tag" style="background:' + triage.c + ';">' + esc(triage.l) + '</span></div>';
-        h += '</td></tr></table><div class="hdr-line"></div>';
+        var chkBox = function(v) { return v ? '\u2611' : '\u2610'; };
 
-        // Section 1: Op Info + Timeline
-        h += '<div class="sec-title sec-1">1. Operation Info</div>';
-        h += '<table class="grid"><tr><td class="lbl" style="width:80px;">Type</td><td style="width:120px;">' + esc(transportType) + '</td>';
-        h += '<td class="lbl" style="width:50px;">Level</td><td style="width:80px;">' + esc(opLevel) + '</td>';
-        h += '<td class="lbl" style="width:40px;">Unit</td><td>' + esc(opUnit) + '</td></tr></table>';
-        h += '<table class="grid">' + tlHtml + '</table>';
-        h += '<table class="grid"><tr><td class="lbl" style="width:80px;">Staff</td><td>' + esc(staffList) + '</td></tr></table>';
+        // --- Assemble canonical d object ---
+        var d = {
+            // Meta
+            id:           data.id || 'NEW',
+            date:         new Date().toLocaleString('th-TH'),
+            logoSrc:      logoSrc,
+            printHeader:  (typeof PRINT_HEADER !== 'undefined' ? PRINT_HEADER : ''),
+            nrStatus:     nrStatus,
+            triageLevel:  triageLevel,
+            consentSigned: false,
+            loggedUser:   '-',
+            publicShare:  false,
+            // Op
+            transportType: transportType,
+            opLevel:       opLevel,
+            opUnit:        opUnit,
+            sceneType:     g('scene_pt_type'),
+            sceneMoi:      g('scene_detail'),
+            staffList:     staffList,
+            // Timeline EMS
+            tlDispatch:   isEms ? (g('tl_dispatch_dt')       ? g('tl_dispatch_dt').substring(11,16)       : '') : '',
+            tlArrScene:   isEms ? (g('tl_arrive_scene_dt')   ? g('tl_arrive_scene_dt').substring(11,16)   : '') : '',
+            tlDeptScene:  isEms ? (g('tl_depart_scene_dt')   ? g('tl_depart_scene_dt').substring(11,16)   : '') : '',
+            tlArrHosp:    isEms ? (g('tl_arrive_hospital_dt')? g('tl_arrive_hospital_dt').substring(11,16): '') : '',
+            // Timeline Refer
+            tlDeptOrigin: !isEms ? (g('tl_depart_origin_dt') ? g('tl_depart_origin_dt').substring(11,16) : '') : '',
+            tlArrDest:    !isEms ? (g('tl_arrive_dest_dt')   ? g('tl_arrive_dest_dt').substring(11,16)   : '') : '',
+            // Patient
+            ptName:    ptName,
+            ptAge:     ptAge,
+            ptGender:  ptGender,
+            idCard:    g('pt_idcard'),
+            idType:    idType,
+            idDisplay: idDisplay,
+            origin:    origin,
+            dest:      dest,
+            cc:        cc,
+            dx:        dx,
+            allergies: allergies,
+            underlying: underlying,
+            meds:      meds,
+            // Initial vitals
+            initTime:  initTime,
+            initBP:    initBP,
+            initPR:    initPR,
+            initRR:    initRR,
+            initTemp:  initTemp,
+            initSpO2:  initSpO2,
+            initDTX:   initDTX,
+            pain:      pain,
+            // Physical assessment
+            airway:      airway,
+            breathing:   breathing,
+            circStatus:  circStatus,
+            ekg:         ekg,
+            centralLine: centralLine,
+            gcs:         gcs,
+            pupilSize:   pupilSize,
+            pupilReact:  pupilReact,
+            motorRA:     g('motor_ra'),
+            motorLA:     g('motor_la'),
+            motorRL:     g('motor_rl'),
+            motorLL:     g('motor_ll'),
+            expRA:       g('exp_ra'),
+            expLA:       g('exp_la'),
+            expRL:       g('exp_rl'),
+            expLL:       g('exp_ll'),
+            expOther:    g('exp_other'),
+            tubes:       tubesStr,
+            // Arrest
+            arrestPre:   arrestPre,
+            // Fluids & equipment
+            equipment:   equipment,
+            // Nurse note
+            nurseNote:   nurseNote,
+            sigRecorder: ''
+        };
 
-        // Section 2: Patient Info
-        h += '<div class="sec-title sec-2">2. Patient Information</div>';
-        h += '<table class="grid"><tr><td class="lbl" style="width:80px;">Name</td><td style="width:200px;font-weight:600;">' + esc(ptName) + '</td>';
-        h += '<td class="lbl" style="width:40px;">Age</td><td style="width:60px;">' + esc(ptAge) + '</td>';
-        h += '<td class="lbl" style="width:50px;">Gender</td><td style="width:60px;">' + esc(ptGender) + '</td>';
-        h += '<td class="lbl" style="width:25px;">' + (idType === 'Passport' ? 'PP' : 'ID') + '</td><td>' + esc(idDisplay) + '</td></tr></table>';
-        h += '<table class="grid"><tr><td class="lbl" style="width:80px;">Origin</td><td style="width:220px;">' + esc(origin) + '</td>';
-        h += '<td class="lbl" style="width:80px;">Destination</td><td>' + esc(dest) + '</td></tr></table>';
-        h += '<table class="grid">';
-        h += '<tr><td class="lbl" style="width:80px;">C/C</td><td colspan="3">' + esc(cc) + '</td></tr>';
-        h += '<tr><td class="lbl">Dx</td><td colspan="3">' + esc(dx) + '</td></tr>';
-        h += '<tr><td class="lbl lbl-red">Allergy</td><td colspan="3" class="red-text">' + esc(allergies) + '</td></tr>';
-        h += '<tr><td class="lbl">U/D</td><td colspan="3">' + esc(underlying) + '</td></tr>';
-        h += '<tr><td class="lbl">Meds</td><td colspan="3">' + esc(meds) + '</td></tr></table>';
+        // --- Build IV rows ---
+        var ivRowsHtml = '';
+        if (data.ivJson) {
+            try {
+                JSON.parse(data.ivJson).forEach(function(iv) {
+                    ivRowsHtml += '<tr>' +
+                        '<td class="mono">' + esc(iv.time || '') + '</td>' +
+                        '<td>' + esc(iv.name || '') + '</td>' +
+                        '<td>' + esc(iv.context || '') + '</td>' +
+                        '<td>' + esc(iv.route || '') + '</td>' +
+                        '<td>' + esc(iv.rate || '') + '</td>' +
+                        '<td>' + chkBox(iv.sedate) + '</td></tr>';
+                });
+            } catch(e) {}
+        }
+        d.ivRowsHtml = ivRowsHtml;
 
-        // Section 3: Initial Vitals
-        h += '<div class="sec-title sec-3">3. Initial Vitals' + (initTime ? ' <span class="time-note">@ ' + esc(initTime) + '</span>' : '') + '</div>';
-        h += '<table class="grid data-tbl"><thead><tr><th>BP</th><th>PR</th><th>RR</th><th>Temp</th><th>SpO2</th><th>DTX</th><th>Pain</th></tr></thead>';
-        h += '<tbody><tr class="center"><td>' + esc(initBP) + '</td><td>' + esc(initPR) + '</td><td>' + esc(initRR) + '</td>';
-        h += '<td>' + esc(initTemp) + '</td><td>' + esc(initSpO2) + '</td><td>' + esc(initDTX) + '</td><td>' + esc(pain) + '</td></tr></tbody></table>';
+        // --- Build vitals log rows ---
+        var vitalsRowsHtml = '';
+        if (data.vitalsJson) {
+            try {
+                JSON.parse(data.vitalsJson).forEach(function(v) {
+                    if (v.type === 'arrest') {
+                        var outcomeText = v.arrest_outcome || '-';
+                        if (v.arrest_outcome === 'ROSC') outcomeText = v.arrest_rosc_time ? 'ROSC @ ' + v.arrest_rosc_time : 'ROSC';
+                        else if (v.arrest_outcome === 'Terminate CPR') outcomeText = v.arrest_dead_time ? 'Terminate CPR @ ' + v.arrest_dead_time : 'Terminate CPR';
+                        var summary = 'Rhythm: ' + (v.arrest_rhythm || '-') + ' | CPR: ' + (v.arrest_cpr_time || '-') + ' | ' + outcomeText + (v.arrest_note ? ' | ' + v.arrest_note : '');
+                        vitalsRowsHtml += '<tr class="arrest-row"><td class="mono" style="font-weight:700;">' + esc(v.arrest_time || '') + '</td>' +
+                            '<td colspan="8"><span style="background:#c1281d;color:#fff;padding:1px 6px;border-radius:3px;font-weight:700;margin-right:4px;font-size:8px;">ARREST</span>' + esc(summary) + '</td></tr>';
+                    } else {
+                        vitalsRowsHtml += '<tr>' +
+                            '<td class="mono">' + esc(v.time || '') + '</td>' +
+                            '<td class="mono">' + esc(v.bp || '') + '</td>' +
+                            '<td class="mono">' + esc(v.pr || '') + '</td>' +
+                            '<td class="mono">' + esc(v.rr || '') + '</td>' +
+                            '<td class="mono">' + esc(v.temp || '') + '</td>' +
+                            '<td class="mono">' + esc(v.spo2 || '') + '</td>' +
+                            '<td class="mono">' + esc('E' + (v.gcs_e || '-') + 'V' + (v.gcs_v || '-') + 'M' + (v.gcs_m || '-')) + '</td>' +
+                            '<td>' + esc(v.pain || '') + '</td>' +
+                            '<td>' + esc(v.note || '') + '</td></tr>';
+                    }
+                });
+            } catch(e) {}
+        }
+        d.vitalsRowsHtml = vitalsRowsHtml;
 
-        // Section 4: Physical Assessment
-        h += '<div class="sec-title sec-4">4. Physical Assessment</div>';
-        h += '<table class="grid">';
-        h += '<tr><td class="lbl" style="width:80px;">Airway</td><td style="width:180px;">' + esc(airway) + '</td>';
-        h += '<td class="lbl" style="width:70px;">Breathing</td><td>' + esc(breathing) + '</td></tr>';
-        h += '<tr><td class="lbl">Circ.</td><td>' + esc(circStatus) + (ekg ? ' | EKG: ' + esc(ekg) : '') + '</td>';
-        h += '<td class="lbl">C-Line</td><td>' + esc(centralLine) + '</td></tr>';
-        h += '<tr><td class="lbl">GCS</td><td>' + esc(gcs) + '</td>';
-        h += '<td class="lbl">Pupils</td><td>' + esc(pupilSize) + ' (' + esc(pupilReact) + ')</td></tr></table>';
-        h += '<table class="grid"><tr><td class="lbl" style="width:80px;">Tubes</td><td>' + esc(tubesStr) + '</td></tr></table>';
-        h += arrestPreHtml;
-
-        // Section 5: IV / Meds
-        h += '<div class="sec-title sec-5">5. Fluids & Medications</div>';
-        h += '<table class="grid data-tbl"><thead><tr><th>Time</th><th>Item</th><th>Context</th><th>Route</th><th>Rate</th><th>Sedate</th></tr></thead>';
-        h += '<tbody>' + (ivHtml || '<tr><td colspan="6" class="empty-row">- No IV/Meds -</td></tr>') + '</tbody></table>';
-        h += '<table class="grid"><tr><td class="lbl" style="width:80px;">Equipment</td><td>' + esc(equipment) + '</td></tr></table>';
-
-        // Section 6: Vitals Log
-        h += '<div class="sec-title sec-6">6. Vitals Log</div>';
-        h += '<table class="grid data-tbl"><thead><tr><th>Time</th><th>BP</th><th>PR</th><th>RR</th><th>Temp</th><th>SpO2</th><th>GCS</th><th>Pain</th><th>Note</th></tr></thead>';
-        h += '<tbody>' + (vitalsHtml || '<tr><td colspan="9" class="empty-row">- No vitals recorded -</td></tr>') + '</tbody></table>';
-
-        // Section 7: Nurse Note
-        h += '<div class="sec-title sec-7">7. Nurse Note / บันทึกเพิ่มเติม</div>';
-        h += '<div class="note-box">' + esc(nurseNote) + '</div>';
-
-        // Signatures
-        h += '<div class="sig-section"><table class="sig-tbl"><tr>';
-        h += '<td class="sig-cell"><div class="sig-line"></div><div class="sig-label">ผู้บันทึก (Recorder)</div></td>';
-        h += '<td class="sig-cell"><div class="sig-line"></div><div class="sig-label">ผู้ส่ง (Sender)</div></td>';
-        h += '<td class="sig-cell"><div class="sig-line"></div><div class="sig-label">ผู้รับ (Receiver)</div></td>';
-        h += '</tr></table></div>';
-
-        h += '</div></body></html>';
-        return h;
+        return window.buildPcrHtml(d);
     }
 
     // =============================================
