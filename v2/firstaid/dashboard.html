@@ -714,6 +714,13 @@
        1920px * 0.565 ≈ 1085px ≈ 287mm = A4L width minus margin
        1080px * 0.565 ≈ 610px ≈ 162mm — well under 200mm A4L height */
     .stage-wrap {
+      /* JS sets inline `position:absolute; left:0; top:0` at runtime (auto-scale fit).
+         In print, .stage-host becomes position:static so an absolute #stage anchors to
+         the page AND removes itself from flow → .stage-host collapses to height 0 →
+         Chrome prints a blank page. Force static so #stage flows in-document and
+         contributes height. `!important` author rule beats the inline normal style.
+         left/top become inert once position is static. */
+      position: static !important;
       transform: none !important;
       zoom: 0.565;
       width: 1920px !important; height: 1080px !important;

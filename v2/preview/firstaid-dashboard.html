@@ -683,6 +683,9 @@
     html, body { overflow: visible !important; height: auto !important; background: #fff !important; }
     .stage-host { position: static !important; }
     .stage-wrap {
+      /* JS sets inline position:absolute at runtime — force static so #stage flows
+         in-document (else .stage-host collapses to height 0 → blank print page). */
+      position: static !important;
       transform: none !important; width: 100% !important; height: auto !important;
       box-shadow: none !important;
     }
