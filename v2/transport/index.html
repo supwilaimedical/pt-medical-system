@@ -6806,156 +6806,17 @@
             logoSrc = logoBase64El.src;
         }
 
-        var triageMap = {
-            'Resuscitation': {c:'#dc3545', l:'RED - Resuscitation'},
-            'Emergency': {c:'#d63384', l:'PINK - Emergency'},
-            'Urgent': {c:'#e6a817', l:'YELLOW - Urgent'},
-            'Non-Urgent': {c:'#198754', l:'GREEN - Non-Urgent'}
-        };
-        var triage = triageMap[d.triageLevel] || triageMap['Non-Urgent'];
+        // --- Build shared d fields for PCR builder ---
+        d.logoSrc        = logoSrc;
+        d.printHeader    = PRINT_HEADER;
+        d.consentSigned  = !!consentSigned;
+        d.loggedUser     = loggedUser;
+        d.sigRecorder    = loggedUser;
+        d.publicShare    = document.body.classList.contains('public-share-mode');
+        d.ivRowsHtml     = ivHtml;
+        d.vitalsRowsHtml = vitalsHtml;
 
-        var h = '';
-        h += '<!DOCTYPE html><html><head><meta charset="UTF-8">';
-        h += '<title>PT Record - ' + esc(d.id) + '</title>';
-        h += '<style>';
-        h += buildPrintCSS();
-        h += '</style></head><body>';
-
-        h += '<div class="no-print ctrl-bar">';
-        h += '<button onclick="window.print()" class="btn-p">&#128424; สั่งพิมพ์ / Save PDF</button>';
-        // Public share mode: no back button (tab close is the only exit)
-        if (!document.body.classList.contains('public-share-mode')) {
-          h += '<button onclick="transport_closePrintView()" class="btn-c">&#10060; กลับ</button>';
-        }
-        h += '</div>';
-
-        h += '<div class="page">';
-
-        h += '<table class="header-tbl"><tr>';
-        if (logoSrc) {
-            h += '<td style="width:60px;vertical-align:middle;padding-left:0;"><img src="' + logoSrc + '" style="height:50px;"></td>';
-        }
-        h += '<td style="vertical-align:middle;">';
-        h += '<div class="org-name">' + esc(PRINT_HEADER) + '</div>';
-        h += '<div class="doc-title">PATIENT TRANSPORT RECORD (\u0e41\u0e1a\u0e1a\u0e1a\u0e31\u0e19\u0e17\u0e36\u0e01\u0e01\u0e32\u0e23\u0e19\u0e33\u0e2a\u0e48\u0e07\u0e1c\u0e39\u0e49\u0e1b\u0e48\u0e27\u0e22)</div>';
-        h += '</td>';
-        h += '<td style="text-align:right;vertical-align:top;white-space:nowrap;padding-right:0;width:1%;">';
-        h += '<div class="doc-no">Doc No: <b>' + esc(d.id) + '</b></div>';
-        h += '<div class="doc-no">NR Status: <b>' + esc(d.nrStatus || '-') + '</b></div>';
-        h += '<div style="margin-top:4px;">';
-        h += '<span class="triage-tag" style="background:' + triage.c + ';">' + esc(triage.l) + '</span> ';
-        if (consentSigned) {
-            h += '<span style="display:inline-block;background:#dcfce7;color:#15803d;border:1px solid #86efac;border-radius:4px;padding:1px 6px;font-size:8pt;">&#9745; Consent</span>';
-        } else {
-            h += '<span style="display:inline-block;background:#fef9c3;color:#92400e;border:1px solid #fde68a;border-radius:4px;padding:1px 6px;font-size:8pt;">&#9744; Consent</span>';
-        }
-        h += '</div>';
-        h += '</td>';
-        h += '</tr></table>';
-        h += '<div class="hdr-line"></div>';
-
-        h += '<div class="sec-title sec-1">1. Operation Info</div>';
-        h += '<table class="grid"><tr>';
-        h += '<td class="lbl" style="width:80px;">Type</td><td style="width:120px;">' + esc(d.transportType) + '</td>';
-        h += '<td class="lbl" style="width:50px;">Level</td><td style="width:80px;">' + esc(d.opLevel) + '</td>';
-        h += '<td class="lbl" style="width:40px;">Unit</td><td>' + esc(d.opUnit) + '</td>';
-        h += '</tr></table>';
-
-        var clk = '&#x1F551; ';
-        h += '<table class="grid"><tr>';
-        if (isEms) {
-            h += '<td class="lbl tl-lbl">' + clk + '\u0e23\u0e31\u0e1a\u0e41\u0e08\u0e49\u0e07</td><td class="tl-val">' + esc(d.tlDispatch || '-') + '</td>';
-            h += '<td class="lbl tl-lbl">' + clk + '\u0e16\u0e36\u0e07\u0e08\u0e38\u0e14\u0e23\u0e31\u0e1a</td><td class="tl-val">' + esc(d.tlArrScene || '-') + '</td>';
-            h += '<td class="lbl tl-lbl">' + clk + '\u0e2d\u0e2d\u0e01\u0e08\u0e32\u0e01\u0e08\u0e38\u0e14\u0e23\u0e31\u0e1a</td><td class="tl-val">' + esc(d.tlDeptScene || '-') + '</td>';
-            h += '<td class="lbl tl-lbl">' + clk + '\u0e16\u0e36\u0e07 \u0e23\u0e1e.</td><td class="tl-val">' + esc(d.tlArrHosp || '-') + '</td>';
-        } else {
-            h += '<td class="lbl tl-lbl">' + clk + '\u0e2d\u0e2d\u0e01\u0e15\u0e49\u0e19\u0e17\u0e32\u0e07</td><td class="tl-val">' + esc(d.tlDeptOrigin || '-') + '</td>';
-            h += '<td class="lbl tl-lbl">' + clk + '\u0e16\u0e36\u0e07\u0e1b\u0e25\u0e32\u0e22\u0e17\u0e32\u0e07</td><td class="tl-val">' + esc(d.tlArrDest || '-') + '</td>';
-        }
-        h += '</tr></table>';
-
-        if (isEms && d.sceneType) {
-            h += '<table class="grid"><tr>';
-            h += '<td class="lbl" style="width:80px;">Scene</td><td style="width:120px;">' + chk(d.sceneType === 'Trauma') + ' Trauma &nbsp; ' + chk(d.sceneType === 'Non-Trauma') + ' Non-Trauma</td>';
-            h += '<td class="lbl" style="width:60px;">' + (d.sceneType === 'Trauma' ? 'MOI' : 'NOI') + '</td><td>' + esc(d.sceneMoi || '-') + '</td>';
-            h += '</tr></table>';
-        }
-
-        h += '<table class="grid"><tr><td class="lbl" style="width:80px;">Staff</td><td>' + esc(d.staffList) + '</td></tr></table>';
-
-        h += '<div class="sec-title sec-2">2. Patient Information</div>';
-        h += '<table class="grid">';
-        h += '<tr><td class="lbl" style="width:80px;">Name</td><td style="width:200px;font-weight:600;">' + esc(d.ptName) + '</td>';
-        h += '<td class="lbl" style="width:40px;">Age</td><td style="width:60px;">' + esc(d.ptAge) + '</td>';
-        h += '<td class="lbl" style="width:50px;">Gender</td><td style="width:60px;">' + esc(d.ptGender) + '</td>';
-        h += '<td class="lbl" style="width:25px;">' + (d.idType === 'passport' ? 'PP' : 'ID') + '</td><td>' + esc(d.idType === 'passport' ? (d.passport || '-') : (d.idCard || '-')) + '</td>';
-        h += '</tr></table>';
-        h += '<table class="grid">';
-        h += '<tr><td class="lbl" style="width:80px;">Origin</td><td style="width:220px;">' + esc(d.origin) + '</td>';
-        h += '<td class="lbl" style="width:80px;">Destination</td><td>' + esc(d.dest) + '</td></tr>';
-        h += '</table>';
-        h += '<table class="grid">';
-        h += '<tr><td class="lbl" style="width:80px;">C/C</td><td colspan="3">' + esc(d.cc || '-') + '</td></tr>';
-        h += '<tr><td class="lbl">Dx</td><td colspan="3">' + esc(d.dx || '-') + '</td></tr>';
-        h += '<tr><td class="lbl lbl-red">Allergy</td><td colspan="3" class="red-text">' + esc(d.allergies || 'N/A') + '</td></tr>';
-        h += '<tr><td class="lbl">U/D</td><td colspan="3">' + esc(d.underlying) + '</td></tr>';
-        h += '<tr><td class="lbl">Meds</td><td colspan="3">' + esc(d.meds || '-') + '</td></tr>';
-        h += '</table>';
-
-        h += '<div class="sec-title sec-3">3. Initial Vitals' + (d.initTime ? ' <span class="time-note">@ ' + esc(d.initTime) + '</span>' : '') + '</div>';
-        h += '<table class="grid data-tbl"><thead><tr><th>BP</th><th>PR</th><th>RR</th><th>Temp</th><th>SpO2</th><th>DTX</th><th>Pain</th></tr></thead>';
-        h += '<tbody><tr class="center">';
-        h += '<td>' + esc(d.initBP || '-') + '</td><td>' + esc(d.initPR || '-') + '</td><td>' + esc(d.initRR || '-') + '</td>';
-        h += '<td>' + esc(d.initTemp || '-') + '</td><td>' + esc(d.initSpO2 || '-') + '</td><td>' + esc(d.initDTX || '-') + '</td><td>' + esc(d.pain || '-') + '</td>';
-        h += '</tr></tbody></table>';
-
-        h += '<div class="sec-title sec-4">4. Physical Assessment</div>';
-        h += '<table class="grid">';
-        h += '<tr><td class="lbl" style="width:80px;">Airway</td><td style="width:180px;">' + esc(d.airway) + '</td>';
-        h += '<td class="lbl" style="width:70px;">Breathing</td><td>' + esc(d.breathing) + '</td></tr>';
-        h += '<tr><td class="lbl">Circ.</td><td>' + esc(d.circStatus) + (d.ekg ? ' | EKG: ' + esc(d.ekg) : '') + '</td>';
-        h += '<td class="lbl">C-Line</td><td>' + esc(d.centralLine) + '</td></tr>';
-        h += '<tr><td class="lbl">GCS</td><td>' + esc(d.gcs) + '</td>';
-        h += '<td class="lbl">Pupils</td><td>' + esc(d.pupilSize || '-') + ' (' + esc(d.pupilReact) + ')</td></tr>';
-        h += '<tr><td class="lbl">Motor</td><td>RA:' + esc(d.motorRA) + ' LA:' + esc(d.motorLA) + ' RL:' + esc(d.motorRL) + ' LL:' + esc(d.motorLL) + '</td>';
-        h += '<td class="lbl">Pain</td><td>' + esc(d.pain || '0') + '/10</td></tr>';
-        h += '</table>';
-        h += '<table class="grid">';
-        h += '<tr><td class="lbl" style="width:80px;">Exposure</td><td>RA:' + esc(d.expRA || '-') + ' | LA:' + esc(d.expLA || '-') + ' | RL:' + esc(d.expRL || '-') + ' | LL:' + esc(d.expLL || '-') + (d.expOther ? ' | ' + esc(d.expOther) : '') + '</td></tr>';
-        h += '<tr><td class="lbl">Tubes</td><td>' + esc(d.tubes) + '</td></tr>';
-        h += '</table>';
-
-        if (d.arrestPre.active) {
-            h += buildArrestSection('Cardiac Arrest (\u0e01\u0e48\u0e2d\u0e19/\u0e23\u0e30\u0e2b\u0e27\u0e48\u0e32\u0e07\u0e23\u0e31\u0e1a\u0e1c\u0e39\u0e49\u0e1b\u0e48\u0e27\u0e22)', d.arrestPre);
-        }
-
-        h += '<div class="sec-title sec-5">5. Fluids & Medications</div>';
-        h += '<table class="grid data-tbl"><thead><tr><th>Time</th><th>Item</th><th>Context</th><th>Route</th><th>Rate</th><th>Sedate</th></tr></thead>';
-        h += '<tbody>' + (ivHtml || '<tr><td colspan="6" class="empty-row">- No IV/Meds -</td></tr>') + '</tbody></table>';
-
-        h += '<table class="grid"><tr><td class="lbl" style="width:80px;">Equipment</td><td>' + esc(d.equipment) + '</td></tr></table>';
-
-        h += '<div class="sec-title sec-6">6. Vitals Log</div>';
-        h += '<table class="grid data-tbl"><thead><tr><th>Time</th><th>BP</th><th>PR</th><th>RR</th><th>Temp</th><th>SpO2</th><th>GCS</th><th>Pain</th><th>Note</th></tr></thead>';
-        h += '<tbody>' + (vitalsHtml || '<tr><td colspan="9" class="empty-row">- No vitals recorded -</td></tr>') + '</tbody></table>';
-
-        h += '<div class="sec-title sec-7">7. Nurse Note / \u0e1a\u0e31\u0e19\u0e17\u0e36\u0e01\u0e40\u0e1e\u0e34\u0e48\u0e21\u0e40\u0e15\u0e34\u0e21</div>';
-        h += '<div class="note-box">' + esc(d.nurseNote || '-') + '</div>';
-
-        h += '<div class="sig-section">';
-        h += '<table class="sig-tbl"><tr>';
-        h += '<td class="sig-cell"><div class="sig-line"></div><div class="sig-label">\u0e1c\u0e39\u0e49\u0e1a\u0e31\u0e19\u0e17\u0e36\u0e01 (Recorder)</div></td>';
-        h += '<td class="sig-cell"><div class="sig-line"></div><div class="sig-label">\u0e1c\u0e39\u0e49\u0e2a\u0e48\u0e07 (Sender)</div></td>';
-        h += '<td class="sig-cell"><div class="sig-line"></div><div class="sig-label">\u0e1c\u0e39\u0e49\u0e23\u0e31\u0e1a (Receiver)</div></td>';
-        h += '</tr></table>';
-        h += '</div>';
-
-        h += '<div class="print-footer">';
-        h += '\u0e1e\u0e34\u0e21\u0e1e\u0e4c\u0e42\u0e14\u0e22: ' + esc(loggedUser) + ' &bull; ' + esc(d.date);
-        h += '</div>';
-
-        h += '</div>';
-        h += '</body></html>';
+        var h = window.buildPcrHtml(d);
 
         // Show report full-page (Safari iOS blocks window.open from async)
         var printArea = document.getElementById('print-content-area');
