@@ -1,0 +1,517 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8"/>
+<title>PCR Print — Redesign Preview (H Hybrid)</title>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet"/>
+<style>
+/* =====================================================================
+   Transport PCR — Redesign preview (H Hybrid = variant F card layout + C density)
+   Print-ready: white bg, thin borders (no shadow reliance), @page A4.
+   This is a STATIC mockup for review. Production port = vanilla string-builder
+   in v2/transport/index.html (shared with monitor).
+   Sample case: RED Resuscitation (EMS, 4-point timeline, ETT+VENT chips).
+   ===================================================================== */
+
+  :root {
+    --ink:        #1a1d2b;
+    --ink-soft:   #5a6072;
+    --ink-faint:  #9099aa;
+    --line:       #e2e5ec;
+    --line-soft:  #eef0f4;
+    --navy:       #112a44;
+    --alert:      #c1281d;
+    --alert-bg:   #fdf1ef;
+    --tone-blue:   #2654b8;
+    --tone-violet: #6b3ec9;
+    --tone-amber:  #c47a08;
+    --tone-teal:   #0a7a7a;
+    --tone-rose:   #c93770;
+    --tone-slate:  #475569;
+  }
+
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    font-family: 'Sarabun', system-ui, sans-serif;
+    font-size: 10.5px; line-height: 1.45; color: var(--ink);
+    background: #e9eaee;            /* viewport gray — page itself is white */
+  }
+  .mono { font-family: 'JetBrains Mono', ui-monospace, monospace; }
+
+  /* ---- Page sheet (A4) ---- */
+  .pcr-sheet {
+    width: 210mm; min-height: 297mm;
+    margin: 12px auto; padding: 11mm 12mm 10mm;
+    background: #fff;
+  }
+
+  /* ===== HEADER (navy bar) ===== */
+  .pcr-head {
+    display: flex; justify-content: space-between; align-items: center;
+    background: var(--navy); color: #fff;
+    border-radius: 7px; padding: 9px 14px; margin-bottom: 9px;
+  }
+  .pcr-head-left { display: flex; align-items: center; gap: 11px; }
+  .pcr-logo {
+    width: 34px; height: 34px; border-radius: 50%; background: #fff;
+    display: flex; align-items: center; justify-content: center; flex: 0 0 auto;
+  }
+  .pcr-logo svg { display: block; }
+  .pcr-org { font-size: 15px; font-weight: 700; letter-spacing: -0.01em; line-height: 1.15; }
+  .pcr-org-sub { font-size: 8.5px; color: #aeb9c9; letter-spacing: 0.03em; margin-top: 1px; }
+  .pcr-head-right { display: flex; align-items: stretch; gap: 7px; }
+  .pcr-meta {
+    background: rgba(255,255,255,0.08); border-radius: 5px;
+    padding: 4px 9px; display: flex; flex-direction: column; justify-content: center;
+    min-width: 64px;
+  }
+  .pcr-meta-lab { font-size: 7.5px; letter-spacing: 0.13em; color: #8b97a8; font-weight: 600; }
+  .pcr-meta-val { font-size: 10.5px; font-weight: 600; color: #fff; }
+  .pcr-triage {
+    border-radius: 5px; padding: 4px 11px; display: flex; flex-direction: column;
+    justify-content: center; text-align: center;
+  }
+  .pcr-triage-lab { font-size: 11px; font-weight: 800; letter-spacing: 0.05em; line-height: 1.1; }
+  .pcr-triage-sub { font-size: 7.5px; font-weight: 600; opacity: 0.85; }
+  .pcr-consent {
+    background: #1e7d44; color: #fff; border-radius: 5px;
+    padding: 4px 11px; font-size: 10px; font-weight: 700; letter-spacing: 0.04em;
+    display: flex; align-items: center;
+  }
+
+  /* ===== GRID ===== */
+  .pcr-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 7px; }
+  .pcr-full { grid-column: 1 / -1; }
+
+  /* ===== SECTION CARD ===== */
+  .sec {
+    background: #fff; border: 1px solid var(--line);
+    border-left: 3px solid var(--tone, var(--tone-blue));
+    border-radius: 0 5px 5px 0; padding: 6px 11px 8px;
+    break-inside: avoid;
+  }
+  .sec-blue   { --tone: var(--tone-blue); }
+  .sec-violet { --tone: var(--tone-violet); }
+  .sec-amber  { --tone: var(--tone-amber); }
+  .sec-teal   { --tone: var(--tone-teal); }
+  .sec-rose   { --tone: var(--tone-rose); }
+  .sec-slate  { --tone: var(--tone-slate); }
+  .sec-head {
+    display: flex; align-items: center; gap: 7px;
+    padding-bottom: 4px; margin-bottom: 5px; border-bottom: 1px solid var(--line-soft);
+  }
+  .sec-n {
+    background: var(--navy); color: #fff; font-size: 8.5px; font-weight: 700;
+    border-radius: 3px; padding: 1px 5px; letter-spacing: 0.04em;
+  }
+  .sec-title { font-size: 11.5px; font-weight: 700; color: var(--ink); }
+  .sec-meta {
+    margin-left: auto; font-size: 9px; color: var(--ink-faint);
+    font-family: 'JetBrains Mono', ui-monospace, monospace;
+  }
+
+  /* ===== OPERATION ===== */
+  .op-pills { display: flex; gap: 5px; margin-bottom: 7px; }
+  .pill {
+    font-size: 10px; font-weight: 600; border-radius: 99px; padding: 2px 11px;
+    border: 1px solid var(--line);
+  }
+  .pill-on { background: var(--navy); color: #fff; border-color: var(--navy); }
+
+  /* Timeline strip — 2 nodes (Refer) or 4 nodes (EMS) */
+  .tl-strip { display: grid; gap: 5px; margin-bottom: 7px; }
+  .tl-strip-4 { grid-template-columns: repeat(4, 1fr); }
+  .tl-strip-2 { grid-template-columns: repeat(2, 1fr); }
+  .tl-node {
+    background: #f4f6fa; border: 1px solid var(--line);
+    border-radius: 4px; padding: 4px 7px;
+  }
+  .tl-lab-th { font-size: 9px; font-weight: 600; color: var(--ink-soft); }
+  .tl-lab-en { font-size: 6.5px; font-weight: 700; letter-spacing: 0.1em; color: var(--ink-faint); }
+  .tl-time { font-size: 14px; font-weight: 700; color: var(--navy); margin-top: 1px; }
+  .tl-time.empty { color: var(--ink-faint); font-weight: 400; }
+
+  /* key-value rows */
+  .kv { display: grid; grid-template-columns: 64px 1fr; gap: 1px 9px; }
+  .kv dt { font-size: 8.5px; letter-spacing: 0.07em; text-transform: uppercase;
+           color: var(--ink-faint); font-weight: 600; padding-top: 2px; }
+  .kv dd { font-size: 10.5px; margin: 0; padding: 1px 0; }
+
+  /* ===== PATIENT ===== */
+  .pt-hero { display: flex; align-items: center; gap: 9px; flex-wrap: wrap;
+             padding-bottom: 4px; margin-bottom: 4px; border-bottom: 1px solid var(--line-soft); }
+  .pt-name { font-size: 14px; font-weight: 700; }
+  .pt-tag { font-size: 9.5px; padding: 1px 7px; background: #f3eefd; color: var(--tone-violet);
+            border-radius: 3px; font-weight: 600; white-space: nowrap; }
+
+  /* ===== CHIEF COMPLAINT ===== */
+  .cc-strip {
+    background: #fff; border: 1px solid var(--line); border-radius: 5px;
+    padding: 5px 11px; break-inside: avoid;
+  }
+  .cc-lab { font-size: 8.5px; letter-spacing: 0.12em; text-transform: uppercase;
+            color: var(--ink-faint); font-weight: 700; margin-right: 8px; }
+  .cc-val { font-size: 10.5px; line-height: 1.5; }
+
+  /* ===== CLINICAL ROW (Dx / U/D / Meds / Allergy) ===== */
+  .clin-row { display: grid; grid-template-columns: 1.5fr 1fr 1fr 1.1fr; gap: 7px; }
+  .clin-cell {
+    background: #fff; border: 1px solid var(--line); border-radius: 5px;
+    padding: 5px 10px; break-inside: avoid;
+  }
+  .clin-lab { font-size: 8px; letter-spacing: 0.12em; text-transform: uppercase;
+              color: var(--ink-faint); font-weight: 700; }
+  .clin-val { font-size: 10.5px; margin-top: 1px; }
+  .clin-cell.allergy { background: var(--alert-bg); border-color: #f0c9c4; }
+  .clin-cell.allergy .clin-lab { color: var(--alert); }
+  .clin-cell.allergy .clin-val { color: var(--alert); font-weight: 700; }
+
+  /* ===== INITIAL VITALS STRIP ===== */
+  .vitals-strip { display: grid; grid-template-columns: repeat(7, 1fr); }
+  .vital-cell { text-align: center; padding: 4px 5px; border-right: 1px solid var(--line-soft); }
+  .vital-cell:last-child { border-right: none; }
+  .vital-lab { font-size: 8.5px; letter-spacing: 0.08em; text-transform: uppercase;
+               color: var(--ink-faint); font-weight: 700; }
+  .vital-num { font-size: 17px; font-weight: 700; letter-spacing: -0.02em; line-height: 1.15;
+               color: var(--navy); }
+  .vital-num.empty { color: var(--ink-faint); font-weight: 400; }
+  .vital-unit { font-size: 8px; color: var(--ink-faint); }
+
+  /* ===== PHYSICAL ASSESSMENT ===== */
+  .pa-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 3px 14px; }
+  .pa-cell { border-bottom: 1px dashed var(--line-soft); padding: 2px 0; min-width: 0; }
+  .pa-full { grid-column: 1 / -1; }
+  .pa-lab { font-size: 8px; letter-spacing: 0.09em; text-transform: uppercase;
+            color: var(--ink-faint); font-weight: 700; }
+  .pa-val { font-size: 10.5px; }
+  .pa-val.alert { color: var(--alert); font-weight: 700; }
+  .pa-val.empty { color: var(--ink-faint); }
+  /* CHIP — inline after the value text (FIX: was overlapping the next row when
+     positioned as a stacked element; inline = no overlap possible). */
+  .chip {
+    display: inline-block; vertical-align: baseline;
+    font-size: 7.5px; font-weight: 700; letter-spacing: 0.06em;
+    border-radius: 3px; padding: 1px 5px; margin-left: 5px;
+    background: #eef3fd; color: var(--tone-blue); border: 1px solid #d6e2f8;
+  }
+  .chip-alert { background: var(--alert-bg); color: var(--alert); border-color: #f0c9c4; }
+
+  /* ===== TABLES (Fluids, Vitals Log) ===== */
+  .tbl { width: 100%; border-collapse: collapse; font-size: 9.5px; }
+  .tbl thead { display: table-header-group; }   /* repeat header if paginated */
+  .tbl thead th {
+    background: #f4f6fa; color: var(--ink-soft);
+    font-size: 8px; letter-spacing: 0.06em; text-transform: uppercase; font-weight: 700;
+    padding: 3px 6px; text-align: left; border-bottom: 1px solid var(--line);
+  }
+  .tbl tbody td { padding: 3px 6px; border-bottom: 1px solid var(--line-soft); }
+  .tbl tbody tr { break-inside: avoid; }
+  .tbl .num { text-align: right; font-family: 'JetBrains Mono', ui-monospace, monospace; }
+  .tbl .empty-cell { color: var(--ink-faint); }
+  .empty-box {
+    text-align: center; color: var(--ink-faint); font-style: italic;
+    padding: 8px; font-size: 10px;
+  }
+  .equip-line { margin-top: 5px; padding-top: 4px; border-top: 1px solid var(--line-soft);
+                display: flex; gap: 8px; }
+  .equip-lab { font-size: 8px; letter-spacing: 0.1em; text-transform: uppercase;
+               color: var(--ink-faint); font-weight: 700; padding-top: 1px; }
+  .equip-val { font-size: 10px; }
+
+  /* ===== NURSE NOTE ===== */
+  .note-box { font-size: 10.5px; line-height: 1.6; min-height: 30px; padding: 2px 0; }
+  .note-box.empty { color: var(--ink-faint); font-style: italic; }
+
+  /* ===== SIGNATURES ===== */
+  .sig-block { margin-top: 9px; break-inside: avoid; }
+  .sig-bar {
+    background: var(--navy); color: #fff; font-size: 9px; font-weight: 700;
+    letter-spacing: 0.14em; padding: 3px 11px; border-radius: 4px 4px 0 0;
+  }
+  .sig-row {
+    display: grid; grid-template-columns: repeat(3, 1fr); gap: 22px;
+    border: 1px solid var(--line); border-top: none;
+    border-radius: 0 0 4px 4px; padding: 10px 14px 8px;
+  }
+  .sig-cell { display: flex; flex-direction: column; }
+  .sig-name { font-size: 10px; min-height: 15px; }
+  .sig-line { border-bottom: 1px solid var(--ink); margin: 1px 0 3px; }
+  .sig-role { display: flex; justify-content: space-between; }
+  .sig-k { font-size: 8.5px; letter-spacing: 0.1em; text-transform: uppercase;
+           color: var(--ink-soft); font-weight: 700; }
+  .sig-dt { font-size: 8px; color: var(--ink-faint); }
+
+  /* ===== FOOTER ===== */
+  .pcr-foot {
+    display: flex; justify-content: space-between;
+    margin-top: 8px; padding-top: 5px; border-top: 1px solid var(--line);
+    font-size: 8.5px; color: var(--ink-faint);
+  }
+
+  /* ===== STACK GAP ===== */
+  .pcr-stack > * + * { margin-top: 7px; }
+
+  /* ===== PRINT ===== */
+  @media print {
+    @page { size: A4 portrait; margin: 11mm 12mm; }
+    html, body { background: #fff; }
+    body > *:not(.pcr-sheet) { display: none !important; }
+    .pcr-sheet { width: auto; min-height: 0; margin: 0; padding: 0; }
+    .sec, .cc-strip, .clin-cell, .sig-block, .tbl tbody tr { break-inside: avoid; }
+    body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  }
+
+  /* review banner — screen only */
+  .review-note {
+    max-width: 210mm; margin: 12px auto 0; padding: 8px 14px;
+    background: #fffbe6; border: 1px solid #f0d98a; border-radius: 6px;
+    font-size: 11px; color: #6b5800;
+  }
+  @media print { .review-note { display: none; } }
+</style>
+</head>
+<body>
+
+<div class="review-note">
+  <strong>PREVIEW</strong> — Transport PCR redesign (H Hybrid). Static mockup,
+  sample case: RED Resuscitation (EMS). Ctrl+P to check print. Production port =
+  vanilla builder in <code>v2/transport/index.html</code>, shared with monitor.
+</div>
+
+<div class="pcr-sheet pcr-stack">
+
+  <!-- ===== HEADER ===== -->
+  <header class="pcr-head">
+    <div class="pcr-head-left">
+      <div class="pcr-logo">
+        <svg viewBox="0 0 30 30" width="26" height="26">
+          <circle cx="15" cy="15" r="13" fill="#fff" stroke="#112a44" stroke-width="1.4"/>
+          <path d="M15 8v14M8 15h14" stroke="#c0392b" stroke-width="3.4" stroke-linecap="round"/>
+        </svg>
+      </div>
+      <div>
+        <div class="pcr-org">Supwilai Medical</div>
+        <div class="pcr-org-sub">PATIENT TRANSPORT RECORD · แบบบันทึกการนำส่งผู้ป่วย</div>
+      </div>
+    </div>
+    <div class="pcr-head-right">
+      <div class="pcr-meta">
+        <span class="pcr-meta-lab">DOC</span>
+        <span class="pcr-meta-val mono">CASE-20260521-1142</span>
+      </div>
+      <div class="pcr-meta">
+        <span class="pcr-meta-lab">NR</span>
+        <span class="pcr-meta-val">Full Support</span>
+      </div>
+      <div class="pcr-triage" style="background:#c0392b;color:#fff;">
+        <span class="pcr-triage-lab">RED</span>
+        <span class="pcr-triage-sub">Resuscitation</span>
+      </div>
+      <div class="pcr-consent">✓ CONSENT</div>
+    </div>
+  </header>
+
+  <!-- ===== 01 OPERATION + 02 PATIENT ===== -->
+  <div class="pcr-grid">
+
+    <section class="sec sec-blue">
+      <div class="sec-head"><span class="sec-n">01</span><span class="sec-title">Operation</span></div>
+      <div class="op-pills">
+        <span class="pill pill-on">EMS</span>
+        <span class="pill">ALS</span>
+        <span class="pill">คันที่ 5 (ALS)</span>
+      </div>
+      <!-- EMS = 4-point timeline -->
+      <div class="tl-strip tl-strip-4">
+        <div class="tl-node">
+          <div class="tl-lab-th">รับแจ้ง</div><div class="tl-lab-en">RECEIVED</div>
+          <div class="tl-time mono">22:15</div>
+        </div>
+        <div class="tl-node">
+          <div class="tl-lab-th">ออกจากฐาน</div><div class="tl-lab-en">DEPART BASE</div>
+          <div class="tl-time mono">22:18</div>
+        </div>
+        <div class="tl-node">
+          <div class="tl-lab-th">ถึงที่เกิดเหตุ</div><div class="tl-lab-en">ON SCENE</div>
+          <div class="tl-time mono">22:24</div>
+        </div>
+        <div class="tl-node">
+          <div class="tl-lab-th">ถึงโรงพยาบาล</div><div class="tl-lab-en">ARRIVE HOSP.</div>
+          <div class="tl-time mono">22:52</div>
+        </div>
+      </div>
+      <dl class="kv">
+        <dt>Scene</dt><dd>หน้าห้างเซ็นทรัล ลาดพร้าว ฝั่งถนนพหลโยธิน</dd>
+        <dt>Staff</dt><dd>EMT-P: ธนา ศรีสุข, EMT: ปวีณา จันทร์เพ็ญ · RN: ศิริพร · Doctor: นพดล</dd>
+      </dl>
+    </section>
+
+    <section class="sec sec-violet">
+      <div class="sec-head"><span class="sec-n">02</span><span class="sec-title">Patient</span></div>
+      <div class="pt-hero">
+        <span class="pt-name">ชาย ไม่ทราบชื่อ (ประมาณ 55 ปี)</span>
+        <span class="pt-tag">Male · ~55y</span>
+      </div>
+      <dl class="kv">
+        <dt>HN / ID</dt><dd>—</dd>
+        <dt>Origin</dt><dd>หน้าห้างเซ็นทรัล ลาดพร้าว</dd>
+        <dt>Destination</dt><dd>รพ.พระมงกุฎเกล้า</dd>
+      </dl>
+    </section>
+  </div>
+
+  <!-- ===== CHIEF COMPLAINT ===== -->
+  <div class="cc-strip">
+    <span class="cc-lab">Chief Complaint</span>
+    <span class="cc-val">หมดสติคาที่ ผู้พบเห็นโทรแจ้ง CPR โดย bystander ก่อน EMS ถึง 5 นาที AED ช็อก 1 ครั้ง ROSC ที่นาทีที่ 12</span>
+  </div>
+
+  <!-- ===== CLINICAL ROW ===== -->
+  <div class="clin-row">
+    <div class="clin-cell">
+      <div class="clin-lab">Dx</div>
+      <div class="clin-val">1. Cardiac arrest (VF) — ROSC  2. Acute MI (suspected)  3. Post-arrest care</div>
+    </div>
+    <div class="clin-cell">
+      <div class="clin-lab">U/D</div><div class="clin-val">Unknown</div>
+    </div>
+    <div class="clin-cell">
+      <div class="clin-lab">Meds</div><div class="clin-val">Unknown</div>
+    </div>
+    <div class="clin-cell allergy">
+      <div class="clin-lab">⚠ Allergy</div><div class="clin-val">Unknown</div>
+    </div>
+  </div>
+
+  <!-- ===== 03 INITIAL VITALS ===== -->
+  <section class="sec sec-amber pcr-full">
+    <div class="sec-head">
+      <span class="sec-n">03</span><span class="sec-title">Initial Vitals</span>
+      <span class="sec-meta">@ 22:26</span>
+    </div>
+    <div class="vitals-strip">
+      <div class="vital-cell"><div class="vital-lab">BP</div><div class="vital-num mono">88/52</div><div class="vital-unit">mmHg</div></div>
+      <div class="vital-cell"><div class="vital-lab">PR</div><div class="vital-num mono">128</div><div class="vital-unit">bpm</div></div>
+      <div class="vital-cell"><div class="vital-lab">RR</div><div class="vital-num mono empty">—</div><div class="vital-unit">/min</div></div>
+      <div class="vital-cell"><div class="vital-lab">T°</div><div class="vital-num mono empty">—</div><div class="vital-unit">°C</div></div>
+      <div class="vital-cell"><div class="vital-lab">SpO₂</div><div class="vital-num mono">92</div><div class="vital-unit">%</div></div>
+      <div class="vital-cell"><div class="vital-lab">DTX</div><div class="vital-num mono">142</div><div class="vital-unit">mg/dL</div></div>
+      <div class="vital-cell"><div class="vital-lab">Pain</div><div class="vital-num mono empty">—</div><div class="vital-unit">/10</div></div>
+    </div>
+  </section>
+
+  <!-- ===== 04 PHYSICAL + 05 FLUIDS ===== -->
+  <div class="pcr-grid">
+
+    <section class="sec sec-teal">
+      <div class="sec-head"><span class="sec-n">04</span><span class="sec-title">Physical Assessment</span></div>
+      <div class="pa-grid">
+        <!-- CHIP FIX: chip is INLINE after value — cannot overlap next row -->
+        <div class="pa-cell"><div class="pa-lab">Airway</div>
+          <div class="pa-val">ET Tube <span class="chip">ETT</span></div></div>
+        <div class="pa-cell"><div class="pa-lab">Breathing</div>
+          <div class="pa-val">Ventilator <span class="chip">VENT · SIMV</span></div></div>
+        <div class="pa-cell"><div class="pa-lab">Circulation</div>
+          <div class="pa-val alert">Shock · EKG: ST elevation V2–V4</div></div>
+        <div class="pa-cell"><div class="pa-lab">C-Line</div>
+          <div class="pa-val">No</div></div>
+        <div class="pa-cell"><div class="pa-lab">GCS</div>
+          <div class="pa-val mono">E1VTM2</div></div>
+        <div class="pa-cell"><div class="pa-lab">Pupils</div>
+          <div class="pa-val">4 / 4 (Sluggish)</div></div>
+        <div class="pa-cell"><div class="pa-lab">Pain</div>
+          <div class="pa-val empty">—</div></div>
+        <div class="pa-cell"><div class="pa-lab">Tubes</div>
+          <div class="pa-val">ETT 7.5 fixed at 22 cm, NG/OG: —, Foley: —</div></div>
+        <div class="pa-cell pa-full"><div class="pa-lab">Motor</div>
+          <div class="pa-val mono">RA:1  LA:1  RL:1  LL:1</div></div>
+        <div class="pa-cell pa-full"><div class="pa-lab">Exposure</div>
+          <div class="pa-val mono">RA:—  LA:IV  RL:—  LL:—</div></div>
+      </div>
+    </section>
+
+    <section class="sec sec-rose">
+      <div class="sec-head">
+        <span class="sec-n">05</span><span class="sec-title">Fluids &amp; Meds</span>
+        <span class="sec-meta">4</span>
+      </div>
+      <table class="tbl">
+        <thead><tr>
+          <th>Time</th><th>Item</th><th>Context</th><th>Route</th><th>Rate</th><th>Sedate</th>
+        </tr></thead>
+        <tbody>
+          <tr><td class="mono">22:28</td><td>NSS 1000 ml</td><td>Scene</td><td>IV</td><td>KVO</td><td>☐</td></tr>
+          <tr><td class="mono">22:31</td><td>Adrenaline 1:1000 1 mg</td><td>Scene</td><td>IV</td><td>push</td><td>☐</td></tr>
+          <tr><td class="mono">22:35</td><td>Amiodarone 300 mg</td><td>Scene</td><td>IV</td><td>push</td><td>☐</td></tr>
+          <tr><td class="mono">22:42</td><td>Midazolam 5 mg</td><td>En-route</td><td>IV</td><td>push</td><td>☑</td></tr>
+        </tbody>
+      </table>
+      <div class="equip-line">
+        <span class="equip-lab">Equipment</span>
+        <span class="equip-val">Monitor / Defib · Ventilator · IO drill · LUCAS</span>
+      </div>
+    </section>
+  </div>
+
+  <!-- ===== 06 VITALS LOG ===== -->
+  <section class="sec sec-blue pcr-full">
+    <div class="sec-head">
+      <span class="sec-n">06</span><span class="sec-title">Vitals Log</span>
+      <span class="sec-meta">5 entries · 22:26–22:50</span>
+    </div>
+    <table class="tbl">
+      <thead><tr>
+        <th>Time</th><th>BP</th><th>PR</th><th>RR</th><th>T°</th>
+        <th>SpO₂</th><th>GCS</th><th>Pain</th><th style="width:30%;">Note</th>
+      </tr></thead>
+      <tbody>
+        <tr><td class="mono">22:26</td><td class="mono">88/52</td><td class="mono">128</td><td class="mono empty-cell">·</td><td class="mono empty-cell">·</td><td class="mono">92</td><td class="mono">E1VTM2</td><td class="empty-cell">—</td><td>Post-ROSC</td></tr>
+        <tr><td class="mono">22:32</td><td class="mono">102/64</td><td class="mono">120</td><td class="mono">14</td><td class="mono empty-cell">·</td><td class="mono">95</td><td class="mono">E1VTM2</td><td class="empty-cell">—</td><td class="empty-cell">·</td></tr>
+        <tr><td class="mono">22:38</td><td class="mono">118/70</td><td class="mono">112</td><td class="mono">14</td><td class="mono empty-cell">·</td><td class="mono">97</td><td class="mono">E1VTM2</td><td class="empty-cell">—</td><td class="empty-cell">·</td></tr>
+        <tr><td class="mono">22:44</td><td class="mono">124/74</td><td class="mono">108</td><td class="mono">14</td><td class="mono empty-cell">·</td><td class="mono">98</td><td class="mono">E1VTM2</td><td class="empty-cell">—</td><td>Sedated</td></tr>
+        <tr><td class="mono">22:50</td><td class="mono">130/78</td><td class="mono">102</td><td class="mono">14</td><td class="mono empty-cell">·</td><td class="mono">99</td><td class="mono">E1VTM2</td><td class="empty-cell">—</td><td class="empty-cell">·</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- ===== 07 NURSE NOTE ===== -->
+  <section class="sec sec-slate pcr-full">
+    <div class="sec-head"><span class="sec-n">07</span><span class="sec-title">Nurse Note</span>
+      <span class="sec-meta">บันทึกเพิ่มเติม</span></div>
+    <div class="note-box">Bystander CPR ~5 min. AED shock x1. ROSC at minute 12. Post-ROSC hypotensive, intubated, ventilated SIMV. Cooling not initiated due to short transport time. Family contacted by police.</div>
+  </section>
+
+  <!-- ===== SIGNATURES ===== -->
+  <div class="sig-block">
+    <div class="sig-bar">SIGNATURES</div>
+    <div class="sig-row">
+      <div class="sig-cell">
+        <div class="sig-name">EMT-P: ธนา ศรีสุข</div>
+        <div class="sig-line"></div>
+        <div class="sig-role"><span class="sig-k">Recorder</span><span class="sig-dt">date · time</span></div>
+      </div>
+      <div class="sig-cell">
+        <div class="sig-name">&nbsp;</div>
+        <div class="sig-line"></div>
+        <div class="sig-role"><span class="sig-k">Sender</span><span class="sig-dt">date · time</span></div>
+      </div>
+      <div class="sig-cell">
+        <div class="sig-name">&nbsp;</div>
+        <div class="sig-line"></div>
+        <div class="sig-role"><span class="sig-k">Receiver</span><span class="sig-dt">date · time</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== FOOTER ===== -->
+  <div class="pcr-foot">
+    <span>Supwilai Medical · Patient Transport Record</span>
+    <span class="mono">CASE-20260521-1142</span>
+    <span>1 / 1</span>
+  </div>
+
+</div>
+</body>
+</html>
