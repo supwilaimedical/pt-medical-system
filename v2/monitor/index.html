@@ -4100,7 +4100,9 @@
         h += ".pending-pulse { display:inline-block; width:8px; height:8px; border-radius:50%; background:#ef4444; margin-right:4px; animation:pulse 1.5s infinite; }";
 
         // Print
-        h += "@media print { @page { size:A4 landscape; margin:4mm 6mm; } .no-print,.toolbar { display:none!important; } #tab-pending { display:none!important; } body { -webkit-print-color-adjust:exact; print-color-adjust:exact; } }";
+        // Print — also neutralise fullscreen (is-fs) clipping: body.is-fs + .page carry
+        // overflow:hidden + height:100vh which Chrome's print engine clips to blank.
+        h += "@media print { @page { size:A4 landscape; margin:4mm 6mm; } .no-print,.toolbar { display:none!important; } #tab-pending { display:none!important; } body { -webkit-print-color-adjust:exact; print-color-adjust:exact; } body.is-fs { overflow:visible!important; } body.is-fs .page { overflow:visible!important; height:auto!important; } }";
         // Responsive
         h += "@media screen and (max-width:900px) { .page { padding:8px; } .row1 { grid-template-columns:1fr!important; } .row2d { grid-template-columns:repeat(3,1fr)!important; } .row3r { grid-template-columns:repeat(2,1fr)!important; } .time-ch-wrap { height:140px; } }";
         h += "@media screen and (max-width:600px) { .row2d { grid-template-columns:1fr!important; } .row3r { grid-template-columns:1fr!important; } }";
