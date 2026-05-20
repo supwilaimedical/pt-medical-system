@@ -828,11 +828,17 @@ window.pcrFitToPage = function(root) {
     fit.style.height     = '';
     fit.style.overflow   = '';
 
-    // A4 printable height = 297mm − 22mm (@page top+bottom margin).
+    // Target = a deliberately conservative single-page content height.
+    // A4 is 297mm; the real printable area is smaller and varies by
+    // printer (hardware non-printable margins) and @page rules, so the
+    // theoretical "275mm" is not safe — even ~1mm of overflow tips the
+    // report onto a blank 2nd page. 260mm leaves a generous buffer that
+    // reliably keeps it on one page; the small bottom whitespace is the
+    // intended trade-off.
     var probe = document.createElement('div');
-    probe.style.cssText = 'position:absolute;left:-9999px;top:0;visibility:hidden;width:1px;height:275mm;';
+    probe.style.cssText = 'position:absolute;left:-9999px;top:0;visibility:hidden;width:1px;height:260mm;';
     document.body.appendChild(probe);
-    var target = probe.offsetHeight - 4; // 4px safety against rounding
+    var target = probe.offsetHeight;
     probe.parentNode.removeChild(probe);
 
     var natural = body.scrollHeight;
