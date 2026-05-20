@@ -310,6 +310,9 @@ window.buildPcrHtml = function(d) {
 
     /* sheet */
     ".pcr-sheet { width:210mm; min-height:297mm; margin:12px auto; padding:11mm 12mm 10mm; background:#fff; }",
+    /* auto-fit-to-one-page wrappers — pcrFitToPage() sets height/transform inline at print time */
+    ".pcr-fit { width:100%; }",
+    ".pcr-body { transform-origin:top left; }",
 
     /* header */
     ".pcr-head { display:flex; justify-content:space-between; align-items:center; background:var(--navy); color:#fff; border-radius:7px; padding:9px 14px; margin-bottom:9px; }",
@@ -624,7 +627,9 @@ window.buildPcrHtml = function(d) {
   h += '</div>';
 
   // --- PCR SHEET ---
-  h += '<div class="pcr-sheet pcr-stack">';
+  // .pcr-fit + .pcr-body wrap the content so window.pcrFitToPage() can
+  // scale it down to exactly one A4 page at print time (auto-fit).
+  h += '<div class="pcr-sheet"><div class="pcr-fit"><div class="pcr-body pcr-stack">';
 
   // ===== HEADER =====
   h += '<header class="pcr-head">' +
@@ -795,8 +800,53 @@ window.buildPcrHtml = function(d) {
     '<span>พิมพ์โดย: ' + esc(d.loggedUser || '-') + ' · ' + esc(d.date || '') + '</span>' +
     '</div>';
 
-  h += '</div>'; // end pcr-sheet
+  h += '</div></div></div>'; // end pcr-body / pcr-fit / pcr-sheet
   h += '</body></html>';
 
   return h;
+};
+
+// ===========================================================
+// AUTO-FIT PCR TO ONE A4 PAGE
+// The PCR is a dynamic form — content length varies per case
+// (vitals rows, long notes, etc.). This scales .pcr-body DOWN
+// (never up) so the report always prints on a single A4 page.
+// Called by the transport / monitor print paths after the
+// report HTML is injected, and again on `beforeprint`.
+// Safe no-op when there is no .pcr-fit/.pcr-body in scope.
+// ===========================================================
+window.pcrFitToPage = function(root) {
+  try {
+    var scope = root && root.querySelector ? root : document;
+    var fit  = scope.querySelector('.pcr-fit');
+    var body = scope.querySelector('.pcr-body');
+    if (!fit || !body) return;
+
+    // Reset any previous fit first — keeps this idempotent.
+    body.style.transform = '';
+    body.style.width     = '';
+    fit.style.height     = '';
+    fit.style.overflow   = '';
+
+    // A4 printable height = 297mm − 22mm (@page top+bottom margin).
+    var probe = document.createElement('div');
+    probe.style.cssText = 'position:absolute;left:-9999px;top:0;visibility:hidden;width:1px;height:275mm;';
+    document.body.appendChild(probe);
+    var target = probe.offsetHeight - 4; // 4px safety against rounding
+    probe.parentNode.removeChild(probe);
+
+    var natural = body.scrollHeight;
+    if (!natural || !target) return;
+
+    var s = target / natural;
+    if (s >= 1)   return;  // already fits one page — leave at 100%
+    if (s < 0.55) return;  // content genuinely too large — allow multi-page
+
+    body.style.width     = (100 / s) + '%'; // widen so it still fills after scaling
+    body.style.transform = 'scale(' + s + ')';
+    fit.style.height     = target + 'px';
+    fit.style.overflow   = 'hidden';
+  } catch (e) {
+    if (window.console) console.warn('pcrFitToPage failed:', e);
+  }
 };
