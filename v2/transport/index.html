@@ -6829,6 +6829,15 @@
         ps.id = 'transport-print-inject';
         ps.textContent = '#print-layout-container { position:fixed; top:0; left:0; right:0; bottom:0; z-index:99999; background:#fff; overflow:auto; color-scheme:light; } @media print { :root, html { color-scheme:light only!important; } html, body { background:#fff!important; color:#000!important; } body > *:not(#print-layout-container) { display:none!important; } #print-layout-container { position:static!important; display:block!important; overflow:visible!important; } .no-print { display:none!important; } }';
         document.head.appendChild(ps);
+
+        // Auto-scale the report so it always prints on exactly one A4 page.
+        if (window.pcrFitToPage) {
+            window.pcrFitToPage(printArea);
+            if (document.fonts && document.fonts.ready) {
+                document.fonts.ready.then(function(){ window.pcrFitToPage(printArea); });
+            }
+            window.onbeforeprint = function(){ window.pcrFitToPage(printArea); };
+        }
     }
 
     function transport_closePrintView() {
@@ -6840,6 +6849,7 @@
         if (s) s.remove();
         var a = document.getElementById('print-content-area');
         if (a) a.innerHTML = '';
+        window.onbeforeprint = null;
     }
 
     function buildArrestSection(title, a) {
