@@ -3154,7 +3154,7 @@
 
                   <div class="pp-sub-title" style="display:flex; align-items:center; justify-content:space-between; gap:8px;">
                     <span><i class="bi bi-droplet-fill" style="color:#0ea5e9;"></i> สารน้ำ / ยา ที่ได้รับมาก่อนนำส่ง (Initial IV)</span>
-                    <button type="button" class="btn btn-sm btn-primary rounded-pill px-3" id="btn-add-init-iv" onclick="addIvLine(null, null, 'initial-iv-lines-container', 'Initial')" style="text-transform:none; letter-spacing:0;"><i class="bi bi-plus-lg"></i> เพิ่มรายการ</button>
+                    <button type="button" class="btn btn-sm btn-primary rounded-pill px-3" id="btn-add-init-iv" onclick="ppOpenIvModal('Initial')" style="text-transform:none; letter-spacing:0;"><i class="bi bi-plus-lg"></i> เพิ่มรายการ</button>
                   </div>
                   <div id="initial-iv-lines-container"></div>
                   <!-- Reserve slot per prototype: visible by default, hidden by ppRefreshIvEmpty() when lines exist -->
@@ -3261,6 +3261,54 @@
                   </div>
                   <div class="pp-modal-foot" style="justify-content:flex-start;">
                     <button type="button" class="btn-cancel" onclick="ppCloseModal('m-arrest')">ปิด</button>
+                  </div>
+                </div>
+              </div>
+
+              <!-- ============== MODAL: IV / Meds (Initial + Transport share via dataset.ctx) ==============
+                   Per prototype line 910+. On save → calls production addIvLine() to create the row
+                   (logic byte-identical), then populates fields with modal values + triggers saveData. -->
+              <div class="pp-modal-backdrop" id="m-iv">
+                <div class="pp-modal sky">
+                  <div class="pp-modal-head">
+                    <i class="bi bi-droplet-fill ic" style="color:#0ea5e9;"></i>
+                    <div class="title">เพิ่ม สารน้ำ / ยา<span class="sub" id="iv-modal-sub">Initial · ต้นทาง</span></div>
+                    <button type="button" class="close-x" onclick="ppCloseModal('m-iv')"><i class="bi bi-x-lg"></i></button>
+                  </div>
+                  <div class="pp-modal-body">
+                    <div class="row g-3">
+                      <div class="col-md-6">
+                        <label class="small fw-bold text-secondary">เวลาเริ่ม</label>
+                        <div class="input-group input-group-sm">
+                          <input type="text" class="pp-input" id="iv-modal-time" placeholder="HH:MM" maxlength="5" inputmode="numeric" oninput="maskTime(this)">
+                          <button type="button" class="btn btn-sm" onclick="ppIvNow()" style="background:#fff; border:1px solid #bae6fd; color:#0ea5e9;"><i class="bi bi-clock"></i> Now</button>
+                        </div>
+                      </div>
+                      <div class="col-md-6">
+                        <label class="small fw-bold text-secondary">ชนิดสารน้ำ / ยา</label>
+                        <input type="text" class="pp-input" id="iv-modal-fluid" placeholder="NSS 0.9%, RLS, Norepinephrine...">
+                      </div>
+                      <div class="col-md-6">
+                        <label class="small fw-bold text-secondary">ปริมาตร (Volume)</label>
+                        <input type="text" class="pp-input" id="iv-modal-vol" placeholder="1000 mL, 100 mL, ...">
+                      </div>
+                      <div class="col-md-6">
+                        <label class="small fw-bold text-secondary">อัตรา (Rate)</label>
+                        <input type="text" class="pp-input" id="iv-modal-rate" placeholder="100 mL/hr, KVO, 80 ug/kg/min">
+                      </div>
+                      <div class="col-12">
+                        <label class="small fw-bold text-secondary">เส้นทาง (Route)</label>
+                        <div class="pp-pill-row" id="iv-modal-route-pills">
+                          <div class="pp-pill sky active" data-value="IV">IV</div>
+                          <div class="pp-pill sky" data-value="IO">IO</div>
+                          <div class="pp-pill sky" data-value="Central Line" id="iv-modal-route-cl">Central Line</div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="pp-modal-foot">
+                    <button type="button" class="btn-cancel" onclick="ppCloseModal('m-iv')">ยกเลิก</button>
+                    <button type="button" class="btn-save" style="background:#0ea5e9;" onclick="ppSaveIvModal()">บันทึก</button>
                   </div>
                 </div>
               </div>
@@ -5808,6 +5856,84 @@
         };
       }
     })();
+    // IV Modal — per prototype line 910+. Collects fields, then delegates to production
+    // addIvLine() to create the actual editable row (logic byte-identical).
+    function ppOpenIvModal(context) {
+      var m = document.getElementById('m-iv');
+      if (!m) return;
+      m.dataset.ctx = context || 'Initial';
+      var sub = document.getElementById('iv-modal-sub');
+      if (sub) sub.textContent = (context === 'Transport' ? 'Transport · ขณะนำส่ง' : 'Initial · ต้นทาง');
+      // Reset fields
+      ['iv-modal-time', 'iv-modal-fluid', 'iv-modal-vol', 'iv-modal-rate'].forEach(function(id) {
+        var el = document.getElementById(id);
+        if (el) el.value = '';
+      });
+      // Reset route pills — default to IV
+      var pills = document.querySelectorAll('#iv-modal-route-pills .pp-pill');
+      for (var i = 0; i < pills.length; i++) {
+        pills[i].classList.toggle('active', pills[i].getAttribute('data-value') === 'IV');
+      }
+      // Hide Central Line route option if has_central_line is false
+      var clChk = document.getElementById('chk-central-line');
+      var clPill = document.getElementById('iv-modal-route-cl');
+      if (clPill) clPill.style.display = (clChk && clChk.checked) ? '' : 'none';
+      ppOpenModal('m-iv');
+    }
+    function ppIvNow() {
+      var now = new Date();
+      var t = String(now.getHours()).padStart(2, '0') + ':' + String(now.getMinutes()).padStart(2, '0');
+      var el = document.getElementById('iv-modal-time');
+      if (el) el.value = t;
+    }
+    function ppSaveIvModal() {
+      var m = document.getElementById('m-iv');
+      if (!m) return;
+      var ctx = m.dataset.ctx || 'Initial';
+      var containerId = (ctx === 'Transport' ? 'iv-lines-container' : 'initial-iv-lines-container');
+      var emptyId = (ctx === 'Transport' ? 'iv-empty' : 'initial-iv-empty');
+      var time = ((document.getElementById('iv-modal-time') || {}).value || '').trim();
+      var fluid = ((document.getElementById('iv-modal-fluid') || {}).value || '').trim();
+      var vol = ((document.getElementById('iv-modal-vol') || {}).value || '').trim();
+      var rate = ((document.getElementById('iv-modal-rate') || {}).value || '').trim();
+      var pill = document.querySelector('#iv-modal-route-pills .pp-pill.active');
+      var route = pill ? pill.getAttribute('data-value') : 'IV';
+      // Combine vol + rate into the single iv-rate field (production has 1 rate field).
+      var combinedRate = (vol && rate) ? (vol + ' @ ' + rate) : (rate || vol);
+      // Validation: require at least fluid name
+      if (!fluid) {
+        var fEl = document.getElementById('iv-modal-fluid');
+        if (fEl) fEl.focus();
+        return;
+      }
+      if (typeof addIvLine !== 'function') return;
+      // Use data-object path so addIvLine populates time/route/name/rate directly.
+      // (addIvLine(null, time, ...) ignores defaultTime when data is null — stamps current time instead.)
+      addIvLine({ time: time, route: route, name: fluid, rate: combinedRate }, null, containerId, ctx);
+      // Data-object path skips production's auto-save block — fire it manually here:
+      try { if (typeof formDirty !== 'undefined') formDirty = true; } catch(_) {}
+      if (typeof saveData === 'function') saveData(false, true);
+      if (typeof logActivity === 'function') {
+        var cidEl = document.getElementById('caseId');
+        if (cidEl) logActivity('ADD_IV', cidEl.value, ctx);
+      }
+      if (typeof updateIVSummaryCount === 'function') updateIVSummaryCount();
+      // Refresh empty-state visibility synchronously (don't wait for MutationObserver callback)
+      ppRefreshIvEmpty(containerId, emptyId);
+      ppCloseModal('m-iv');
+    }
+    // Route pill click delegation for IV modal (and any future div-based pp-pill-row)
+    document.addEventListener('click', function(e) {
+      if (!e.target || !e.target.closest) return;
+      var row = e.target.closest('#iv-modal-route-pills');
+      if (!row) return;
+      var pill = e.target.closest('.pp-pill');
+      if (!pill) return;
+      var siblings = row.querySelectorAll('.pp-pill');
+      for (var i = 0; i < siblings.length; i++) siblings[i].classList.remove('active');
+      pill.classList.add('active');
+    });
+
     // pp-modal open/close (used by Arrest chip → modal, future Neuro/Body/Drain modals)
     function ppOpenModal(id) {
       var m = document.getElementById(id);
