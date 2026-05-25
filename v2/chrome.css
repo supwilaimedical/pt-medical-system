@@ -486,26 +486,27 @@ body[data-module="monitor"] #monitor-wide-gps-pane .mwgp-head .bi {
   /* Map container inside main: shrink remaining height accordingly (already flex:1 inside main column) */
 
   /* === Fleet structural fix ===
-     Header is sticky INSIDE #app-main-wrapper which has margin-right:280px (for rightcol).
-     Pull header out via position:fixed; left:240(subnav); right:0 to span full width over rightcol.
-     Then push wrapper padding-top:64 + rightcol top:64 to clear. */
+     Colhead spans MAIN content area only (left:296 = rail+subnav, right:280
+     stops before rightcol). Rightcol is its own fixed sidebar (280px wide)
+     that starts at viewport top with its own internal "วันนี้" heading.
+     User feedback 2026-05-25: "พอเอาลงมา ทางขวาก็ลงมาด้วยสิเนี่ย" — the
+     rightcol was being pushed down 96px because colhead used `right: 0`
+     and covered it. Limiting colhead width frees rightcol to use top:0. */
   body[data-module="fleet"] .v2-colheader {
     position: fixed !important;
     top: 0 !important;
-    left: 296px !important;  /* rail 56 + subnav 240 (was 240 → overlapped subnav by 56px) */
-    right: 0 !important;
+    left: 296px !important;   /* rail 56 + subnav 240 */
+    right: 280px !important;  /* stop before rightcol (.fleet-rc width) */
     margin: 0 !important;
     z-index: 30 !important;
   }
-  /* Bumped 64 → 96 per user feedback 2026-05-25: colhead height is 71px
-     (Thai font + 14px padding × 2 + border), so 64 was 7px short and the
-     first row of vehicle cards was covered by the fixed colhead. 96 gives
-     ~25px clear breathing room between the colhead bottom and content. */
+  /* Main wrapper padding-top = colhead height (71px) + 25px breathing room. */
   body[data-module="fleet"] #app-main-wrapper {
     padding-top: 96px !important;
   }
+  /* Rightcol starts at viewport top — colhead no longer covers it horizontally. */
   body[data-module="fleet"] .fleet-rc {
-    top: 96px !important;
+    top: 0 !important;
   }
 
   /* === Transport structural fix === */
