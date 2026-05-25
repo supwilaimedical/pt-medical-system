@@ -1425,6 +1425,16 @@
     .pp-summary-pill.gcs-drowsy { background:#fef3c7 !important; color:#854d0e !important; }
     .pp-summary-pill.gcs-coma   { background:#fee2e2 !important; color:#991b1b !important; }
 
+    /* Read-only / closed-case: lock interactive DIV-based widgets that bypass setReadOnlyMode's
+       (input, select, textarea, button) selector. setReadOnlyMode (patched at line 2102) toggles
+       body.pp-form-closed to match isReadOnly. */
+    body.pp-form-closed #o2-device-pills .pp-pill,
+    body.pp-form-closed .pp-circ-arrest-chip {
+      pointer-events: none;
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+
     /* ========== DRAINAGE MODAL ========== */
     .pp-drain-row { display:flex; align-items:center; gap:10px; background:#f8fafc; border:1px solid #e2e8f0; border-radius:10px; padding:10px 14px; margin-bottom:8px; flex-wrap:wrap; }
     .pp-drain-row .form-check-input { width:18px; height:18px; margin:0; cursor:pointer; }
@@ -2124,6 +2134,10 @@
         if(isReadOnly) fs.value = 'Completed';
         else if(fs.value === 'Completed') fs.value = 'Active';
       }
+      // Toggle body class so CSS can disable DIV-based interactive widgets
+      // (#o2-device-pills, .pp-circ-arrest-chip) that bypass setReadOnlyMode's
+      // input/select/textarea/button selector.
+      document.body.classList.toggle('pp-form-closed', !!isReadOnly);
       // Trigger an immediate sync (don't wait 800ms)
       setTimeout(function(){ try { syncView(); syncStep(); syncBadges(); } catch(e){} }, 10);
     };
