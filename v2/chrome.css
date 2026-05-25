@@ -497,11 +497,15 @@ body[data-module="monitor"] #monitor-wide-gps-pane .mwgp-head .bi {
     margin: 0 !important;
     z-index: 30 !important;
   }
+  /* Bumped 64 → 96 per user feedback 2026-05-25: colhead height is 71px
+     (Thai font + 14px padding × 2 + border), so 64 was 7px short and the
+     first row of vehicle cards was covered by the fixed colhead. 96 gives
+     ~25px clear breathing room between the colhead bottom and content. */
   body[data-module="fleet"] #app-main-wrapper {
-    padding-top: 64px !important;
+    padding-top: 96px !important;
   }
   body[data-module="fleet"] .fleet-rc {
-    top: 64px !important;
+    top: 96px !important;
   }
 
   /* === Transport structural fix === */
