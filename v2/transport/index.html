@@ -189,8 +189,10 @@
     .v2-tb-btn.v2-tb-icon i{ font-size:15px; }
     .v2-tb-btn.v2-tb-icon.primary{ color:#0ea5e9; background:#fff; border-color:#bae6fd; }
     .v2-tb-btn.v2-tb-icon.primary:hover{ background:#f0f9ff; color:#0369a1; border-color:#7dd3fc; }
-    /* Mobile + tablet portrait: ALL on one row — case-id + actions + status, no wrap */
-    @media (max-width:1024px) and (orientation:portrait){
+    /* Mobile + tablet ≤991px (subnav hidden): compact one-row + clear left rail (56px)
+       NOTE: at 992-1024 subnav IS visible (line 61) so body already has padding-left:296px — no compact rule needed.
+       Old rule used (orientation:portrait) but Windows desktop resize stays landscape — caused the gap at 768-991 landscape. */
+    @media (max-width:991px){
       /* Whole topbar position:fixed → rock-solid, no iOS wobble.
          JS sets body padding-top = topbar.offsetHeight so V/S + sections below stay visible. */
       body:has(#form-view.active) .v2-form-topbar{
@@ -215,6 +217,15 @@
         padding:6px 8px 6px 52px; gap:4px;
         flex-wrap:nowrap !important;
         min-height: 48px;
+      }
+      /* Row 2 (Patient banner mini-bar) — match row1 left clearance so it doesn't overlap left rail */
+      .v2-form-topbar .v2-tb-row2{
+        padding-left:56px;
+      }
+      /* Timeline card — also inside fixed topbar, needs left clearance for rail (56px) */
+      .v2-form-topbar #timeline-card,
+      .v2-form-topbar .v2-tb-timeline{
+        padding-left:56px;
       }
       .v2-form-topbar .v2-tb-row1 .left{
         flex:1 1 auto; min-width:0; flex-wrap:nowrap !important; gap:4px;
@@ -588,38 +599,51 @@
         margin:0 !important;
         padding:0 !important;
       }
+      /* Timeline on mobile — single horizontal-scroll row (per UX request).
+         Was grid 2-col + wrapped durations → wrapped to 3 rows. Now: flex-nowrap + overflow-x. */
       #tl-ems > .d-flex.flex-wrap,
       #tl-refer > .d-flex.flex-wrap{
-        display:grid !important;
-        grid-template-columns:1fr 1fr;
+        display:flex !important;
+        flex-wrap:nowrap !important;
+        overflow-x:auto;
+        scrollbar-width:thin;
         gap:0; font-size:11px !important;
+        align-items:stretch !important;
       }
-      /* Timeline label header — short, single line */
+      #tl-ems > .d-flex.flex-wrap::-webkit-scrollbar,
+      #tl-refer > .d-flex.flex-wrap::-webkit-scrollbar { height:3px; }
+      #tl-ems > .d-flex.flex-wrap::-webkit-scrollbar-thumb,
+      #tl-refer > .d-flex.flex-wrap::-webkit-scrollbar-thumb { background:#cbd5e1; border-radius:3px; }
+      /* Timeline label header — keep at start, sticky-ish via position:sticky on left edge */
       #tl-ems > .d-flex.flex-wrap > div:first-child,
       #tl-refer > .d-flex.flex-wrap > div:first-child{
-        grid-column:1 / -1; justify-content:center;
-        background:#dbeafe; padding:2px 8px !important; font-size:10.5px !important;
+        background:#dbeafe; padding:3px 9px !important; font-size:10.5px !important;
+        flex:0 0 auto !important;
+        position:sticky; left:0; z-index:2;
       }
       #tl-ems > .d-flex.flex-wrap > div:first-child b,
       #tl-refer > .d-flex.flex-wrap > div:first-child b{ font-size:10.5px !important; }
-      /* Time cells — tight padding */
+      /* Time cells — tight padding, flex:0 (don't stretch) */
       #tl-ems > .d-flex.flex-wrap > div:not(:first-child):not(#tl-ems-durations),
       #tl-refer > .d-flex.flex-wrap > div:not(:first-child):not(#tl-refer-durations){
-        padding:3px 6px !important; gap:2px;
+        padding:3px 8px !important; gap:2px;
+        flex:0 0 auto !important;
       }
       #tl-ems > .d-flex.flex-wrap span.text-secondary,
-      #tl-refer > .d-flex.flex-wrap span.text-secondary{ font-size:10px !important; }
+      #tl-refer > .d-flex.flex-wrap span.text-secondary{ font-size:10px !important; white-space:nowrap; }
       /* Inputs — compact but tappable */
       .tl-time-input{ width:48px !important; font-size:12px !important; padding:1px 2px !important; }
       .tl-btn{ font-size:11px !important; padding:1px 4px !important; line-height:1.2 !important; }
-      /* Duration badges row spans full width — tight */
+      /* Duration badges — inline on same row, no wrap */
       #tl-ems-durations,
       #tl-refer-durations{
-        grid-column:1 / -1; padding:2px 6px !important; gap:2px !important;
+        padding:3px 8px !important; gap:3px !important;
         font-size:9.5px !important;
+        flex:0 0 auto !important;
+        flex-wrap:nowrap !important;
       }
       #tl-ems-durations .badge,
-      #tl-refer-durations .badge{ font-size:9.5px !important; padding:1px 5px !important; }
+      #tl-refer-durations .badge{ font-size:9.5px !important; padding:1px 5px !important; white-space:nowrap; }
     }
     @media (max-width: 1399px){
       .v2-bottom-nav.v2-bn-show{
@@ -1217,7 +1241,7 @@
     body .card.pp-island-card.dark-red { border-top-color:#b91c1c !important; }
 
     /* pp-row — clickable summary row → opens pp-modal */
-    .pp-row { background:#fff; border:1px solid #e2e8f0; border-left:4px solid #1e3a5f; border-radius:12px; padding:12px 14px; margin-bottom:8px; display:flex; align-items:center; gap:12px; cursor:pointer; transition:all 0.15s; }
+    .pp-row { background:#fff; border:1px solid #e2e8f0; border-left:4px solid #1e3a5f; border-radius:12px; padding:12px 14px; margin-bottom:14px; display:flex; align-items:center; gap:12px; cursor:pointer; transition:all 0.15s; }
     .pp-row:hover { background:#f8fafc; box-shadow:0 2px 8px rgba(0,0,0,0.06); }
     .pp-row.amber{ border-left-color:#f59e0b; } .pp-row.teal{ border-left-color:#0d9488; }
     .pp-row.cyan { border-left-color:#06b6d4; } .pp-row.red { border-left-color:#ef4444; }
@@ -1541,6 +1565,51 @@
     body.pp-form-closed .pp-iv-edit-btn,
     body.pp-form-closed .pp-iv-del-btn { pointer-events:none; opacity:0.5; }
 
+    /* Read-only Initial IV display (Step 3 recap of Step-2 initial-iv-lines-container).
+       Single card wrapping all entries as compact lines — just an FYI, no edit/delete. */
+    .pp-iv-readonly-card {
+      background:#fff;
+      border:1px solid #e2e8f0;
+      border-radius:12px;
+      padding:10px 14px;
+      margin-bottom:14px;
+      box-shadow:0 1px 3px rgba(0,0,0,0.04);
+    }
+    .pp-iv-readonly-card-head {
+      font-size:12px;
+      font-weight:700;
+      color:#64748b;
+      text-transform:uppercase;
+      letter-spacing:0.5px;
+      padding-bottom:8px;
+      margin-bottom:6px;
+      border-bottom:1px solid #f1f5f9;
+    }
+    .pp-iv-readonly-card-head i { color:#0ea5e9; margin-right:4px; }
+    .pp-iv-readonly-line {
+      display:flex; align-items:center; gap:10px; flex-wrap:wrap;
+      padding:6px 0;
+    }
+    .pp-iv-readonly-line + .pp-iv-readonly-line { border-top:1px dashed #f1f5f9; }
+    .pp-iv-readonly-line .pp-iv-time {
+      background:#0f172a; color:#fff;
+      padding:4px 11px; border-radius:7px;
+      font-weight:700; font-size:12.5px;
+      font-family:'Courier New', monospace;
+      letter-spacing:0.5px;
+      flex:0 0 auto;
+    }
+    .pp-iv-readonly-line .pp-iv-route {
+      background:#dbeafe; color:#1e40af;
+      padding:4px 11px; border-radius:11px;
+      font-size:11.5px; font-weight:700;
+      flex:0 0 auto;
+    }
+    .pp-iv-readonly-line .pp-iv-route.io { background:#fef3c7; color:#92400e; }
+    .pp-iv-readonly-line .pp-iv-route.cl { background:#fce7f3; color:#9d174d; }
+    .pp-iv-readonly-line .pp-iv-body { font-size:13px; color:#1e293b; flex:1 1 auto; min-width:0; }
+    .pp-iv-readonly-line .pp-iv-body b { color:#0f172a; }
+
     /* ========== VITAL LOG ROW — COMPACT PILL DISPLAY (wraps production addVitalLog) ========== */
     .vital-log-entry.pp-vital-compacted > :not(.pp-vital-compact) { display:none !important; }
     .vital-log-entry.pp-vital-compacted {
@@ -1612,6 +1681,136 @@
     /* pp-vent-panel — light-blue ventilator detail panel */
     .pp-vent-panel { background:#f0f9ff; border:1px solid #bae6fd; border-radius:10px; padding:14px; margin-top:12px; }
     .pp-vent-panel .pp-sub-title { color:#0ea5e9; }
+
+    /* ========== V/S Minibar (compact latest vitals strip in topbar) ========== */
+    .pp-minibar {
+      background:#fff;
+      padding:6px 14px;
+      border-top:1px dashed #e2e8f0;
+    }
+    .pp-minibar .mb-vitals {
+      display:flex; gap:6px; flex-wrap:nowrap;
+      overflow-x:auto;
+      scrollbar-width:thin;
+    }
+    .pp-minibar .mb-vitals::-webkit-scrollbar { height:3px; }
+    .pp-minibar .mb-vitals::-webkit-scrollbar-thumb { background:#cbd5e1; border-radius:3px; }
+    .pp-minibar .mb-chip {
+      display:inline-flex; align-items:center; gap:4px;
+      padding:2px 9px;
+      background:#f8fafc;
+      border:1px solid #e2e8f0;
+      border-radius:999px;
+      font-size:11px;
+      white-space:nowrap;
+      flex:0 0 auto;
+    }
+    .pp-minibar .mb-chip .lbl { font-size:9px; font-weight:700; color:#64748b; letter-spacing:0.5px; }
+    .pp-minibar .mb-chip b { color:#0f172a; font-size:11px; font-weight:700; }
+    .pp-minibar .mb-chip.gcs       { background:#dbeafe; border-color:#bfdbfe; }
+    .pp-minibar .mb-chip.gcs b     { color:#1e3a8a; }
+    .pp-minibar .mb-chip.gcs.amber { background:#fef3c7; border-color:#fde68a; }
+    .pp-minibar .mb-chip.gcs.amber b { color:#78350f; }
+    .pp-minibar .mb-chip.gcs.red   { background:#fee2e2; border-color:#fecaca; }
+    .pp-minibar .mb-chip.gcs.red b { color:#991b1b; }
+    .pp-minibar .mb-chip.airway    { background:#cffafe; border-color:#a5f3fc; color:#155e75; }
+    .pp-minibar .mb-chip.airway b  { color:#155e75; }
+    .pp-minibar .mb-chip.arrest    { background:#dc2626; border-color:#b91c1c; color:#fff; animation:ppArrestPulse 1.5s infinite; }
+    .pp-minibar .mb-chip.arrest b  { color:#fff; }
+    .pp-minibar .mb-chip.pain.warn { background:#fef3c7; border-color:#fde68a; color:#92400e; }
+    .pp-minibar .mb-chip.pain.bad  { background:#fee2e2; border-color:#fecaca; color:#991b1b; }
+    .pp-minibar .mb-chip.empty     { opacity:0.45; }
+    @keyframes ppArrestPulse { 0%,100%{transform:scale(1)} 50%{transform:scale(1.05)} }
+    /* Compact on narrow widths */
+    @media (max-width:767px){
+      .pp-minibar { padding:4px 10px; }
+      .pp-minibar .mb-chip { padding:1px 7px; font-size:10px; gap:3px; }
+      .pp-minibar .mb-chip .lbl { font-size:8px; letter-spacing:0; }
+      .pp-minibar .mb-chip b { font-size:10px; }
+    }
+
+    /* ========== STEP 3 POLISH (non-split layout) ========== */
+
+    /* Fix 1 — first card gap from header in non-split layout (≤1399px).
+       Split layout at ≥1400 has its own card padding via tr-split-active rule. */
+    @media (max-width:1399px){
+      #step3-panel > :first-child { margin-top:14px !important; }
+    }
+
+    /* Fix 2a — compact the blue "summary" info banner (ET Tube · Vent · IV Lines) */
+    #step3-panel > .alert.alert-primary {
+      padding:8px 14px !important;
+      margin-bottom:14px !important;
+      border-radius:10px !important;
+    }
+    #step3-panel > .alert.alert-primary > i {
+      font-size:14px !important;
+      margin-right:8px !important;
+      flex-shrink:0;
+    }
+    #step3-panel > .alert.alert-primary #summ-content {
+      font-size:12.5px !important;
+      display:flex; gap:6px; flex-wrap:wrap;
+    }
+    #step3-panel > .alert.alert-primary #summ-airway,
+    #step3-panel > .alert.alert-primary #summ-vent,
+    #step3-panel > .alert.alert-primary #summ-iv {
+      font-size:12px !important;
+      padding:3px 9px !important;
+      font-weight:600 !important;
+      border-radius:8px !important;
+    }
+
+    /* Fix 2b — compact the "รายการ IV Lines จากจุดเกิดเหตุ/ER" header */
+    #step3-initial-iv-placeholder h6 {
+      font-size:12px !important;
+      font-weight:700 !important;
+      color:#64748b !important;
+      text-transform:uppercase;
+      letter-spacing:0.5px;
+      margin-bottom:8px !important;
+    }
+    #step3-initial-iv-placeholder h6 i {
+      font-size:12px !important;
+      margin-right:4px !important;
+    }
+
+    /* Fix 3 — vital log pills: equalize height + baseline alignment + column alignment.
+       Per-type min-widths keep BP/PR/RR/T°/SpO2/GCS in same column across rows.
+       Missing values render as grey "BP —" / "PR —" pill (visible but de-emphasized) so the
+       reader can scan at-a-glance which fields weren't recorded. Arrest rows opt out. */
+    .pp-vital-compact { align-items:center; row-gap:4px; }
+    .pp-vital-compact .pp-v-time {
+      font-size:12.5px !important;
+      padding:5px 11px !important;
+      line-height:18px !important;
+      display:inline-flex; align-items:center;
+    }
+    .pp-vital-compact .pp-v-tag {
+      font-size:12.5px !important;
+      padding:0 10px !important;       /* vertical centering via fixed height instead of padding */
+      line-height:1 !important;
+      height:28px !important;          /* fixed height — gcs with <b> won't render taller */
+      margin:0 !important;             /* Override Bootstrap .alert margin-bottom:16px when GCS uses .gcs.alert */
+      position:static !important;      /* Override Bootstrap .alert position:relative */
+      display:inline-flex; align-items:center; gap:3px;
+      justify-content:center;
+      box-sizing:border-box;
+    }
+    .pp-vital-compact .pp-v-tag b { line-height:1; }
+    /* Per-type min-widths — keep columns aligned across rows (only on standard vital rows) */
+    .vital-log-entry.pp-vital-compacted:not(.arrest-log-entry) .pp-v-tag.bp   { min-width:88px; }
+    .vital-log-entry.pp-vital-compacted:not(.arrest-log-entry) .pp-v-tag.pr   { min-width:68px; }
+    .vital-log-entry.pp-vital-compacted:not(.arrest-log-entry) .pp-v-tag.rr   { min-width:60px; }
+    .vital-log-entry.pp-vital-compacted:not(.arrest-log-entry) .pp-v-tag.temp { min-width:72px; }
+    .vital-log-entry.pp-vital-compacted:not(.arrest-log-entry) .pp-v-tag.spo2 { min-width:88px; }
+    .vital-log-entry.pp-vital-compacted:not(.arrest-log-entry) .pp-v-tag.gcs  { min-width:78px; }
+    /* Empty placeholder — grey muted pill with "—", same min-width per type */
+    .pp-vital-compact .pp-v-tag.empty {
+      background:#f1f5f9 !important;
+      color:#94a3b8 !important;
+    }
+
     /* ============================================================
        END: pp-* classes
        ============================================================ */
@@ -1756,8 +1955,11 @@
      Logic preserved — bottom-nav buttons call existing v2SetListTab().
      Right column .tr-dash-right gets portaled into bottom sheet.
      ============================================================ */
-  @media (max-width: 1024px) and (orientation: portrait) {
-    /* Hide sidebar subnav (replaced by bottom nav below) */
+  @media (max-width: 991px) {
+    /* Hide sidebar subnav (replaced by bottom nav below).
+       NOTE: changed from (max-width:1024) and (orientation:portrait) → (max-width:991) only.
+       Reason: Windows desktop browser at narrow width often reports portrait (height > width when DevTools open),
+       causing subnav to hide at 992-1024 unexpectedly. Subnav-hide should match the .v2-subnav rule at line 61 (≤991). */
     body .v2-subnav { display: none !important; }
     /* Reclaim left padding the subnav was taking */
     body #app-main-wrapper { padding-left: 0 !important; }
@@ -1875,8 +2077,9 @@
     body.tr-dash-has-rc #app-main-wrapper > .container,
     body #app-main-wrapper > .container { padding-right: 0 !important; }
   }
-  /* Desktop / landscape: ensure bottom nav never shows */
-  @media (min-width: 1025px), (orientation: landscape) {
+  /* Desktop ≥992px: ensure bottom nav never shows (subnav handles nav instead).
+     Matches the .v2-subnav rule at line 61 (≤991) so bnav and subnav don't overlap. */
+  @media (min-width: 992px) {
     .pt-bnav, .pt-bsheet, .pt-bsheet-bd { display: none !important; }
   }
 </style>
@@ -3004,6 +3207,21 @@
                 </div>
               </div>
             </div>
+            <!-- V/S Minibar — compact 1-line latest vitals strip (ported from prototype) -->
+            <div id="vital-minibar" class="pp-minibar v2-tb-row3 no-print d-none">
+              <div class="mb-vitals">
+                <span class="mb-chip empty" id="mb-bp"><span class="lbl">BP</span><b>--</b></span>
+                <span class="mb-chip empty" id="mb-pr"><span class="lbl">PR</span><b>--</b></span>
+                <span class="mb-chip empty" id="mb-rr"><span class="lbl">RR</span><b>--</b></span>
+                <span class="mb-chip empty" id="mb-spo2"><span class="lbl">SpO2</span><b>--</b></span>
+                <span class="mb-chip empty" id="mb-temp"><span class="lbl">T°</span><b>--</b></span>
+                <span class="mb-chip empty" id="mb-dtx"><span class="lbl">DTX</span><b>--</b></span>
+                <span class="mb-chip gcs" id="mb-gcs"><span class="lbl">GCS</span><b>15</b></span>
+                <span class="mb-chip pain" id="mb-pain"><span class="lbl">Pain</span><b>0</b></span>
+                <span class="mb-chip airway" id="mb-airway" style="display:none;"><i class="bi bi-lock-fill"></i><b>--</b></span>
+                <span class="mb-chip arrest" id="mb-arrest" style="display:none;"><i class="bi bi-heart-pulse-fill"></i><b>ARREST</b></span>
+              </div>
+            </div>
           </div>
           <div id="reopen-banner" class="alert alert-warning d-none no-print py-2 px-3 d-flex align-items-center justify-content-between rounded-3 mb-3">
             <span class="small fw-medium"><i class="bi bi-lock me-1"></i> เคสนี้ปิดแล้ว — ไม่สามารถแก้ไขได้</span>
@@ -3648,7 +3866,7 @@
                     </div>
                     <div class="form-check form-switch pp-vent-switch" style="margin-top:14px;">
                       <input class="form-check-input" type="checkbox" id="aiv-sedate">
-                      <label class="form-check-label" for="aiv-sedate" style="cursor:pointer;">🔵 Sedate · ยานอนหลับ / sedation</label>
+                      <label class="form-check-label" for="aiv-sedate" style="cursor:pointer;">Sedate · ยานอนหลับ / sedation</label>
                     </div>
                   </div>
                   <div class="pp-modal-foot">
@@ -7610,7 +7828,9 @@
           '</div>';
         if (aNote) html += '<div class="pp-v-note">' + ppEsc(aNote) + '</div>';
       } else {
-        // Standard vital row
+        // Standard vital row — render ALL pill slots. Missing values show grey "—" placeholder
+        // so columns stay aligned (BP/GCS in same x position across rows) and reader sees at-a-glance
+        // which fields weren't recorded.
         var bp   = (row.querySelector('.v-bp')   || {}).value || '';
         var pr   = (row.querySelector('.v-pr')   || {}).value || '';
         var rr   = (row.querySelector('.v-rr')   || {}).value || '';
@@ -7621,15 +7841,22 @@
         var gV   = (row.querySelector('.v-gcs-v') || {}).value || '';
         var gM   = (row.querySelector('.v-gcs-m') || {}).value || '';
         var note = (row.querySelector('.v-note') || {}).value || '';
-        if (bp)   html += '<span class="pp-v-tag bp">BP <b>' + ppEsc(bp) + '</b></span>';
-        if (pr)   html += '<span class="pp-v-tag pr">PR <b>' + ppEsc(pr) + '</b></span>';
-        if (rr)   html += '<span class="pp-v-tag rr">RR <b>' + ppEsc(rr) + '</b></span>';
-        if (temp) html += '<span class="pp-v-tag temp">T° <b>' + ppEsc(temp) + '</b></span>';
-        if (spo2) html += '<span class="pp-v-tag spo2">SpO2 <b>' + ppEsc(spo2) + '%</b></span>';
+        html += bp   ? '<span class="pp-v-tag bp">BP <b>'   + ppEsc(bp)   + '</b></span>'
+                     : '<span class="pp-v-tag bp empty">BP —</span>';
+        html += pr   ? '<span class="pp-v-tag pr">PR <b>'   + ppEsc(pr)   + '</b></span>'
+                     : '<span class="pp-v-tag pr empty">PR —</span>';
+        html += rr   ? '<span class="pp-v-tag rr">RR <b>'   + ppEsc(rr)   + '</b></span>'
+                     : '<span class="pp-v-tag rr empty">RR —</span>';
+        html += temp ? '<span class="pp-v-tag temp">T° <b>' + ppEsc(temp) + '</b></span>'
+                     : '<span class="pp-v-tag temp empty">T° —</span>';
+        html += spo2 ? '<span class="pp-v-tag spo2">SpO2 <b>' + ppEsc(spo2) + '%</b></span>'
+                     : '<span class="pp-v-tag spo2 empty">SpO2 —</span>';
         if (gE || gV || gM) {
           var gcs = ppCalcGcs(gE, gV, gM);
           var critCls = (gcs.total <= 8) ? 'coma' : (gcs.total <= 12) ? 'drowsy' : 'alert';
           html += '<span class="pp-v-tag gcs ' + critCls + '">GCS <b>' + ppEsc(gcs.totalDisp) + '</b></span>';
+        } else {
+          html += '<span class="pp-v-tag gcs empty">GCS —</span>';
         }
         if (pain && pain !== '0') html += '<span class="pp-v-tag pain">Pain <b>' + ppEsc(pain) + '</b></span>';
         html += '<div class="pp-v-actions">' +
@@ -7803,13 +8030,222 @@
         if (typeof ppRefreshNeuroSummary === 'function' && document.getElementById('row-neuro-summary')) ppRefreshNeuroSummary();
         if (typeof ppRefreshBodySummary === 'function' && document.getElementById('row-body-summary')) ppRefreshBodySummary();
         if (typeof ppRefreshDrainSummary === 'function' && document.getElementById('row-drain-summary')) ppRefreshDrainSummary();
+        if (typeof ppRefreshMinibar === 'function') ppRefreshMinibar();
       }, 300);
     });
+
+    // ========================================================
+    // V/S MINIBAR — compact latest vitals strip in topbar
+    // Reads from production DOM: initial vitals (name="init_*"), latest vital log row,
+    // GCS (gcs_e/v/m), pain_score, airway_type radio, arrest_pre_arrest checkbox.
+    // ========================================================
+    function ppRefreshMinibar() {
+      var bar = document.getElementById('vital-minibar');
+      if (!bar) return;
+      function nv(name) {
+        var el = document.querySelector('[name="' + name + '"]');
+        return el ? (el.value || '') : '';
+      }
+      // Latest vital log entry (non-arrest)
+      var rows = document.querySelectorAll('.vital-log-entry:not(.arrest-log-entry)');
+      var latest = null;
+      if (rows.length) {
+        var r = rows[rows.length - 1];
+        latest = {
+          bp:   (r.querySelector('.v-bp')   || {}).value || '',
+          pr:   (r.querySelector('.v-pr')   || {}).value || '',
+          rr:   (r.querySelector('.v-rr')   || {}).value || '',
+          spo2: (r.querySelector('.v-spo2') || {}).value || '',
+          temp: (r.querySelector('.v-temp') || {}).value || ''
+        };
+      }
+      var init = {
+        bp:   nv('init_bp'),
+        pr:   nv('init_pr'),
+        rr:   nv('init_rr'),
+        spo2: nv('init_spo2'),
+        temp: nv('init_temp'),
+        dtx:  nv('init_dtx')
+      };
+      function pick(f) {
+        if (latest && latest[f]) return latest[f];
+        if (init[f]) return init[f];
+        return null;
+      }
+      function setChip(id, val) {
+        var el = document.getElementById(id);
+        if (!el) return;
+        var b = el.querySelector('b');
+        if (val) {
+          el.classList.remove('empty');
+          if (b) b.textContent = val;
+        } else {
+          el.classList.add('empty');
+          if (b) b.textContent = '--';
+        }
+      }
+      setChip('mb-bp',   pick('bp'));
+      setChip('mb-pr',   pick('pr'));
+      setChip('mb-rr',   pick('rr'));
+      setChip('mb-spo2', pick('spo2'));
+      setChip('mb-temp', pick('temp'));
+      setChip('mb-dtx',  init.dtx);
+      // GCS — use ppCalcGcs if available, else compute inline
+      var gE = nv('gcs_e'), gV = nv('gcs_v'), gM = nv('gcs_m');
+      var gcsChip = document.getElementById('mb-gcs');
+      if (gcsChip) {
+        gcsChip.classList.remove('amber', 'red');
+        if (!gE && !gV && !gM) {
+          gcsChip.classList.add('empty');
+          var gb0 = gcsChip.querySelector('b');
+          if (gb0) gb0.textContent = '--';
+        } else {
+          gcsChip.classList.remove('empty');
+          var info = (typeof ppCalcGcs === 'function')
+            ? ppCalcGcs(gE, gV, gM)
+            : (function(){
+                var e = parseInt(gE,10)||0, m = parseInt(gM,10)||0, isT = gV==='VT';
+                var v = isT ? 0 : (parseInt(gV,10)||0);
+                var t = e+v+m;
+                return { total:t, totalDisp:isT?(t+'T'):String(t) };
+              })();
+          if (info.total > 0 && info.total < 9) gcsChip.classList.add('red');
+          else if (info.total > 0 && info.total < 13) gcsChip.classList.add('amber');
+          var gb = gcsChip.querySelector('b');
+          if (gb) gb.textContent = info.totalDisp;
+        }
+      }
+      // Pain
+      var painN = parseInt(nv('pain_score'), 10) || 0;
+      var painChip = document.getElementById('mb-pain');
+      if (painChip) {
+        painChip.classList.remove('warn', 'bad');
+        if (painN >= 7) painChip.classList.add('bad');
+        else if (painN >= 4) painChip.classList.add('warn');
+        var pb = painChip.querySelector('b');
+        if (pb) pb.textContent = painN;
+      }
+      // Airway — show if not Open Airway
+      var awChip = document.getElementById('mb-airway');
+      if (awChip) {
+        var airwayChecked = document.querySelector('input[name="airway_type"]:checked');
+        var airwayVal = airwayChecked ? airwayChecked.value : '';
+        // "Open" = Open Airway (default unconscious-but-airway-intact) — hide.
+        // Other values: "Management" (LMA/SGA), "ET Tube", "Tracheostomy" → show.
+        if (airwayVal && airwayVal !== 'Open') {
+          awChip.style.display = '';
+          var ab = awChip.querySelector('b');
+          if (ab) ab.textContent = airwayVal === 'Management' ? 'LMA/SGA' : airwayVal;
+        } else {
+          awChip.style.display = 'none';
+        }
+      }
+      // Arrest pre-arrest
+      var arChip = document.getElementById('mb-arrest');
+      if (arChip) {
+        var arrestEl = document.querySelector('[name="arrest_pre_arrest"]');
+        var hasArrest = arrestEl && (arrestEl.type === 'checkbox' ? arrestEl.checked : arrestEl.value === 'true' || arrestEl.value === 'on');
+        if (hasArrest) {
+          arChip.style.display = '';
+          var rhythmEl = document.querySelector('[name="arrest_pre_rhythm"]:checked, [name="arrest_pre_rhythm"]');
+          var outcomeEl = document.querySelector('[name="arrest_pre_outcome"]:checked, [name="arrest_pre_outcome"]');
+          var rhythm = rhythmEl ? (rhythmEl.value || '?') : '?';
+          var outcome = outcomeEl ? (outcomeEl.value || 'Ongoing') : 'Ongoing';
+          var arb = arChip.querySelector('b');
+          if (arb) arb.textContent = (rhythm || '?') + ' · ' + (outcome || 'Ongoing');
+        } else {
+          arChip.style.display = 'none';
+        }
+      }
+      // Toggle visibility based on form view state
+      var formActive = document.body.classList.contains('form-mode') ||
+                       (document.getElementById('form-view') && document.getElementById('form-view').classList.contains('active'));
+      var hasCase = !!(document.getElementById('caseId') && document.getElementById('caseId').value);
+      if (formActive && hasCase) bar.classList.remove('d-none');
+      else bar.classList.add('d-none');
+    }
+
+    // Hook into events that change displayed vitals
+    (function ppMinibarHooks(){
+      function safeRefresh() { if (typeof ppRefreshMinibar === 'function') ppRefreshMinibar(); }
+      // Defer wrap until after page scripts finished defining production functions
+      document.addEventListener('DOMContentLoaded', function(){
+        setTimeout(function(){
+          // After form populate (load case)
+          if (typeof window.populateForm === 'function') {
+            var _origPF = window.populateForm;
+            window.populateForm = function(){
+              _origPF.apply(this, arguments);
+              setTimeout(safeRefresh, 100);
+            };
+          }
+          // After new vital row added
+          if (typeof window.addVitalLog === 'function') {
+            var _origAV = window.addVitalLog;
+            window.addVitalLog = function(){
+              _origAV.apply(this, arguments);
+              safeRefresh();
+            };
+          }
+        }, 400);
+      });
+
+      // Watch caseId input — when value changes (case load / new case), refresh.
+      // Robust against missed populateForm wraps.
+      document.addEventListener('DOMContentLoaded', function(){
+        var caseId = document.getElementById('caseId');
+        if (!caseId) return;
+        var lastVal = caseId.value;
+        setInterval(function(){
+          if (caseId.value !== lastVal) {
+            lastVal = caseId.value;
+            setTimeout(safeRefresh, 200);
+          }
+        }, 500);
+      });
+
+      // Generic input listener: any change to init_*, gcs_*, pain_score, airway_type, arrest → refresh
+      document.addEventListener('change', function(e){
+        var t = e.target; if (!t || !t.name) return;
+        if (/^init_|^gcs_|^pain_score$|^airway_type$|^arrest_pre/.test(t.name)) safeRefresh();
+      });
+      // Vital log row inputs change (BP/PR/etc on latest row)
+      document.addEventListener('input', function(e){
+        var t = e.target; if (!t || !t.classList) return;
+        if (t.classList.contains('v-bp') || t.classList.contains('v-pr') || t.classList.contains('v-rr') ||
+            t.classList.contains('v-temp') || t.classList.contains('v-spo2')) safeRefresh();
+      });
+    })();
+
+    // Relocate all pp-modal-backdrop elements to body level on page load.
+    // Reason: modals (m-iv, m-neuro, m-body, m-drain, m-eq, m-add-vital, m-add-arrest) live inside
+    // step2-panel in HTML for authoring convenience. When user navigates to Step 3, step2-panel
+    // gets .d-none → modals nested inside become display:none → opening them programmatically
+    // doesn't show anything. Hoisting to body keeps them reachable from any step.
+    (function ppHoistModals(){
+      function hoist() {
+        var modals = document.querySelectorAll('.pp-modal-backdrop');
+        modals.forEach(function(m){
+          if (m.parentElement && m.parentElement !== document.body) {
+            document.body.appendChild(m);
+          }
+        });
+      }
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', hoist);
+      } else {
+        hoist();
+      }
+    })();
 
     // pp-modal open/close (used by Arrest chip → modal, future Neuro/Body/Drain modals)
     function ppOpenModal(id) {
       var m = document.getElementById(id);
       if (m) {
+        // Safety: if modal still nested under a hidden ancestor, hoist it now.
+        if (m.parentElement !== document.body) {
+          document.body.appendChild(m);
+        }
         m.classList.add('open');
         document.body.style.overflow = 'hidden';
       }
@@ -8533,34 +8969,33 @@
        var initialRows = initialContainer.querySelectorAll('.iv-row');
        if(initialRows.length === 0) return;
 
-       var header = document.createElement('h6');
-       header.className = "card-title fw-bold text-secondary mb-2";
-       header.innerHTML = '<i class="bi bi-clock-history me-1"></i> รายการ IV Lines จากจุดเกิดเหตุ/ER';
-       targetDisplay.appendChild(header);
-
+       // Single card wrapping all entries as inline lines — denser display, just an FYI of
+       // what fluids the patient received pre-transport. Data lives in initial-iv-lines-container
+       // (Step 2); this is display-only. No .iv-row class → getFormData() ignores it.
+       var card = document.createElement('div');
+       card.className = 'pp-iv-readonly-card';
+       var header = '<div class="pp-iv-readonly-card-head"><i class="bi bi-clock-history me-1"></i> รายการ IV Lines จากจุดเกิดเหตุ/ER</div>';
+       var esc = function(s){ return typeof ppEsc==='function' ? ppEsc(s) : String(s==null?'':s); };
+       var lines = '';
        initialRows.forEach(function(row) {
-          var timeVal = row.querySelector('.iv-time').value;
-          var routeVal = row.querySelector('.iv-route-select').value;
-          var nameVal = row.querySelector('.iv-name').value;
-          var rateVal = row.querySelector('.iv-rate').value;
-          var sedateVal = row.querySelector('.iv-sedate').checked;
-
-          var clone = row.cloneNode(true);
-          clone.querySelector('.iv-time').value = timeVal;
-          clone.querySelector('.iv-route-select').value = routeVal;
-          clone.querySelector('.iv-name').value = nameVal;
-          clone.querySelector('.iv-rate').value = rateVal;
-          clone.querySelector('.iv-sedate').checked = sedateVal;
-
-          var inputs = clone.querySelectorAll('input, select');
-          for(var i=0; i<inputs.length; i++) inputs[i].disabled = true;
-
-          var actionCol = clone.querySelector('.col-2.text-end');
-          if(actionCol) actionCol.innerHTML = "";
-          clone.classList.remove('iv-row', 'shadow-sm');
-          clone.classList.add('iv-row-display', 'mb-2', 'bg-white', 'p-2', 'rounded-3', 'border', 'opacity-75');
-          targetDisplay.appendChild(clone);
+          var time   = (row.querySelector('.iv-time')         || {}).value || '';
+          var route  = (row.querySelector('.iv-route-select') || {}).value || 'IV';
+          var name   = (row.querySelector('.iv-name')         || {}).value || '';
+          var rate   = (row.querySelector('.iv-rate')         || {}).value || '';
+          var sedate = !!(row.querySelector('.iv-sedate')     || {}).checked;
+          var routeClass = (route === 'IO') ? 'io' : (route === 'Central Line') ? 'cl' : '';
+          lines +=
+             '<div class="pp-iv-readonly-line">' +
+                '<span class="pp-iv-time">' + esc(time || '--:--') + '</span>' +
+                '<span class="pp-iv-route ' + routeClass + '">' + esc(route) + '</span>' +
+                '<div class="pp-iv-body"><b>' + esc(name || '--') + '</b>' +
+                   (rate   ? ' · ' + esc(rate) : '') +
+                   (sedate ? ' <span class="pp-iv-sedate-tag">Sedate</span>' : '') +
+                '</div>' +
+             '</div>';
        });
+       card.innerHTML = header + lines;
+       targetDisplay.appendChild(card);
     }
 
     function generatePhysicalSummary() {
@@ -9268,12 +9703,15 @@
         d.arrestPre = getArrestData('pre');
 
         var eqList = [];
-        if (getChk('eq_spinal')) eqList.push('Spinal Board');
-        if (getChk('eq_scoop')) eqList.push('Scoop');
+        if (getChk('eq_spinal'))   eqList.push('Spinal Board');
+        if (getChk('eq_scoop'))    eqList.push('Scoop');
         if (getChk('eq_mattress')) eqList.push('Vacuum Mattress');
-        if (getChk('eq_monitor')) eqList.push('Monitor/Defib');
-        if (getChk('eq_ecmo')) eqList.push('ECMO');
-        if (getChk('eq_other')) eqList.push('Other: ' + getVal('eq_other_note'));
+        if (getChk('eq_monitor'))  eqList.push('Monitor/Defib');
+        if (getChk('eq_ecmo'))     eqList.push('ECMO');
+        if (getChk('eq_infusion')) eqList.push('Infusion Pump');
+        if (getChk('eq_syringe'))  eqList.push('Syringe Pump');
+        if (getChk('eq_suction'))  eqList.push('Suction');
+        if (getChk('eq_other'))    eqList.push('Other: ' + getVal('eq_other_note'));
         d.equipment = eqList.join(', ') || '-';
 
         var vitalsHtml = '';

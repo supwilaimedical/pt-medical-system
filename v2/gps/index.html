@@ -1064,8 +1064,8 @@
     .v2-gps-colheader .sub{ font-size:10px; }
   }
 
-  /* ============================================================ Mobile bottom nav (gps) ============================================================ */
-  @media (max-width: 1024px) and (orientation: portrait) {
+  /* ============================================================ Mobile bottom nav (gps) — synced to ≤991 to match .v2-subnav rule ============================================================ */
+  @media (max-width: 991px) {
     body .v2-subnav { display: none !important; }
     body #app-main-wrapper { padding-left: 0 !important; }
     body { padding-bottom: 76px !important; }
@@ -1118,7 +1118,7 @@
       background:#fff; border:0; border-bottom:1px solid #f1f5f9; font-size:14px; color:#0f172a;
       text-align:left; cursor:pointer; font-family:inherit; }
   }
-  @media (min-width: 1025px), (orientation: landscape) {
+  @media (min-width: 992px) {
     .pt-bnav, .pt-bsheet, .pt-bsheet-bd { display:none !important; }
   }
 </style>

@@ -862,8 +862,8 @@
     body::before, body::after { display:none !important; content:none !important; }
   }
 
-  /* ============================================================ Mobile bottom nav (monitor) ============================================================ */
-  @media (max-width: 1024px) and (orientation: portrait) {
+  /* ============================================================ Mobile bottom nav (monitor) — synced to ≤991 to match .v2-subnav rule ============================================================ */
+  @media (max-width: 991px) {
     body .v2-subnav { display: none !important; }
     body #app-main-wrapper { padding-left: 0 !important; }
     body { padding-bottom: 76px !important; }
@@ -892,7 +892,7 @@
     .pt-bnav a i { font-size:18px; line-height:1; }
     .pt-bnav a.active { color:#7c3aed; }
   }
-  @media (min-width: 1025px), (orientation: landscape) {
+  @media (min-width: 992px) {
     .pt-bnav { display:none !important; }
   }
 
@@ -3725,12 +3725,15 @@
 
         // Equipment
         var eqList = [];
-        if (gc('eq_spinal')) eqList.push('Spinal Board');
-        if (gc('eq_scoop')) eqList.push('Scoop');
+        if (gc('eq_spinal'))   eqList.push('Spinal Board');
+        if (gc('eq_scoop'))    eqList.push('Scoop');
         if (gc('eq_mattress')) eqList.push('Vacuum Mattress');
-        if (gc('eq_monitor')) eqList.push('Monitor/Defib');
-        if (gc('eq_ecmo')) eqList.push('ECMO');
-        if (gc('eq_other')) eqList.push('Other: ' + (g('eq_other_note') || ''));
+        if (gc('eq_monitor'))  eqList.push('Monitor/Defib');
+        if (gc('eq_ecmo'))     eqList.push('ECMO');
+        if (gc('eq_infusion')) eqList.push('Infusion Pump');
+        if (gc('eq_syringe'))  eqList.push('Syringe Pump');
+        if (gc('eq_suction'))  eqList.push('Suction');
+        if (gc('eq_other'))    eqList.push('Other: ' + (g('eq_other_note') || ''));
         var equipment = eqList.join(', ') || '-';
 
         // Arrest Pre
