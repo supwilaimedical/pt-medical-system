@@ -1412,6 +1412,19 @@
     .pp-limb-card .name-th { font-size:12px; font-weight:700; color:#1e293b; }
     .pp-limb-card .name-en { font-size:10px; color:#64748b; }
 
+    /* pp-summary-pills — pill-style row summary tinted to match each pp-row's color.
+       Lets user read everything on the card without needing to open the modal. */
+    .pp-summary-pills { display:flex; flex-wrap:wrap; gap:6px; margin-top:4px; }
+    .pp-summary-pill { padding:3px 10px; border-radius:12px; font-size:12px; font-weight:600; line-height:1.4; white-space:nowrap; }
+    .pp-row .pp-summary-pill { background:rgba(30,58,95,0.10); color:#1e3a5f; }
+    .pp-row.amber .pp-summary-pill { background:rgba(245,158,11,0.14); color:#92400e; }
+    .pp-row.teal  .pp-summary-pill { background:rgba(13,148,136,0.14); color:#0d6e69; }
+    .pp-row.red   .pp-summary-pill { background:rgba(239,68,68,0.14); color:#991b1b; }
+    /* GCS criticality pill override — by total score */
+    .pp-summary-pill.gcs-alert  { background:#dcfce7 !important; color:#166534 !important; }
+    .pp-summary-pill.gcs-drowsy { background:#fef3c7 !important; color:#854d0e !important; }
+    .pp-summary-pill.gcs-coma   { background:#fee2e2 !important; color:#991b1b !important; }
+
     /* ========== DRAINAGE MODAL ========== */
     .pp-drain-row { display:flex; align-items:center; gap:10px; background:#f8fafc; border:1px solid #e2e8f0; border-radius:10px; padding:10px 14px; margin-bottom:8px; flex-wrap:wrap; }
     .pp-drain-row .form-check-input { width:18px; height:18px; margin:0; cursor:pointer; }
@@ -5892,6 +5905,11 @@
                if (isReadOnly) { el.classList.add('d-none'); } else { el.classList.remove('d-none'); }
            }
        });
+       // Hide pp-row "Modal" cue buttons on closed cases (modal-open is blocked anyway — see ppOpenXxxModal guards).
+       document.querySelectorAll('.pp-row .edit-modal').forEach(function(el) {
+           if (isReadOnly) el.classList.add('d-none');
+           else el.classList.remove('d-none');
+       });
        document.querySelectorAll('[onclick*="openEditModal"], [onclick*="openInitVitalsPopup"], [onclick*="addArrestLog"], [onclick*="addVitalLog"]').forEach(function(el) {
            if (isReadOnly) { el.classList.add('d-none'); } else { el.classList.remove('d-none'); }
        });
@@ -6395,7 +6413,18 @@
     // ========================================================
     var PP_BODY_ACTIVE = null; // active limb for body modal
 
+    function ppEsc(s) {
+      return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+    }
+    function ppIsCaseClosed() {
+      var fs = document.getElementById('formStatus');
+      return !!(fs && fs.value === 'Completed');
+    }
+
     function ppOpenNeuroModal() {
+      // Closed cases: data is fully shown on the card as pills — don't open the
+      // disabled-input modal (user request 2026-05-25).
+      if (ppIsCaseClosed()) return;
       // Sync UI from hidden inputs
       var e = (document.getElementById('pp-h-gcs-e') || {}).value || '4';
       var v = (document.getElementById('gcs_v') || {}).value || '5';
@@ -6485,31 +6514,37 @@
       var m = (document.getElementById('pp-h-gcs-m') || {}).value || '?';
       var vNum = (vRaw === 'VT') ? 1 : (parseInt(vRaw, 10) || 0);
       var total = (parseInt(e, 10) || 0) + vNum + (parseInt(m, 10) || 0);
-      // GCS breakdown: E4V5M6 = 15 (so closed-case viewers see individual scores, not just total)
       var vDisp = (vRaw === 'VT') ? 'VT' : 'V' + vRaw;
-      var gcsStr = 'GCS E' + e + vDisp + 'M' + m + ' = ' + total;
-      // Pupils: format size + react label (combined "X/Y" handled gracefully)
+      var gcsCrit = (total <= 8) ? 'gcs-coma' : (total <= 12) ? 'gcs-drowsy' : 'gcs-alert';
+      var gcsTxt = 'GCS E' + e + vDisp + 'M' + m + ' = ' + total;
+      // Pupils
       var sizeRaw = (document.getElementById('pp-h-pupil-size') || {}).value || '';
       var reactRaw = (document.getElementById('pp-h-pupil-react') || {}).value || '';
       var reactLabel = function(v) {
         if (!v) return '-';
         if (v === 'Yes') return 'React';
         if (v === 'No') return 'No React';
-        return v; // Sluggish, Closed, or already-formatted "X/Y"
+        return v;
       };
-      var pupilStr = '';
+      var pupilTxt;
       if (sizeRaw || reactRaw) {
         var sizeOut = sizeRaw || '-';
         var reactOut = reactRaw.indexOf('/') > -1
           ? reactRaw.split('/').map(reactLabel).join('/')
           : reactLabel(reactRaw);
-        pupilStr = ' · Pupils ' + sizeOut + ' mm ' + reactOut;
+        pupilTxt = 'Pupils ' + sizeOut + ' mm ' + reactOut;
       } else {
-        pupilStr = ' · Pupils -';
+        pupilTxt = 'Pupils -';
       }
       var pain = (document.getElementById('pp-h-pain') || {}).value || '0';
       var sum = document.getElementById('row-neuro-summary');
-      if (sum) sum.textContent = gcsStr + pupilStr + ' · Pain ' + pain;
+      if (sum) {
+        sum.innerHTML = '<div class="pp-summary-pills">'
+          + '<span class="pp-summary-pill ' + gcsCrit + '">' + ppEsc(gcsTxt) + '</span>'
+          + '<span class="pp-summary-pill">' + ppEsc(pupilTxt) + '</span>'
+          + '<span class="pp-summary-pill">Pain ' + ppEsc(pain) + '</span>'
+          + '</div>';
+      }
     }
 
     // Click delegation for neuro modal pill rows
@@ -6586,6 +6621,7 @@
     // BODY EXAM MODAL — Motor + Exposure
     // ========================================================
     function ppOpenBodyModal() {
+      if (ppIsCaseClosed()) return;
       // Sync limb badges + cards from hidden motor_xx values
       ['ra', 'la', 'rl', 'll'].forEach(function(limb) {
         var motor = (document.getElementById('pp-h-motor-' + limb) || {}).value || '5';
@@ -6678,31 +6714,32 @@
       }
     });
     function ppRefreshBodySummary() {
-      // Motor score per limb — annotate with (!) if limb has exposure note
       var limbs = ['ra','la','rl','ll'];
       var labels = { ra:'RA', la:'LA', rl:'RL', ll:'LL' };
-      var motorStr = limbs.map(function(k) {
+      var motorTxt = 'Motor Power ' + limbs.map(function(k) {
         var motor = (document.getElementById('pp-h-motor-' + k) || {}).value || '?';
         var exp = (document.getElementById('pp-h-exp-' + k) || {}).value || '';
         return labels[k] + motor + (exp ? '(!)' : '');
       }).join(' · ');
-      // List which limbs + other have exposure notes for detail
-      var expDetails = [];
+      var pillsHtml = '<span class="pp-summary-pill">' + ppEsc(motorTxt) + '</span>';
       limbs.forEach(function(k) {
         var v = (document.getElementById('pp-h-exp-' + k) || {}).value || '';
-        if (v) expDetails.push(labels[k] + ': ' + v);
+        if (v) pillsHtml += '<span class="pp-summary-pill">' + ppEsc(labels[k] + ': ' + v) + '</span>';
       });
       var other = (document.getElementById('pp-h-exp-other') || {}).value || '';
-      if (other) expDetails.push('Other: ' + other);
-      var expStr = expDetails.length ? ' · ' + expDetails.join(', ') : ' · ไม่มีบาดแผล';
+      if (other) pillsHtml += '<span class="pp-summary-pill">' + ppEsc('Other: ' + other) + '</span>';
+      // If no exposure at all → show neutral "ไม่มีบาดแผล" pill
+      var hasExp = limbs.some(function(k){ return (document.getElementById('pp-h-exp-' + k) || {}).value; }) || other;
+      if (!hasExp) pillsHtml += '<span class="pp-summary-pill">ไม่มีบาดแผล</span>';
       var sum = document.getElementById('row-body-summary');
-      if (sum) sum.textContent = motorStr + expStr;
+      if (sum) sum.innerHTML = '<div class="pp-summary-pills">' + pillsHtml + '</div>';
     }
 
     // ========================================================
     // DRAINAGE MODAL — ICD / NG / Foley / Other
     // ========================================================
     function ppOpenDrainModal() {
+      if (ppIsCaseClosed()) return;
       // Sync 4 toggles + notes from hidden production fields
       ['icd','ng','foley','other'].forEach(function(key) {
         var chk = document.getElementById('dr-ui-' + key);
@@ -6741,17 +6778,18 @@
       }
     });
     function ppRefreshDrainSummary() {
-      var parts = [];
+      var pillsHtml = '';
+      var keyLabels = { icd:'ICD', ng:'NG/OG', foley:'Foley', other:'Other' };
       ['icd','ng','foley','other'].forEach(function(key) {
         var chk = document.getElementById('pp-h-dr-' + key);
         var note = (document.getElementById('pp-h-dr-' + key + '-note') || {}).value || '';
         if (chk && chk.checked) {
-          var label = ({icd:'ICD', ng:'NG/OG', foley:'Foley', other:'Other'})[key];
-          parts.push(label + (note ? ': ' + note : ''));
+          pillsHtml += '<span class="pp-summary-pill">' + ppEsc(keyLabels[key] + (note ? ': ' + note : '')) + '</span>';
         }
       });
+      if (!pillsHtml) pillsHtml = '<span class="pp-summary-pill">ไม่มีสายระบาย</span>';
       var sum = document.getElementById('row-drain-summary');
-      if (sum) sum.textContent = parts.length ? parts.join(' · ') : 'ไม่มีสายระบาย';
+      if (sum) sum.innerHTML = '<div class="pp-summary-pills">' + pillsHtml + '</div>';
     }
 
     // Wrap updateAirwayLogic to also refresh neuro interlock (V=T lock) — must be wrapped
