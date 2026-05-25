@@ -1347,6 +1347,15 @@
     /* pp-vent-iface-chip — light-blue info chip showing detected airway → vent interface */
     .pp-vent-iface-chip { background:#fff; border:1px solid #bae6fd; border-radius:24px; padding:6px 14px; display:inline-flex; align-items:center; gap:6px; margin-bottom:10px; font-size:13px; color:#0ea5e9; font-weight:600; }
 
+    /* pp-input-group — input + Now button (prototype line 305-308) */
+    .pp-input-group { display:flex; gap:6px; align-items:center; }
+    .pp-input-group .pp-input { flex:1; }
+    .pp-btn-now { background:#fff; border:1px solid #cbd5e1; padding:8px 12px; border-radius:8px; font-size:12px; color:#334155; cursor:pointer; font-weight:600; display:inline-flex; align-items:center; gap:4px; white-space:nowrap; }
+    .pp-btn-now:hover { background:#f1f5f9; }
+
+    /* pp-context-chip — small pill at top of modal body showing Initial vs Transport context (prototype line 317) */
+    .pp-context-chip { background:#dbeafe; color:#1e40af; padding:5px 12px; border-radius:18px; font-size:12px; font-weight:700; display:inline-flex; align-items:center; gap:5px; margin-bottom:10px; }
+
     /* pp-airway-hint — small italic note under airway pills (e.g. "filtered by airway type") */
     .pp-airway-hint { font-size:11px; color:#94a3b8; font-weight:500; font-style:normal; }
 
@@ -3357,50 +3366,57 @@
                 </div>
               </div>
 
-              <!-- ============== MODAL: IV / Meds (Initial + Transport share via dataset.ctx) ==============
-                   Per prototype line 910+. On save → calls production addIvLine() to create the row
-                   (logic byte-identical), then populates fields with modal values + triggers saveData. -->
+              <!-- ============== MODAL: เพิ่มสารน้ำ / ยา (Add IV / Medication) ==============
+                   Direct port of prototype line 1525-1575 (m-add-iv). NO custom changes.
+                   On save → calls production addIvLine({time,route,name,rate,isSedate}, ...) — logic byte-identical.
+                   Rate + Unit combine into iv-rate field as "RATE UNIT" (e.g. "100 ml/hr"). -->
               <div class="pp-modal-backdrop" id="m-iv">
                 <div class="pp-modal sky">
                   <div class="pp-modal-head">
                     <i class="bi bi-droplet-fill ic" style="color:#0ea5e9;"></i>
-                    <div class="title">เพิ่ม สารน้ำ / ยา<span class="sub" id="iv-modal-sub">Initial · ต้นทาง</span></div>
+                    <div class="title">เพิ่มสารน้ำ / ยา<span class="sub">Add IV / Medication</span></div>
                     <button type="button" class="close-x" onclick="ppCloseModal('m-iv')"><i class="bi bi-x-lg"></i></button>
                   </div>
                   <div class="pp-modal-body">
-                    <div class="row g-3">
-                      <div class="col-md-6">
-                        <label class="small fw-bold text-secondary">เวลาเริ่ม</label>
-                        <div class="input-group input-group-sm">
-                          <input type="text" class="pp-input" id="iv-modal-time" placeholder="HH:MM" maxlength="5" inputmode="numeric" oninput="maskTime(this)">
-                          <button type="button" class="btn btn-sm" onclick="ppIvNow()" style="background:#fff; border:1px solid #bae6fd; color:#0ea5e9;"><i class="bi bi-clock"></i> Now</button>
+                    <div class="pp-context-chip" id="iv-context-chip">
+                      <i class="bi bi-truck"></i> <b>Context: Transport</b> (เพิ่มเข้า Step 3 IV log)
+                    </div>
+                    <div class="pp-sub-title" style="margin-top:0;">เวลา</div>
+                    <div class="pp-input-group" style="max-width:240px;">
+                      <input type="text" class="pp-input" id="aiv-time" placeholder="HH:MM" maxlength="5" inputmode="numeric" oninput="maskTime(this)">
+                      <button type="button" class="pp-btn-now" onclick="ppIvNow()"><i class="bi bi-clock"></i> Now</button>
+                    </div>
+                    <div class="pp-sub-title">Route</div>
+                    <div class="pp-pill-row" id="aiv-route-row">
+                      <div class="pp-pill sky active" data-value="IV"><i class="bi bi-droplet"></i> IV</div>
+                      <div class="pp-pill sky" data-value="IO"><i class="bi bi-record-circle"></i> IO</div>
+                      <div class="pp-pill sky" data-value="Central Line" id="aiv-cline"><i class="bi bi-lock-fill"></i> Central Line</div>
+                    </div>
+                    <div class="pp-sub-title">ชื่อสารน้ำ / ยา</div>
+                    <input type="text" class="pp-input" id="aiv-name" placeholder="เช่น NSS, Adrenaline, Morphine...">
+                    <div class="row g-3 mt-1">
+                      <div class="col-md-4">
+                        <label class="small fw-bold">Rate / Dose</label>
+                        <input type="text" class="pp-input" id="aiv-rate" placeholder="100">
+                      </div>
+                      <div class="col-md-8">
+                        <label class="small fw-bold">Unit</label>
+                        <div class="pp-pill-row" id="aiv-unit-row">
+                          <div class="pp-pill sky active" data-value="ml/hr">ml/hr</div>
+                          <div class="pp-pill sky" data-value="drops/min">drops/min</div>
+                          <div class="pp-pill sky" data-value="mg">mg</div>
+                          <div class="pp-pill sky" data-value="mcg/kg/min">mcg/kg/min</div>
                         </div>
                       </div>
-                      <div class="col-md-6">
-                        <label class="small fw-bold text-secondary">ชนิดสารน้ำ / ยา</label>
-                        <input type="text" class="pp-input" id="iv-modal-fluid" placeholder="NSS 0.9%, RLS, Norepinephrine...">
-                      </div>
-                      <div class="col-md-6">
-                        <label class="small fw-bold text-secondary">ปริมาตร (Volume)</label>
-                        <input type="text" class="pp-input" id="iv-modal-vol" placeholder="1000 mL, 100 mL, ...">
-                      </div>
-                      <div class="col-md-6">
-                        <label class="small fw-bold text-secondary">อัตรา (Rate)</label>
-                        <input type="text" class="pp-input" id="iv-modal-rate" placeholder="100 mL/hr, KVO, 80 ug/kg/min">
-                      </div>
-                      <div class="col-12">
-                        <label class="small fw-bold text-secondary">เส้นทาง (Route)</label>
-                        <div class="pp-pill-row" id="iv-modal-route-pills">
-                          <div class="pp-pill sky active" data-value="IV">IV</div>
-                          <div class="pp-pill sky" data-value="IO">IO</div>
-                          <div class="pp-pill sky" data-value="Central Line" id="iv-modal-route-cl">Central Line</div>
-                        </div>
-                      </div>
+                    </div>
+                    <div class="form-check form-switch p-3 bg-light rounded-3 border mt-3">
+                      <input class="form-check-input" type="checkbox" id="aiv-sedate">
+                      <label class="form-check-label fw-bold ms-2" for="aiv-sedate">🔵 Sedate · ยานอนหลับ / sedation</label>
                     </div>
                   </div>
                   <div class="pp-modal-foot">
                     <button type="button" class="btn-cancel" onclick="ppCloseModal('m-iv')">ยกเลิก</button>
-                    <button type="button" class="btn-save" style="background:#0ea5e9;" onclick="ppSaveIvModal()">บันทึก</button>
+                    <button type="button" class="btn-save" style="background:#0ea5e9;" onclick="ppSaveIvModal()"><i class="bi bi-plus-circle-fill"></i> บันทึก &amp; เพิ่มแถว</button>
                   </div>
                 </div>
               </div>
@@ -5965,34 +5981,63 @@
       }
     });
 
-    // IV Modal — per prototype line 910+. Collects fields, then delegates to production
-    // addIvLine() to create the actual editable row (logic byte-identical).
+    // IV Modal — DIRECT port of prototype line 1525+ (m-add-iv). Field ids match prototype
+    // (aiv-time/aiv-name/aiv-rate/aiv-sedate, aiv-route-row/aiv-unit-row pp-pill-row).
+    // On save → calls production addIvLine({time,route,name,rate,isSedate}, null, ...) — logic byte-identical.
     function ppOpenIvModal(context) {
       var m = document.getElementById('m-iv');
       if (!m) return;
       m.dataset.ctx = context || 'Initial';
-      var sub = document.getElementById('iv-modal-sub');
-      if (sub) sub.textContent = (context === 'Transport' ? 'Transport · ขณะนำส่ง' : 'Initial · ต้นทาง');
+      // Update context chip per prototype updateIvContextChip()
+      var chip = document.getElementById('iv-context-chip');
+      if (chip) {
+        if (context === 'Initial') {
+          chip.innerHTML = '<i class="bi bi-geo-alt-fill"></i> <b>Context: Initial</b> (สารน้ำที่ได้รับมาก่อนนำส่ง — Step 2)';
+          chip.style.background = '#fef3c7';
+          chip.style.color = '#92400e';
+        } else {
+          chip.innerHTML = '<i class="bi bi-truck"></i> <b>Context: Transport</b> (เพิ่มเข้า Step 3 IV log)';
+          chip.style.background = '#dbeafe';
+          chip.style.color = '#1e40af';
+        }
+      }
       // Reset fields
-      ['iv-modal-time', 'iv-modal-fluid', 'iv-modal-vol', 'iv-modal-rate'].forEach(function(id) {
+      ['aiv-time', 'aiv-name', 'aiv-rate'].forEach(function(id) {
         var el = document.getElementById(id);
         if (el) el.value = '';
       });
-      // Reset route pills — default to IV
-      var pills = document.querySelectorAll('#iv-modal-route-pills .pp-pill');
-      for (var i = 0; i < pills.length; i++) {
-        pills[i].classList.toggle('active', pills[i].getAttribute('data-value') === 'IV');
+      // Auto-stamp current time
+      var nowEl = document.getElementById('aiv-time');
+      if (nowEl) {
+        var n = new Date();
+        nowEl.value = String(n.getHours()).padStart(2,'0') + ':' + String(n.getMinutes()).padStart(2,'0');
       }
-      // Hide Central Line route option if has_central_line is false
+      var sedEl = document.getElementById('aiv-sedate');
+      if (sedEl) sedEl.checked = false;
+      // Reset route pills — default to IV
+      ppResetPillRow('aiv-route-row', 'IV');
+      // Reset unit pills — default to ml/hr
+      ppResetPillRow('aiv-unit-row', 'ml/hr');
+      // Lock Central Line option if no central line checked (prototype line 2270-2272)
       var clChk = document.getElementById('chk-central-line');
-      var clPill = document.getElementById('iv-modal-route-cl');
-      if (clPill) clPill.style.display = (clChk && clChk.checked) ? '' : 'none';
+      var clPill = document.getElementById('aiv-cline');
+      if (clPill) {
+        var locked = !(clChk && clChk.checked);
+        clPill.classList.toggle('locked', locked);
+        clPill.title = locked ? 'ต้อง check "มี Central Line" ที่ Circulation ก่อน' : '';
+      }
       ppOpenModal('m-iv');
+    }
+    function ppResetPillRow(rowId, activeValue) {
+      var pills = document.querySelectorAll('#' + rowId + ' .pp-pill');
+      for (var i = 0; i < pills.length; i++) {
+        pills[i].classList.toggle('active', pills[i].getAttribute('data-value') === activeValue);
+      }
     }
     function ppIvNow() {
       var now = new Date();
       var t = String(now.getHours()).padStart(2, '0') + ':' + String(now.getMinutes()).padStart(2, '0');
-      var el = document.getElementById('iv-modal-time');
+      var el = document.getElementById('aiv-time');
       if (el) el.value = t;
     }
     function ppSaveIvModal() {
@@ -6001,24 +6046,25 @@
       var ctx = m.dataset.ctx || 'Initial';
       var containerId = (ctx === 'Transport' ? 'iv-lines-container' : 'initial-iv-lines-container');
       var emptyId = (ctx === 'Transport' ? 'iv-empty' : 'initial-iv-empty');
-      var time = ((document.getElementById('iv-modal-time') || {}).value || '').trim();
-      var fluid = ((document.getElementById('iv-modal-fluid') || {}).value || '').trim();
-      var vol = ((document.getElementById('iv-modal-vol') || {}).value || '').trim();
-      var rate = ((document.getElementById('iv-modal-rate') || {}).value || '').trim();
-      var pill = document.querySelector('#iv-modal-route-pills .pp-pill.active');
-      var route = pill ? pill.getAttribute('data-value') : 'IV';
-      // Combine vol + rate into the single iv-rate field (production has 1 rate field).
-      var combinedRate = (vol && rate) ? (vol + ' @ ' + rate) : (rate || vol);
-      // Validation: require at least fluid name
-      if (!fluid) {
-        var fEl = document.getElementById('iv-modal-fluid');
-        if (fEl) fEl.focus();
+      var time = ((document.getElementById('aiv-time') || {}).value || '').trim();
+      var name = ((document.getElementById('aiv-name') || {}).value || '').trim();
+      var rateVal = ((document.getElementById('aiv-rate') || {}).value || '').trim();
+      var routePill = document.querySelector('#aiv-route-row .pp-pill.active');
+      var route = routePill ? routePill.getAttribute('data-value') : 'IV';
+      var unitPill = document.querySelector('#aiv-unit-row .pp-pill.active');
+      var unit = unitPill ? unitPill.getAttribute('data-value') : 'ml/hr';
+      var isSedate = !!(document.getElementById('aiv-sedate') || {}).checked;
+      // Combine rate + unit into the production iv-rate field (e.g. "100 ml/hr")
+      var combinedRate = rateVal ? (rateVal + ' ' + unit) : '';
+      // Validation: require at least name
+      if (!name) {
+        var nEl = document.getElementById('aiv-name');
+        if (nEl) nEl.focus();
         return;
       }
       if (typeof addIvLine !== 'function') return;
-      // Use data-object path so addIvLine populates time/route/name/rate directly.
-      // (addIvLine(null, time, ...) ignores defaultTime when data is null — stamps current time instead.)
-      addIvLine({ time: time, route: route, name: fluid, rate: combinedRate }, null, containerId, ctx);
+      // Use data-object path so addIvLine populates time/route/name/rate directly + sets sedate checkbox.
+      addIvLine({ time: time, route: route, name: name, rate: combinedRate, isSedate: isSedate }, null, containerId, ctx);
       // Data-object path skips production's auto-save block — fire it manually here:
       try { if (typeof formDirty !== 'undefined') formDirty = true; } catch(_) {}
       if (typeof saveData === 'function') saveData(false, true);
@@ -6027,17 +6073,16 @@
         if (cidEl) logActivity('ADD_IV', cidEl.value, ctx);
       }
       if (typeof updateIVSummaryCount === 'function') updateIVSummaryCount();
-      // Refresh empty-state visibility synchronously (don't wait for MutationObserver callback)
       ppRefreshIvEmpty(containerId, emptyId);
       ppCloseModal('m-iv');
     }
-    // Route pill click delegation for IV modal (and any future div-based pp-pill-row)
+    // Pill click delegation for IV modal (route + unit rows). Each row is a single-select.
     document.addEventListener('click', function(e) {
       if (!e.target || !e.target.closest) return;
-      var row = e.target.closest('#iv-modal-route-pills');
+      var row = e.target.closest('#aiv-route-row, #aiv-unit-row');
       if (!row) return;
       var pill = e.target.closest('.pp-pill');
-      if (!pill) return;
+      if (!pill || pill.classList.contains('locked')) return;
       var siblings = row.querySelectorAll('.pp-pill');
       for (var i = 0; i < siblings.length; i++) siblings[i].classList.remove('active');
       pill.classList.add('active');
