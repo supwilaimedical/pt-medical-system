@@ -6855,8 +6855,9 @@
           var sd = row.querySelector('.iv-sedate'); if (sd) sd.checked = isSedate;
           ppRenderIvCompact(row);
           try { if (typeof formDirty !== 'undefined') formDirty = true; } catch(_) {}
-          if (typeof saveData === 'function') saveData(false, true);
-          if (typeof updateIVSummaryCount === 'function') updateIVSummaryCount();
+          ppSaveDataWithFeedback('IV (แก้ไข)', function() {
+            if (typeof updateIVSummaryCount === 'function') updateIVSummaryCount();
+          });
         }
         delete m.dataset.editTargetId;
       } else {
@@ -6864,12 +6865,13 @@
         if (typeof addIvLine !== 'function') return;
         addIvLine({ time: time, route: route, name: name, rate: combinedRate, isSedate: isSedate }, null, containerId, ctx);
         try { if (typeof formDirty !== 'undefined') formDirty = true; } catch(_) {}
-        if (typeof saveData === 'function') saveData(false, true);
-        if (typeof logActivity === 'function') {
-          var cidEl = document.getElementById('caseId');
-          if (cidEl) logActivity('ADD_IV', cidEl.value, ctx);
-        }
-        if (typeof updateIVSummaryCount === 'function') updateIVSummaryCount();
+        ppSaveDataWithFeedback('IV / สารน้ำ', function() {
+          if (typeof logActivity === 'function') {
+            var cidEl = document.getElementById('caseId');
+            if (cidEl) logActivity('ADD_IV', cidEl.value, ctx);
+          }
+          if (typeof updateIVSummaryCount === 'function') updateIVSummaryCount();
+        });
       }
       ppRefreshIvEmpty(containerId, emptyId);
       ppCloseModal('m-iv');
@@ -6894,6 +6896,36 @@
 
     function ppEsc(s) {
       return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+    }
+    // Wrapper around production saveData that surfaces VERSION_CONFLICT errors.
+    // Production silent mode swallows row_version mismatches → user thinks vital saved
+    // but DB row wasn't updated → no webhook → no alert.
+    // Bug discovered 2026-05-25: case 577952 row_version=30 + vital_count=0 (all saves lost).
+    function ppSaveDataWithFeedback(label, onSuccess) {
+      if (typeof saveData !== 'function') return;
+      saveData(false, true, function(err) {
+        if (err && err.message === 'VERSION_CONFLICT') {
+          if (typeof Swal !== 'undefined') {
+            Swal.fire({
+              icon: 'warning',
+              title: 'บันทึก ' + label + ' ไม่สำเร็จ',
+              html: 'มีการอัปเดตข้อมูลจากที่อื่น (realtime sync / tab อื่น)<br>' +
+                    '<small class="text-muted">ระบบจะ pull ข้อมูลล่าสุดมาให้ใน 1-2 วินาที — โปรดเพิ่มข้อมูลอีกครั้ง</small>',
+              timer: 6000,
+              timerProgressBar: true,
+              showConfirmButton: false
+            });
+          }
+          return;
+        }
+        if (err) {
+          if (typeof Swal !== 'undefined') {
+            Swal.fire({ icon: 'error', title: 'บันทึก ' + label + ' ผิดพลาด', text: String(err.message || err), timer: 5000 });
+          }
+          return;
+        }
+        if (typeof onSuccess === 'function') onSuccess();
+      });
     }
     function ppIsCaseClosed() {
       var fs = document.getElementById('formStatus');
@@ -7460,11 +7492,12 @@
         if (typeof addVitalLog !== 'function') return;
         addVitalLog(false, data);
         try { if (typeof formDirty !== 'undefined') formDirty = true; } catch(_) {}
-        if (typeof saveData === 'function') saveData(false, true);
-        if (typeof logActivity === 'function') {
-          var cid = (document.getElementById('caseId') || {}).value || '';
-          logActivity('ADD_VITALS', cid, data.time);
-        }
+        ppSaveDataWithFeedback('Vital', function() {
+          if (typeof logActivity === 'function') {
+            var cid = (document.getElementById('caseId') || {}).value || '';
+            logActivity('ADD_VITALS', cid, data.time);
+          }
+        });
       }
       ppRefreshVitalEmpty();
       ppCloseModal('m-add-vital');
@@ -7525,11 +7558,12 @@
       if (typeof addArrestLog !== 'function') return;
       addArrestLog(false, data);
       try { if (typeof formDirty !== 'undefined') formDirty = true; } catch(_) {}
-      if (typeof saveData === 'function') saveData(false, true);
-      if (typeof logActivity === 'function') {
-        var cid = (document.getElementById('caseId') || {}).value || '';
-        logActivity('ARREST_LOG', cid, data.arrest_time);
-      }
+      ppSaveDataWithFeedback('Arrest', function() {
+        if (typeof logActivity === 'function') {
+          var cid = (document.getElementById('caseId') || {}).value || '';
+          logActivity('ARREST_LOG', cid, data.arrest_time);
+        }
+      });
       ppRefreshVitalEmpty();
       ppCloseModal('m-add-arrest');
     }
