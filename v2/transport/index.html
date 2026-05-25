@@ -2887,9 +2887,16 @@
                 </div>
               </div>
 
-              <!-- Airway -->
-              <div class="card p-4 mb-4 island-card">
-                 <h5 class="card-title fw-bold text-dark mb-3 border-bottom pb-2"><i class="bi bi-lungs-fill text-info me-2"></i> ทางเดินหายใจ (Airway)</h5>
+              <!-- Airway — match prototype line 583+ -->
+              <div class="card p-4 mb-4 island-card pp-island-card cyan">
+                 <div class="d-flex justify-content-between align-items-center mb-3 border-bottom pb-2 flex-wrap gap-2">
+                   <h5 class="card-title fw-bold text-dark m-0">
+                     <i class="bi bi-lungs-fill text-info me-2"></i> ทางเดินหายใจ (Airway)
+                     <small class="d-block fw-normal" style="font-size:11px; color:#64748b; margin-top:2px;">Airway management</small>
+                   </h5>
+                   <span class="pp-save-chip" style="background:#dcfce7; color:#15803d; padding:4px 10px; border-radius:20px; font-size:11px; font-weight:700; display:inline-flex; align-items:center; gap:4px;"><i class="bi bi-check-circle-fill"></i> auto</span>
+                 </div>
+                 <div class="fw-bold text-secondary mb-2" style="font-size:12px; text-transform:uppercase; letter-spacing:0.5px;">ประเภททางเดินหายใจ</div>
                  <div class="mb-3 d-flex flex-wrap gap-2">
                      <input type="radio" class="btn-check airway-radio" name="airway_type" id="aw1" value="Open" checked onchange="updateAirwayLogic()"><label class="btn btn-outline-secondary rounded-pill fw-medium" for="aw1">Open Airway</label>
                      <input type="radio" class="btn-check airway-radio" name="airway_type" id="aw2" value="Management" onchange="updateAirwayLogic()"><label class="btn btn-outline-secondary rounded-pill fw-medium" for="aw2">Airway Mgt.</label>
