@@ -2854,10 +2854,13 @@
 
             <!-- STEP 2: PHYSICAL ASSESSMENT -->
             <div id="step2-panel" class="d-none">
-              <!-- Initial Vitals -->
-              <div class="card p-4 mb-4 island-card">
+              <!-- Initial Vitals (V/S) — match prototype v2/preview/transport-step2-step3-redesign.html#L552 -->
+              <div class="card p-4 mt-4 mb-4 island-card pp-island-card red">
                 <div class="d-flex justify-content-between align-items-center mb-3 border-bottom pb-2">
-                  <h5 class="card-title fw-bold text-dark m-0"><i class="bi bi-activity text-danger me-2"></i> สัญญาณชีพแรกรับ (ต้นทาง / จุดเกิดเหตุ)</h5>
+                  <h5 class="card-title fw-bold text-dark m-0">
+                    <i class="bi bi-activity text-danger me-2"></i> สัญญาณชีพแรกรับ (ต้นทาง / จุดเกิดเหตุ)
+                    <small class="d-block fw-normal" style="font-size:11px; color:#64748b; margin-top:2px;">Initial V/S · จุดเริ่มต้น</small>
+                  </h5>
                   <button type="button" class="btn btn-sm btn-outline-danger rounded-pill px-3 fw-bold shadow-sm no-print" id="btn-record-init-vitals" onclick="openInitVitalsPopup()">
                     <i class="bi bi-plus-circle-fill me-1"></i> บันทึก V/S แรกรับ
                   </button>
