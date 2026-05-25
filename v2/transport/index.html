@@ -6485,11 +6485,31 @@
       var m = (document.getElementById('pp-h-gcs-m') || {}).value || '?';
       var vNum = (vRaw === 'VT') ? 1 : (parseInt(vRaw, 10) || 0);
       var total = (parseInt(e, 10) || 0) + vNum + (parseInt(m, 10) || 0);
-      var sizeStr = (document.getElementById('pp-h-pupil-size') || {}).value || '-';
-      var reactStr = (document.getElementById('pp-h-pupil-react') || {}).value || '-';
+      // GCS breakdown: E4V5M6 = 15 (so closed-case viewers see individual scores, not just total)
+      var vDisp = (vRaw === 'VT') ? 'VT' : 'V' + vRaw;
+      var gcsStr = 'GCS E' + e + vDisp + 'M' + m + ' = ' + total;
+      // Pupils: format size + react label (combined "X/Y" handled gracefully)
+      var sizeRaw = (document.getElementById('pp-h-pupil-size') || {}).value || '';
+      var reactRaw = (document.getElementById('pp-h-pupil-react') || {}).value || '';
+      var reactLabel = function(v) {
+        if (!v) return '-';
+        if (v === 'Yes') return 'React';
+        if (v === 'No') return 'No React';
+        return v; // Sluggish, Closed, or already-formatted "X/Y"
+      };
+      var pupilStr = '';
+      if (sizeRaw || reactRaw) {
+        var sizeOut = sizeRaw || '-';
+        var reactOut = reactRaw.indexOf('/') > -1
+          ? reactRaw.split('/').map(reactLabel).join('/')
+          : reactLabel(reactRaw);
+        pupilStr = ' · Pupils ' + sizeOut + ' mm ' + reactOut;
+      } else {
+        pupilStr = ' · Pupils -';
+      }
       var pain = (document.getElementById('pp-h-pain') || {}).value || '0';
       var sum = document.getElementById('row-neuro-summary');
-      if (sum) sum.textContent = 'GCS ' + total + ' · Pupils ' + sizeStr + ' ' + reactStr + ' · Pain ' + pain;
+      if (sum) sum.textContent = gcsStr + pupilStr + ' · Pain ' + pain;
     }
 
     // Click delegation for neuro modal pill rows
@@ -6658,15 +6678,25 @@
       }
     });
     function ppRefreshBodySummary() {
-      var motorRA = (document.getElementById('pp-h-motor-ra') || {}).value || '?';
-      var motorLA = (document.getElementById('pp-h-motor-la') || {}).value || '?';
-      var motorRL = (document.getElementById('pp-h-motor-rl') || {}).value || '?';
-      var motorLL = (document.getElementById('pp-h-motor-ll') || {}).value || '?';
-      var anyExp = ['ra','la','rl','ll','other'].some(function(k) {
-        return (document.getElementById('pp-h-exp-' + k) || {}).value;
+      // Motor score per limb — annotate with (!) if limb has exposure note
+      var limbs = ['ra','la','rl','ll'];
+      var labels = { ra:'RA', la:'LA', rl:'RL', ll:'LL' };
+      var motorStr = limbs.map(function(k) {
+        var motor = (document.getElementById('pp-h-motor-' + k) || {}).value || '?';
+        var exp = (document.getElementById('pp-h-exp-' + k) || {}).value || '';
+        return labels[k] + motor + (exp ? '(!)' : '');
+      }).join(' · ');
+      // List which limbs + other have exposure notes for detail
+      var expDetails = [];
+      limbs.forEach(function(k) {
+        var v = (document.getElementById('pp-h-exp-' + k) || {}).value || '';
+        if (v) expDetails.push(labels[k] + ': ' + v);
       });
+      var other = (document.getElementById('pp-h-exp-other') || {}).value || '';
+      if (other) expDetails.push('Other: ' + other);
+      var expStr = expDetails.length ? ' · ' + expDetails.join(', ') : ' · ไม่มีบาดแผล';
       var sum = document.getElementById('row-body-summary');
-      if (sum) sum.textContent = 'RA' + motorRA + ' · LA' + motorLA + ' · RL' + motorRL + ' · LL' + motorLL + ' · ' + (anyExp ? 'มีบาดแผล' : 'ไม่มีบาดแผล');
+      if (sum) sum.textContent = motorStr + expStr;
     }
 
     // ========================================================
