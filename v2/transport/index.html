@@ -1489,6 +1489,58 @@
     /* ========== STEP 3: VITALS / ARREST ADD modals — pp-pill rows for pain + gcs + rhythm + outcome ========== */
     .pp-status-line.warn { background:#fef3c7; color:#92400e; }
 
+    /* ========== IV ROW — COMPACT PILL DISPLAY (production addIvLine output wrapped) ========== */
+    /* When .iv-row has .pp-iv-compacted, hide all original form children — show only our injected .pp-iv-compact div */
+    .iv-row.pp-iv-compacted > :not(.pp-iv-compact) { display: none !important; }
+    .iv-row.pp-iv-compacted {
+      background: #fff !important;
+      border: 1px solid #e2e8f0 !important;
+      border-radius: 12px !important;
+      padding: 10px 12px !important;
+      margin-bottom: 8px !important;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+      display: block !important;
+    }
+    .pp-iv-compact {
+      display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+    }
+    .pp-iv-compact .pp-iv-time {
+      background: #0f172a; color: #fff;
+      padding: 5px 12px; border-radius: 8px;
+      font-weight: 700; font-size: 13px;
+      font-family: 'Courier New', monospace;
+      letter-spacing: 0.5px;
+      flex: 0 0 auto;
+    }
+    .pp-iv-compact .pp-iv-route {
+      background: #dbeafe; color: #1e40af;
+      padding: 5px 12px; border-radius: 12px;
+      font-size: 12px; font-weight: 700;
+      flex: 0 0 auto;
+    }
+    .pp-iv-compact .pp-iv-route.io   { background: #fef3c7; color: #92400e; }
+    .pp-iv-compact .pp-iv-route.cl   { background: #fce7f3; color: #9d174d; }
+    .pp-iv-compact .pp-iv-body {
+      flex: 1 1 200px; font-size: 14px; color: #1e293b; min-width: 0;
+    }
+    .pp-iv-compact .pp-iv-body b { color: #0f172a; }
+    .pp-iv-compact .pp-iv-sedate-tag {
+      background: #3b82f6; color: #fff;
+      padding: 2px 8px; border-radius: 10px;
+      font-size: 10px; font-weight: 700; margin-left: 6px;
+    }
+    .pp-iv-edit-btn, .pp-iv-del-btn {
+      background: #fff; border: 1px solid #e2e8f0;
+      padding: 6px 10px; border-radius: 8px;
+      cursor: pointer; color: #64748b;
+      font-size: 14px; line-height: 1; flex: 0 0 auto;
+    }
+    .pp-iv-edit-btn:hover { color: #1e3a5f; border-color: #cbd5e1; background:#f8fafc; }
+    .pp-iv-del-btn:hover  { color: #dc2626; border-color: #fecaca; background:#fef2f2; }
+    /* Closed-case: also fade compact IV actions so they look disabled */
+    body.pp-form-closed .pp-iv-edit-btn,
+    body.pp-form-closed .pp-iv-del-btn { pointer-events:none; opacity:0.5; }
+
     /* pp-select — re-style native <select> to look consistent with pp-input */
     .pp-select { padding:8px 12px; border:1px solid #cbd5e1; border-radius:8px; font-size:14px; background:#fff; width:100%; cursor:pointer; }
     .pp-select:focus { border-color:#1e3a5f; outline:none; box-shadow:0 0 0 3px rgba(30,58,95,0.1); }
@@ -3879,6 +3931,9 @@
               <input type="checkbox" name="eq_mattress" id="pp-h-eq-mattress" style="display:none;">
               <input type="checkbox" name="eq_monitor" id="pp-h-eq-monitor" style="display:none;" checked>
               <input type="checkbox" name="eq_ecmo" id="pp-h-eq-ecmo" style="display:none;">
+              <input type="checkbox" name="eq_infusion" id="pp-h-eq-infusion" style="display:none;">
+              <input type="checkbox" name="eq_syringe" id="pp-h-eq-syringe" style="display:none;">
+              <input type="checkbox" name="eq_suction" id="pp-h-eq-suction" style="display:none;">
               <input type="checkbox" name="eq_other" id="pp-h-eq-other" style="display:none;">
               <input type="hidden" name="eq_other_note" id="pp-h-eq-other-note">
 
@@ -3987,6 +4042,9 @@
                       <div class="pp-eq-card" data-eq="eq_mattress"><div class="chk"></div><i class="bi bi-cloud ic"></i><div class="lbl">Vacuum Mattress</div></div>
                       <div class="pp-eq-card" data-eq="eq_monitor"><div class="chk"></div><i class="bi bi-display ic"></i><div class="lbl">Monitor / Defib</div></div>
                       <div class="pp-eq-card" data-eq="eq_ecmo"><div class="chk"></div><i class="bi bi-cpu ic"></i><div class="lbl">ECMO</div></div>
+                      <div class="pp-eq-card" data-eq="eq_infusion"><div class="chk"></div><i class="bi bi-droplet-half ic"></i><div class="lbl">Infusion Pump</div></div>
+                      <div class="pp-eq-card" data-eq="eq_syringe"><div class="chk"></div><i class="bi bi-eyedropper ic"></i><div class="lbl">Syringe Pump</div></div>
+                      <div class="pp-eq-card" data-eq="eq_suction"><div class="chk"></div><i class="bi bi-arrow-down-circle ic"></i><div class="lbl">Suction</div></div>
                       <div class="pp-eq-card" data-eq="eq_other"><div class="chk"></div><i class="bi bi-three-dots ic"></i><div class="lbl">Other</div></div>
                     </div>
                     <div id="eq-other-wrap" style="display:none; margin-top:14px;">
@@ -6568,14 +6626,75 @@
       }
     });
 
+    // IV Row Compact Display — renders production addIvLine() output as a pill-format summary.
+    // Original .iv-time/.iv-route-select/.iv-name/.iv-rate/.iv-sedate inputs stay in DOM (hidden via CSS
+    // .iv-row.pp-iv-compacted > :not(.pp-iv-compact)) so save/load/getFormData still reads via .iv-row scan.
+    // User edits via ppEditIvRow → opens m-iv modal prefilled → ppSaveIvModal updates the row's hidden inputs.
+    function ppRenderIvCompact(row) {
+      if (!row) return;
+      // Remove existing compact (re-render after edit)
+      var existing = row.querySelector(':scope > .pp-iv-compact');
+      if (existing) existing.remove();
+      var time = (row.querySelector('.iv-time') || {}).value || '';
+      var route = (row.querySelector('.iv-route-select') || {}).value || 'IV';
+      var name = (row.querySelector('.iv-name') || {}).value || '';
+      var rate = (row.querySelector('.iv-rate') || {}).value || '';
+      var sedate = !!(row.querySelector('.iv-sedate') || {}).checked;
+      var routeClass = (route === 'IO') ? 'io' : (route === 'Central Line') ? 'cl' : '';
+      var compact = document.createElement('div');
+      compact.className = 'pp-iv-compact';
+      compact.innerHTML =
+        '<span class="pp-iv-time">' + ppEsc(time || '--:--') + '</span>' +
+        '<span class="pp-iv-route ' + routeClass + '">' + ppEsc(route) + '</span>' +
+        '<div class="pp-iv-body"><b>' + ppEsc(name || '--') + '</b>' +
+          (rate ? ' · ' + ppEsc(rate) : '') +
+          (sedate ? ' <span class="pp-iv-sedate-tag">Sedate</span>' : '') +
+        '</div>' +
+        '<button type="button" class="pp-iv-edit-btn" onclick="ppEditIvRow(this)" title="แก้ไข"><i class="bi bi-pencil"></i></button>' +
+        '<button type="button" class="pp-iv-del-btn" onclick="deleteIvRow(this)" title="ลบ"><i class="bi bi-trash"></i></button>';
+      row.insertBefore(compact, row.firstChild);
+      row.classList.add('pp-iv-compacted');
+    }
+    function ppEditIvRow(btn) {
+      if (ppIsCaseClosed()) return;
+      var row = btn.closest('.iv-row');
+      if (!row) return;
+      var ctx = row.dataset.context || 'Initial';
+      ppOpenIvModal(ctx, row);
+    }
+    // Wrap addIvLine — after production creates the row, render compact display
+    (function() {
+      if (typeof addIvLine !== 'function') return;
+      var _orig = addIvLine;
+      window.addIvLine = function(data, defaultTime, containerId, context) {
+        _orig.apply(this, arguments);
+        var c = document.getElementById(containerId);
+        if (!c) return;
+        var row = c.lastElementChild;
+        if (!row || !row.classList || !row.classList.contains('iv-row')) return;
+        // Only compact rows that have data (skip empty newly-added editable rows from legacy callers)
+        var hasData = data || ((row.querySelector('.iv-name') || {}).value);
+        if (hasData) ppRenderIvCompact(row);
+      };
+    })();
+
     // IV Modal — DIRECT port of prototype line 1525+ (m-add-iv). Field ids match prototype
     // (aiv-time/aiv-name/aiv-rate/aiv-sedate, aiv-route-row/aiv-unit-row pp-pill-row).
     // On save → calls production addIvLine({time,route,name,rate,isSedate}, null, ...) — logic byte-identical.
-    function ppOpenIvModal(context) {
+    // Optional editRow: if provided, modal opens in EDIT mode (prefilled from row's hidden inputs).
+    function ppOpenIvModal(context, editRow) {
+      if (ppIsCaseClosed()) return;
       var m = document.getElementById('m-iv');
       if (!m) return;
       m.dataset.ctx = context || 'Initial';
-      // Update context chip per prototype updateIvContextChip()
+      // Track edit target via attribute on a unique id
+      if (editRow) {
+        if (!editRow.id) editRow.id = 'pp-iv-row-' + Date.now() + '-' + Math.floor(Math.random() * 1000);
+        m.dataset.editTargetId = editRow.id;
+      } else {
+        delete m.dataset.editTargetId;
+      }
+      // Update context chip
       var chip = document.getElementById('iv-context-chip');
       if (chip) {
         if (context === 'Initial') {
@@ -6588,28 +6707,46 @@
           chip.style.color = '#1e40af';
         }
       }
-      // Reset fields
+      // Reset / Prefill fields
       ['aiv-time', 'aiv-name', 'aiv-rate'].forEach(function(id) {
         var el = document.getElementById(id);
         if (el) el.value = '';
       });
-      // Auto-stamp current time
-      var nowEl = document.getElementById('aiv-time');
-      if (nowEl) {
-        var n = new Date();
-        nowEl.value = String(n.getHours()).padStart(2,'0') + ':' + String(n.getMinutes()).padStart(2,'0');
+      var defaultRoute = 'IV', defaultUnit = 'ml/hr', defaultSedate = false;
+      if (editRow) {
+        // EDIT MODE — prefill from row's hidden inputs
+        (document.getElementById('aiv-time') || {}).value = (editRow.querySelector('.iv-time') || {}).value || '';
+        (document.getElementById('aiv-name') || {}).value = (editRow.querySelector('.iv-name') || {}).value || '';
+        defaultRoute = (editRow.querySelector('.iv-route-select') || {}).value || 'IV';
+        defaultSedate = !!(editRow.querySelector('.iv-sedate') || {}).checked;
+        // Parse rate "100 ml/hr" → split into rate "100" + unit "ml/hr"
+        var rateFull = (editRow.querySelector('.iv-rate') || {}).value || '';
+        var rateMatch = rateFull.match(/^(.+?)\s+(ml\/hr|drops\/min|mg|mcg\/kg\/min)$/);
+        if (rateMatch) {
+          (document.getElementById('aiv-rate') || {}).value = rateMatch[1].trim();
+          defaultUnit = rateMatch[2];
+        } else {
+          (document.getElementById('aiv-rate') || {}).value = rateFull;
+        }
+      } else {
+        // NEW MODE — auto-stamp current time
+        var nowEl = document.getElementById('aiv-time');
+        if (nowEl) {
+          var n = new Date();
+          nowEl.value = String(n.getHours()).padStart(2,'0') + ':' + String(n.getMinutes()).padStart(2,'0');
+        }
       }
       var sedEl = document.getElementById('aiv-sedate');
-      if (sedEl) sedEl.checked = false;
-      // Reset route pills — default to IV
-      ppResetPillRow('aiv-route-row', 'IV');
-      // Reset unit pills — default to ml/hr
-      ppResetPillRow('aiv-unit-row', 'ml/hr');
-      // Lock Central Line option if no central line checked (prototype line 2270-2272)
+      if (sedEl) sedEl.checked = defaultSedate;
+      ppResetPillRow('aiv-route-row', defaultRoute);
+      ppResetPillRow('aiv-unit-row', defaultUnit);
+      // Lock Central Line option if no central line checked
       var clChk = document.getElementById('chk-central-line');
       var clPill = document.getElementById('aiv-cline');
       if (clPill) {
         var locked = !(clChk && clChk.checked);
+        // Don't lock if editing a row that already has Central Line route
+        if (defaultRoute === 'Central Line') locked = false;
         clPill.classList.toggle('locked', locked);
         clPill.title = locked ? 'ต้อง check "มี Central Line" ที่ Circulation ก่อน' : '';
       }
@@ -6633,6 +6770,7 @@
       var ctx = m.dataset.ctx || 'Initial';
       var containerId = (ctx === 'Transport' ? 'iv-lines-container' : 'initial-iv-lines-container');
       var emptyId = (ctx === 'Transport' ? 'iv-empty' : 'initial-iv-empty');
+      var editTargetId = m.dataset.editTargetId || '';
       var time = ((document.getElementById('aiv-time') || {}).value || '').trim();
       var name = ((document.getElementById('aiv-name') || {}).value || '').trim();
       var rateVal = ((document.getElementById('aiv-rate') || {}).value || '').trim();
@@ -6641,25 +6779,39 @@
       var unitPill = document.querySelector('#aiv-unit-row .pp-pill.active');
       var unit = unitPill ? unitPill.getAttribute('data-value') : 'ml/hr';
       var isSedate = !!(document.getElementById('aiv-sedate') || {}).checked;
-      // Combine rate + unit into the production iv-rate field (e.g. "100 ml/hr")
       var combinedRate = rateVal ? (rateVal + ' ' + unit) : '';
-      // Validation: require at least name
       if (!name) {
         var nEl = document.getElementById('aiv-name');
         if (nEl) nEl.focus();
         return;
       }
-      if (typeof addIvLine !== 'function') return;
-      // Use data-object path so addIvLine populates time/route/name/rate directly + sets sedate checkbox.
-      addIvLine({ time: time, route: route, name: name, rate: combinedRate, isSedate: isSedate }, null, containerId, ctx);
-      // Data-object path skips production's auto-save block — fire it manually here:
-      try { if (typeof formDirty !== 'undefined') formDirty = true; } catch(_) {}
-      if (typeof saveData === 'function') saveData(false, true);
-      if (typeof logActivity === 'function') {
-        var cidEl = document.getElementById('caseId');
-        if (cidEl) logActivity('ADD_IV', cidEl.value, ctx);
+      if (editTargetId) {
+        // EDIT MODE — update existing row's hidden inputs + re-render compact pill
+        var row = document.getElementById(editTargetId);
+        if (row) {
+          var t = row.querySelector('.iv-time'); if (t) t.value = time;
+          var nm = row.querySelector('.iv-name'); if (nm) nm.value = name;
+          var rt = row.querySelector('.iv-rate'); if (rt) rt.value = combinedRate;
+          var rs = row.querySelector('.iv-route-select'); if (rs) rs.value = route;
+          var sd = row.querySelector('.iv-sedate'); if (sd) sd.checked = isSedate;
+          ppRenderIvCompact(row);
+          try { if (typeof formDirty !== 'undefined') formDirty = true; } catch(_) {}
+          if (typeof saveData === 'function') saveData(false, true);
+          if (typeof updateIVSummaryCount === 'function') updateIVSummaryCount();
+        }
+        delete m.dataset.editTargetId;
+      } else {
+        // NEW MODE — production addIvLine creates row, wrap renders it compact
+        if (typeof addIvLine !== 'function') return;
+        addIvLine({ time: time, route: route, name: name, rate: combinedRate, isSedate: isSedate }, null, containerId, ctx);
+        try { if (typeof formDirty !== 'undefined') formDirty = true; } catch(_) {}
+        if (typeof saveData === 'function') saveData(false, true);
+        if (typeof logActivity === 'function') {
+          var cidEl = document.getElementById('caseId');
+          if (cidEl) logActivity('ADD_IV', cidEl.value, ctx);
+        }
+        if (typeof updateIVSummaryCount === 'function') updateIVSummaryCount();
       }
-      if (typeof updateIVSummaryCount === 'function') updateIVSummaryCount();
       ppRefreshIvEmpty(containerId, emptyId);
       ppCloseModal('m-iv');
     }
@@ -7063,8 +7215,8 @@
     // ========================================================
     // STEP 3: EQUIPMENT MODAL
     // ========================================================
-    var PP_EQ_KEYS = ['eq_spinal','eq_scoop','eq_mattress','eq_monitor','eq_ecmo','eq_other'];
-    var PP_EQ_LABELS = { eq_spinal:'Spinal', eq_scoop:'Scoop', eq_mattress:'Vacuum Mattress', eq_monitor:'Monitor/Defib', eq_ecmo:'ECMO', eq_other:'Other' };
+    var PP_EQ_KEYS = ['eq_spinal','eq_scoop','eq_mattress','eq_monitor','eq_ecmo','eq_infusion','eq_syringe','eq_suction','eq_other'];
+    var PP_EQ_LABELS = { eq_spinal:'Spinal', eq_scoop:'Scoop', eq_mattress:'Vacuum Mattress', eq_monitor:'Monitor/Defib', eq_ecmo:'ECMO', eq_infusion:'Infusion Pump', eq_syringe:'Syringe Pump', eq_suction:'Suction', eq_other:'Other' };
     function ppOpenEquipmentModal() {
       if (ppIsCaseClosed()) return;
       // Sync cards from hidden checkboxes
