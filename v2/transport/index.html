@@ -1191,13 +1191,14 @@
        ============================================================ */
 
     /* pp-island-card — wraps existing .card with colored top accent.
-       !important on border-* needed because chrome.css loads AFTER this inline <style>
-       and Bootstrap .card has equal specificity → border-top color was being overridden.
-       overflow:hidden is CRITICAL — clips the 5px coloured top into the border-radius cleanly
-       (without it, the 5px solid bar pokes past the rounded corner — visible difference vs
-       prototype where overflow:hidden is set on .pp-island-card).
-       margin-top NOT set — lets inline style="margin-top:14px" on first card breathe from banner. */
-    .pp-island-card {
+       ROOT CAUSE FIX (verified via Claude in Chrome DOM inspect, 2026-05-25):
+       `body .card` rule at line 665 has specificity (0,1,1) with !important on border/
+       border-radius/box-shadow. My `.pp-island-card` was (0,1,0) — even with !important
+       it LOST the specificity battle. Computed border-top-width was 1px (not 5px),
+       box-shadow was none, border-radius was 12px (not 14px).
+       FIX: prefix selector with `body .card.pp-island-card` → specificity (0,2,1) — beats
+       `body .card` (0,1,1) decisively. Color variants likewise need the same prefix. */
+    body .card.pp-island-card {
       background:#fff !important;
       border:1px solid #e2e8f0 !important;
       border-top:5px solid #1e3a5f !important;
@@ -1206,14 +1207,14 @@
       margin-bottom:14px !important;
       overflow:hidden !important;
     }
-    .pp-island-card.cyan { border-top-color:#06b6d4 !important; }
-    .pp-island-card.sky  { border-top-color:#0ea5e9 !important; }
-    .pp-island-card.red  { border-top-color:#ef4444 !important; }
-    .pp-island-card.amber{ border-top-color:#f59e0b !important; }
-    .pp-island-card.teal { border-top-color:#0d9488 !important; }
-    .pp-island-card.slate{ border-top-color:#64748b !important; }
-    .pp-island-card.dark { border-top-color:#0f172a !important; }
-    .pp-island-card.dark-red { border-top-color:#b91c1c !important; }
+    body .card.pp-island-card.cyan { border-top-color:#06b6d4 !important; }
+    body .card.pp-island-card.sky  { border-top-color:#0ea5e9 !important; }
+    body .card.pp-island-card.red  { border-top-color:#ef4444 !important; }
+    body .card.pp-island-card.amber{ border-top-color:#f59e0b !important; }
+    body .card.pp-island-card.teal { border-top-color:#0d9488 !important; }
+    body .card.pp-island-card.slate{ border-top-color:#64748b !important; }
+    body .card.pp-island-card.dark { border-top-color:#0f172a !important; }
+    body .card.pp-island-card.dark-red { border-top-color:#b91c1c !important; }
 
     /* pp-row — clickable summary row → opens pp-modal */
     .pp-row { background:#fff; border:1px solid #e2e8f0; border-left:4px solid #1e3a5f; border-radius:12px; padding:12px 14px; margin-bottom:8px; display:flex; align-items:center; gap:12px; cursor:pointer; transition:all 0.15s; }
