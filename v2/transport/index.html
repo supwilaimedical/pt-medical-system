@@ -7509,14 +7509,17 @@
     function ppSaveAddArrest() {
       var rhythmPill = document.querySelector('#aa-rhythm-row .pp-pill.active');
       var outcomePill = document.querySelector('#aa-outcome-row .pp-pill.active');
+      // CRITICAL: production addArrestLog reads data.arrest_time / arrest_rhythm /
+      // arrest_cpr_time / arrest_outcome / arrest_rosc_time / arrest_dead_time / arrest_note
+      // (NOT data.time / rhythm / etc.) — bug fixed 2026-05-25 per user "Arrest ไม่ยอมบันทึก".
       var data = {
-        time: ((document.getElementById('aa-time') || {}).value || '').trim(),
-        cpr_start: ((document.getElementById('aa-cpr') || {}).value || '').trim(),
-        rhythm: rhythmPill ? rhythmPill.getAttribute('data-value') : 'Unknown',
-        outcome: outcomePill ? outcomePill.getAttribute('data-value') : 'Ongoing CPR',
-        rosc_time: ((document.getElementById('aa-rosc-time') || {}).value || '').trim(),
-        dead_time: ((document.getElementById('aa-dead-time') || {}).value || '').trim(),
-        note: ((document.getElementById('aa-note') || {}).value || '').trim(),
+        arrest_time: ((document.getElementById('aa-time') || {}).value || '').trim(),
+        arrest_cpr_time: ((document.getElementById('aa-cpr') || {}).value || '').trim(),
+        arrest_rhythm: rhythmPill ? rhythmPill.getAttribute('data-value') : 'Unknown',
+        arrest_outcome: outcomePill ? outcomePill.getAttribute('data-value') : 'Ongoing CPR',
+        arrest_rosc_time: ((document.getElementById('aa-rosc-time') || {}).value || '').trim(),
+        arrest_dead_time: ((document.getElementById('aa-dead-time') || {}).value || '').trim(),
+        arrest_note: ((document.getElementById('aa-note') || {}).value || '').trim(),
         isLocked: false
       };
       if (typeof addArrestLog !== 'function') return;
@@ -7525,7 +7528,7 @@
       if (typeof saveData === 'function') saveData(false, true);
       if (typeof logActivity === 'function') {
         var cid = (document.getElementById('caseId') || {}).value || '';
-        logActivity('ARREST_LOG', cid, data.time);
+        logActivity('ARREST_LOG', cid, data.arrest_time);
       }
       ppRefreshVitalEmpty();
       ppCloseModal('m-add-arrest');
@@ -7542,20 +7545,31 @@
       var existing = row.querySelector(':scope > .pp-vital-compact');
       if (existing) existing.remove();
       var isArrest = row.classList.contains('arrest-log-entry');
-      var time = (row.querySelector('.v-time') || {}).value || '';
+      // For arrest rows, production uses .ar-time (not .v-time); fall back gracefully.
+      var time = ((row.querySelector('.v-time') || row.querySelector('.ar-time') || {}).value) || '';
       var compact = document.createElement('div');
       compact.className = 'pp-vital-compact';
       var html = '<span class="pp-v-time">' + ppEsc(time || '--:--') + '</span>';
       if (isArrest) {
-        // Arrest log row — rhythm/outcome focus
-        // Production addArrestLog stores: rhythm, outcome, rosc_time/dead_time, cpr_start, note
-        // We read via class names that addArrestLog generates (similar v-* pattern)
-        var aRhythm = (row.querySelector('.v-arrest-rhythm') || row.querySelector('.a-rhythm') || {}).value || '';
-        var aOutcome = (row.querySelector('.v-arrest-outcome') || row.querySelector('.a-outcome') || {}).value || '';
-        var aNote = (row.querySelector('.v-note') || {}).value || '';
+        // Production addArrestLog DOM uses:
+        //   .ar-time / .ar-cpr-time / .ar-rosc-time / .ar-dead-time (text inputs)
+        //   .ar-rhythm (radio inputs — find :checked)
+        //   .ar-outcome (radio btn-check — find :checked)
+        //   .ar-note (text input)
+        var rhythmRadio = row.querySelector('.ar-rhythm:checked');
+        var outcomeRadio = row.querySelector('.ar-outcome:checked');
+        var aRhythm = rhythmRadio ? rhythmRadio.value : '';
+        var aOutcome = outcomeRadio ? outcomeRadio.value : '';
+        var aCpr = (row.querySelector('.ar-cpr-time') || {}).value || '';
+        var aRosc = (row.querySelector('.ar-rosc-time') || {}).value || '';
+        var aDead = (row.querySelector('.ar-dead-time') || {}).value || '';
+        var aNote = (row.querySelector('.ar-note') || {}).value || '';
         html += '<span class="pp-v-tag arrest-badge">🚨 ARREST</span>';
+        if (aCpr) html += '<span class="pp-v-tag rhythm">CPR ' + ppEsc(aCpr) + '</span>';
         if (aRhythm) html += '<span class="pp-v-tag rhythm">' + ppEsc(aRhythm) + '</span>';
         if (aOutcome) html += '<span class="pp-v-tag outcome">' + ppEsc(aOutcome) + '</span>';
+        if (aRosc) html += '<span class="pp-v-tag spo2">ROSC ' + ppEsc(aRosc) + '</span>';
+        if (aDead) html += '<span class="pp-v-tag temp">Pronounced ' + ppEsc(aDead) + '</span>';
         html += '<div class="pp-v-actions">' +
           '<button type="button" class="pp-v-edit-btn" onclick="ppEditVitalRow(this)" title="แก้ไข"><i class="bi bi-pencil"></i></button>' +
           '<button type="button" class="pp-v-del-btn" onclick="ppDeleteVitalRow(this)" title="ลบ"><i class="bi bi-trash"></i></button>' +
