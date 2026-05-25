@@ -174,9 +174,12 @@ body[data-module="transport"] #v2-subnav-case a[href*="javascript"] {
    and .event-ctx .name/.meta with slate-900/slate-500 — all unreadable on navy chrome.
    Override here so the back link blends with the navy subnav and the event name/meta
    use chrome text tokens. Verified via Grep: these selectors are firstaid-only. */
+/* Back-link uses chrome-text-2 (slate-300) instead of --accent (emerald-400)
+   so it reads as navigation, not decoration. firstaid emerald has higher
+   saturation than other modules' pastels and was overpowering on the nav. */
 body[data-module="firstaid"] .v2-subnav .back-link {
   background: var(--chrome-bg-3) !important;
-  color: var(--accent) !important;
+  color: var(--chrome-text-2) !important;
   border-bottom: 1px solid var(--chrome-line) !important;
 }
 body[data-module="firstaid"] .v2-subnav .back-link:hover {
@@ -483,22 +486,32 @@ body[data-module="monitor"] #monitor-wide-gps-pane .mwgp-head .bi {
   /* Map container inside main: shrink remaining height accordingly (already flex:1 inside main column) */
 
   /* === Fleet structural fix ===
-     Header is sticky INSIDE #app-main-wrapper which has margin-right:280px (for rightcol).
-     Pull header out via position:fixed; left:240(subnav); right:0 to span full width over rightcol.
-     Then push wrapper padding-top:64 + rightcol top:64 to clear. */
+     Iteration history (2026-05-25):
+     - PR #23: padding-top 64 → 96 (gave breathing room to main content,
+       but also pushed rightcol down 96px since .fleet-rc had same value).
+     - PR #24: tried right: 280px so rightcol could use top:0 — but then
+       the navy colhead bar no longer extended over rightcol, leaving
+       rightcol "วันนี้" header on white background above the topbar.
+       User feedback: "ทับ Topbar, แก้ไม่ตรงจุด".
+     Final layout (this commit):
+     - Colhead: right: 0 (full viewport width navy bar) — looks unified.
+     - Main: padding-top: 96 — 25px breathing room from colhead bottom.
+     - Rightcol: top: 71 — sits directly under colhead (no wasted space,
+       no overlap, no need for extra breathing room since rightcol has
+       its own internal padding/heading "วันนี้"). */
   body[data-module="fleet"] .v2-colheader {
     position: fixed !important;
     top: 0 !important;
-    left: 296px !important;  /* rail 56 + subnav 240 (was 240 → overlapped subnav by 56px) */
-    right: 0 !important;
+    left: 296px !important;  /* rail 56 + subnav 240 */
+    right: 0 !important;     /* full width — covers over rightcol area */
     margin: 0 !important;
     z-index: 30 !important;
   }
   body[data-module="fleet"] #app-main-wrapper {
-    padding-top: 64px !important;
+    padding-top: 96px !important;  /* colhead 71 + 25 breathing */
   }
   body[data-module="fleet"] .fleet-rc {
-    top: 64px !important;
+    top: 71px !important;          /* tight under colhead, no waste */
   }
 
   /* === Transport structural fix === */
