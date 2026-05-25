@@ -5837,6 +5837,13 @@
           }
           if (el.onclick && el.onclick.toString().indexOf('goToStep') > -1) continue;
           if (el.onclick && el.onclick.toString().indexOf('handlePrint') > -1) continue;
+          // Keep pp-modal close buttons (X + ปิด) clickable in read-only mode.
+          // Without this, closed-case viewers couldn't close the modal except via backdrop click.
+          if (el.onclick && el.onclick.toString().indexOf('ppCloseModal') > -1) {
+              el.disabled = false;
+              el.classList.remove('disabled');
+              continue;
+          }
           if (el.classList.contains('btn-secondary') && !el.closest('.iv-row')) continue;
 
           // When enabling (reopen): skip inputs in locked IV rows — they stay disabled
