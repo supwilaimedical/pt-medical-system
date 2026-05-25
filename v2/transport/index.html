@@ -1193,6 +1193,9 @@
     /* pp-island-card — wraps existing .card with colored top accent.
        !important on border-* needed because chrome.css loads AFTER this inline <style>
        and Bootstrap .card has equal specificity → border-top color was being overridden.
+       overflow:hidden is CRITICAL — clips the 5px coloured top into the border-radius cleanly
+       (without it, the 5px solid bar pokes past the rounded corner — visible difference vs
+       prototype where overflow:hidden is set on .pp-island-card).
        margin-top NOT set — lets inline style="margin-top:14px" on first card breathe from banner. */
     .pp-island-card {
       background:#fff !important;
@@ -1201,6 +1204,7 @@
       border-radius:14px !important;
       box-shadow:0 2px 8px rgba(0,0,0,0.04) !important;
       margin-bottom:14px !important;
+      overflow:hidden !important;
     }
     .pp-island-card.cyan { border-top-color:#06b6d4 !important; }
     .pp-island-card.sky  { border-top-color:#0ea5e9 !important; }
