@@ -1332,6 +1332,12 @@
 
     /* (Removed 2026-05-25 per user: pp-dev-hint dark chip — prototype-only artefact) */
 
+    /* SweetAlert z-index — must beat consent preview modal (z-index:2000) and
+       pp-modal-backdrop (z-index:2000). Default Swal2 z-index 1060 → renders
+       BELOW our modals, making confirm dialogs invisible (user had to close
+       parent modal first to see them). Bug reported 2026-05-25. */
+    .swal2-container { z-index: 10000 !important; }
+
     /* pp-vent-iface-chip — light-blue info chip showing detected airway → vent interface */
     .pp-vent-iface-chip { background:#fff; border:1px solid #bae6fd; border-radius:24px; padding:6px 14px; display:inline-flex; align-items:center; gap:6px; margin-bottom:10px; font-size:13px; color:#0ea5e9; font-weight:600; }
 
