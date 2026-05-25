@@ -377,7 +377,7 @@
   .aitem-sub { font-size:11.5px; color:var(--atext-3); }
 
   @media (max-width:1024px) { .form-row { grid-template-columns:1fr; gap:8px; } }
-  @media (max-width:1024px) and (orientation:portrait) {
+  @media (max-width:991px) {
     .admin-topbar { display:flex; }
     .admin-sidebar {
       position:fixed; top:0; left:0; bottom:0; width:280px; z-index:100;
@@ -404,7 +404,7 @@
     .pt-bnav a i { font-size:18px; line-height:1; }
     .pt-bnav a.active { color:#0ea5e9; }
   }
-  @media (min-width:1025px), (orientation:landscape) {
+  @media (min-width:992px) {
     .pt-bnav { display:none !important; }
   }
 </style>
@@ -1205,12 +1205,14 @@
           <div class="section-header"><h2><i class="bi bi-boxes"></i> Modules ทั้งหมด</h2></div>
           <div class="section-body">
             <div class="ov-modules">
-              <div class="ov-module" style="--mod-c:#2563eb; --mod-bg:#eff6ff;"><i class="bi bi-truck"></i><div><div class="ov-m-name">Transport</div><div class="ov-m-desc">บันทึกนำส่งผู้ป่วย, V/S, IV, Consent + DNR, พิมพ์ใบส่งตัว, OCR</div></div></div>
-              <div class="ov-module" style="--mod-c:#dc2626; --mod-bg:#fef2f2;"><i class="bi bi-bandaid"></i><div><div class="ov-m-name">First Aid</div><div class="ov-m-desc">อีเวนท์ปฐมพยาบาล ลงทะเบียนผู้บาดเจ็บ, triage 4 ระดับ, Quick Dispense</div></div></div>
-              <div class="ov-module" style="--mod-c:#16a34a; --mod-bg:#f0fdf4;"><i class="bi bi-broadcast-pin"></i><div><div class="ov-m-name">GPS Tracking</div><div class="ov-m-desc">ตามรถ real-time, แชร์ลิงก์, หลาย Provider, ค้นหาสถานที่ใกล้สุด, เตือนเร็วเกิน 120 km/h</div></div></div>
-              <div class="ov-module" style="--mod-c:#f59e0b; --mod-bg:#fffbeb;"><i class="bi bi-geo-alt"></i><div><div class="ov-m-name">Location</div><div class="ov-m-desc">ฐานข้อมูลตำแหน่ง, mini-map ใน modal, แชร์ลิงก์สาธารณะ</div></div></div>
-              <div class="ov-module" style="--mod-c:#475569; --mod-bg:#f1f5f9;"><i class="bi bi-display"></i><div><div class="ov-m-name">Monitor</div><div class="ov-m-desc">Dashboard รวมสถานะ + กระพริบเตือนผู้ป่วยวิกฤต</div></div></div>
-              <div class="ov-module" style="--mod-c:#1e3a5f; --mod-bg:#eff6ff;"><i class="bi bi-gear-fill"></i><div><div class="ov-m-name">Admin Panel</div><div class="ov-m-desc">จัดการตั้งค่า, Provider GPS, Map Provider, Activity Log</div></div></div>
+              <div class="ov-module" style="--mod-c:#2563eb; --mod-bg:#eff6ff;"><i class="bi bi-truck"></i><div><div class="ov-m-name">Transport</div><div class="ov-m-desc">บันทึกนำส่ง, V/S Minibar + Vital Log, IV + Sedate, Consent+DNR, Arrest Log, GCS interlocks, พิมพ์ใบส่งตัว, OCR</div></div></div>
+              <div class="ov-module" style="--mod-c:#dc2626; --mod-bg:#fef2f2;"><i class="bi bi-bandaid"></i><div><div class="ov-m-name">First Aid</div><div class="ov-m-desc">อีเวนท์ปฐมพยาบาล ลงทะเบียนผู้บาดเจ็บ, triage 4 ระดับ, Quick Dispense, staff signature</div></div></div>
+              <div class="ov-module" style="--mod-c:#16a34a; --mod-bg:#f0fdf4;"><i class="bi bi-broadcast-pin"></i><div><div class="ov-m-name">GPS Tracking</div><div class="ov-m-desc">ตามรถ real-time, แชร์ลิงก์, หลาย Provider (CMSV6 / 808gps / Synology proxy), ค้นหาสถานที่ใกล้สุด, เตือนเร็วเกิน 120 km/h</div></div></div>
+              <div class="ov-module" style="--mod-c:#f59e0b; --mod-bg:#fffbeb;"><i class="bi bi-geo-alt"></i><div><div class="ov-m-name">Location</div><div class="ov-m-desc">ฐานข้อมูลตำแหน่ง, mini-map ใน modal, แชร์ลิงก์สาธารณะ (Token + Expiry)</div></div></div>
+              <div class="ov-module" style="--mod-c:#475569; --mod-bg:#f1f5f9;"><i class="bi bi-display"></i><div><div class="ov-m-name">Monitor</div><div class="ov-m-desc">Dashboard รวมสถานะ, กระพริบเตือนผู้ป่วยวิกฤต, Critical Log Modal, Wallboard mode (TV)</div></div></div>
+              <div class="ov-module" style="--mod-c:#0891b2; --mod-bg:#ecfeff;"><i class="bi bi-clipboard-check"></i><div><div class="ov-m-name">Fleet Status</div><div class="ov-m-desc">Daily Vehicle Checklist, สถานะรถพยาบาล (พร้อม / มีรายการ / Problem), GAS-backed</div></div></div>
+              <div class="ov-module" style="--mod-c:#7c3aed; --mod-bg:#f5f3ff;"><i class="bi bi-bell-fill"></i><div><div class="ov-m-name">Notification System</div><div class="ov-m-desc">DB Webhook → CF Worker → LINE OA + Telegram, refire-on-worse, ack debounce, WEBHOOK_SECRET auth</div></div></div>
+              <div class="ov-module" style="--mod-c:#1e3a5f; --mod-bg:#eff6ff;"><i class="bi bi-gear-fill"></i><div><div class="ov-m-name">Admin Panel</div><div class="ov-m-desc">จัดการตั้งค่า, Provider GPS, Map Provider, Activity Log, Notification settings, Speed alert</div></div></div>
             </div>
           </div>
         </div>
@@ -1233,12 +1235,14 @@
               <div>
                 <div class="ov-stack-title">Backend &amp; Services</div>
                 <ul class="ov-stack-list">
-                  <li><i class="bi bi-database" style="color:var(--aaccent);"></i> Supabase (PostgreSQL + RLS + Realtime)</li>
-                  <li><i class="bi bi-cloud-upload" style="color:var(--ainfo);"></i> Cloudinary (รูป + PDF)</li>
-                  <li><i class="bi bi-key" style="color:var(--awarning);"></i> Google Apps Script (Auth HR)</li>
-                  <li><i class="bi bi-broadcast" style="color:var(--adanger);"></i> CMSV6 / 808gps (GPS API)</li>
-                  <li><i class="bi bi-google" style="color:var(--aaccent);"></i> Google Maps Platform</li>
-                  <li><i class="bi bi-shield-check" style="color:var(--asuccess);"></i> Cloudflare Worker (OCR Proxy)</li>
+                  <li><i class="bi bi-database" style="color:var(--aaccent);"></i> Supabase (PostgreSQL + RLS + Realtime + DB Webhooks)</li>
+                  <li><i class="bi bi-cloud-upload" style="color:var(--ainfo);"></i> Cloudinary (รูป + PDF + Signature)</li>
+                  <li><i class="bi bi-key" style="color:var(--awarning);"></i> Google Apps Script (Auth HR + Fleet Checklist)</li>
+                  <li><i class="bi bi-broadcast" style="color:var(--adanger);"></i> CMSV6 / 808gps / Synology Proxy (GPS API)</li>
+                  <li><i class="bi bi-google" style="color:var(--aaccent);"></i> Google Maps Platform (Maps + Places + Directions)</li>
+                  <li><i class="bi bi-shield-check" style="color:var(--asuccess);"></i> Cloudflare Worker (OCR Proxy + Notify gateway, WEBHOOK_SECRET auth)</li>
+                  <li><i class="bi bi-chat-dots" style="color:#06c755;"></i> LINE Messaging API (Critical alerts, broadcast)</li>
+                  <li><i class="bi bi-send" style="color:#0088cc;"></i> Telegram Bot API (Critical alerts, redundancy)</li>
                 </ul>
               </div>
             </div>
@@ -1253,6 +1257,7 @@
               <div class="status-card"><span class="status-dot" id="ov-health-realtime-dot"></span><div><div class="s-name">Realtime Sync</div><div class="s-detail" id="ov-health-realtime-text">กำลังตรวจ...</div></div></div>
               <div class="status-card"><span class="status-dot" id="ov-health-gps-dot"></span><div><div class="s-name">GPS Proxy (Render)</div><div class="s-detail" id="ov-health-gps-text">กำลังตรวจ...</div></div></div>
               <div class="status-card"><span class="status-dot" id="ov-health-gmap-dot"></span><div><div class="s-name">Google Maps API</div><div class="s-detail" id="ov-health-gmap-text">กำลังตรวจ...</div></div></div>
+              <div class="status-card"><span class="status-dot" id="ov-health-notify-dot"></span><div><div class="s-name">Notify Gateway (CF Worker)</div><div class="s-detail" id="ov-health-notify-text">กำลังตรวจ...</div></div></div>
             </div>
           </div>
         </div>
@@ -2743,6 +2748,28 @@
         } catch(ge) { _setDot('ov-health-gmap-dot','warn'); _setText('ov-health-gmap-text','ทดสอบไม่สำเร็จ'); }
       }
     } catch(e) { _setDot('ov-health-gmap-dot','fail'); _setText('ov-health-gmap-text','ตรวจไม่ได้'); }
+
+    // ===== Notify gateway (Cloudflare Worker /notify/health) =====
+    try {
+      var notifyUrl = (settings && settings.NOTIFY_PROXY_URL) ||
+                      'https://gps-proxy.supwilai-ambulance.workers.dev';
+      var ns = Date.now();
+      var nr = await fetch(notifyUrl.replace(/\/+$/,'') + '/notify/health', { method:'GET' });
+      var nms = Date.now() - ns;
+      if (nr.ok) {
+        var nj = await nr.json();
+        var bits = [];
+        if (nj.hasLine) bits.push('LINE'); if (nj.hasTelegram) bits.push('TG'); if (nj.hasSupabase) bits.push('SB');
+        _setDot('ov-health-notify-dot','ok');
+        _setText('ov-health-notify-text', 'พร้อม · ' + nms + ' ms · ' + (bits.join('+') || 'no channels'));
+      } else {
+        _setDot('ov-health-notify-dot','warn');
+        _setText('ov-health-notify-text','HTTP ' + nr.status);
+      }
+    } catch(ne) {
+      _setDot('ov-health-notify-dot','fail');
+      _setText('ov-health-notify-text','ตรวจไม่ได้');
+    }
 
     var vb = document.getElementById('ov-version-number');
     if (vb) vb.textContent = window.APP_VERSION || '--';

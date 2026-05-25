@@ -1,8 +1,8 @@
 // PT Medical System — Configuration
 // APP_VERSION: bump on every significant update + add entry in memory/version.md
-window.APP_VERSION = '2.3';
-window.APP_VERSION_DATE = '2026-05-19';
-window.APP_VERSION_LABEL = 'Full Release';
+window.APP_VERSION = '2.4';
+window.APP_VERSION_DATE = '2026-05-26';
+window.APP_VERSION_LABEL = 'Transport UX + Notify Recovery';
 
 const CONFIG = {
   // ===== REQUIRED (cannot be moved to admin — bootstrap/auth) =====
