@@ -2192,7 +2192,13 @@
           verSel = '<span style="font-size:12px; color:#64748b; margin-right:8px;">ฉบับที่ 1</span>';
         }
         var editBtn = isLocked ? '' : '<button onclick="v2NewConsentVersion()" style="padding:6px 12px; font-size:12px; background:#f59e0b; color:#fff; border:none; border-radius:6px; cursor:pointer; font-weight:600;"><i class="bi bi-pencil-square"></i> สร้างฉบับใหม่</button>';
-        toolbar = '<div style="display:flex; align-items:center; justify-content:flex-end; gap:8px; padding:8px 14px; background:#f8fafc; border-bottom:1px solid #e2e8f0; flex-wrap:wrap;" class="no-print">' + verSel + editBtn + '</div>';
+        // Admin delete button — only visible when role===Admin and there's at least 1 version.
+        // Placed next to "สร้างฉบับใหม่" per user request 2026-05-25.
+        var _role = (typeof getUserRole === 'function') ? getUserRole() : '';
+        var _isAdmin = _role === 'Admin';
+        var delBtn = (_isAdmin && versions.length > 0) ?
+          '<button onclick="v2DeleteConsent()" style="padding:6px 12px; font-size:12px; background:#dc2626; color:#fff; border:none; border-radius:6px; cursor:pointer; font-weight:600;"><i class="bi bi-trash"></i> ลบฉบับนี้ (Admin)</button>' : '';
+        toolbar = '<div style="display:flex; align-items:center; justify-content:flex-end; gap:8px; padding:8px 14px; background:#f8fafc; border-bottom:1px solid #e2e8f0; flex-wrap:wrap;" class="no-print">' + verSel + editBtn + delBtn + '</div>';
         title.innerHTML = '📝 หนังสือยินยอม <span style="font-size:11px; color:#166534; background:#dcfce7; padding:2px 8px; border-radius:999px; font-weight:600; margin-left:8px;">✓ เซ็นแล้ว</span>';
       } else {
         title.innerHTML = '📝 หนังสือยินยอม <span style="font-size:11px; color:#64748b;">กรอก + เซ็น</span>';
@@ -2376,6 +2382,80 @@
     var title = document.getElementById('v2-quick-title');
     if(title) title.innerHTML = '📝 หนังสือยินยอม <span style="font-size:11px; color:#f59e0b; background:#fef3c7; padding:2px 8px; border-radius:999px; font-weight:600; margin-left:8px;">✏️ แก้ไข (ฉบับใหม่)</span>';
     document.getElementById('v2-quick-body').innerHTML = '<iframe id="v2-quick-iframe" src="'+src+'" style="width:100%; height:100%; border:none; display:block;"></iframe>';
+  };
+
+  // Admin delete from the in-form หนังสือยินยอม sub-view (button shown only when role===Admin).
+  // Reuses the same supabase DELETE + active-version-promotion logic as deleteConsentFromCase,
+  // but reads the version from #v2-consent-ver-sel (or falls back to active/first version).
+  window.v2DeleteConsent = async function() {
+    var role = (typeof getUserRole === 'function') ? getUserRole() : '';
+    if (role !== 'Admin') return;
+    var caseId = (document.getElementById('caseId')||{}).value || '';
+    if (!caseId) return;
+    var versions = window.consentVersions || [];
+    var v2sel = document.getElementById('v2-consent-ver-sel');
+    var verNum;
+    if (v2sel && v2sel.value) verNum = parseInt(v2sel.value);
+    else if (window.consentActiveVersion) verNum = window.consentActiveVersion.version;
+    else if (versions.length > 0) verNum = versions[0].version;
+    if (!verNum) return;
+    var ver = versions.find(function(v){ return v.version === verNum; });
+    if (!ver) return;
+
+    var confirm = await Swal.fire({
+      icon: 'warning',
+      title: 'ลบ Consent ฉบับที่ ' + verNum + '?',
+      html: '<div class="text-muted small">เคส: ' + caseId + '</div><div class="mt-2">การกระทำนี้ไม่สามารถย้อนกลับได้</div>',
+      showCancelButton: true,
+      confirmButtonText: 'ลบ',
+      cancelButtonText: 'ยกเลิก',
+      confirmButtonColor: '#dc2626'
+    });
+    if (!confirm.isConfirmed) return;
+
+    Swal.fire({ title: 'กำลังลบ...', didOpen: function(){ Swal.showLoading(); }, allowOutsideClick: false });
+    // .select() returns deleted rows so we detect silent RLS rejection (0 rows affected = no DELETE policy)
+    var res = await _supabase.from('transport_consents').delete().eq('id', ver.id).select();
+    if (res.error) {
+      Swal.fire({ icon: 'error', title: 'ลบไม่สำเร็จ', text: res.error.message });
+      return;
+    }
+    if (!res.data || res.data.length === 0) {
+      Swal.fire({
+        icon: 'error',
+        title: 'ลบไม่สำเร็จ',
+        html: 'ไม่มีสิทธิ์ลบ (Supabase RLS block, 0 rows affected)<br><small class="text-muted">กรุณารัน <code>sql/fix_consent_delete_policy.sql</code> ใน Supabase SQL Editor</small>'
+      });
+      return;
+    }
+
+    // Promote newest superseded to active if we deleted the active version
+    if (ver.status === 'active') {
+      var remain = await loadConsentsFromDB(caseId);
+      if (remain && remain.length > 0) {
+        var newest = remain[0];
+        await _supabase.from('transport_consents')
+          .update({ status: 'active', superseded_at: null })
+          .eq('id', newest.id);
+      }
+    }
+
+    // Reload consent state + refresh UI
+    window.consentVersions = await loadConsentsFromDB(caseId);
+    window.consentActiveVersion = (window.consentVersions||[]).find(function(v){ return v.status === 'active'; });
+    if (window.consentActiveVersion) {
+      window.consentSigned = true;
+      window.consentData = window.consentActiveVersion.consent_data || {};
+    } else {
+      window.consentSigned = false;
+      window.consentData = {};
+    }
+    if (typeof updateConsentUI === 'function') updateConsentUI();
+
+    Swal.fire({ icon: 'success', title: 'ลบเรียบร้อย', timer: 1500, showConfirmButton: false });
+
+    // Re-render the in-form consent panel to show updated version list (or empty state)
+    if (typeof v2QuickAction === 'function') v2QuickAction('consent', true);
   };
 
   // When consent is signed in iframe, reopen panel in preview mode (refresh)
