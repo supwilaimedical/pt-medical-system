@@ -3111,94 +3111,138 @@
                 </div>
               </div>
 
-              <!-- Circulation -->
-              <div class="card p-4 mb-4 island-card">
-                 <h5 class="card-title fw-bold text-dark mb-3 border-bottom pb-2"><i class="bi bi-heart-pulse-fill text-danger me-2"></i> ระบบไหลเวียนเลือด (Circulation)</h5>
-                 <div class="row g-4">
-                     <div class="col-md-6"><label class="form-label fs-8 fw-bold text-secondary text-uppercase mb-2">สถานะ (Status)</label><div class="d-flex gap-3"><div class="form-check form-check-inline m-0"><input class="form-check-input" type="radio" name="circ_status" id="cs1" value="Stable" checked><label for="cs1" class="fw-medium">Stable</label></div><div class="form-check form-check-inline m-0"><input class="form-check-input" type="radio" name="circ_status" id="cs2" value="Shock"><label for="cs2" class="fw-medium text-warning">Shock</label></div></div></div>
-                     <div class="col-md-6"><label class="form-label fs-8 fw-bold text-secondary text-uppercase mb-2">EKG Rhythm</label><input type="text" class="form-control form-control-sm bg-light border-0" name="circ_ekg" placeholder="NSR, AF, etc..."></div>
-                 </div>
-                 <div class="mt-4"><div class="form-check p-3 bg-light rounded-3 border"><input class="form-check-input ms-1" type="checkbox" name="has_central_line" id="chk-central-line" onchange="toggleCentralLine()"><label class="form-check-label fw-bold ms-2" for="chk-central-line">มี Central Line</label><span class="ms-3 text-muted fs-7">ตำแหน่ง: <input type="text" name="central_line_pos" class="d-inline-block form-control form-control-sm w-50 bg-white ms-1"></span></div></div>
-                 <div class="mt-4 pt-3 border-top">
-                    <div class="d-flex justify-content-between align-items-center mb-3">
-                        <label class="form-label fw-bold text-dark m-0"><i class="bi bi-droplet-fill text-info"></i> สารน้ำ / ยา ที่ได้รับมาก่อนนำส่ง</label>
-                        <button type="button" class="btn btn-sm btn-outline-primary rounded-pill px-3 shadow-sm" id="btn-add-init-iv" onclick="addIvLine(null, null, 'initial-iv-lines-container', 'Initial')"><i class="bi bi-plus-lg"></i> เพิ่มรายการ</button>
-                    </div>
-                    <div id="initial-iv-lines-container"></div>
-                 </div>
-              </div>
-
-              <!-- Arrest Card (Pre-hospital / ณ จุดเกิดเหตุ) -->
-              <div class="card p-4 mb-4 island-card border-top border-4 border-danger">
-                <div class="d-flex align-items-center mb-3 border-bottom pb-2">
-                  <div class="form-check form-switch m-0">
-                    <input class="form-check-input fs-5" type="checkbox" id="chk-arrest-pre" name="arrest_pre_arrest" onchange="toggleArrest('pre')">
-                    <label class="form-check-label fw-bold text-danger fs-6 ms-2" for="chk-arrest-pre" style="cursor:pointer"><i class="bi bi-heart-pulse-fill me-1"></i> Cardiac Arrest (ก่อน/ระหว่างรับผู้ป่วย)</label>
-                  </div>
+              <!-- Circulation — full rewrite per prototype line 712+ (Circulation + Arrest merged).
+                   PRESERVED (logic-critical): name="circ_status" (cs1/cs2), name="circ_ekg",
+                   name="has_central_line"+id="chk-central-line"+onchange="toggleCentralLine()",
+                   name="central_line_pos", id="initial-iv-lines-container",
+                   id="btn-add-init-iv" + onclick=addIvLine(...,'Initial'),
+                   id="chk-arrest-pre" name="arrest_pre_arrest" + onchange=toggleArrest('pre'),
+                   id="arrest-pre-detail" (toggled), all arrest_pre_* fields + ids preserved.
+                   NEW field: name="circ_cap" (Cap Refill — per prototype, was absent in prod). -->
+              <div class="card island-card pp-island-card red">
+                <div class="pp-island-head">
+                  <i class="bi bi-heart-pulse-fill ic" style="color:#ef4444;"></i>
+                  <div class="title">ระบบไหลเวียนเลือด<span class="sub">Circulation</span></div>
                 </div>
-                <div id="arrest-pre-detail" class="d-none">
-                  <div class="row g-3 mb-3">
+                <div class="pp-island-body">
+                  <div class="row g-3">
                     <div class="col-md-4">
-                      <label class="form-label fs-8 fw-bold text-secondary text-uppercase mb-1">เวลา Arrest</label>
-                      <div class="input-group input-group-sm">
-                        <input type="text" inputmode="numeric" maxlength="5" placeholder="HH:MM" pattern="([01]?\d|2[0-3]):[0-5]\d" class="form-control bg-light" id="arrest_pre_time" name="arrest_pre_time" oninput="maskTime(this)">
-                        <button type="button" class="btn btn-outline-danger btn-sm" onclick="stampArrestNow('arrest_pre_time')"><i class="bi bi-clock"></i> Now</button>
+                      <div class="pp-sub-title" style="margin-top:0;">สถานะ (Status)</div>
+                      <div class="pp-pill-row red">
+                        <input type="radio" class="btn-check" name="circ_status" id="cs1" value="Stable" checked>
+                        <label class="pp-pill" for="cs1">Stable</label>
+                        <input type="radio" class="btn-check" name="circ_status" id="cs2" value="Shock">
+                        <label class="pp-pill" for="cs2">Shock</label>
                       </div>
                     </div>
                     <div class="col-md-4">
-                      <label class="form-label fs-8 fw-bold text-secondary text-uppercase mb-1">เริ่ม CPR</label>
-                      <div class="input-group input-group-sm">
-                        <input type="text" inputmode="numeric" maxlength="5" placeholder="HH:MM" pattern="([01]?\d|2[0-3]):[0-5]\d" class="form-control bg-light" id="arrest_pre_cpr_time" name="arrest_pre_cpr_time" oninput="maskTime(this)" onchange="calcArrestCprDuration('pre')">
-                        <button type="button" class="btn btn-outline-danger btn-sm" onclick="stampArrestNow('arrest_pre_cpr_time'); calcArrestCprDuration('pre')"><i class="bi bi-clock"></i> Now</button>
-                      </div>
+                      <div class="pp-sub-title" style="margin-top:0;">Cap Refill (sec)</div>
+                      <input type="text" class="pp-input" name="circ_cap" placeholder="&lt; 2">
                     </div>
-                    <div class="col-md-4 d-flex align-items-end">
-                      <span class="badge bg-danger-subtle text-danger border border-danger-subtle px-3 py-2 w-100 text-center" id="arrest-pre-cpr-dur">CPR Duration: --</span>
+                    <div class="col-md-4">
+                      <div class="pp-sub-title" style="margin-top:0;">EKG Rhythm</div>
+                      <input type="text" class="pp-input" name="circ_ekg" placeholder="NSR, AF, AFRVR...">
                     </div>
                   </div>
-                  <div class="mb-3">
-                    <label class="form-label fs-8 fw-bold text-secondary text-uppercase mb-1">Initial Rhythm</label>
-                    <div class="d-flex flex-wrap gap-2">
-                      <div class="form-check"><input class="form-check-input" type="radio" name="arrest_pre_rhythm" id="apr_vf" value="VF"><label class="form-check-label fw-medium" for="apr_vf">VF</label></div>
-                      <div class="form-check"><input class="form-check-input" type="radio" name="arrest_pre_rhythm" id="apr_pvt" value="pVT"><label class="form-check-label fw-medium" for="apr_pvt">pVT</label></div>
-                      <div class="form-check"><input class="form-check-input" type="radio" name="arrest_pre_rhythm" id="apr_pea" value="PEA"><label class="form-check-label fw-medium" for="apr_pea">PEA</label></div>
-                      <div class="form-check"><input class="form-check-input" type="radio" name="arrest_pre_rhythm" id="apr_asys" value="Asystole"><label class="form-check-label fw-medium" for="apr_asys">Asystole</label></div>
-                      <div class="form-check"><input class="form-check-input" type="radio" name="arrest_pre_rhythm" id="apr_unk" value="Unknown" checked><label class="form-check-label fw-medium" for="apr_unk">Unknown</label></div>
-                    </div>
+
+                  <div class="pp-sub-title">Central Line</div>
+                  <div class="pp-toggle-row">
+                    <input type="checkbox" name="has_central_line" id="chk-central-line" onchange="toggleCentralLine(); ppToggleCentralLinePos();">
+                    <label for="chk-central-line">มี Central Line</label>
+                    <input type="text" id="central-line-pos" name="central_line_pos" placeholder="ตำแหน่ง..." style="display:none;">
                   </div>
-                  <div class="mb-3">
-                    <label class="form-label fs-8 fw-bold text-secondary text-uppercase mb-1">Outcome</label>
-                    <div class="d-flex flex-wrap gap-3">
-                      <div class="form-check"><input class="form-check-input" type="radio" name="arrest_pre_outcome" id="apo_rosc" value="ROSC" onchange="toggleArrestOutcome('pre')"><label class="form-check-label fw-medium text-success" for="apo_rosc">ROSC</label></div>
-                      <div class="form-check"><input class="form-check-input" type="radio" name="arrest_pre_outcome" id="apo_dead" value="Dead" onchange="toggleArrestOutcome('pre')"><label class="form-check-label fw-medium text-dark" for="apo_dead">Dead</label></div>
-                      <div class="form-check"><input class="form-check-input" type="radio" name="arrest_pre_outcome" id="apo_ongoing" value="Ongoing CPR" onchange="toggleArrestOutcome('pre')" checked><label class="form-check-label fw-medium text-warning" for="apo_ongoing">Ongoing CPR</label></div>
-                    </div>
+
+                  <div class="pp-sub-title" style="display:flex; align-items:center; justify-content:space-between; gap:8px;">
+                    <span><i class="bi bi-droplet-fill" style="color:#0ea5e9;"></i> สารน้ำ / ยา ที่ได้รับมาก่อนนำส่ง (Initial IV)</span>
+                    <button type="button" class="btn btn-sm btn-primary rounded-pill px-3" id="btn-add-init-iv" onclick="addIvLine(null, null, 'initial-iv-lines-container', 'Initial')" style="text-transform:none; letter-spacing:0;"><i class="bi bi-plus-lg"></i> เพิ่มรายการ</button>
                   </div>
-                  <div id="arrest-pre-rosc-detail" class="d-none mb-3">
-                    <div class="row g-3">
+                  <div id="initial-iv-lines-container"></div>
+                  <div id="initial-iv-empty" class="pp-empty-state" style="padding:14px; display:none;">
+                    <i class="bi bi-droplet"></i>ยังไม่มี Initial IV — กด "เพิ่มรายการ" เพื่อบันทึก
+                  </div>
+
+                  <!-- Arrest chip — click toggles hidden chk-arrest-pre + fires production toggleArrest('pre').
+                       Detail panel below stays inline (production already does .d-none toggle on arrest-pre-detail). -->
+                  <div class="pp-circ-arrest-chip" id="pp-arrest-chip" onclick="ppArrestChipClick()">
+                    <i class="bi bi-heart-pulse-fill ic"></i>
+                    <div class="body">
+                      <div class="lbl">Cardiac Arrest · ก่อน/ระหว่างรับผู้ป่วย</div>
+                      <div class="status" id="pp-arrest-status">ไม่มี · กดเพื่อบันทึก</div>
+                    </div>
+                    <i class="bi bi-chevron-right chev"></i>
+                  </div>
+                  <input type="checkbox" id="chk-arrest-pre" name="arrest_pre_arrest" onchange="toggleArrest('pre')" style="display:none;">
+
+                  <div id="arrest-pre-detail" class="d-none" style="margin-top:14px; background:#fef2f2; border:1px solid #fecaca; border-radius:10px; padding:14px;">
+                    <div class="row g-3 mb-3">
                       <div class="col-md-4">
-                        <label class="form-label fs-8 fw-bold text-secondary text-uppercase mb-1">ROSC Time</label>
+                        <label class="small fw-bold text-secondary">เวลา Arrest</label>
                         <div class="input-group input-group-sm">
-                          <input type="text" inputmode="numeric" maxlength="5" placeholder="HH:MM" pattern="([01]?\d|2[0-3]):[0-5]\d" class="form-control bg-light" id="arrest_pre_rosc_time" name="arrest_pre_rosc_time" oninput="maskTime(this)" onchange="calcArrestCprDuration('pre')">
-                          <button type="button" class="btn btn-outline-success btn-sm" onclick="stampArrestNow('arrest_pre_rosc_time'); calcArrestCprDuration('pre')"><i class="bi bi-clock"></i> Now</button>
+                          <input type="text" inputmode="numeric" maxlength="5" placeholder="HH:MM" pattern="([01]?\d|2[0-3]):[0-5]\d" class="pp-input" id="arrest_pre_time" name="arrest_pre_time" oninput="maskTime(this)">
+                          <button type="button" class="btn btn-outline-danger btn-sm" onclick="stampArrestNow('arrest_pre_time'); ppUpdateArrestChip();"><i class="bi bi-clock"></i> Now</button>
+                        </div>
+                      </div>
+                      <div class="col-md-4">
+                        <label class="small fw-bold text-secondary">เริ่ม CPR</label>
+                        <div class="input-group input-group-sm">
+                          <input type="text" inputmode="numeric" maxlength="5" placeholder="HH:MM" pattern="([01]?\d|2[0-3]):[0-5]\d" class="pp-input" id="arrest_pre_cpr_time" name="arrest_pre_cpr_time" oninput="maskTime(this)" onchange="calcArrestCprDuration('pre')">
+                          <button type="button" class="btn btn-outline-danger btn-sm" onclick="stampArrestNow('arrest_pre_cpr_time'); calcArrestCprDuration('pre')"><i class="bi bi-clock"></i> Now</button>
+                        </div>
+                      </div>
+                      <div class="col-md-4 d-flex align-items-end">
+                        <span class="badge bg-danger-subtle text-danger border border-danger-subtle px-3 py-2 w-100 text-center" id="arrest-pre-cpr-dur">CPR Duration: --</span>
+                      </div>
+                    </div>
+
+                    <div class="pp-sub-title" style="margin-top:0;">Initial Rhythm</div>
+                    <div class="pp-pill-row red">
+                      <input type="radio" class="btn-check" name="arrest_pre_rhythm" id="apr_vf" value="VF" onchange="ppUpdateArrestChip()">
+                      <label class="pp-pill" for="apr_vf">VF</label>
+                      <input type="radio" class="btn-check" name="arrest_pre_rhythm" id="apr_pvt" value="pVT" onchange="ppUpdateArrestChip()">
+                      <label class="pp-pill" for="apr_pvt">pVT</label>
+                      <input type="radio" class="btn-check" name="arrest_pre_rhythm" id="apr_pea" value="PEA" onchange="ppUpdateArrestChip()">
+                      <label class="pp-pill" for="apr_pea">PEA</label>
+                      <input type="radio" class="btn-check" name="arrest_pre_rhythm" id="apr_asys" value="Asystole" onchange="ppUpdateArrestChip()">
+                      <label class="pp-pill" for="apr_asys">Asystole</label>
+                      <input type="radio" class="btn-check" name="arrest_pre_rhythm" id="apr_unk" value="Unknown" checked onchange="ppUpdateArrestChip()">
+                      <label class="pp-pill" for="apr_unk">Unknown</label>
+                    </div>
+
+                    <div class="pp-sub-title">Outcome</div>
+                    <div class="pp-pill-row">
+                      <input type="radio" class="btn-check" name="arrest_pre_outcome" id="apo_rosc" value="ROSC" onchange="toggleArrestOutcome('pre'); ppUpdateArrestChip();">
+                      <label class="pp-pill" for="apo_rosc" style="border-color:#bbf7d0; background:#dcfce7; color:#166534;">ROSC</label>
+                      <input type="radio" class="btn-check" name="arrest_pre_outcome" id="apo_dead" value="Dead" onchange="toggleArrestOutcome('pre'); ppUpdateArrestChip();">
+                      <label class="pp-pill" for="apo_dead" style="border-color:#cbd5e1; background:#f1f5f9; color:#334155;">Dead</label>
+                      <input type="radio" class="btn-check" name="arrest_pre_outcome" id="apo_ongoing" value="Ongoing CPR" checked onchange="toggleArrestOutcome('pre'); ppUpdateArrestChip();">
+                      <label class="pp-pill" for="apo_ongoing" style="border-color:#fde68a; background:#fef9c3; color:#854d0e;">Ongoing CPR</label>
+                    </div>
+
+                    <div id="arrest-pre-rosc-detail" class="d-none mt-3">
+                      <div class="row g-3">
+                        <div class="col-md-4">
+                          <label class="small fw-bold text-secondary">ROSC Time</label>
+                          <div class="input-group input-group-sm">
+                            <input type="text" inputmode="numeric" maxlength="5" placeholder="HH:MM" pattern="([01]?\d|2[0-3]):[0-5]\d" class="pp-input" id="arrest_pre_rosc_time" name="arrest_pre_rosc_time" oninput="maskTime(this)" onchange="calcArrestCprDuration('pre')">
+                            <button type="button" class="btn btn-outline-success btn-sm" onclick="stampArrestNow('arrest_pre_rosc_time'); calcArrestCprDuration('pre')"><i class="bi bi-clock"></i> Now</button>
+                          </div>
                         </div>
                       </div>
                     </div>
-                  </div>
-                  <div id="arrest-pre-dead-detail" class="d-none mb-3">
-                    <div class="row g-3">
-                      <div class="col-md-4">
-                        <label class="form-label fs-8 fw-bold text-secondary text-uppercase mb-1">Pronounced Dead Time</label>
-                        <div class="input-group input-group-sm">
-                          <input type="text" inputmode="numeric" maxlength="5" placeholder="HH:MM" pattern="([01]?\d|2[0-3]):[0-5]\d" class="form-control bg-light" id="arrest_pre_dead_time" name="arrest_pre_dead_time" oninput="maskTime(this)" onchange="calcArrestCprDuration('pre')">
-                          <button type="button" class="btn btn-outline-dark btn-sm" onclick="stampArrestNow('arrest_pre_dead_time'); calcArrestCprDuration('pre')"><i class="bi bi-clock"></i> Now</button>
+                    <div id="arrest-pre-dead-detail" class="d-none mt-3">
+                      <div class="row g-3">
+                        <div class="col-md-4">
+                          <label class="small fw-bold text-secondary">Pronounced Dead Time</label>
+                          <div class="input-group input-group-sm">
+                            <input type="text" inputmode="numeric" maxlength="5" placeholder="HH:MM" pattern="([01]?\d|2[0-3]):[0-5]\d" class="pp-input" id="arrest_pre_dead_time" name="arrest_pre_dead_time" oninput="maskTime(this)" onchange="calcArrestCprDuration('pre')">
+                            <button type="button" class="btn btn-outline-dark btn-sm" onclick="stampArrestNow('arrest_pre_dead_time'); calcArrestCprDuration('pre')"><i class="bi bi-clock"></i> Now</button>
+                          </div>
                         </div>
                       </div>
                     </div>
-                  </div>
-                  <div>
-                    <label class="form-label fs-8 fw-bold text-secondary text-uppercase mb-1">Summary / Note</label>
-                    <textarea class="form-control form-control-sm bg-light border-0" name="arrest_pre_note" rows="2" placeholder="สรุปเหตุการณ์ / การช่วยเหลือ..."></textarea>
+
+                    <div class="pp-sub-title">Summary / Note</div>
+                    <textarea class="pp-input" name="arrest_pre_note" rows="2" placeholder="สรุปเหตุการณ์ / การช่วยเหลือ..."></textarea>
                   </div>
                 </div>
               </div>
@@ -5746,12 +5790,70 @@
         };
       }
     })();
+    // Central Line position field — show/hide based on checkbox
+    function ppToggleCentralLinePos() {
+      var chk = document.getElementById('chk-central-line');
+      var pos = document.getElementById('central-line-pos');
+      if (!chk || !pos) return;
+      pos.style.display = chk.checked ? '' : 'none';
+    }
+
+    // Arrest chip — clickable wrapper around hidden chk-arrest-pre
+    function ppArrestChipClick() {
+      var chk = document.getElementById('chk-arrest-pre');
+      if (!chk) return;
+      chk.checked = !chk.checked;
+      if (typeof toggleArrest === 'function') toggleArrest('pre');
+      ppUpdateArrestChip();
+    }
+    function ppUpdateArrestChip() {
+      var chk = document.getElementById('chk-arrest-pre');
+      var chip = document.getElementById('pp-arrest-chip');
+      var status = document.getElementById('pp-arrest-status');
+      if (!chk || !chip || !status) return;
+      if (chk.checked) {
+        chip.classList.add('filled');
+        var t = (document.getElementById('arrest_pre_time') || {}).value || '';
+        var rhythmEl = document.querySelector('input[name="arrest_pre_rhythm"]:checked');
+        var rhythm = rhythmEl ? rhythmEl.value : '';
+        var outcomeEl = document.querySelector('input[name="arrest_pre_outcome"]:checked');
+        var outcome = outcomeEl ? outcomeEl.value : '';
+        var parts = [];
+        if (t) parts.push('Time ' + t);
+        if (rhythm) parts.push(rhythm);
+        if (outcome) parts.push(outcome);
+        status.textContent = parts.length ? parts.join(' · ') : 'มี Cardiac Arrest · กดเพื่อแก้ไข';
+      } else {
+        chip.classList.remove('filled');
+        status.textContent = 'ไม่มี · กดเพื่อบันทึก';
+      }
+    }
+    // Wrap toggleArrest (only for ctx='pre') and toggleArrestOutcome to update chip
+    (function() {
+      if (typeof toggleArrest === 'function') {
+        var _origTA = toggleArrest;
+        window.toggleArrest = function(ctx) {
+          _origTA.apply(this, arguments);
+          if (ctx === 'pre') ppUpdateArrestChip();
+        };
+      }
+      if (typeof toggleArrestOutcome === 'function') {
+        var _origTAO = toggleArrestOutcome;
+        window.toggleArrestOutcome = function(ctx) {
+          _origTAO.apply(this, arguments);
+          if (ctx === 'pre') ppUpdateArrestChip();
+        };
+      }
+    })();
+
     // Initial mirror after DOM ready (in case populateForm ran before wrappers)
     document.addEventListener('DOMContentLoaded', function() {
       setTimeout(function() {
         if (document.getElementById('sel-o2-device')) ppRenderO2Pills();
         if (document.getElementById('vent-interface-text')) ppUpdateVentInterface();
         if (document.getElementById('airway-interlock-note')) ppUpdateAirwayInterlock();
+        if (document.getElementById('central-line-pos')) ppToggleCentralLinePos();
+        if (document.getElementById('pp-arrest-chip')) ppUpdateArrestChip();
       }, 150);
     });
 
