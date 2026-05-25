@@ -486,27 +486,32 @@ body[data-module="monitor"] #monitor-wide-gps-pane .mwgp-head .bi {
   /* Map container inside main: shrink remaining height accordingly (already flex:1 inside main column) */
 
   /* === Fleet structural fix ===
-     Colhead spans MAIN content area only (left:296 = rail+subnav, right:280
-     stops before rightcol). Rightcol is its own fixed sidebar (280px wide)
-     that starts at viewport top with its own internal "วันนี้" heading.
-     User feedback 2026-05-25: "พอเอาลงมา ทางขวาก็ลงมาด้วยสิเนี่ย" — the
-     rightcol was being pushed down 96px because colhead used `right: 0`
-     and covered it. Limiting colhead width frees rightcol to use top:0. */
+     Iteration history (2026-05-25):
+     - PR #23: padding-top 64 → 96 (gave breathing room to main content,
+       but also pushed rightcol down 96px since .fleet-rc had same value).
+     - PR #24: tried right: 280px so rightcol could use top:0 — but then
+       the navy colhead bar no longer extended over rightcol, leaving
+       rightcol "วันนี้" header on white background above the topbar.
+       User feedback: "ทับ Topbar, แก้ไม่ตรงจุด".
+     Final layout (this commit):
+     - Colhead: right: 0 (full viewport width navy bar) — looks unified.
+     - Main: padding-top: 96 — 25px breathing room from colhead bottom.
+     - Rightcol: top: 71 — sits directly under colhead (no wasted space,
+       no overlap, no need for extra breathing room since rightcol has
+       its own internal padding/heading "วันนี้"). */
   body[data-module="fleet"] .v2-colheader {
     position: fixed !important;
     top: 0 !important;
-    left: 296px !important;   /* rail 56 + subnav 240 */
-    right: 280px !important;  /* stop before rightcol (.fleet-rc width) */
+    left: 296px !important;  /* rail 56 + subnav 240 */
+    right: 0 !important;     /* full width — covers over rightcol area */
     margin: 0 !important;
     z-index: 30 !important;
   }
-  /* Main wrapper padding-top = colhead height (71px) + 25px breathing room. */
   body[data-module="fleet"] #app-main-wrapper {
-    padding-top: 96px !important;
+    padding-top: 96px !important;  /* colhead 71 + 25 breathing */
   }
-  /* Rightcol starts at viewport top — colhead no longer covers it horizontally. */
   body[data-module="fleet"] .fleet-rc {
-    top: 0 !important;
+    top: 71px !important;          /* tight under colhead, no waste */
   }
 
   /* === Transport structural fix === */
