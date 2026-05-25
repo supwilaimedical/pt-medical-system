@@ -1541,6 +1541,65 @@
     body.pp-form-closed .pp-iv-edit-btn,
     body.pp-form-closed .pp-iv-del-btn { pointer-events:none; opacity:0.5; }
 
+    /* ========== VITAL LOG ROW — COMPACT PILL DISPLAY (wraps production addVitalLog) ========== */
+    .vital-log-entry.pp-vital-compacted > :not(.pp-vital-compact) { display:none !important; }
+    .vital-log-entry.pp-vital-compacted {
+      background:#fff !important;
+      border:1px solid #e2e8f0 !important;
+      border-radius:12px !important;
+      padding:10px 12px !important;
+      margin-bottom:8px !important;
+      box-shadow:0 1px 3px rgba(0,0,0,0.04);
+      display:block !important;
+    }
+    .vital-log-entry.pp-vital-compacted.arrest-log-entry { border-left:4px solid #dc2626 !important; }
+    .pp-vital-compact {
+      display:flex; align-items:center; gap:6px; flex-wrap:wrap;
+    }
+    .pp-vital-compact .pp-v-time {
+      background:#0f172a; color:#fff;
+      padding:5px 12px; border-radius:8px;
+      font-weight:700; font-size:13px;
+      font-family:'Courier New', monospace; letter-spacing:0.5px;
+      flex:0 0 auto;
+    }
+    .pp-vital-compact .pp-v-tag {
+      background:#f1f5f9; color:#334155;
+      padding:4px 10px; border-radius:10px;
+      font-size:12px; font-weight:600;
+      flex:0 0 auto;
+    }
+    .pp-vital-compact .pp-v-tag b { font-weight:800; color:#0f172a; margin-left:3px; }
+    .pp-vital-compact .pp-v-tag.bp     { background:#fce7f3; color:#9d174d; }
+    .pp-vital-compact .pp-v-tag.pr     { background:#dbeafe; color:#1e40af; }
+    .pp-vital-compact .pp-v-tag.rr     { background:#cffafe; color:#155e75; }
+    .pp-vital-compact .pp-v-tag.temp   { background:#fef3c7; color:#854d0e; }
+    .pp-vital-compact .pp-v-tag.spo2   { background:#dcfce7; color:#166534; }
+    .pp-vital-compact .pp-v-tag.gcs.alert  { background:#dcfce7; color:#166534; }
+    .pp-vital-compact .pp-v-tag.gcs.drowsy { background:#fef3c7; color:#854d0e; }
+    .pp-vital-compact .pp-v-tag.gcs.coma   { background:#fee2e2; color:#991b1b; }
+    .pp-vital-compact .pp-v-tag.pain       { background:#f3e8ff; color:#6b21a8; }
+    .pp-vital-compact .pp-v-note {
+      flex:1 1 100%; font-size:12px; color:#64748b; font-style:italic; margin-top:4px; min-width:0;
+    }
+    .pp-vital-compact .pp-v-actions { margin-left:auto; display:flex; gap:6px; flex:0 0 auto; }
+    .pp-v-edit-btn, .pp-v-del-btn {
+      background:#fff; border:1px solid #e2e8f0;
+      padding:6px 10px; border-radius:8px;
+      cursor:pointer; color:#64748b;
+      font-size:14px; line-height:1;
+    }
+    .pp-v-edit-btn:hover { color:#1e3a5f; border-color:#cbd5e1; background:#f8fafc; }
+    .pp-v-del-btn:hover  { color:#dc2626; border-color:#fecaca; background:#fef2f2; }
+    body.pp-form-closed .pp-v-edit-btn,
+    body.pp-form-closed .pp-v-del-btn { pointer-events:none; opacity:0.5; }
+    /* Arrest log row — red badge instead of vital tags */
+    .pp-vital-compact .pp-v-tag.arrest-badge {
+      background:#dc2626; color:#fff; font-weight:800; font-size:11px; letter-spacing:0.5px;
+    }
+    .pp-vital-compact .pp-v-tag.rhythm  { background:#fee2e2; color:#991b1b; }
+    .pp-vital-compact .pp-v-tag.outcome { background:#fef3c7; color:#92400e; }
+
     /* pp-select — re-style native <select> to look consistent with pp-input */
     .pp-select { padding:8px 12px; border:1px solid #cbd5e1; border-radius:8px; font-size:14px; background:#fff; width:100%; cursor:pointer; }
     .pp-select:focus { border-color:#1e3a5f; outline:none; box-shadow:0 0 0 3px rgba(30,58,95,0.1); }
@@ -6887,26 +6946,36 @@
         pills[i].classList.toggle('pain-active', match);
       }
     }
+    // ppCalcGcs — central helper. Returns { total, totalDisp, vDisp, isT }
+    // Per medical standard: when V=T (intubated), V is "untestable" — NOT counted as 1 numerically.
+    // Total written with "T" suffix (e.g. E4VTM6 → 4+0+6=10 → "10T"). Reported by user 2026-05-25.
+    function ppCalcGcs(e, vRaw, m) {
+      var eN = parseInt(e || '0', 10) || 0;
+      var mN = parseInt(m || '0', 10) || 0;
+      var isT = (vRaw === 'VT');
+      var vN = isT ? 0 : (parseInt(vRaw || '0', 10) || 0);
+      var total = eN + vN + mN;
+      var totalDisp = isT ? (total + 'T') : String(total);
+      var vDisp = isT ? 'VT' : 'V' + (vRaw || '');
+      return { eN: eN, vN: vN, mN: mN, total: total, totalDisp: totalDisp, vDisp: vDisp, isT: isT };
+    }
+
     function ppRefreshGcsRing() {
-      var e = parseInt((document.getElementById('pp-h-gcs-e') || {}).value || '0', 10) || 0;
+      var e = (document.getElementById('pp-h-gcs-e') || {}).value || '0';
       var vRaw = (document.getElementById('gcs_v') || {}).value || '0';
-      var v = (vRaw === 'VT') ? 1 : (parseInt(vRaw, 10) || 0);
-      var m = parseInt((document.getElementById('pp-h-gcs-m') || {}).value || '0', 10) || 0;
-      var total = e + v + m;
+      var m = (document.getElementById('pp-h-gcs-m') || {}).value || '0';
+      var gcs = ppCalcGcs(e, vRaw, m);
       var numEl = document.getElementById('gcs-total-num');
       var ring = document.getElementById('gcs-ring');
       var statusLine = document.getElementById('gcs-status-line');
       var statusText = document.getElementById('gcs-status-text');
-      if (numEl) numEl.textContent = total;
-      var cls = 'good', icon = 'check-circle-fill', label = 'Alert', sev = '';
-      if (total <= 8) { cls = 'bad'; icon = 'exclamation-triangle-fill'; label = 'Coma'; sev = 'red'; }
-      else if (total <= 12) { cls = 'warn'; icon = 'exclamation-circle-fill'; label = 'Drowsy'; sev = 'amber'; }
+      if (numEl) numEl.textContent = gcs.totalDisp;
+      var cls = 'good', label = 'Alert', sev = '';
+      if (gcs.total <= 8) { cls = 'bad'; label = 'Coma'; sev = 'red'; }
+      else if (gcs.total <= 12) { cls = 'warn'; label = 'Drowsy'; sev = 'amber'; }
       if (ring) { ring.classList.remove('amber', 'red'); if (sev) ring.classList.add(sev); }
       if (statusLine) { statusLine.classList.remove('good', 'warn', 'bad'); statusLine.classList.add(cls); }
-      if (statusText) {
-        var vDisp = (vRaw === 'VT') ? 'VT' : 'V' + vRaw;
-        statusText.textContent = label + ' · E' + e + vDisp + 'M' + m + ' = ' + total;
-      }
+      if (statusText) statusText.textContent = label + ' · E' + gcs.eN + gcs.vDisp + 'M' + gcs.mN + ' = ' + gcs.totalDisp;
       ppRefreshNeuroSummary();
     }
     function ppRefreshNeuroInterlock() {
@@ -6932,11 +7001,9 @@
       var e = (document.getElementById('pp-h-gcs-e') || {}).value || '?';
       var vRaw = (document.getElementById('gcs_v') || {}).value || '?';
       var m = (document.getElementById('pp-h-gcs-m') || {}).value || '?';
-      var vNum = (vRaw === 'VT') ? 1 : (parseInt(vRaw, 10) || 0);
-      var total = (parseInt(e, 10) || 0) + vNum + (parseInt(m, 10) || 0);
-      var vDisp = (vRaw === 'VT') ? 'VT' : 'V' + vRaw;
-      var gcsCrit = (total <= 8) ? 'gcs-coma' : (total <= 12) ? 'gcs-drowsy' : 'gcs-alert';
-      var gcsTxt = 'GCS E' + e + vDisp + 'M' + m + ' = ' + total;
+      var gcs = ppCalcGcs(e, vRaw, m);
+      var gcsCrit = (gcs.total <= 8) ? 'gcs-coma' : (gcs.total <= 12) ? 'gcs-drowsy' : 'gcs-alert';
+      var gcsTxt = 'GCS E' + gcs.eN + gcs.vDisp + 'M' + gcs.mN + ' = ' + gcs.totalDisp;
       // Pupils
       var sizeRaw = (document.getElementById('pp-h-pupil-size') || {}).value || '';
       var reactRaw = (document.getElementById('pp-h-pupil-react') || {}).value || '';
@@ -7352,6 +7419,8 @@
       ppOpenModal('m-add-vital');
     }
     function ppSaveAddVital() {
+      var m = document.getElementById('m-add-vital');
+      var editTargetId = m ? (m.dataset.editTargetId || '') : '';
       var data = {
         time:  ((document.getElementById('av-time') || {}).value || '').trim(),
         bp:    ((document.getElementById('av-bp') || {}).value || '').trim(),
@@ -7359,20 +7428,43 @@
         rr:    ((document.getElementById('av-rr') || {}).value || '').trim(),
         temp:  ((document.getElementById('av-temp') || {}).value || '').trim(),
         spo2:  ((document.getElementById('av-spo2') || {}).value || '').trim(),
-        gcs_e: (document.querySelector('#av-gcs-e .pp-pill.active') || {}).getAttribute && (document.querySelector('#av-gcs-e .pp-pill.active')).getAttribute('data-value') || '4',
-        gcs_v: (document.querySelector('#av-gcs-v .pp-pill.active') || {}).getAttribute && (document.querySelector('#av-gcs-v .pp-pill.active')).getAttribute('data-value') || '5',
-        gcs_m: (document.querySelector('#av-gcs-m .pp-pill.active') || {}).getAttribute && (document.querySelector('#av-gcs-m .pp-pill.active')).getAttribute('data-value') || '6',
-        pain:  (document.querySelector('#av-pain-row .pp-pill.pain-active') || {}).getAttribute && (document.querySelector('#av-pain-row .pp-pill.pain-active')).getAttribute('data-value') || '0',
+        gcs_e: ((document.querySelector('#av-gcs-e .pp-pill.active') || {}).getAttribute ? document.querySelector('#av-gcs-e .pp-pill.active').getAttribute('data-value') : '4') || '4',
+        gcs_v: ((document.querySelector('#av-gcs-v .pp-pill.active') || {}).getAttribute ? document.querySelector('#av-gcs-v .pp-pill.active').getAttribute('data-value') : '5') || '5',
+        gcs_m: ((document.querySelector('#av-gcs-m .pp-pill.active') || {}).getAttribute ? document.querySelector('#av-gcs-m .pp-pill.active').getAttribute('data-value') : '6') || '6',
+        pain:  ((document.querySelector('#av-pain-row .pp-pill.pain-active') || {}).getAttribute ? document.querySelector('#av-pain-row .pp-pill.pain-active').getAttribute('data-value') : '0') || '0',
         note:  ((document.getElementById('av-note') || {}).value || '').trim(),
         isLocked: false
       };
-      if (typeof addVitalLog !== 'function') return;
-      addVitalLog(false, data); // data path = creates populated row without auto-save
-      try { if (typeof formDirty !== 'undefined') formDirty = true; } catch(_) {}
-      if (typeof saveData === 'function') saveData(false, true);
-      if (typeof logActivity === 'function') {
-        var cid = (document.getElementById('caseId') || {}).value || '';
-        logActivity('ADD_VITALS', cid, data.time);
+      if (editTargetId) {
+        // EDIT MODE — update existing vital row's hidden inputs + re-render compact
+        var row = document.getElementById(editTargetId);
+        if (row) {
+          var setVal = function(sel, val) { var el = row.querySelector(sel); if (el) el.value = val; };
+          setVal('.v-time', data.time);
+          setVal('.v-bp', data.bp);
+          setVal('.v-pr', data.pr);
+          setVal('.v-rr', data.rr);
+          setVal('.v-temp', data.temp);
+          setVal('.v-spo2', data.spo2);
+          setVal('.v-gcs-e', data.gcs_e);
+          setVal('.v-gcs-v', data.gcs_v);
+          setVal('.v-gcs-m', data.gcs_m);
+          setVal('.v-pain', data.pain);
+          setVal('.v-note', data.note);
+          ppRenderVitalCompact(row);
+          try { if (typeof formDirty !== 'undefined') formDirty = true; } catch(_) {}
+          if (typeof saveData === 'function') saveData(false, true);
+        }
+        if (m) delete m.dataset.editTargetId;
+      } else {
+        if (typeof addVitalLog !== 'function') return;
+        addVitalLog(false, data);
+        try { if (typeof formDirty !== 'undefined') formDirty = true; } catch(_) {}
+        if (typeof saveData === 'function') saveData(false, true);
+        if (typeof logActivity === 'function') {
+          var cid = (document.getElementById('caseId') || {}).value || '';
+          logActivity('ADD_VITALS', cid, data.time);
+        }
       }
       ppRefreshVitalEmpty();
       ppCloseModal('m-add-vital');
@@ -7438,6 +7530,137 @@
       ppRefreshVitalEmpty();
       ppCloseModal('m-add-arrest');
     }
+
+    // ========================================================
+    // VITAL LOG ROW COMPACT — wraps addVitalLog / addArrestLog
+    // Production .vital-log-entry DOM has .v-time/.v-bp/.v-pr/.v-rr/.v-temp/.v-spo2/
+    // .v-gcs-e/v/m/.v-pain/.v-note inputs. We hide them via CSS and inject compact pills.
+    // Edit → re-open m-add-vital (or m-add-arrest for arrest rows) prefilled.
+    // ========================================================
+    function ppRenderVitalCompact(row) {
+      if (!row) return;
+      var existing = row.querySelector(':scope > .pp-vital-compact');
+      if (existing) existing.remove();
+      var isArrest = row.classList.contains('arrest-log-entry');
+      var time = (row.querySelector('.v-time') || {}).value || '';
+      var compact = document.createElement('div');
+      compact.className = 'pp-vital-compact';
+      var html = '<span class="pp-v-time">' + ppEsc(time || '--:--') + '</span>';
+      if (isArrest) {
+        // Arrest log row — rhythm/outcome focus
+        // Production addArrestLog stores: rhythm, outcome, rosc_time/dead_time, cpr_start, note
+        // We read via class names that addArrestLog generates (similar v-* pattern)
+        var aRhythm = (row.querySelector('.v-arrest-rhythm') || row.querySelector('.a-rhythm') || {}).value || '';
+        var aOutcome = (row.querySelector('.v-arrest-outcome') || row.querySelector('.a-outcome') || {}).value || '';
+        var aNote = (row.querySelector('.v-note') || {}).value || '';
+        html += '<span class="pp-v-tag arrest-badge">🚨 ARREST</span>';
+        if (aRhythm) html += '<span class="pp-v-tag rhythm">' + ppEsc(aRhythm) + '</span>';
+        if (aOutcome) html += '<span class="pp-v-tag outcome">' + ppEsc(aOutcome) + '</span>';
+        html += '<div class="pp-v-actions">' +
+          '<button type="button" class="pp-v-edit-btn" onclick="ppEditVitalRow(this)" title="แก้ไข"><i class="bi bi-pencil"></i></button>' +
+          '<button type="button" class="pp-v-del-btn" onclick="ppDeleteVitalRow(this)" title="ลบ"><i class="bi bi-trash"></i></button>' +
+          '</div>';
+        if (aNote) html += '<div class="pp-v-note">' + ppEsc(aNote) + '</div>';
+      } else {
+        // Standard vital row
+        var bp   = (row.querySelector('.v-bp')   || {}).value || '';
+        var pr   = (row.querySelector('.v-pr')   || {}).value || '';
+        var rr   = (row.querySelector('.v-rr')   || {}).value || '';
+        var temp = (row.querySelector('.v-temp') || {}).value || '';
+        var spo2 = (row.querySelector('.v-spo2') || {}).value || '';
+        var pain = (row.querySelector('.v-pain') || {}).value || '';
+        var gE   = (row.querySelector('.v-gcs-e') || {}).value || '';
+        var gV   = (row.querySelector('.v-gcs-v') || {}).value || '';
+        var gM   = (row.querySelector('.v-gcs-m') || {}).value || '';
+        var note = (row.querySelector('.v-note') || {}).value || '';
+        if (bp)   html += '<span class="pp-v-tag bp">BP <b>' + ppEsc(bp) + '</b></span>';
+        if (pr)   html += '<span class="pp-v-tag pr">PR <b>' + ppEsc(pr) + '</b></span>';
+        if (rr)   html += '<span class="pp-v-tag rr">RR <b>' + ppEsc(rr) + '</b></span>';
+        if (temp) html += '<span class="pp-v-tag temp">T° <b>' + ppEsc(temp) + '</b></span>';
+        if (spo2) html += '<span class="pp-v-tag spo2">SpO2 <b>' + ppEsc(spo2) + '%</b></span>';
+        if (gE || gV || gM) {
+          var gcs = ppCalcGcs(gE, gV, gM);
+          var critCls = (gcs.total <= 8) ? 'coma' : (gcs.total <= 12) ? 'drowsy' : 'alert';
+          html += '<span class="pp-v-tag gcs ' + critCls + '">GCS <b>' + ppEsc(gcs.totalDisp) + '</b></span>';
+        }
+        if (pain && pain !== '0') html += '<span class="pp-v-tag pain">Pain <b>' + ppEsc(pain) + '</b></span>';
+        html += '<div class="pp-v-actions">' +
+          '<button type="button" class="pp-v-edit-btn" onclick="ppEditVitalRow(this)" title="แก้ไข"><i class="bi bi-pencil"></i></button>' +
+          '<button type="button" class="pp-v-del-btn" onclick="ppDeleteVitalRow(this)" title="ลบ"><i class="bi bi-trash"></i></button>' +
+          '</div>';
+        if (note) html += '<div class="pp-v-note">' + ppEsc(note) + '</div>';
+      }
+      compact.innerHTML = html;
+      row.insertBefore(compact, row.firstChild);
+      row.classList.add('pp-vital-compacted');
+    }
+    function ppDeleteVitalRow(btn) {
+      if (ppIsCaseClosed()) return;
+      var row = btn.closest('.vital-log-entry');
+      if (!row) return;
+      var cid = (document.getElementById('caseId') || {}).value || '';
+      var isArrest = row.classList.contains('arrest-log-entry');
+      row.remove();
+      try { if (typeof formDirty !== 'undefined') formDirty = true; } catch(_) {}
+      if (typeof logActivity === 'function') logActivity('DELETE_VITALS', cid, isArrest ? 'ลบ arrest row' : 'ลบ vitals row');
+      if (typeof saveData === 'function') saveData(false, true);
+      ppRefreshVitalEmpty();
+    }
+    function ppEditVitalRow(btn) {
+      if (ppIsCaseClosed()) return;
+      var row = btn.closest('.vital-log-entry');
+      if (!row) return;
+      var isArrest = row.classList.contains('arrest-log-entry');
+      if (isArrest) {
+        // Re-open m-add-arrest prefilled — but currently we only support new entry create.
+        // For now, just open empty modal (paramedic can delete + re-add). Future: prefill.
+        ppOpenAddArrestModal();
+      } else {
+        ppOpenAddVitalModal();
+        // Prefill m-add-vital from row's hidden inputs
+        var time = (row.querySelector('.v-time') || {}).value || '';
+        (document.getElementById('av-time') || {}).value = time;
+        (document.getElementById('av-bp') || {}).value   = (row.querySelector('.v-bp') || {}).value || '';
+        (document.getElementById('av-pr') || {}).value   = (row.querySelector('.v-pr') || {}).value || '';
+        (document.getElementById('av-rr') || {}).value   = (row.querySelector('.v-rr') || {}).value || '';
+        (document.getElementById('av-temp') || {}).value = (row.querySelector('.v-temp') || {}).value || '';
+        (document.getElementById('av-spo2') || {}).value = (row.querySelector('.v-spo2') || {}).value || '';
+        (document.getElementById('av-note') || {}).value = (row.querySelector('.v-note') || {}).value || '';
+        ppSetActive('av-gcs-e', (row.querySelector('.v-gcs-e') || {}).value || '4');
+        ppSetActive('av-gcs-v', (row.querySelector('.v-gcs-v') || {}).value || '5');
+        ppSetActive('av-gcs-m', (row.querySelector('.v-gcs-m') || {}).value || '6');
+        ppSetActivePain('av-pain-row', (row.querySelector('.v-pain') || {}).value || '0');
+        // Track edit target on the modal
+        var m = document.getElementById('m-add-vital');
+        if (!row.id) row.id = 'pp-vital-row-' + Date.now() + '-' + Math.floor(Math.random() * 1000);
+        if (m) m.dataset.editTargetId = row.id;
+      }
+    }
+    // Wrap addVitalLog + addArrestLog — render compact after production creates the row
+    (function() {
+      if (typeof addVitalLog === 'function') {
+        var _origV = addVitalLog;
+        window.addVitalLog = function(isNew, data) {
+          _origV.apply(this, arguments);
+          var c = document.getElementById('vitals-log-container');
+          if (!c) return;
+          var row = c.lastElementChild;
+          if (!row || !row.classList.contains('vital-log-entry')) return;
+          if (data || !isNew) ppRenderVitalCompact(row);
+        };
+      }
+      if (typeof addArrestLog === 'function') {
+        var _origA = addArrestLog;
+        window.addArrestLog = function(isNew, data) {
+          _origA.apply(this, arguments);
+          var c = document.getElementById('vitals-log-container');
+          if (!c) return;
+          var row = c.lastElementChild;
+          if (!row || !row.classList.contains('vital-log-entry')) return;
+          if (data || !isNew) ppRenderVitalCompact(row);
+        };
+      }
+    })();
 
     function ppRefreshVitalEmpty() {
       var c = document.getElementById('vitals-log-container');
