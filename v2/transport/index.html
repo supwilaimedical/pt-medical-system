@@ -1183,6 +1183,108 @@
       /* Shrink FAB on mobile so it doesn't overlap table actions */
       .fab-btn { bottom:16px; right:16px; width:48px; height:48px; font-size:1.2rem; }
     }
+
+    /* ============================================================
+       NEW R4 (2026-05-25): pp-* classes for Step 2+3 redesign
+       All selectors prefixed pp-* — no universal/element/Bootstrap overrides
+       Hardcoded colors (no :root vars) to prevent CSS variable leakage
+       ============================================================ */
+
+    /* pp-island-card — wraps existing .card with new visual accent */
+    .pp-island-card { background:#fff; border:1px solid #e2e8f0; border-radius:14px; border-top:5px solid #1e3a5f; box-shadow:0 2px 8px rgba(0,0,0,0.04); margin-bottom:14px; }
+    .pp-island-card.cyan { border-top-color:#06b6d4; }
+    .pp-island-card.sky  { border-top-color:#0ea5e9; }
+    .pp-island-card.red  { border-top-color:#ef4444; }
+    .pp-island-card.amber{ border-top-color:#f59e0b; }
+    .pp-island-card.teal { border-top-color:#0d9488; }
+    .pp-island-card.slate{ border-top-color:#64748b; }
+    .pp-island-card.dark { border-top-color:#0f172a; }
+    .pp-island-card.dark-red { border-top-color:#b91c1c; }
+
+    /* pp-row — clickable summary row → opens pp-modal */
+    .pp-row { background:#fff; border:1px solid #e2e8f0; border-left:4px solid #1e3a5f; border-radius:12px; padding:12px 14px; margin-bottom:8px; display:flex; align-items:center; gap:12px; cursor:pointer; transition:all 0.15s; }
+    .pp-row:hover { background:#f8fafc; box-shadow:0 2px 8px rgba(0,0,0,0.06); }
+    .pp-row.amber{ border-left-color:#f59e0b; } .pp-row.teal{ border-left-color:#0d9488; }
+    .pp-row.cyan { border-left-color:#06b6d4; } .pp-row.red { border-left-color:#ef4444; }
+    .pp-row.dark-red{ border-left-color:#b91c1c; } .pp-row.slate{ border-left-color:#64748b; }
+    .pp-row.dark { border-left-color:#0f172a; } .pp-row.sky { border-left-color:#0ea5e9; }
+    .pp-row .ic { font-size:26px; flex:0 0 auto; width:36px; }
+    .pp-row .body { flex:1 1 auto; min-width:0; }
+    .pp-row .title { font-size:14px; font-weight:700; color:#1e3a5f; }
+    .pp-row .sub { font-size:11px; color:#64748b; }
+    .pp-row .summary { font-size:12px; color:#334155; margin-top:3px; font-weight:500; }
+    .pp-row .edit-modal { background:#f59e0b; color:#fff; border:none; padding:7px 12px; border-radius:18px; font-size:12px; font-weight:700; display:inline-flex; align-items:center; gap:4px; min-height:32px; cursor:pointer; box-shadow:0 2px 6px rgba(245,158,11,0.3); }
+
+    /* pp-modal — custom modal system (does NOT collide with Bootstrap .modal) */
+    .pp-modal-backdrop { display:none; position:fixed; inset:0; background:rgba(15,36,68,0.55); z-index:2000; align-items:flex-start; justify-content:center; overflow-y:auto; padding:20px 12px; }
+    .pp-modal-backdrop.open { display:flex; }
+    .pp-modal { background:#fff; border-radius:14px; max-width:680px; width:100%; margin:auto; box-shadow:0 20px 60px rgba(0,0,0,0.25); overflow:hidden; border-top:5px solid #1e3a5f; animation:pp-modal-in 0.18s ease-out; }
+    @keyframes pp-modal-in { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:translateY(0); } }
+    .pp-modal.amber { border-top-color:#f59e0b; }
+    .pp-modal.teal  { border-top-color:#0d9488; }
+    .pp-modal.cyan  { border-top-color:#06b6d4; }
+    .pp-modal.red   { border-top-color:#ef4444; }
+    .pp-modal.dark-red { border-top-color:#b91c1c; }
+    .pp-modal.sky   { border-top-color:#0ea5e9; }
+    .pp-modal.slate { border-top-color:#64748b; }
+    .pp-modal.dark  { border-top-color:#0f172a; }
+    .pp-modal-head { padding:12px 16px; display:flex; align-items:center; gap:10px; border-bottom:1px solid #f1f5f9; flex-wrap:wrap; }
+    .pp-modal-head .ic { font-size:22px; }
+    .pp-modal-head .title { font-size:15px; font-weight:800; color:#1e293b; flex:1; line-height:1.2; min-width:0; }
+    .pp-modal-head .title .sub { display:block; font-size:11px; font-weight:500; color:#64748b; margin-top:2px; }
+    .pp-modal-head .save-chip { background:#dcfce7; color:#15803d; padding:4px 10px; border-radius:20px; font-size:11px; font-weight:700; display:inline-flex; align-items:center; gap:4px; }
+    .pp-modal-head .close-x { width:34px; height:34px; border-radius:10px; background:#f1f5f9; border:none; display:flex; align-items:center; justify-content:center; color:#475569; font-size:18px; cursor:pointer; }
+    .pp-modal-body { padding:16px; max-height:75vh; overflow-y:auto; }
+    .pp-modal-foot { padding:10px 16px; border-top:1px solid #f1f5f9; display:flex; justify-content:space-between; align-items:center; gap:10px; }
+    .pp-modal-foot .btn-cancel { background:#fff; border:1px solid #cbd5e1; color:#334155; padding:8px 16px; border-radius:24px; font-weight:600; cursor:pointer; }
+    .pp-modal-foot .btn-save { background:#1e3a5f; color:#fff; border:none; padding:8px 16px; border-radius:24px; font-weight:700; cursor:pointer; }
+
+    /* pp-pill — tap-friendly numeric pill */
+    .pp-pill-row { display:flex; gap:6px; flex-wrap:wrap; align-items:center; }
+    .pp-pill { min-width:42px; min-height:38px; padding:7px 14px; border:1px solid #e2e8f0; background:#f1f5f9; color:#475569; font-weight:600; font-size:14px; border-radius:22px; cursor:pointer; display:inline-flex; align-items:center; justify-content:center; transition:all 0.12s; user-select:none; }
+    .pp-pill:hover { border-color:#1e3a5f; }
+    .pp-pill.active { background:#1e3a5f; color:#fff; border-color:#1e3a5f; box-shadow:0 2px 6px rgba(30,58,95,0.3); }
+    .pp-pill.active.amber { background:#f59e0b; border-color:#f59e0b; }
+    .pp-pill.active.teal  { background:#0d9488; border-color:#0d9488; }
+    .pp-pill.active.red   { background:#ef4444; border-color:#ef4444; }
+    .pp-pill.active.green { background:#16a34a; border-color:#16a34a; }
+    .pp-pill.active.sky   { background:#0ea5e9; border-color:#0ea5e9; }
+    .pp-pill.active.cyan  { background:#06b6d4; border-color:#06b6d4; }
+    .pp-pill.locked { opacity:0.4; cursor:not-allowed; pointer-events:none; }
+
+    /* pp-lock-banner — yellow soft hint (e.g. V=T interlock note) */
+    .pp-lock-banner { background:#fef3c7; border-left:3px solid #f59e0b; padding:10px 14px; border-radius:8px; margin:10px 0; font-size:13px; color:#78350f; }
+    .pp-lock-banner .ref { font-size:11px; color:#475569; margin-top:2px; }
+
+    /* pp-status-line */
+    .pp-status-line { font-size:13px; padding:8px 12px; border-radius:8px; margin-top:10px; display:flex; align-items:center; gap:6px; font-weight:600; flex-wrap:wrap; }
+    .pp-status-line.good { background:#dcfce7; color:#15803d; }
+    .pp-status-line.warn { background:#fef3c7; color:#92400e; }
+    .pp-status-line.bad  { background:#fee2e2; color:#991b1b; }
+
+    /* pp-sub-title — small uppercase divider */
+    .pp-sub-title { font-size:11px; font-weight:700; color:#64748b; letter-spacing:1px; text-transform:uppercase; margin:14px 0 6px; padding-bottom:5px; border-bottom:1px solid #f1f5f9; }
+
+    /* pp-input — standard styled input */
+    .pp-input { padding:8px 12px; border:1px solid #cbd5e1; border-radius:8px; font-size:14px; width:100%; }
+    .pp-input:focus { border-color:#1e3a5f; outline:none; box-shadow:0 0 0 3px rgba(30,58,95,0.1); }
+
+    /* pp-circ-arrest-chip — Cardiac Arrest entry chip in Circulation */
+    .pp-circ-arrest-chip { background:#f8fafc; border:2px solid #e2e8f0; border-radius:12px; padding:12px 16px; margin-top:14px; display:flex; align-items:center; gap:12px; cursor:pointer; transition:all 0.15s; }
+    .pp-circ-arrest-chip:hover { border-color:#ef4444; background:#fef2f2; }
+    .pp-circ-arrest-chip .ic { font-size:24px; color:#ef4444; flex:0 0 auto; }
+    .pp-circ-arrest-chip .body { flex:1 1 auto; min-width:0; }
+    .pp-circ-arrest-chip .lbl { font-size:11px; font-weight:700; color:#64748b; letter-spacing:1px; text-transform:uppercase; }
+    .pp-circ-arrest-chip .status { font-size:14px; font-weight:600; color:#334155; }
+    .pp-circ-arrest-chip .chev { color:#94a3b8; font-size:18px; }
+    .pp-circ-arrest-chip.filled { background:#fef2f2; border-color:#ef4444; border-width:2px; }
+    .pp-circ-arrest-chip.filled .ic { color:#dc2626; animation:pp-arrestPulse 1.5s infinite; }
+    .pp-circ-arrest-chip.filled .lbl { color:#b91c1c; }
+    .pp-circ-arrest-chip.filled .status { color:#b91c1c; font-weight:700; }
+    @keyframes pp-arrestPulse { 0%,100% { box-shadow:0 0 0 0 rgba(220,38,38,0.5); } 50% { box-shadow:0 0 0 6px rgba(220,38,38,0); } }
+    /* ============================================================
+       END: pp-* classes
+       ============================================================ */
   </style>
   <link rel="stylesheet" href="../chrome.css?v=20260517p">
 </head>
