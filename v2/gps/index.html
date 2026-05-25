@@ -1151,15 +1151,8 @@
     <a href="../" title="หน้าหลัก"><i class="bi bi-house-door-fill"></i></a>
   </div>
   <div class="v2-subnav-header">
-    <div class="v2-subnav-header-flex">
-      <div>
-        <div class="title"><i class="bi bi-broadcast-pin" style="color:#e11d48;"></i> GPS Tracking</div>
-        <div class="sub">Live Fleet</div>
-      </div>
-      <button type="button" class="v2-subnav-btn" title="รีเฟรช" onclick="if(typeof manualRefresh==='function') manualRefresh();">
-        <i class="bi bi-arrow-clockwise"></i>
-      </button>
-    </div>
+    <div class="title"><i class="bi bi-broadcast-pin" style="color:#e11d48;"></i> GPS Tracking</div>
+    <div class="sub">Live Fleet</div>
   </div>
 
   <div class="v2-subnav-section">มุมมอง</div>
@@ -1195,6 +1188,9 @@
   </a>
 
   <div class="v2-subnav-section">เครื่องมือ</div>
+  <a href="javascript:void(0)" onclick="if(typeof manualRefresh==='function') manualRefresh();">
+    <span><i class="bi bi-arrow-clockwise"></i> รีเฟรชทันที</span>
+  </a>
   <a href="javascript:void(0)" id="gps-subnav-auto" onclick="if(typeof toggleAutoRefresh==='function') toggleAutoRefresh();">
     <span><i class="bi bi-lightning-fill"></i> Auto-refresh</span>
     <span class="badge-mini" id="gps-auto-label">OFF</span>
