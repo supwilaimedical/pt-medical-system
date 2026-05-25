@@ -1451,6 +1451,15 @@
     .pp-pill-row.sky  .btn-check:checked + label.pp-pill { background:#0ea5e9; border-color:#0ea5e9; }
     .pp-pill-row.red  .btn-check:checked + label.pp-pill { background:#ef4444; border-color:#ef4444; }
     .pp-pill-row.amber .btn-check:checked + label.pp-pill { background:#f59e0b; border-color:#f59e0b; }
+    /* Read-only state: when the underlying btn-check radio is disabled (by setReadOnlyMode),
+       fade the adjacent pp-pill label so it visually matches Breathing's O2 pills.
+       Applies to Airway/Vent/Circ/Arrest pill rows automatically — no body-class needed. */
+    .pp-pill-row .btn-check:disabled + label.pp-pill {
+      opacity: 0.6;
+      cursor: not-allowed;
+      pointer-events: none;
+      box-shadow: none;
+    }
 
     /* pp-select — re-style native <select> to look consistent with pp-input */
     .pp-select { padding:8px 12px; border:1px solid #cbd5e1; border-radius:8px; font-size:14px; background:#fff; width:100%; cursor:pointer; }
