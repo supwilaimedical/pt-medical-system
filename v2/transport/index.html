@@ -1190,8 +1190,9 @@
        Hardcoded colors (no :root vars) to prevent CSS variable leakage
        ============================================================ */
 
-    /* pp-island-card — wraps existing .card with new visual accent */
-    .pp-island-card { background:#fff; border:1px solid #e2e8f0; border-radius:14px; border-top:5px solid #1e3a5f; box-shadow:0 2px 8px rgba(0,0,0,0.04); margin-bottom:14px; }
+    /* pp-island-card — wraps existing .card with new visual accent.
+       margin-bottom !important to beat Bootstrap .mb-4 (24px) — user wanted 12-14px. */
+    .pp-island-card { background:#fff; border:1px solid #e2e8f0; border-radius:14px; border-top:5px solid #1e3a5f; box-shadow:0 2px 8px rgba(0,0,0,0.04); margin-bottom:14px !important; margin-top:0 !important; }
     .pp-island-card.cyan { border-top-color:#06b6d4; }
     .pp-island-card.sky  { border-top-color:#0ea5e9; }
     .pp-island-card.red  { border-top-color:#ef4444; }
@@ -2854,8 +2855,9 @@
 
             <!-- STEP 2: PHYSICAL ASSESSMENT -->
             <div id="step2-panel" class="d-none">
-              <!-- Initial Vitals (V/S) — match prototype v2/preview/transport-step2-step3-redesign.html#L552 -->
-              <div class="card p-4 mt-4 mb-4 island-card pp-island-card red">
+              <!-- Initial Vitals (V/S) — match prototype v2/preview/transport-step2-step3-redesign.html#L552.
+                   No Bootstrap mt-4/mb-4 — pp-island-card CSS controls spacing (14px) per user feedback. -->
+              <div class="card p-4 island-card pp-island-card red" style="margin-top:14px;">
                 <div class="d-flex justify-content-between align-items-center mb-3 border-bottom pb-2">
                   <h5 class="card-title fw-bold text-dark m-0">
                     <i class="bi bi-activity text-danger me-2"></i> สัญญาณชีพแรกรับ (ต้นทาง / จุดเกิดเหตุ)
@@ -2888,7 +2890,7 @@
               </div>
 
               <!-- Airway — match prototype line 583+ (auto pill removed: misleading — production has no auto-save) -->
-              <div class="card p-4 mb-4 island-card pp-island-card cyan">
+              <div class="card p-4 island-card pp-island-card cyan">
                  <h5 class="card-title fw-bold text-dark mb-3 border-bottom pb-2">
                    <i class="bi bi-lungs-fill text-info me-2"></i> ทางเดินหายใจ (Airway)
                    <small class="d-block fw-normal" style="font-size:11px; color:#64748b; margin-top:2px;">Airway management</small>
@@ -2917,7 +2919,7 @@
               </div>
 
               <!-- Breathing -->
-              <div class="card p-4 mb-4 island-card">
+              <div class="card p-4 island-card pp-island-card sky">
                 <h5 class="card-title fw-bold text-dark mb-3 border-bottom pb-2"><i class="bi bi-wind text-primary me-2"></i> การหายใจ & ออกซิเจน</h5>
                 <div class="form-check form-switch mb-4 bg-light p-3 rounded-3 border d-flex align-items-center">
                   <input class="form-check-input fs-4 m-0 ms-1 me-3" type="checkbox" id="chk-ventilator" name="on_ventilator" onchange="updateVentLogic()">
