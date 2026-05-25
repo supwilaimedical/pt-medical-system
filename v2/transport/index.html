@@ -5856,6 +5856,23 @@
         };
       }
     })();
+    // Auto-format ALL time-like inputs ("1956" → "19:56") via delegated input listener.
+    // Catches:
+    //   - .iv-time (created dynamically by addIvLine — can't modify production fn to add oninput)
+    //   - .vital-time (vital log rows)
+    //   - any input with placeholder="HH:MM" + maxlength≤5
+    // maskTime is idempotent → safe even when input already has inline oninput="maskTime(this)".
+    document.addEventListener('input', function(e) {
+      var el = e.target;
+      if (!el || el.tagName !== 'INPUT') return;
+      var isTimeInput = el.classList.contains('iv-time')
+                     || el.classList.contains('vital-time')
+                     || el.placeholder === 'HH:MM';
+      if (isTimeInput && typeof maskTime === 'function') {
+        maskTime(el);
+      }
+    });
+
     // IV Modal — per prototype line 910+. Collects fields, then delegates to production
     // addIvLine() to create the actual editable row (logic byte-identical).
     function ppOpenIvModal(context) {
