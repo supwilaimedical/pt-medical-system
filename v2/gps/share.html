@@ -335,6 +335,7 @@
     var _marker = null;
     var _map = null;
     var _refreshInterval = null;
+    var _expireInterval = null;
 
     async function init() {
       _supabase = supabase.createClient(CONFIG.SUPABASE_URL, CONFIG.SUPABASE_ANON_KEY);
@@ -402,7 +403,7 @@
         await fetchStatus();
         _refreshInterval = setInterval(fetchStatus, 10000);
         updateExpireCountdown();
-        setInterval(updateExpireCountdown, 1000);
+        _expireInterval = setInterval(updateExpireCountdown, 1000);
 
       } catch(e) {
         console.error(e);
@@ -535,6 +536,21 @@
       document.getElementById('errorTitle').textContent = title;
       document.getElementById('errorMsg').textContent = msg;
     }
+
+    // Pause GPS polling when tab hidden; resume when visible again
+    document.addEventListener('visibilitychange', function() {
+      if (document.hidden) {
+        if (_refreshInterval) { clearInterval(_refreshInterval); _refreshInterval = null; }
+      } else if (!_refreshInterval) {
+        _refreshInterval = setInterval(fetchStatus, 10000);
+        fetchStatus();
+      }
+    });
+
+    window.addEventListener('pagehide', function() {
+      if (_refreshInterval) clearInterval(_refreshInterval);
+      if (_expireInterval) clearInterval(_expireInterval);
+    });
 
     // Load Supabase UMD, then init
     var script = document.createElement('script');

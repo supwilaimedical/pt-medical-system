@@ -191,8 +191,9 @@
             padding:1px 7px; border-radius:4px; font-weight:600;
         }
         .monitor-toast .t-close {
-            position:absolute; top:8px; right:10px; background:transparent;
+            position:absolute; top:4px; right:6px; background:transparent;
             border:0; color:#94a3b8; font-size:1.1rem; padding:0; line-height:1;
+            width:40px; height:40px; display:flex; align-items:center; justify-content:center; cursor:pointer;
         }
         .monitor-toast .t-close:hover { color:#0f172a; }
     </style>
@@ -517,7 +518,7 @@
     body.monitor-wide-active #monitor-wide-gps-pane .mwgp-vh .vh-age.stale{ color:#d97706; font-weight:600; }
     body.monitor-wide-active #monitor-wide-gps-pane .mwgp-vh .vh-age i{ font-size:10px; }
 
-    /* Speed warning badge (>120 km/h) */
+    /* Speed warning badge (threshold from Admin → การแจ้งเตือน → SPEED_WARN_KMH, default 120) */
     body.monitor-wide-active #monitor-wide-gps-pane .vh-warn{
       display:inline-block; margin-top:4px; padding:1px 6px; border-radius:4px;
       background:#fee2e2; color:#991b1b; font-size:9.5px; font-weight:700;
@@ -1684,7 +1685,17 @@
     var _mwgpAutoCycle = false;
     var _mwgpAutoCycleIdx = -1;
     var _mwgpAutoCycleTimer = null;
-    var SPEED_WARN = 120;          // km/h threshold
+    // km/h threshold for wallboard warning badge (function-form: reads fresh each call).
+    // Admin can override via DB setting SPEED_WARN_KMH (Admin → การแจ้งเตือน → Speed Alert).
+    // Fallback 120 explicit if settings helper missing or DB row absent.
+    // Function (not var) so we don't capture stale value at parse time before settings.js loads.
+    function SPEED_WARN() {
+      try {
+        var v = (typeof settingsGet === 'function') ? settingsGet('SPEED_WARN_KMH') : null;
+        var n = v != null && v !== '' ? parseInt(v, 10) : NaN;
+        return (n >= 60 && n <= 220) ? n : 120;
+      } catch(e) { return 120; }
+    }
 
     // Wallboard mode override: localStorage 'pt_wallboard_mode' = 'on' / 'off' / null(=auto)
     // - 'on'  → force show pane (regardless of viewport, except < 1100px)
@@ -1792,7 +1803,7 @@
         } catch(e) {
             console.warn('monitorMiniGpsInit:', e.message);
             var list = document.getElementById('mwgp-list');
-            if (list) list.innerHTML = '<div class="mwgp-empty">โหลด GPS ไม่สำเร็จ: ' + (e.message || '') + '</div>';
+            if (list) list.innerHTML = '<div class="mwgp-empty">โหลด GPS ไม่สำเร็จ: ' + escapeHtml(e.message || '') + '</div>';
         }
     }
 
@@ -1914,12 +1925,22 @@
         }
     });
 
+    // Pause GPS polling when tab hidden; resume on visibility restored
+    document.addEventListener('visibilitychange', function() {
+        if (document.hidden) {
+            if (_mwgpInterval) { clearInterval(_mwgpInterval); _mwgpInterval = null; }
+        } else if (_mwgpInited && !_mwgpInterval) {
+            _mwgpInterval = setInterval(monitorMiniGpsFetchStatuses, 10000);
+            monitorMiniGpsFetchStatuses();
+        }
+    });
+
     // Render speed sparkline for a vehicle key (returns SVG markup)
     function _mwgpSparklineSvg(key) {
         var hist = _mwgpSpeedHistory[key];
         if (!hist || hist.length < 2) return '<div style="font-size:10.5px;color:#94a3b8;text-align:center;padding:8px 0;">ยังไม่มีประวัติ</div>';
         var W = 220, H = 32, PAD = 2;
-        var maxV = Math.max(SPEED_WARN, Math.max.apply(null, hist.map(function(p){ return p.speed; })));
+        var maxV = Math.max(SPEED_WARN(), Math.max.apply(null, hist.map(function(p){ return p.speed; })));
         if (maxV < 1) maxV = 1;
         var n = hist.length;
         var pts = hist.map(function(p, i){
@@ -2039,7 +2060,7 @@
             var speedNum = r.s.speed != null ? r.s.speed : 0;
             var ageStr = _mwgpFormatGpsAge(r.s);
             var ageStale = ageStr && /นาที|ชม/.test(ageStr);
-            var warnBadge = (r.kind !== 'offline' && speedNum > SPEED_WARN)
+            var warnBadge = (r.kind !== 'offline' && speedNum > SPEED_WARN())
                 ? '<div class="vh-warn">⚠ ' + Math.round(speedNum) + ' KM/H</div>' : '';
             var speedHtml;
             if (r.kind === 'offline') {
@@ -2743,11 +2764,21 @@
             var eventsRes = await _supabase.from('fa_events').select('*').eq('status', 'Active');
             var events = eventsRes.data || [];
 
+            // Batch fa_registry: single .in() instead of N+1 per-event queries
+            var regsByEvent = {};
+            if (events.length > 0) {
+                var eventIds = events.map(function(ev) { return ev.event_id; });
+                var regsRes = await _supabase.from('fa_registry').select('event_id, etiology, result').in('event_id', eventIds);
+                if (regsRes.error) throw regsRes.error;
+                (regsRes.data || []).forEach(function(r) {
+                    (regsByEvent[r.event_id] = regsByEvent[r.event_id] || []).push(r);
+                });
+            }
+
             var adaptedEvents = [];
             for (var i = 0; i < events.length; i++) {
                 var ev = events[i];
-                var regsRes = await _supabase.from('fa_registry').select('etiology, result').eq('event_id', ev.event_id);
-                var regs = regsRes.data || [];
+                var regs = regsByEvent[ev.event_id] || [];
                 var stats = {
                     total: regs.length,
                     med: regs.filter(function(r) { return r.etiology === 'Med'; }).length,
@@ -2761,7 +2792,7 @@
             renderMonitorFA(adaptedEvents);
         } catch(e) {
             console.error('Monitor render error:', e);
-            transportList.innerHTML = '<div class="col-12"><p class="text-danger text-center py-3 mb-0"><i class="bi bi-exclamation-triangle me-1"></i>เกิดข้อผิดพลาด: ' + (e.message || 'Unknown error') + '</p></div>';
+            transportList.innerHTML = '<div class="col-12"><p class="text-danger text-center py-3 mb-0"><i class="bi bi-exclamation-triangle me-1"></i>เกิดข้อผิดพลาด: ' + escapeHtml(e.message || 'Unknown error') + '</p></div>';
         }
         monitorHideLoading();
     }
@@ -3253,6 +3284,7 @@
         if (s) s.remove();
         var a = document.getElementById('monitor-print-content-area');
         if (a) a.innerHTML = '';
+        window.onbeforeprint = null;
     }
 
     // View Consent in print layout (uses consent-prototype.html in readonly+embed mode)
@@ -3430,8 +3462,17 @@
 
         var ps = document.createElement('style');
         ps.id = 'monitor-print-inject';
-        ps.textContent = '#monitor-print-layout-container { position:fixed; top:0; left:0; right:0; bottom:0; z-index:99999; background:#fff; overflow:auto; color-scheme:light; } @media print { :root, html { color-scheme:light only!important; } html, body { background:#fff!important; color:#000!important; } #app-main-wrapper, .modal, .modal-backdrop, .swal2-container, .v2-rail, .v2-subnav, .v2-mobile-rail-strip, .v2-mobile-nav-toggle, body.v2-mobile-nav-toggle { display:none!important; } body::before, body::after { display:none!important; content:none!important; } #monitor-print-layout-container { position:static!important; display:block!important; overflow:visible!important; } .no-print { display:none!important; } }';
+        ps.textContent = '#monitor-print-layout-container { position:fixed; top:0; left:0; right:0; bottom:0; z-index:99999; background:#fff; overflow:auto; color-scheme:light; } @media print { :root, html { color-scheme:light only!important; } html, body { background:#fff!important; color:#000!important; } body > *:not(#monitor-print-layout-container) { display:none!important; } body::before, body::after { display:none!important; content:none!important; } #monitor-print-layout-container { position:static!important; display:block!important; overflow:visible!important; } .no-print { display:none!important; } }';
         document.head.appendChild(ps);
+
+        // Auto-scale the report so it always prints on exactly one A4 page.
+        if (window.pcrFitToPage) {
+            window.pcrFitToPage(printArea);
+            if (document.fonts && document.fonts.ready) {
+                document.fonts.ready.then(function(){ window.pcrFitToPage(printArea); });
+            }
+            window.onbeforeprint = function(){ window.pcrFitToPage(printArea); };
+        }
     }
 
     // =============================================
@@ -3445,12 +3486,26 @@
             if (res.data) {
                 var c = res.data;
                 var raw = c.raw_data || {};
+                // Consent status lives in transport_consents — NOT in cases.raw_data.
+                // Query it so the PCR consent badge reflects the real signature
+                // state (same source the case-list loader uses).
+                var consentSigned = false;
+                try {
+                    var conRes = await _supabase
+                        .from('transport_consents')
+                        .select('status')
+                        .eq('case_id', caseId)
+                        .eq('status', 'active')
+                        .limit(1);
+                    consentSigned = !!(conRes.data && conRes.data.length > 0);
+                } catch(e) { console.error('Monitor consent status error:', e); }
                 var data = {
                     id: c.case_id,
                     rawSnapshot: raw.rawSnapshot || '',
                     vitalsJson: raw.vitalsJson || '',
                     ivJson: raw.ivJson || '',
-                    status: c.status
+                    status: c.status,
+                    consentSigned: consentSigned
                 };
                 var html = monitorBuildTransportHtml(data);
                 var body = document.getElementById('monitorPreviewBody');
@@ -3465,7 +3520,7 @@
                 document.getElementById('monitorPreviewBody').innerHTML = '<div class="text-center py-5 text-danger"><i class="bi bi-exclamation-circle fs-1 d-block mb-2"></i>ไม่พบข้อมูล</div>';
             }
         } catch(err) {
-            document.getElementById('monitorPreviewBody').innerHTML = '<div class="text-center py-5 text-danger"><i class="bi bi-exclamation-circle fs-1 d-block mb-2"></i>' + err.message + '</div>';
+            document.getElementById('monitorPreviewBody').innerHTML = '<div class="text-center py-5 text-danger"><i class="bi bi-exclamation-circle fs-1 d-block mb-2"></i>' + escapeHtml(err.message) + '</div>';
         }
     }
 
@@ -3515,7 +3570,7 @@
                 document.getElementById('monitorPreviewBody').innerHTML = '<div class="text-center py-5 text-danger">ไม่พบข้อมูล Event</div>';
             }
         } catch(err) {
-            document.getElementById('monitorPreviewBody').innerHTML = '<div class="text-center py-5 text-danger">' + err.message + '</div>';
+            document.getElementById('monitorPreviewBody').innerHTML = '<div class="text-center py-5 text-danger">' + escapeHtml(err.message) + '</div>';
         }
     }
 
@@ -3552,7 +3607,7 @@
                 w.document.open(); w.document.write('<html><body><h2>ไม่พบข้อมูล Event</h2></body></html>'); w.document.close();
             }
         } catch(err) {
-            w.document.open(); w.document.write('<html><body><h2>Error: ' + err.message + '</h2></body></html>'); w.document.close();
+            w.document.open(); w.document.write('<html><body><h2>Error: ' + escapeHtml(err.message) + '</h2></body></html>'); w.document.close();
         }
     }
 
@@ -3747,92 +3802,152 @@
             } catch(e) {}
         }
 
-        // Logo
+        // Logo — from navbar or admin settings
         var logoSrc = '';
         var navLogo = document.getElementById('navbar-logo');
         if (navLogo && navLogo.src && navLogo.style.display !== 'none') logoSrc = navLogo.src;
+        if (!logoSrc && typeof APP_LOGO_BASE64 !== 'undefined' && APP_LOGO_BASE64) logoSrc = APP_LOGO_BASE64;
+        if (!logoSrc && typeof APP_LOGO_URL !== 'undefined' && APP_LOGO_URL) logoSrc = APP_LOGO_URL;
 
-        // Build HTML document
-        var h = '<!DOCTYPE html><html><head><meta charset="UTF-8"><title>PT Record - ' + esc(data.id) + '</title><style>' + monitorPrintCSS() + '</style></head><body>';
-        h += '<div class="page">';
+        // --- Arrest pre object ---
+        var arrestPre = {
+            active:   gc('arrest_pre_arrest'),
+            time:     g('arrest_pre_time'),
+            cprTime:  g('arrest_pre_cpr_time'),
+            rhythm:   g('arrest_pre_rhythm'),
+            outcome:  g('arrest_pre_outcome'),
+            roscTime: g('arrest_pre_rosc_time'),
+            deadTime: g('arrest_pre_dead_time'),
+            note:     g('arrest_pre_note')
+        };
 
-        // Header
-        h += '<table class="header-tbl"><tr>';
-        if (logoSrc) h += '<td style="width:60px;vertical-align:middle;padding-left:0;"><img src="' + logoSrc + '" style="height:50px;"></td>';
-        h += '<td style="vertical-align:middle;"><div class="org-name">' + esc(typeof PRINT_HEADER !== 'undefined' ? PRINT_HEADER : '') + '</div>';
-        h += '<div class="doc-title">PATIENT TRANSPORT RECORD (แบบบันทึกการนำส่งผู้ป่วย)</div></td>';
-        h += '<td style="text-align:right;vertical-align:top;white-space:nowrap;padding-right:0;width:1%;">';
-        h += '<div class="doc-no">Doc No: <b>' + esc(data.id) + '</b></div>';
-        h += '<div class="doc-no">Status: <b>' + esc(data.status || '-') + '</b></div>';
-        h += '<div class="doc-no">NR Status: <b>' + esc(nrStatus) + '</b></div>';
-        h += '<div style="margin-top:4px;"><span class="triage-tag" style="background:' + triage.c + ';">' + esc(triage.l) + '</span></div>';
-        h += '</td></tr></table><div class="hdr-line"></div>';
+        var chkBox = function(v) { return v ? '\u2611' : '\u2610'; };
 
-        // Section 1: Op Info + Timeline
-        h += '<div class="sec-title sec-1">1. Operation Info</div>';
-        h += '<table class="grid"><tr><td class="lbl" style="width:80px;">Type</td><td style="width:120px;">' + esc(transportType) + '</td>';
-        h += '<td class="lbl" style="width:50px;">Level</td><td style="width:80px;">' + esc(opLevel) + '</td>';
-        h += '<td class="lbl" style="width:40px;">Unit</td><td>' + esc(opUnit) + '</td></tr></table>';
-        h += '<table class="grid">' + tlHtml + '</table>';
-        h += '<table class="grid"><tr><td class="lbl" style="width:80px;">Staff</td><td>' + esc(staffList) + '</td></tr></table>';
+        // --- Assemble canonical d object ---
+        var d = {
+            // Meta
+            id:           data.id || 'NEW',
+            date:         new Date().toLocaleString('th-TH'),
+            logoSrc:      logoSrc,
+            printHeader:  (typeof PRINT_HEADER !== 'undefined' ? PRINT_HEADER : ''),
+            nrStatus:     nrStatus,
+            triageLevel:  triageLevel,
+            consentSigned: !!data.consentSigned,
+            loggedUser:   '-',
+            publicShare:  false,
+            // Op
+            transportType: transportType,
+            opLevel:       opLevel,
+            opUnit:        opUnit,
+            sceneType:     g('scene_pt_type'),
+            sceneMoi:      g('scene_detail'),
+            staffList:     staffList,
+            // Timeline EMS
+            tlDispatch:   isEms ? (g('tl_dispatch_dt')       ? g('tl_dispatch_dt').substring(11,16)       : '') : '',
+            tlArrScene:   isEms ? (g('tl_arrive_scene_dt')   ? g('tl_arrive_scene_dt').substring(11,16)   : '') : '',
+            tlDeptScene:  isEms ? (g('tl_depart_scene_dt')   ? g('tl_depart_scene_dt').substring(11,16)   : '') : '',
+            tlArrHosp:    isEms ? (g('tl_arrive_hospital_dt')? g('tl_arrive_hospital_dt').substring(11,16): '') : '',
+            // Timeline Refer
+            tlDeptOrigin: !isEms ? (g('tl_depart_origin_dt') ? g('tl_depart_origin_dt').substring(11,16) : '') : '',
+            tlArrDest:    !isEms ? (g('tl_arrive_dest_dt')   ? g('tl_arrive_dest_dt').substring(11,16)   : '') : '',
+            // Patient
+            ptName:    ptName,
+            ptAge:     ptAge,
+            ptGender:  ptGender,
+            idCard:    g('pt_idcard'),
+            idType:    idType,
+            idDisplay: idDisplay,
+            origin:    origin,
+            dest:      dest,
+            cc:        cc,
+            dx:        dx,
+            allergies: allergies,
+            underlying: underlying,
+            meds:      meds,
+            // Initial vitals
+            initTime:  initTime,
+            initBP:    initBP,
+            initPR:    initPR,
+            initRR:    initRR,
+            initTemp:  initTemp,
+            initSpO2:  initSpO2,
+            initDTX:   initDTX,
+            pain:      pain,
+            // Physical assessment
+            airway:      airway,
+            breathing:   breathing,
+            circStatus:  circStatus,
+            ekg:         ekg,
+            centralLine: centralLine,
+            gcs:         gcs,
+            pupilSize:   pupilSize,
+            pupilReact:  pupilReact,
+            motorRA:     g('motor_ra'),
+            motorLA:     g('motor_la'),
+            motorRL:     g('motor_rl'),
+            motorLL:     g('motor_ll'),
+            expRA:       g('exp_ra'),
+            expLA:       g('exp_la'),
+            expRL:       g('exp_rl'),
+            expLL:       g('exp_ll'),
+            expOther:    g('exp_other'),
+            tubes:       tubesStr,
+            // Arrest
+            arrestPre:   arrestPre,
+            // Fluids & equipment
+            equipment:   equipment,
+            // Nurse note
+            nurseNote:   nurseNote,
+            sigRecorder: ''
+        };
 
-        // Section 2: Patient Info
-        h += '<div class="sec-title sec-2">2. Patient Information</div>';
-        h += '<table class="grid"><tr><td class="lbl" style="width:80px;">Name</td><td style="width:200px;font-weight:600;">' + esc(ptName) + '</td>';
-        h += '<td class="lbl" style="width:40px;">Age</td><td style="width:60px;">' + esc(ptAge) + '</td>';
-        h += '<td class="lbl" style="width:50px;">Gender</td><td style="width:60px;">' + esc(ptGender) + '</td>';
-        h += '<td class="lbl" style="width:25px;">' + (idType === 'Passport' ? 'PP' : 'ID') + '</td><td>' + esc(idDisplay) + '</td></tr></table>';
-        h += '<table class="grid"><tr><td class="lbl" style="width:80px;">Origin</td><td style="width:220px;">' + esc(origin) + '</td>';
-        h += '<td class="lbl" style="width:80px;">Destination</td><td>' + esc(dest) + '</td></tr></table>';
-        h += '<table class="grid">';
-        h += '<tr><td class="lbl" style="width:80px;">C/C</td><td colspan="3">' + esc(cc) + '</td></tr>';
-        h += '<tr><td class="lbl">Dx</td><td colspan="3">' + esc(dx) + '</td></tr>';
-        h += '<tr><td class="lbl lbl-red">Allergy</td><td colspan="3" class="red-text">' + esc(allergies) + '</td></tr>';
-        h += '<tr><td class="lbl">U/D</td><td colspan="3">' + esc(underlying) + '</td></tr>';
-        h += '<tr><td class="lbl">Meds</td><td colspan="3">' + esc(meds) + '</td></tr></table>';
+        // --- Build IV rows ---
+        var ivRowsHtml = '';
+        if (data.ivJson) {
+            try {
+                JSON.parse(data.ivJson).forEach(function(iv) {
+                    ivRowsHtml += '<tr>' +
+                        '<td class="mono">' + esc(iv.time || '') + '</td>' +
+                        '<td>' + esc(iv.name || '') + '</td>' +
+                        '<td>' + esc(iv.context || '') + '</td>' +
+                        '<td>' + esc(iv.route || '') + '</td>' +
+                        '<td>' + esc(iv.rate || '') + '</td>' +
+                        '<td>' + chkBox(iv.sedate) + '</td></tr>';
+                });
+            } catch(e) {}
+        }
+        d.ivRowsHtml = ivRowsHtml;
 
-        // Section 3: Initial Vitals
-        h += '<div class="sec-title sec-3">3. Initial Vitals' + (initTime ? ' <span class="time-note">@ ' + esc(initTime) + '</span>' : '') + '</div>';
-        h += '<table class="grid data-tbl"><thead><tr><th>BP</th><th>PR</th><th>RR</th><th>Temp</th><th>SpO2</th><th>DTX</th><th>Pain</th></tr></thead>';
-        h += '<tbody><tr class="center"><td>' + esc(initBP) + '</td><td>' + esc(initPR) + '</td><td>' + esc(initRR) + '</td>';
-        h += '<td>' + esc(initTemp) + '</td><td>' + esc(initSpO2) + '</td><td>' + esc(initDTX) + '</td><td>' + esc(pain) + '</td></tr></tbody></table>';
+        // --- Build vitals log rows ---
+        var vitalsRowsHtml = '';
+        if (data.vitalsJson) {
+            try {
+                JSON.parse(data.vitalsJson).forEach(function(v) {
+                    if (v.type === 'arrest') {
+                        var outcomeText = v.arrest_outcome || '-';
+                        if (v.arrest_outcome === 'ROSC') outcomeText = v.arrest_rosc_time ? 'ROSC @ ' + v.arrest_rosc_time : 'ROSC';
+                        else if (v.arrest_outcome === 'Terminate CPR') outcomeText = v.arrest_dead_time ? 'Terminate CPR @ ' + v.arrest_dead_time : 'Terminate CPR';
+                        var summary = 'Rhythm: ' + (v.arrest_rhythm || '-') + ' | CPR: ' + (v.arrest_cpr_time || '-') + ' | ' + outcomeText + (v.arrest_note ? ' | ' + v.arrest_note : '');
+                        vitalsRowsHtml += '<tr class="arrest-row"><td class="mono" style="font-weight:700;">' + esc(v.arrest_time || '') + '</td>' +
+                            '<td colspan="8"><span style="background:#c1281d;color:#fff;padding:1px 6px;border-radius:3px;font-weight:700;margin-right:4px;font-size:8px;">ARREST</span>' + esc(summary) + '</td></tr>';
+                    } else {
+                        vitalsRowsHtml += '<tr>' +
+                            '<td class="mono">' + esc(v.time || '') + '</td>' +
+                            '<td class="mono">' + esc(v.bp || '') + '</td>' +
+                            '<td class="mono">' + esc(v.pr || '') + '</td>' +
+                            '<td class="mono">' + esc(v.rr || '') + '</td>' +
+                            '<td class="mono">' + esc(v.temp || '') + '</td>' +
+                            '<td class="mono">' + esc(v.spo2 || '') + '</td>' +
+                            '<td class="mono">' + esc('E' + (v.gcs_e || '-') + 'V' + (v.gcs_v || '-') + 'M' + (v.gcs_m || '-')) + '</td>' +
+                            '<td>' + esc(v.pain || '') + '</td>' +
+                            '<td>' + esc(v.note || '') + '</td></tr>';
+                    }
+                });
+            } catch(e) {}
+        }
+        d.vitalsRowsHtml = vitalsRowsHtml;
 
-        // Section 4: Physical Assessment
-        h += '<div class="sec-title sec-4">4. Physical Assessment</div>';
-        h += '<table class="grid">';
-        h += '<tr><td class="lbl" style="width:80px;">Airway</td><td style="width:180px;">' + esc(airway) + '</td>';
-        h += '<td class="lbl" style="width:70px;">Breathing</td><td>' + esc(breathing) + '</td></tr>';
-        h += '<tr><td class="lbl">Circ.</td><td>' + esc(circStatus) + (ekg ? ' | EKG: ' + esc(ekg) : '') + '</td>';
-        h += '<td class="lbl">C-Line</td><td>' + esc(centralLine) + '</td></tr>';
-        h += '<tr><td class="lbl">GCS</td><td>' + esc(gcs) + '</td>';
-        h += '<td class="lbl">Pupils</td><td>' + esc(pupilSize) + ' (' + esc(pupilReact) + ')</td></tr></table>';
-        h += '<table class="grid"><tr><td class="lbl" style="width:80px;">Tubes</td><td>' + esc(tubesStr) + '</td></tr></table>';
-        h += arrestPreHtml;
-
-        // Section 5: IV / Meds
-        h += '<div class="sec-title sec-5">5. Fluids & Medications</div>';
-        h += '<table class="grid data-tbl"><thead><tr><th>Time</th><th>Item</th><th>Context</th><th>Route</th><th>Rate</th><th>Sedate</th></tr></thead>';
-        h += '<tbody>' + (ivHtml || '<tr><td colspan="6" class="empty-row">- No IV/Meds -</td></tr>') + '</tbody></table>';
-        h += '<table class="grid"><tr><td class="lbl" style="width:80px;">Equipment</td><td>' + esc(equipment) + '</td></tr></table>';
-
-        // Section 6: Vitals Log
-        h += '<div class="sec-title sec-6">6. Vitals Log</div>';
-        h += '<table class="grid data-tbl"><thead><tr><th>Time</th><th>BP</th><th>PR</th><th>RR</th><th>Temp</th><th>SpO2</th><th>GCS</th><th>Pain</th><th>Note</th></tr></thead>';
-        h += '<tbody>' + (vitalsHtml || '<tr><td colspan="9" class="empty-row">- No vitals recorded -</td></tr>') + '</tbody></table>';
-
-        // Section 7: Nurse Note
-        h += '<div class="sec-title sec-7">7. Nurse Note / บันทึกเพิ่มเติม</div>';
-        h += '<div class="note-box">' + esc(nurseNote) + '</div>';
-
-        // Signatures
-        h += '<div class="sig-section"><table class="sig-tbl"><tr>';
-        h += '<td class="sig-cell"><div class="sig-line"></div><div class="sig-label">ผู้บันทึก (Recorder)</div></td>';
-        h += '<td class="sig-cell"><div class="sig-line"></div><div class="sig-label">ผู้ส่ง (Sender)</div></td>';
-        h += '<td class="sig-cell"><div class="sig-line"></div><div class="sig-label">ผู้รับ (Receiver)</div></td>';
-        h += '</tr></table></div>';
-
-        h += '</div></body></html>';
-        return h;
+        return window.buildPcrHtml(d);
     }
 
     // =============================================
@@ -4069,7 +4184,9 @@
         h += ".pending-pulse { display:inline-block; width:8px; height:8px; border-radius:50%; background:#ef4444; margin-right:4px; animation:pulse 1.5s infinite; }";
 
         // Print
-        h += "@media print { @page { size:A4 landscape; margin:4mm 6mm; } .no-print,.toolbar { display:none!important; } #tab-pending { display:none!important; } body { -webkit-print-color-adjust:exact; print-color-adjust:exact; } }";
+        // Print — also neutralise fullscreen (is-fs) clipping: body.is-fs + .page carry
+        // overflow:hidden + height:100vh which Chrome's print engine clips to blank.
+        h += "@media print { @page { size:A4 landscape; margin:4mm 6mm; } .no-print,.toolbar { display:none!important; } #tab-pending { display:none!important; } body { -webkit-print-color-adjust:exact; print-color-adjust:exact; } body.is-fs { overflow:visible!important; } body.is-fs .page { overflow:visible!important; height:auto!important; } }";
         // Responsive
         h += "@media screen and (max-width:900px) { .page { padding:8px; } .row1 { grid-template-columns:1fr!important; } .row2d { grid-template-columns:repeat(3,1fr)!important; } .row3r { grid-template-columns:repeat(2,1fr)!important; } .time-ch-wrap { height:140px; } }";
         h += "@media screen and (max-width:600px) { .row2d { grid-template-columns:1fr!important; } .row3r { grid-template-columns:1fr!important; } }";

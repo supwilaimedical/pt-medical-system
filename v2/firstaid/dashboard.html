@@ -700,22 +700,31 @@
   /* PRINT — fit 1920x1080 stage to A4 landscape via `zoom` (shrinks layout box, not just visual) */
   @media print {
     @page { size: A4 landscape; margin: 5mm; }
+    /* NO overflow:hidden on html/body — in Chrome print engine, overflow:hidden on the
+       root element can clip the whole document to nothing → blank page. Plain reset only. */
     html, body {
-      overflow: hidden !important; height: auto !important;
+      height: auto !important;
       background: #fff !important; margin: 0 !important; padding: 0 !important;
     }
+    /* .stage-host is the print "viewport" — sized to the SCALED dimensions because
+       transform:scale does NOT shrink the layout box (only the visual). overflow:hidden
+       crops the 1920×1080 layout box of .stage-wrap down to the visible scaled content.
+       1920*0.565 ≈ 1085px ≈ 287mm (A4L width − 2×5mm margin)
+       1080*0.565 ≈ 610px  ≈ 161mm (well under A4L ~200mm printable height) */
     .stage-host {
       position: static !important;
-      width: auto !important; height: auto !important;
+      width: 1085px !important; height: 610px !important;
       overflow: hidden !important;
       page-break-inside: avoid;
     }
-    /* `zoom` shrinks BOTH visual and layout box — pagination treats element as zoom×size.
-       1920px * 0.565 ≈ 1085px ≈ 287mm = A4L width minus margin
-       1080px * 0.565 ≈ 610px ≈ 162mm — well under 200mm A4L height */
+    /* Use transform:scale — NOT zoom. Chrome's print engine handles `zoom` unreliably
+       (renders fine on screen, blank in print). transform:scale is print-robust.
+       transform-origin top-left so the scaled box sits flush at .stage-host's origin.
+       position:static (overrides JS inline position:absolute) so #stage flows in-document. */
     .stage-wrap {
-      transform: none !important;
-      zoom: 0.565;
+      position: static !important;
+      transform: scale(0.565) !important;
+      transform-origin: top left !important;
       width: 1920px !important; height: 1080px !important;
       box-shadow: none !important;
       background: #fff !important;

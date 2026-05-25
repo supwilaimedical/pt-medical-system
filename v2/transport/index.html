@@ -275,7 +275,7 @@
     /* ===== Card Kebab Menu (parallel with Location) ===== */
     .v2-tr-kebab-wrap{ position:relative; display:inline-block; }
     .v2-tr-kebab-btn{
-      width:34px; height:34px; border-radius:8px; border:1px solid #e2e8f0;
+      width:40px; height:40px; border-radius:8px; border:1px solid #e2e8f0;
       background:#fff; color:#64748b; cursor:pointer;
       display:inline-flex; align-items:center; justify-content:center;
       transition:all .12s;
@@ -475,12 +475,17 @@
     @media (min-width: 768px){ #v2-quick-panel{ left:56px !important; } }
     @media (min-width: 992px){ #v2-quick-panel{ left:296px !important; } }
 
-    /* Timeline row inside static topbar */
+    /* Timeline row inside static topbar — WHITE pane with dark text (no card frame).
+       Per UX request 2026-05-19: user found navy timeline hard to read; banner also white. */
     .v2-form-topbar .v2-tb-timeline{
-      margin:0 !important; border:0 !important; border-bottom:1px solid #f1f5f9 !important;
+      margin:0 !important; border:0 !important;
+      border-bottom:1px solid #e2e8f0 !important;
       border-radius:0 !important; border-left:0 !important;
-      background:#fff !important; box-shadow:none !important;
+      background:#fff !important; color:#0f172a !important;
+      box-shadow:none !important;
     }
+    .v2-form-topbar .v2-tb-timeline,
+    .v2-form-topbar .v2-tb-timeline *{ color:inherit; }
     .v2-form-topbar .v2-tb-timeline > div{ font-size:0.78rem; }
 
     /* ===== Mobile Hamburger Nav ===== */
@@ -574,7 +579,15 @@
 
     /* ===== Mobile Timeline: shrunk further (2-col grid, smaller inputs/labels) ===== */
     @media (max-width:767px){
-      #timeline-card{ margin-bottom:8px !important; }
+      /* Timeline-card outside topbar = keep legacy 8px spacing (defensive: before reparent).
+         Inside topbar = flush — no margin (was creating 8px navy seam between Timeline white
+         pane and patient-banner) + no padding (shared/styles.css .island-card adds 1rem on
+         mobile which makes the Timeline strip ~32px taller than needed). */
+      #timeline-card:not(.v2-tb-timeline){ margin-bottom:8px !important; }
+      .v2-form-topbar #timeline-card{
+        margin:0 !important;
+        padding:0 !important;
+      }
       #tl-ems > .d-flex.flex-wrap,
       #tl-refer > .d-flex.flex-wrap{
         display:grid !important;
@@ -676,7 +689,7 @@
     body .form-control, body .form-select{
       border-radius:8px !important;
       border-color:#e2e8f0 !important;
-      font-size:14px !important;
+      font-size:16px !important;
     }
     body .form-control:focus, body .form-select:focus{
       border-color:#0ea5e9 !important;
@@ -837,6 +850,40 @@
     .patient-banner.ban-collapsed .ban-toggle-btn .bi { transform: rotate(0deg); }
     .patient-banner:not(.ban-collapsed) .ban-toggle-btn .bi { transform: rotate(180deg); }
     .ban-details { padding: 8px 10px 4px; }
+
+    /* When expanded: hide name from mini-bar (already in details).
+       Keep #ban-mini-triage-wrap (Urgent chip) and #ban-consent-card so the mini-bar
+       row "Urgent | ✓ลงนามแล้ว | ▼" gives a one-row summary of status.
+       The duplicate Urgent badge in .ban-details is hidden via the rule below. */
+    .patient-banner:not(.ban-collapsed) #ban-mini-name {
+      display: none !important;
+    }
+    /* Hide details-level triage badge (.col-md-3) — same info already in mini-bar */
+    .patient-banner:not(.ban-collapsed) .ban-details .row.align-items-center > .col-md-3 {
+      display: none !important;
+    }
+
+    /* "รถเบอร์: คันที่ X (ALS)" line — span has no size class so it inherits body 16px.
+       Surrounding chips/staff text are 11-14px. Shrink to 0.78rem (~12.5px) to blend. */
+    .patient-banner .ban-details .fw-medium.text-dark {
+      font-size: 0.78rem !important;
+    }
+
+    /* ALS row baseline fix — items had mixed line-heights and pb-1 made staff text
+       sit lower. Normalize so chip + รถเบอร์ + separator + staff sit on same baseline. */
+    .patient-banner .ban-details .row.text-sm .col-12.text-primary {
+      line-height: 1.5 !important;
+    }
+    .patient-banner .ban-details .row.text-sm .col-12.text-primary .badge {
+      line-height: 1.4 !important;
+    }
+    .patient-banner .ban-details #ban-staff-list {
+      padding-bottom: 0 !important;
+      vertical-align: middle;
+    }
+    .patient-banner .ban-details .row.text-sm .text-muted.mx-1 {
+      font-size: 0.78rem !important;
+    }
 
     /* Consent Modal Fullscreen */
     .consent-modal-overlay {
@@ -2475,22 +2522,22 @@
                   </div>
                   <div class="d-flex align-items-center px-2 py-1 border-end flex-fill">
                     <span class="text-secondary me-1">รับแจ้ง</span>
-                    <input type="text" class="form-control form-control-sm bg-transparent border-0 text-center fw-bold px-0 tl-time-input" id="tl-dispatch" placeholder="--:--" maxlength="5" oninput="maskTime(this)" onchange="onTimeManualEdit('dispatch')" style="width:44px;min-width:0;font-size:0.82rem;">
+                    <input type="text" class="form-control form-control-sm bg-transparent border-0 text-center fw-bold px-0 tl-time-input" id="tl-dispatch" placeholder="--:--" maxlength="5" oninput="maskTime(this)" onchange="onTimeManualEdit('dispatch')" style="width:44px;min-width:0;">
                     <button type="button" class="btn btn-outline-secondary btn-sm px-1 py-0 rounded-1 tl-btn" id="tl-btn-dispatch" onclick="stampNow('dispatch')" style="font-size:0.65rem;line-height:1.4;"><i class="bi bi-clock"></i></button>
                   </div>
                   <div class="d-flex align-items-center px-2 py-1 border-end flex-fill">
                     <span class="text-secondary me-1">ถึงจุดรับ</span>
-                    <input type="text" class="form-control form-control-sm bg-transparent border-0 text-center fw-bold px-0 tl-time-input" id="tl-arrive-scene" placeholder="--:--" maxlength="5" oninput="maskTime(this)" onchange="onTimeManualEdit('arrive_scene')" style="width:44px;min-width:0;font-size:0.82rem;">
+                    <input type="text" class="form-control form-control-sm bg-transparent border-0 text-center fw-bold px-0 tl-time-input" id="tl-arrive-scene" placeholder="--:--" maxlength="5" oninput="maskTime(this)" onchange="onTimeManualEdit('arrive_scene')" style="width:44px;min-width:0;">
                     <button type="button" class="btn btn-outline-secondary btn-sm px-1 py-0 rounded-1 tl-btn" id="tl-btn-arrive-scene" onclick="stampNow('arrive_scene')" style="font-size:0.65rem;line-height:1.4;"><i class="bi bi-clock"></i></button>
                   </div>
                   <div class="d-flex align-items-center px-2 py-1 border-end flex-fill">
                     <span class="text-secondary me-1">ออก</span>
-                    <input type="text" class="form-control form-control-sm bg-transparent border-0 text-center fw-bold px-0 tl-time-input" id="tl-depart-scene" placeholder="--:--" maxlength="5" oninput="maskTime(this)" onchange="onTimeManualEdit('depart_scene')" style="width:44px;min-width:0;font-size:0.82rem;">
+                    <input type="text" class="form-control form-control-sm bg-transparent border-0 text-center fw-bold px-0 tl-time-input" id="tl-depart-scene" placeholder="--:--" maxlength="5" oninput="maskTime(this)" onchange="onTimeManualEdit('depart_scene')" style="width:44px;min-width:0;">
                     <button type="button" class="btn btn-outline-secondary btn-sm px-1 py-0 rounded-1 tl-btn" id="tl-btn-depart-scene" onclick="stampNow('depart_scene')" style="font-size:0.65rem;line-height:1.4;"><i class="bi bi-clock"></i></button>
                   </div>
                   <div class="d-flex align-items-center px-2 py-1 border-end flex-fill">
                     <span class="text-secondary me-1">ถึง รพ.</span>
-                    <input type="text" class="form-control form-control-sm bg-transparent border-0 text-center fw-bold px-0 tl-time-input" id="tl-arrive-hospital" placeholder="--:--" maxlength="5" oninput="maskTime(this)" onchange="onTimeManualEdit('arrive_hospital')" style="width:44px;min-width:0;font-size:0.82rem;">
+                    <input type="text" class="form-control form-control-sm bg-transparent border-0 text-center fw-bold px-0 tl-time-input" id="tl-arrive-hospital" placeholder="--:--" maxlength="5" oninput="maskTime(this)" onchange="onTimeManualEdit('arrive_hospital')" style="width:44px;min-width:0;">
                     <button type="button" class="btn btn-outline-secondary btn-sm px-1 py-0 rounded-1 tl-btn" id="tl-btn-arrive-hospital" onclick="stampNow('arrive_hospital')" style="font-size:0.65rem;line-height:1.4;"><i class="bi bi-clock"></i></button>
                   </div>
                   <div class="d-flex align-items-center gap-1 px-2 py-1 bg-light flex-wrap" id="tl-ems-durations" style="font-size:0.7rem;">
@@ -2509,12 +2556,12 @@
                   </div>
                   <div class="d-flex align-items-center px-2 py-1 border-end flex-fill">
                     <span class="text-secondary me-1">ออกต้นทาง</span>
-                    <input type="text" class="form-control form-control-sm bg-transparent border-0 text-center fw-bold px-0 tl-time-input" id="tl-depart-origin" placeholder="--:--" maxlength="5" oninput="maskTime(this)" onchange="onTimeManualEdit('depart_origin')" style="width:44px;min-width:0;font-size:0.82rem;">
+                    <input type="text" class="form-control form-control-sm bg-transparent border-0 text-center fw-bold px-0 tl-time-input" id="tl-depart-origin" placeholder="--:--" maxlength="5" oninput="maskTime(this)" onchange="onTimeManualEdit('depart_origin')" style="width:44px;min-width:0;">
                     <button type="button" class="btn btn-outline-secondary btn-sm px-1 py-0 rounded-1 tl-btn" id="tl-btn-depart-origin" onclick="stampNow('depart_origin')" style="font-size:0.65rem;line-height:1.4;"><i class="bi bi-clock"></i></button>
                   </div>
                   <div class="d-flex align-items-center px-2 py-1 border-end flex-fill">
                     <span class="text-secondary me-1">ถึงปลายทาง</span>
-                    <input type="text" class="form-control form-control-sm bg-transparent border-0 text-center fw-bold px-0 tl-time-input" id="tl-arrive-dest" placeholder="--:--" maxlength="5" oninput="maskTime(this)" onchange="onTimeManualEdit('arrive_dest')" style="width:44px;min-width:0;font-size:0.82rem;">
+                    <input type="text" class="form-control form-control-sm bg-transparent border-0 text-center fw-bold px-0 tl-time-input" id="tl-arrive-dest" placeholder="--:--" maxlength="5" oninput="maskTime(this)" onchange="onTimeManualEdit('arrive_dest')" style="width:44px;min-width:0;">
                     <button type="button" class="btn btn-outline-secondary btn-sm px-1 py-0 rounded-1 tl-btn" id="tl-btn-arrive-dest" onclick="stampNow('arrive_dest')" style="font-size:0.65rem;line-height:1.4;"><i class="bi bi-clock"></i></button>
                   </div>
                   <div class="d-flex align-items-center px-2 py-1 bg-light" id="tl-refer-durations" style="font-size:0.7rem;">
@@ -3229,6 +3276,7 @@
     var isPopulating = false;
     var formDirty = false;
     var loadedCaseStatus = '';
+    var _loadedRowVersion = 1;     // OCC token — captured on case open and after each successful save
     var editModal;
     // Realtime form-merge state
     var _loadedRawSnapshot = {};      // last-loaded form values (per name) — used to detect user-touched fields
@@ -3253,9 +3301,12 @@
 
     function generateCaseId() {
        var now = new Date();
-       var prefix = now.toISOString().slice(0,10).replace(/-/g,"");
-       var random = Math.floor(Math.random() * 1000).toString().padStart(3, '0');
-       return 'CASE-' + prefix + '-' + random;
+       var y = now.getFullYear();
+       var m = (now.getMonth() + 1).toString().padStart(2, '0');
+       var d = now.getDate().toString().padStart(2, '0');
+       var prefix = y + m + d;                              // local-time YYYYMMDD
+       var ms = now.getTime().toString().slice(-6);         // 6-digit ms suffix
+       return 'CASE-' + prefix + '-' + ms;
     }
 
     // GAS compatibility stubs (no-ops for Supabase version)
@@ -3444,6 +3495,8 @@
 
             // Re-snapshot to absorb remote-merged values (so subsequent merges work correctly)
             _snapshotFormState();
+            // Update OCC baseline from the remote row so the next save uses the current version.
+            _loadedRowVersion = row.row_version || _loadedRowVersion;
 
             if (updatedCount > 0 || keptCount > 0) {
                 // Dedup: max 1 toast per 4s. If a toast was just shown, skip
@@ -3703,12 +3756,12 @@
                 var parts = val.split('/');
                 var sys = parseInt(parts[0], 10);
                 var dia = parseInt(parts[1], 10);
-                return sys >= 30 && sys <= 300 && dia >= 10 && dia <= 200;
+                return sys >= 40 && sys <= 300 && dia >= 20 && dia <= 200;
             }
         },
         pr: { min: 0, max: 300, message: 'PR ต้องอยู่ระหว่าง 0-300 /min (หรือ "-" ถ้าวัดไม่ได้)', validate: function(val) { if (!val) return true; if (isUnmeasurable(val)) return true; var n = parseInt(val, 10); return !isNaN(n) && n >= this.min && n <= this.max; } },
         rr: { min: 0, max: 80, message: 'RR ต้องอยู่ระหว่าง 0-80 /min (หรือ "-" ถ้าวัดไม่ได้)', validate: function(val) { if (!val) return true; if (isUnmeasurable(val)) return true; var n = parseInt(val, 10); return !isNaN(n) && n >= this.min && n <= this.max; } },
-        temp: { min: 30.0, max: 45.0, message: 'Temp ต้องอยู่ระหว่าง 30.0-45.0 °C (หรือ "-" ถ้าวัดไม่ได้)', validate: function(val) { if (!val) return true; if (isUnmeasurable(val)) return true; var n = parseFloat(val); return !isNaN(n) && n >= this.min && n <= this.max; } },
+        temp: { min: 28.0, max: 45.0, message: 'Temp ต้องอยู่ระหว่าง 28.0-45.0 °C (หรือ "-" ถ้าวัดไม่ได้)', validate: function(val) { if (!val) return true; if (isUnmeasurable(val)) return true; var n = parseFloat(val); return !isNaN(n) && n >= this.min && n <= this.max; } },
         spo2: { min: 0, max: 100, message: 'SpO2 ต้องอยู่ระหว่าง 0-100% (หรือ "-" ถ้าวัดไม่ได้)', validate: function(val) { if (!val) return true; if (isUnmeasurable(val)) return true; var n = parseInt(val, 10); return !isNaN(n) && n >= this.min && n <= this.max; } },
         dtx: { min: 0, max: 999, message: 'DTX ต้องอยู่ระหว่าง 0-999 mg/dL (หรือ "-" ถ้าวัดไม่ได้)', validate: function(val) { if (!val) return true; if (isUnmeasurable(val)) return true; var n = parseInt(val, 10); return !isNaN(n) && n >= this.min && n <= this.max; } },
         age: { min: 0, max: 200, message: 'อายุต้องอยู่ระหว่าง 0-200 ปี', validate: function(val) { if (!val) return true; var n = parseInt(val, 10); return !isNaN(n) && n >= this.min && n <= this.max; } }
@@ -4409,7 +4462,9 @@
             if (mode === 'manual_off') {
                 updateData = { is_public: false, public_token: null, public_expiry: null };
             } else {
-                var token = 'pt-' + Date.now() + '-' + Math.random().toString(36).substring(2, 10);
+                var bytes = new Uint8Array(16);
+                crypto.getRandomValues(bytes);
+                var token = 'pt-' + Array.from(bytes).map(function(b){ return b.toString(16).padStart(2,'0'); }).join('');
                 updateData = { is_public: true, public_token: token };
                 if (mode === 'auto24h') {
                     var expiry = new Date(); expiry.setHours(expiry.getHours() + 24);
@@ -4596,12 +4651,7 @@
           f.status.value = 'Completed';
       }
 
-      if(isCompleted) {
-         f.status.value = "Completed";
-         loadedCaseStatus = "Completed";
-         updateStatusDisplay("Completed");
-         setReadOnlyMode(true);
-      }
+      var statusToSave = isCompleted ? "Completed" : f.status.value;
 
       isSaving = true;
       if(!silent) Swal.fire({title: 'Saving...', didOpen: function() { Swal.showLoading(); }});
@@ -4615,7 +4665,7 @@
       try {
           var payload = {
               case_id: caseId,
-              status: f.status.value,
+              status: statusToSave,
               triage_level: f.triage_level.value,
               op_info: {
                   level: f.op_level.value,
@@ -4640,10 +4690,58 @@
               payload.opened_by = getUserName() || 'Unknown';
               payload.opened_at = new Date().toISOString();
           }
-          var resp = await _supabase.from('cases').upsert(payload, { onConflict: 'case_id' });
+          var resp;
+          if (isNewCase) {
+              // INSERT — column default sets row_version = 1; trigger is a no-op on INSERT.
+              resp = await _supabase.from('cases').insert(payload).select('row_version').maybeSingle();
+          } else {
+              // UPDATE with optimistic version predicate — prevents last-write-wins (Race C + E).
+              resp = await _supabase.from('cases')
+                  .update(payload)
+                  .eq('case_id', caseId)
+                  .eq('row_version', _loadedRowVersion)
+                  .select('row_version').maybeSingle();
+          }
 
           isSaving = false;
           if (resp.error) throw resp.error;
+
+          if (!isNewCase && !resp.data) {
+              // VERSION CONFLICT — another device saved this case after we loaded it.
+              // Do NOT auto-retry (would clobber remote changes). Pull latest + ask user to re-save.
+              if (!silent) {
+                  Swal.fire({
+                      icon: 'warning',
+                      title: 'ข้อมูลถูกอัปเดตจากเครื่องอื่น',
+                      html: 'กำลัง refresh ข้อมูลล่าสุด<br>กรุณาตรวจสอบและบันทึกอีกครั้ง',
+                      timer: 4000,
+                      timerProgressBar: true,
+                      showConfirmButton: false
+                  });
+              }
+              // Replay pending merge then schedule a fresh merge to pull remote state.
+              if (_pendingMergeCaseId) {
+                  var _conflictPendingId = _pendingMergeCaseId;
+                  _pendingMergeCaseId = null;
+                  setTimeout(function(){ _scheduleRemoteCaseMerge(_conflictPendingId); }, 50);
+              } else {
+                  setTimeout(function(){ _scheduleRemoteCaseMerge(caseId); }, 100);
+              }
+              if (callback) callback(new Error('VERSION_CONFLICT'));
+              return;
+          }
+
+          // Success — advance local OCC token to server-confirmed version.
+          if (resp.data && resp.data.row_version != null) {
+              _loadedRowVersion = resp.data.row_version;
+          }
+
+          if (isCompleted) {
+              f.status.value = "Completed";
+              loadedCaseStatus = "Completed";
+              updateStatusDisplay("Completed");
+              setReadOnlyMode(true);
+          }
 
           f.caseId.value = caseId;
           document.getElementById('display-case-id').innerText = caseId;
@@ -4676,6 +4774,13 @@
           isSaving = false;
           console.error("Error saving: ", err);
           if(!silent) Swal.fire('Error', 'Failed to save: ' + (err.message || 'Unknown'), 'error');
+          // Replay any pending realtime merge that was queued during this failed save
+          if (_pendingMergeCaseId) {
+              var pid = _pendingMergeCaseId;
+              _pendingMergeCaseId = null;
+              setTimeout(function(){ _scheduleRemoteCaseMerge(pid); }, 50);
+          }
+          if (callback) callback(err);
       }
     }
 
@@ -4703,6 +4808,7 @@
             };
 
             loadedCaseStatus = data.status || "Active";
+            _loadedRowVersion = row.row_version || 1;   // OCC baseline
 
             resetFormState();
 
@@ -5433,7 +5539,7 @@
        if (container) {
            container.appendChild(div);
            updateIVSummaryCount();
-           if (!data) { formDirty = true; saveData(false, true); }
+           if (!data) { formDirty = true; saveData(false, true); logActivity('ADD_IV', document.getElementById('caseId').value, context); }
        }
     }
 
@@ -5701,7 +5807,7 @@
                     '<button type="button" class="btn btn-primary px-3 fw-medium" onclick="lockAndSaveRow(this)">' +
                         '<i class="bi bi-check-lg"></i>' +
                     '</button>') +
-                    '<button type="button" class="btn btn-light text-danger border" onclick="this.closest(\'.vital-log-entry\').remove(); formDirty=true; saveData(false,true);">' +
+                    '<button type="button" class="btn btn-light text-danger border" onclick="this.closest(\'.vital-log-entry\').remove(); formDirty=true; logActivity(\'DELETE_VITALS\', document.getElementById(\'caseId\').value, \'ลบ vitals row\'); saveData(false,true);">' +
                         '<i class="bi bi-trash"></i>' +
                     '</button>' +
                 '</div>' +
@@ -5713,7 +5819,7 @@
           attachVitalValidation(entry);
       }
 
-      if(isNew) { formDirty = true; saveData(false, true); }
+      if(isNew) { formDirty = true; saveData(false, true); logActivity('ADD_VITALS', document.getElementById('caseId').value, timeStr); }
     }
 
     // --- ARREST LOG (inside Vitals Log container) ---
@@ -5827,7 +5933,7 @@
                     '<button type="button" class="btn btn-danger px-3 fw-medium" onclick="lockAndSaveRow(this)">' +
                         '<i class="bi bi-check-lg"></i>' +
                     '</button>') +
-                    '<button type="button" class="btn btn-light text-danger border" onclick="this.closest(\'.arrest-log-entry\').remove(); formDirty=true; saveData(false,true);">' +
+                    '<button type="button" class="btn btn-light text-danger border" onclick="this.closest(\'.arrest-log-entry\').remove(); formDirty=true; logActivity(\'DELETE_VITALS\', document.getElementById(\'caseId\').value, \'ลบ arrest row\'); saveData(false,true);">' +
                         '<i class="bi bi-trash"></i>' +
                     '</button>' +
                 '</div>' +
@@ -5835,7 +5941,7 @@
         '</div>';
 
       container.appendChild(entry);
-      if (isNew) { formDirty = true; saveData(false, true); }
+      if (isNew) { formDirty = true; saveData(false, true); logActivity('ARREST_LOG', document.getElementById('caseId').value, timeStr); }
     }
 
     function stampArrestLogNow(btn, selector) {
@@ -6168,6 +6274,26 @@
 
     // --- CONFIRM CLOSE CASE ---
     function confirmCloseCase() {
+        // Safety guard: require at least 1 on-transport vital entry when closing from Step 2
+        // (Step 3 = user explicitly visited vitals section → allowed regardless of entry count)
+        var step = (typeof currentStep === 'function') ? currentStep() : 3;
+        var vitals = (typeof getVitalsArray === 'function') ? getVitalsArray() : [];
+        if (step < 3 && vitals.length === 0) {
+            Swal.fire({
+                icon: 'warning',
+                title: 'ยังไม่มีข้อมูล Vital Signs ระหว่างนำส่ง',
+                html: 'ต้องบันทึก vital signs อย่างน้อย 1 ครั้งใน <strong>Step 3</strong> ก่อนปิดเคส',
+                showCancelButton: true,
+                confirmButtonText: '<i class="bi bi-arrow-right me-1"></i> ไป Step 3',
+                cancelButtonText: 'ยกเลิก',
+                confirmButtonColor: '#0ea5e9',
+                cancelButtonColor: '#6c757d',
+                reverseButtons: true
+            }).then(function(result) {
+                if (result.isConfirmed && typeof goToStep === 'function') goToStep(3);
+            });
+            return;
+        }
         var ptName = document.querySelector('input[name="pt_name"]').value || 'ไม่ระบุชื่อ';
         Swal.fire({
             title: 'ยืนยันปิดเคส?',
@@ -6680,156 +6806,17 @@
             logoSrc = logoBase64El.src;
         }
 
-        var triageMap = {
-            'Resuscitation': {c:'#dc3545', l:'RED - Resuscitation'},
-            'Emergency': {c:'#d63384', l:'PINK - Emergency'},
-            'Urgent': {c:'#e6a817', l:'YELLOW - Urgent'},
-            'Non-Urgent': {c:'#198754', l:'GREEN - Non-Urgent'}
-        };
-        var triage = triageMap[d.triageLevel] || triageMap['Non-Urgent'];
+        // --- Build shared d fields for PCR builder ---
+        d.logoSrc        = logoSrc;
+        d.printHeader    = PRINT_HEADER;
+        d.consentSigned  = !!consentSigned;
+        d.loggedUser     = loggedUser;
+        d.sigRecorder    = loggedUser;
+        d.publicShare    = document.body.classList.contains('public-share-mode');
+        d.ivRowsHtml     = ivHtml;
+        d.vitalsRowsHtml = vitalsHtml;
 
-        var h = '';
-        h += '<!DOCTYPE html><html><head><meta charset="UTF-8">';
-        h += '<title>PT Record - ' + esc(d.id) + '</title>';
-        h += '<style>';
-        h += buildPrintCSS();
-        h += '</style></head><body>';
-
-        h += '<div class="no-print ctrl-bar">';
-        h += '<button onclick="window.print()" class="btn-p">&#128424; สั่งพิมพ์ / Save PDF</button>';
-        // Public share mode: no back button (tab close is the only exit)
-        if (!document.body.classList.contains('public-share-mode')) {
-          h += '<button onclick="transport_closePrintView()" class="btn-c">&#10060; กลับ</button>';
-        }
-        h += '</div>';
-
-        h += '<div class="page">';
-
-        h += '<table class="header-tbl"><tr>';
-        if (logoSrc) {
-            h += '<td style="width:60px;vertical-align:middle;padding-left:0;"><img src="' + logoSrc + '" style="height:50px;"></td>';
-        }
-        h += '<td style="vertical-align:middle;">';
-        h += '<div class="org-name">' + esc(PRINT_HEADER) + '</div>';
-        h += '<div class="doc-title">PATIENT TRANSPORT RECORD (\u0e41\u0e1a\u0e1a\u0e1a\u0e31\u0e19\u0e17\u0e36\u0e01\u0e01\u0e32\u0e23\u0e19\u0e33\u0e2a\u0e48\u0e07\u0e1c\u0e39\u0e49\u0e1b\u0e48\u0e27\u0e22)</div>';
-        h += '</td>';
-        h += '<td style="text-align:right;vertical-align:top;white-space:nowrap;padding-right:0;width:1%;">';
-        h += '<div class="doc-no">Doc No: <b>' + esc(d.id) + '</b></div>';
-        h += '<div class="doc-no">NR Status: <b>' + esc(d.nrStatus || '-') + '</b></div>';
-        h += '<div style="margin-top:4px;">';
-        h += '<span class="triage-tag" style="background:' + triage.c + ';">' + esc(triage.l) + '</span> ';
-        if (consentSigned) {
-            h += '<span style="display:inline-block;background:#dcfce7;color:#15803d;border:1px solid #86efac;border-radius:4px;padding:1px 6px;font-size:8pt;">&#9745; Consent</span>';
-        } else {
-            h += '<span style="display:inline-block;background:#fef9c3;color:#92400e;border:1px solid #fde68a;border-radius:4px;padding:1px 6px;font-size:8pt;">&#9744; Consent</span>';
-        }
-        h += '</div>';
-        h += '</td>';
-        h += '</tr></table>';
-        h += '<div class="hdr-line"></div>';
-
-        h += '<div class="sec-title sec-1">1. Operation Info</div>';
-        h += '<table class="grid"><tr>';
-        h += '<td class="lbl" style="width:80px;">Type</td><td style="width:120px;">' + esc(d.transportType) + '</td>';
-        h += '<td class="lbl" style="width:50px;">Level</td><td style="width:80px;">' + esc(d.opLevel) + '</td>';
-        h += '<td class="lbl" style="width:40px;">Unit</td><td>' + esc(d.opUnit) + '</td>';
-        h += '</tr></table>';
-
-        var clk = '&#x1F551; ';
-        h += '<table class="grid"><tr>';
-        if (isEms) {
-            h += '<td class="lbl tl-lbl">' + clk + '\u0e23\u0e31\u0e1a\u0e41\u0e08\u0e49\u0e07</td><td class="tl-val">' + esc(d.tlDispatch || '-') + '</td>';
-            h += '<td class="lbl tl-lbl">' + clk + '\u0e16\u0e36\u0e07\u0e08\u0e38\u0e14\u0e23\u0e31\u0e1a</td><td class="tl-val">' + esc(d.tlArrScene || '-') + '</td>';
-            h += '<td class="lbl tl-lbl">' + clk + '\u0e2d\u0e2d\u0e01\u0e08\u0e32\u0e01\u0e08\u0e38\u0e14\u0e23\u0e31\u0e1a</td><td class="tl-val">' + esc(d.tlDeptScene || '-') + '</td>';
-            h += '<td class="lbl tl-lbl">' + clk + '\u0e16\u0e36\u0e07 \u0e23\u0e1e.</td><td class="tl-val">' + esc(d.tlArrHosp || '-') + '</td>';
-        } else {
-            h += '<td class="lbl tl-lbl">' + clk + '\u0e2d\u0e2d\u0e01\u0e15\u0e49\u0e19\u0e17\u0e32\u0e07</td><td class="tl-val">' + esc(d.tlDeptOrigin || '-') + '</td>';
-            h += '<td class="lbl tl-lbl">' + clk + '\u0e16\u0e36\u0e07\u0e1b\u0e25\u0e32\u0e22\u0e17\u0e32\u0e07</td><td class="tl-val">' + esc(d.tlArrDest || '-') + '</td>';
-        }
-        h += '</tr></table>';
-
-        if (isEms && d.sceneType) {
-            h += '<table class="grid"><tr>';
-            h += '<td class="lbl" style="width:80px;">Scene</td><td style="width:120px;">' + chk(d.sceneType === 'Trauma') + ' Trauma &nbsp; ' + chk(d.sceneType === 'Non-Trauma') + ' Non-Trauma</td>';
-            h += '<td class="lbl" style="width:60px;">' + (d.sceneType === 'Trauma' ? 'MOI' : 'NOI') + '</td><td>' + esc(d.sceneMoi || '-') + '</td>';
-            h += '</tr></table>';
-        }
-
-        h += '<table class="grid"><tr><td class="lbl" style="width:80px;">Staff</td><td>' + esc(d.staffList) + '</td></tr></table>';
-
-        h += '<div class="sec-title sec-2">2. Patient Information</div>';
-        h += '<table class="grid">';
-        h += '<tr><td class="lbl" style="width:80px;">Name</td><td style="width:200px;font-weight:600;">' + esc(d.ptName) + '</td>';
-        h += '<td class="lbl" style="width:40px;">Age</td><td style="width:60px;">' + esc(d.ptAge) + '</td>';
-        h += '<td class="lbl" style="width:50px;">Gender</td><td style="width:60px;">' + esc(d.ptGender) + '</td>';
-        h += '<td class="lbl" style="width:25px;">' + (d.idType === 'passport' ? 'PP' : 'ID') + '</td><td>' + esc(d.idType === 'passport' ? (d.passport || '-') : (d.idCard || '-')) + '</td>';
-        h += '</tr></table>';
-        h += '<table class="grid">';
-        h += '<tr><td class="lbl" style="width:80px;">Origin</td><td style="width:220px;">' + esc(d.origin) + '</td>';
-        h += '<td class="lbl" style="width:80px;">Destination</td><td>' + esc(d.dest) + '</td></tr>';
-        h += '</table>';
-        h += '<table class="grid">';
-        h += '<tr><td class="lbl" style="width:80px;">C/C</td><td colspan="3">' + esc(d.cc || '-') + '</td></tr>';
-        h += '<tr><td class="lbl">Dx</td><td colspan="3">' + esc(d.dx || '-') + '</td></tr>';
-        h += '<tr><td class="lbl lbl-red">Allergy</td><td colspan="3" class="red-text">' + esc(d.allergies || 'N/A') + '</td></tr>';
-        h += '<tr><td class="lbl">U/D</td><td colspan="3">' + esc(d.underlying) + '</td></tr>';
-        h += '<tr><td class="lbl">Meds</td><td colspan="3">' + esc(d.meds || '-') + '</td></tr>';
-        h += '</table>';
-
-        h += '<div class="sec-title sec-3">3. Initial Vitals' + (d.initTime ? ' <span class="time-note">@ ' + esc(d.initTime) + '</span>' : '') + '</div>';
-        h += '<table class="grid data-tbl"><thead><tr><th>BP</th><th>PR</th><th>RR</th><th>Temp</th><th>SpO2</th><th>DTX</th><th>Pain</th></tr></thead>';
-        h += '<tbody><tr class="center">';
-        h += '<td>' + esc(d.initBP || '-') + '</td><td>' + esc(d.initPR || '-') + '</td><td>' + esc(d.initRR || '-') + '</td>';
-        h += '<td>' + esc(d.initTemp || '-') + '</td><td>' + esc(d.initSpO2 || '-') + '</td><td>' + esc(d.initDTX || '-') + '</td><td>' + esc(d.pain || '-') + '</td>';
-        h += '</tr></tbody></table>';
-
-        h += '<div class="sec-title sec-4">4. Physical Assessment</div>';
-        h += '<table class="grid">';
-        h += '<tr><td class="lbl" style="width:80px;">Airway</td><td style="width:180px;">' + esc(d.airway) + '</td>';
-        h += '<td class="lbl" style="width:70px;">Breathing</td><td>' + esc(d.breathing) + '</td></tr>';
-        h += '<tr><td class="lbl">Circ.</td><td>' + esc(d.circStatus) + (d.ekg ? ' | EKG: ' + esc(d.ekg) : '') + '</td>';
-        h += '<td class="lbl">C-Line</td><td>' + esc(d.centralLine) + '</td></tr>';
-        h += '<tr><td class="lbl">GCS</td><td>' + esc(d.gcs) + '</td>';
-        h += '<td class="lbl">Pupils</td><td>' + esc(d.pupilSize || '-') + ' (' + esc(d.pupilReact) + ')</td></tr>';
-        h += '<tr><td class="lbl">Motor</td><td>RA:' + esc(d.motorRA) + ' LA:' + esc(d.motorLA) + ' RL:' + esc(d.motorRL) + ' LL:' + esc(d.motorLL) + '</td>';
-        h += '<td class="lbl">Pain</td><td>' + esc(d.pain || '0') + '/10</td></tr>';
-        h += '</table>';
-        h += '<table class="grid">';
-        h += '<tr><td class="lbl" style="width:80px;">Exposure</td><td>RA:' + esc(d.expRA || '-') + ' | LA:' + esc(d.expLA || '-') + ' | RL:' + esc(d.expRL || '-') + ' | LL:' + esc(d.expLL || '-') + (d.expOther ? ' | ' + esc(d.expOther) : '') + '</td></tr>';
-        h += '<tr><td class="lbl">Tubes</td><td>' + esc(d.tubes) + '</td></tr>';
-        h += '</table>';
-
-        if (d.arrestPre.active) {
-            h += buildArrestSection('Cardiac Arrest (\u0e01\u0e48\u0e2d\u0e19/\u0e23\u0e30\u0e2b\u0e27\u0e48\u0e32\u0e07\u0e23\u0e31\u0e1a\u0e1c\u0e39\u0e49\u0e1b\u0e48\u0e27\u0e22)', d.arrestPre);
-        }
-
-        h += '<div class="sec-title sec-5">5. Fluids & Medications</div>';
-        h += '<table class="grid data-tbl"><thead><tr><th>Time</th><th>Item</th><th>Context</th><th>Route</th><th>Rate</th><th>Sedate</th></tr></thead>';
-        h += '<tbody>' + (ivHtml || '<tr><td colspan="6" class="empty-row">- No IV/Meds -</td></tr>') + '</tbody></table>';
-
-        h += '<table class="grid"><tr><td class="lbl" style="width:80px;">Equipment</td><td>' + esc(d.equipment) + '</td></tr></table>';
-
-        h += '<div class="sec-title sec-6">6. Vitals Log</div>';
-        h += '<table class="grid data-tbl"><thead><tr><th>Time</th><th>BP</th><th>PR</th><th>RR</th><th>Temp</th><th>SpO2</th><th>GCS</th><th>Pain</th><th>Note</th></tr></thead>';
-        h += '<tbody>' + (vitalsHtml || '<tr><td colspan="9" class="empty-row">- No vitals recorded -</td></tr>') + '</tbody></table>';
-
-        h += '<div class="sec-title sec-7">7. Nurse Note / \u0e1a\u0e31\u0e19\u0e17\u0e36\u0e01\u0e40\u0e1e\u0e34\u0e48\u0e21\u0e40\u0e15\u0e34\u0e21</div>';
-        h += '<div class="note-box">' + esc(d.nurseNote || '-') + '</div>';
-
-        h += '<div class="sig-section">';
-        h += '<table class="sig-tbl"><tr>';
-        h += '<td class="sig-cell"><div class="sig-line"></div><div class="sig-label">\u0e1c\u0e39\u0e49\u0e1a\u0e31\u0e19\u0e17\u0e36\u0e01 (Recorder)</div></td>';
-        h += '<td class="sig-cell"><div class="sig-line"></div><div class="sig-label">\u0e1c\u0e39\u0e49\u0e2a\u0e48\u0e07 (Sender)</div></td>';
-        h += '<td class="sig-cell"><div class="sig-line"></div><div class="sig-label">\u0e1c\u0e39\u0e49\u0e23\u0e31\u0e1a (Receiver)</div></td>';
-        h += '</tr></table>';
-        h += '</div>';
-
-        h += '<div class="print-footer">';
-        h += '\u0e1e\u0e34\u0e21\u0e1e\u0e4c\u0e42\u0e14\u0e22: ' + esc(loggedUser) + ' &bull; ' + esc(d.date);
-        h += '</div>';
-
-        h += '</div>';
-        h += '</body></html>';
+        var h = window.buildPcrHtml(d);
 
         // Show report full-page (Safari iOS blocks window.open from async)
         var printArea = document.getElementById('print-content-area');
@@ -6840,8 +6827,17 @@
 
         var ps = document.createElement('style');
         ps.id = 'transport-print-inject';
-        ps.textContent = '#print-layout-container { position:fixed; top:0; left:0; right:0; bottom:0; z-index:99999; background:#fff; overflow:auto; color-scheme:light; } @media print { :root, html { color-scheme:light only!important; } html, body { background:#fff!important; color:#000!important; } #app-main-wrapper, .modal, .modal-backdrop { display:none!important; } #print-layout-container { position:static!important; display:block!important; overflow:visible!important; } .no-print { display:none!important; } }';
+        ps.textContent = '#print-layout-container { position:fixed; top:0; left:0; right:0; bottom:0; z-index:99999; background:#fff; overflow:auto; color-scheme:light; } @media print { :root, html { color-scheme:light only!important; } html, body { background:#fff!important; color:#000!important; } body > *:not(#print-layout-container) { display:none!important; } #print-layout-container { position:static!important; display:block!important; overflow:visible!important; } .no-print { display:none!important; } }';
         document.head.appendChild(ps);
+
+        // Auto-scale the report so it always prints on exactly one A4 page.
+        if (window.pcrFitToPage) {
+            window.pcrFitToPage(printArea);
+            if (document.fonts && document.fonts.ready) {
+                document.fonts.ready.then(function(){ window.pcrFitToPage(printArea); });
+            }
+            window.onbeforeprint = function(){ window.pcrFitToPage(printArea); };
+        }
     }
 
     function transport_closePrintView() {
@@ -6853,6 +6849,7 @@
         if (s) s.remove();
         var a = document.getElementById('print-content-area');
         if (a) a.innerHTML = '';
+        window.onbeforeprint = null;
     }
 
     function buildArrestSection(title, a) {
@@ -7833,43 +7830,27 @@
     var consentVersions = []; // all versions from DB
     var consentActiveVersion = null; // current active version
 
-    // Save consent to Supabase (creates new version, marks old as superseded)
+    // Save consent to Supabase (atomic: supersede old + insert new in one DB transaction)
     async function saveConsentToDB(caseId, formData) {
       try {
-        // 1) Mark existing active consent as superseded
-        var existing = await _supabase
-          .from('transport_consents')
-          .select('id, version')
-          .eq('case_id', caseId)
-          .eq('status', 'active')
-          .order('version', { ascending: false })
-          .limit(1);
+        // Single atomic RPC call — eliminates race condition where 2 devices
+        // re-sign simultaneously and both produce an 'active' row (#24, #25).
+        // The function uses SELECT FOR UPDATE to lock rows for this case_id,
+        // then supersedes the current active row and inserts a new one.
+        var rpcResult = await _supabase.rpc('sign_consent_atomic', {
+          p_case_id:                  caseId,
+          p_consent_data:             formData.data,
+          p_signature_image:          formData.data.signatureDataUrl || '',
+          p_signed_by:                formData.data.consenterName || '',
+          p_relationship:             formData.data.relationship || '',
+          p_witness_name:             formData.data.witnessName || '',
+          p_witness_signature_image:  formData.data.witnessSignatureDataUrl || '',
+          p_signed_at:                formData.data.signatureTimestamp || new Date().toISOString()
+        });
 
-        var nextVersion = 1;
-        if (existing.data && existing.data.length > 0) {
-          nextVersion = existing.data[0].version + 1;
-          await _supabase
-            .from('transport_consents')
-            .update({ status: 'superseded', superseded_at: new Date().toISOString() })
-            .eq('id', existing.data[0].id);
-        }
+        if (rpcResult.error) { console.error('Save consent error:', rpcResult.error); return null; }
 
-        // 2) Insert new version
-        var row = {
-          case_id: caseId,
-          version: nextVersion,
-          signed_at: formData.data.signatureTimestamp || new Date().toISOString(),
-          signed_by: formData.data.consenterName || '',
-          relationship: formData.data.relationship || '',
-          consent_data: formData.data,
-          signature_image: formData.data.signatureDataUrl || '',
-          witness_name: formData.data.witnessName || '',
-          witness_signature_image: formData.data.witnessSignatureDataUrl || '',
-          status: 'active'
-        };
-
-        var res = await _supabase.from('transport_consents').insert(row);
-        if (res.error) { console.error('Save consent error:', res.error); return null; }
+        var nextVersion = rpcResult.data && rpcResult.data.version;
 
         // Auto-set NR Status = DNR on the case when consent has DNR items checked
         try {
@@ -7999,7 +7980,7 @@
 
       var ps = document.createElement('style');
       ps.id = 'transport-print-inject';
-      ps.textContent = '#print-layout-container { position:fixed; top:0; left:0; right:0; bottom:0; z-index:99999; background:#fff; overflow:auto; } @media print { #app-main-wrapper, .modal, .modal-backdrop, .swal2-container, .no-print { display:none!important; } #print-layout-container { position:static!important; display:block!important; overflow:visible!important; } #consent-print-iframe { height:auto!important; min-height:0!important; } }';
+      ps.textContent = '#print-layout-container { position:fixed; top:0; left:0; right:0; bottom:0; z-index:99999; background:#fff; overflow:auto; } @media print { html, body { background:#fff!important; margin:0!important; padding:0!important; } #app-main-wrapper, .modal, .modal-backdrop, .swal2-container, .no-print { display:none!important; } #print-layout-container { position:static!important; display:block!important; overflow:visible!important; } #consent-print-iframe { height:auto!important; min-height:0!important; } }';
       document.head.appendChild(ps);
     }
 
@@ -8191,7 +8172,7 @@
 
       var ps = document.createElement('style');
       ps.id = 'transport-print-inject';
-      ps.textContent = '#print-layout-container { position:fixed; top:0; left:0; right:0; bottom:0; z-index:99999; background:#fff; overflow:auto; } @media print { #app-main-wrapper, .modal, .modal-backdrop, .swal2-container, .no-print { display:none!important; } #print-layout-container { position:static!important; display:block!important; overflow:visible!important; } #consent-print-iframe { height:auto!important; min-height:0!important; } }';
+      ps.textContent = '#print-layout-container { position:fixed; top:0; left:0; right:0; bottom:0; z-index:99999; background:#fff; overflow:auto; } @media print { html, body { background:#fff!important; margin:0!important; padding:0!important; } #app-main-wrapper, .modal, .modal-backdrop, .swal2-container, .no-print { display:none!important; } #print-layout-container { position:static!important; display:block!important; overflow:visible!important; } #consent-print-iframe { height:auto!important; min-height:0!important; } }';
       document.head.appendChild(ps);
     }
 
@@ -8370,7 +8351,7 @@
 
       var ps = document.createElement('style');
       ps.id = 'transport-print-inject';
-      ps.textContent = '#print-layout-container { position:fixed; top:0; left:0; right:0; bottom:0; z-index:99999; background:#fff; overflow:auto; } @media print { #app-main-wrapper, .modal, .modal-backdrop, .swal2-container, .no-print { display:none!important; } #print-layout-container { position:static!important; display:block!important; overflow:visible!important; } #consent-print-iframe { height:auto!important; min-height:0!important; } }';
+      ps.textContent = '#print-layout-container { position:fixed; top:0; left:0; right:0; bottom:0; z-index:99999; background:#fff; overflow:auto; } @media print { html, body { background:#fff!important; margin:0!important; padding:0!important; } #app-main-wrapper, .modal, .modal-backdrop, .swal2-container, .no-print { display:none!important; } #print-layout-container { position:static!important; display:block!important; overflow:visible!important; } #consent-print-iframe { height:auto!important; min-height:0!important; } }';
       document.head.appendChild(ps);
     }
 
@@ -8505,8 +8486,8 @@
         closeConsentModal();
 
         if (!isDashboardMode) {
-          consentSigned = true;
           // Sync consent data back to Transport form (fill empty fields)
+          // (consentSigned will be set only after DB write succeeds)
           // ── Only in Device-A mode (editing form). In dashboard mode we must NOT
           //    touch main-form because it might belong to a different case.
           try {
@@ -8542,6 +8523,10 @@
         if (caseId) {
           Swal.fire({ title: 'กำลังบันทึก Consent...', didOpen: function() { Swal.showLoading(); }, allowOutsideClick: false });
           var ver = await saveConsentToDB(caseId, consentData);
+          if (ver) {
+            if (!isDashboardMode) consentSigned = true;
+            logActivity('SIGN_CONSENT', caseId, 'version ' + ver);
+          }
 
           // ── Sync consent idCard back into the case (both modes). ──
           // Critical: wrong/missing patient ID on the case has legal/medical consequences.
@@ -8573,13 +8558,17 @@
             consentVersions = vers;
             consentActiveVersion = vers.find(function(v) { return v.status === 'active'; });
           }
-          Swal.fire({
-            icon: 'success',
-            title: 'ลงนามสำเร็จ',
-            text: ver ? 'บันทึกฉบับที่ ' + ver + ' เรียบร้อยแล้ว' : 'บันทึกหนังสือยินยอมเรียบร้อยแล้ว',
-            timer: 2000,
-            showConfirmButton: false
-          });
+          if (ver) {
+            Swal.fire({
+              icon: 'success',
+              title: 'ลงนามสำเร็จ',
+              text: 'บันทึกฉบับที่ ' + ver + ' เรียบร้อยแล้ว',
+              timer: 2000,
+              showConfirmButton: false
+            });
+          } else {
+            Swal.fire({ icon: 'error', title: 'บันทึกไม่สำเร็จ', text: 'ไม่สามารถบันทึกหนังสือยินยอมได้ กรุณาลองใหม่', confirmButtonText: 'ตกลง' });
+          }
         } else {
           Swal.fire({ icon: 'success', title: 'ลงนามสำเร็จ', timer: 2000, showConfirmButton: false });
         }
@@ -9046,21 +9035,35 @@
     }, true);
     setInterval(_ptUpdateBnav, 1000); // safety net for view changes via JS
 
-    // Form view: set body padding-top = fixed topbar's actual height (otherwise
-    // content underneath gets covered). Recompute on resize / view change.
+    // Form view: set padding-top = fixed topbar's actual height (otherwise
+    // content underneath gets covered). The topbar height changes with
+    // patient-banner expand/collapse + Dx/CC line wrapping, so this must be
+    // dynamic. Mobile uses body padding-top (topbar overlays full width);
+    // PC uses --form-tb-h CSS var so chrome.css can apply it to #form-view
+    // (body padding-top would push the rail/sidebar too).
     function _ptSyncFormPad(){
       var formActive = document.getElementById('form-view')?.classList.contains('active');
       var mobile = _ptIsMobilePortrait();
       var topbar = document.querySelector('.v2-form-topbar');
-      if (formActive && mobile && topbar) {
+      if (formActive && topbar) {
         var h = topbar.offsetHeight;
-        document.body.style.paddingTop = h + 'px';
-        // Just the row1 button height (~52px) is enough to clear hamburger area
-        var row1 = topbar.querySelector('.v2-tb-row1');
-        document.documentElement.style.setProperty('--pt-tb-h', (row1 ? row1.offsetHeight : 50) + 'px');
+        if (mobile) {
+          document.body.style.paddingTop = h + 'px';
+          // Just the row1 button height (~52px) is enough to clear hamburger area
+          var row1 = topbar.querySelector('.v2-tb-row1');
+          document.documentElement.style.setProperty('--pt-tb-h', (row1 ? row1.offsetHeight : 50) + 'px');
+          document.documentElement.style.removeProperty('--form-tb-h');
+        } else {
+          // PC: fixed topbar overlays #form-view only; set CSS var consumed by
+          // chrome.css padding-top rule (defaults to 64px if var missing).
+          document.body.style.paddingTop = '';
+          document.documentElement.style.setProperty('--form-tb-h', h + 'px');
+          document.documentElement.style.removeProperty('--pt-tb-h');
+        }
       } else {
         document.body.style.paddingTop = '';
         document.documentElement.style.removeProperty('--pt-tb-h');
+        document.documentElement.style.removeProperty('--form-tb-h');
       }
     }
     document.addEventListener('DOMContentLoaded', _ptSyncFormPad);

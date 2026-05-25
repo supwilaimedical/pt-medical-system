@@ -149,6 +149,49 @@ body[data-module] .v2-subnav > div[style*="border-bottom"] {
   /* No border-bottom — was the "1 white line" user saw under Transport CTA. */
   border-bottom: 0 !important;
 }
+
+/* ===== TRANSPORT subnav case-info card =====
+   Inline styles in transport/index.html lines 1208-1212 set background:#f1f5f9
+   on the wrapper (light gray, creates a seam on navy chrome) and dark colors
+   on #v2-case-id / #v2-case-pt (unreadable on navy). Override here so the card
+   blends with the navy subnav and the text uses chrome tokens.
+   Selector targets specifically the case-info wrapper that has inline background. */
+body[data-module="transport"] #v2-subnav-case > div[style*="background"] {
+  background: var(--chrome-bg-3) !important;
+}
+body[data-module="transport"] #v2-case-id {
+  color: var(--chrome-text) !important;
+}
+body[data-module="transport"] #v2-case-pt {
+  color: var(--chrome-text-3) !important;
+}
+body[data-module="transport"] #v2-subnav-case a[href*="javascript"] {
+  color: var(--accent) !important;
+}
+
+/* ===== FIRSTAID subnav event context (.back-link + .event-ctx) =====
+   firstaid/index.html lines 198-216 define .back-link with bg:#f1f5f9 + dark text
+   and .event-ctx .name/.meta with slate-900/slate-500 — all unreadable on navy chrome.
+   Override here so the back link blends with the navy subnav and the event name/meta
+   use chrome text tokens. Verified via Grep: these selectors are firstaid-only. */
+body[data-module="firstaid"] .v2-subnav .back-link {
+  background: var(--chrome-bg-3) !important;
+  color: var(--accent) !important;
+  border-bottom: 1px solid var(--chrome-line) !important;
+}
+body[data-module="firstaid"] .v2-subnav .back-link:hover {
+  background: var(--chrome-bg-4) !important;
+}
+body[data-module="firstaid"] .v2-subnav .event-ctx {
+  border-bottom: 1px solid var(--chrome-line) !important;
+}
+body[data-module="firstaid"] .v2-subnav .event-ctx .name {
+  color: var(--chrome-text) !important;
+}
+body[data-module="firstaid"] .v2-subnav .event-ctx .meta {
+  color: var(--chrome-text-3) !important;
+}
+
 /* Dropdowns inside subnav */
 body[data-module] .v2-subnav select.form-select {
   background-color: var(--chrome-bg-4) !important;
@@ -487,8 +530,11 @@ body[data-module="monitor"] #monitor-wide-gps-pane .mwgp-head .bi {
     margin: 0 !important;
     z-index: 30 !important;
   }
+  /* padding-top uses --form-tb-h set by _ptSyncFormPad() in transport/index.html
+     so it tracks the actual topbar height (case-id row + Timeline + patient
+     banner with Dx/CC). Falls back to 64px if JS hasn't run yet. */
   body[data-module="transport"] #form-view {
-    padding-top: 64px !important;
+    padding-top: var(--form-tb-h, 64px) !important;
   }
 
   /* === Other modules: just bump topbar z-index defensively === */
@@ -499,8 +545,10 @@ body[data-module="monitor"] #monitor-wide-gps-pane .mwgp-head .bi {
 }
 
 /* ===== FORM TOPBAR sub-rows =====
-   v2-tb-row1 = navy (main topbar — case-id, action buttons)
-   v2-tb-row2 = WHITE (patient banner — name + triage + consent need light bg for readability) */
+   v2-tb-row1 (top header: case-id, action buttons) + v2-tb-timeline (Timeline strip)
+   stay transparent so navy chrome shows through.
+   v2-tb-row2 (patient banner — name, triage, Dx, CC, allergies, UD) is WHITE with
+   dark text so dense medical info stays readable. */
 body[data-module] .v2-form-topbar .v2-tb-row1 {
   background: transparent !important;
   border-bottom-color: var(--chrome-line) !important;
@@ -510,7 +558,12 @@ body[data-module] .v2-form-topbar .v2-tb-row2,
 body[data-module] .v2-form-topbar .patient-banner {
   background: #fff !important;
   color: #0f172a !important;
-  border-bottom: 1px solid #e2e8f0 !important;
+  /* Per UX 2026-05-19: strip the card chrome so the white pane sits flush —
+     no rounded corners, no outline, no drop-shadow, no side margin. */
+  border: 0 !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  margin: 0 !important;
 }
 body[data-module] .v2-form-topbar .v2-tb-row2 *,
 body[data-module] .v2-form-topbar .patient-banner * {
@@ -529,10 +582,11 @@ body[data-module] .v2-form-topbar .v2-tb-btn:hover {
   background: var(--chrome-bg-3) !important;
   color: var(--accent) !important;
 }
-/* Timeline strip inside form topbar — keep text readable */
+/* Timeline strip + Patient banner inside form topbar — both are WHITE panes now,
+   so timeline tabs + banner content use dark slate text (readable on white). */
 body[data-module] .v2-form-topbar .timeline-tab,
 body[data-module] .v2-form-topbar .v2-tb-row2 > * {
-  color: var(--chrome-text-2) !important;
+  color: #334155 !important;
 }
 body[data-module] .v2-form-topbar .timeline-tab.active {
   color: var(--accent) !important;

@@ -173,6 +173,9 @@ const GPS_ADAPTERS = {
         '/StandardApiAction_getDeviceStatus.action?jsession=' +
         session + '&toMap=1&geoaddress=1';
       var data = await gpsFetch(url);
+      if (data.result === 2 || data.result === 3) {
+        throw new Error('CMSV6_SESSION_EXPIRED');
+      }
       var all = data.status || [];
       if (deviceId) {
         all = all.filter(function(s) {
@@ -185,8 +188,8 @@ const GPS_ADAPTERS = {
         if (hx !== null && (hx < 0 || hx > 360)) hx = null; // sanity guard
         return {
           deviceId: String(s.id || s.did),
-          lat: s.mlat || (s.lat ? s.lat / 1000000 : 0),
-          lng: s.mlng || (s.lng ? s.lng / 1000000 : 0),
+          lat: s.mlat != null ? s.mlat : (s.lat != null ? s.lat / 1000000 : null),
+          lng: s.mlng != null ? s.mlng : (s.lng != null ? s.lng / 1000000 : null),
           speed: (s.sp || 0) / 10,
           heading: hx, // 0-359 degrees, or null if not provided
           online: s.ol === 1,
