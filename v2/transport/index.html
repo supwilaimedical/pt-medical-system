@@ -1283,6 +1283,63 @@
     .pp-circ-arrest-chip.filled .lbl { color:#b91c1c; }
     .pp-circ-arrest-chip.filled .status { color:#b91c1c; font-weight:700; }
     @keyframes pp-arrestPulse { 0%,100% { box-shadow:0 0 0 0 rgba(220,38,38,0.5); } 50% { box-shadow:0 0 0 6px rgba(220,38,38,0); } }
+
+    /* pp-island-head / body — replaces .card p-4 + .card-title block.
+       Sits *inside* the .card.pp-island-card wrapper so we keep the existing card structure. */
+    .pp-island-head { padding:12px 16px; display:flex; align-items:center; gap:10px; border-bottom:1px solid #f1f5f9; flex-wrap:wrap; }
+    .pp-island-head .ic { font-size:22px; flex:0 0 auto; }
+    .pp-island-head .title { font-size:15px; font-weight:800; color:#1e293b; flex:1; line-height:1.2; min-width:0; margin:0; }
+    .pp-island-head .title .sub { display:block; font-size:11px; font-weight:500; color:#64748b; margin-top:2px; }
+    .pp-island-body { padding:16px; }
+    /* pp-island-card sits inside Bootstrap .card — kill .card's padding so head/body controls it */
+    .card.pp-island-card { padding:0 !important; }
+
+    /* pp-btn-quick — primary action chip on island head (e.g. "บันทึก V/S แรกรับ") */
+    .pp-btn-quick { background:#f59e0b; color:#fff; border:none; padding:9px 16px; border-radius:30px; font-weight:700; font-size:13px; box-shadow:0 2px 8px rgba(245,158,11,0.3); display:inline-flex; align-items:center; gap:6px; cursor:pointer; }
+    .pp-btn-quick.red { background:#dc2626; box-shadow:0 2px 8px rgba(220,38,38,0.3); }
+    .pp-btn-quick:hover { filter:brightness(0.95); }
+
+    /* pp-vs-tile — 6-col Vitals tile (BP/PR/RR/Temp/SpO2/DTX) */
+    .pp-init-vs-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:8px; }
+    @media(min-width:768px) { .pp-init-vs-grid { grid-template-columns:repeat(6,1fr); } }
+    .pp-vs-tile { background:#f8fafc; border:1px solid #e2e8f0; border-radius:8px; padding:8px; text-align:center; }
+    .pp-vs-tile .vs-lbl { font-size:10px; color:#64748b; font-weight:700; }
+    .pp-vs-tile .vs-val { font-size:16px; color:#0f172a; font-weight:800; }
+
+    /* pp-empty-state — dashed placeholder when no data */
+    .pp-empty-state { background:#f8fafc; border:2px dashed #e2e8f0; border-radius:10px; padding:24px; text-align:center; color:#64748b; font-size:13px; }
+    .pp-empty-state i { font-size:32px; display:block; margin-bottom:8px; opacity:0.5; }
+
+    /* pp-toggle-row — checkbox + inline text input (used in Central Line, etc.) */
+    .pp-toggle-row { display:flex; align-items:center; gap:10px; background:#f8fafc; border:1px solid #e2e8f0; border-radius:10px; padding:10px 14px; flex-wrap:wrap; }
+    .pp-toggle-row input[type=checkbox] { width:18px; height:18px; margin:0; cursor:pointer; }
+    .pp-toggle-row label { font-weight:700; margin:0; cursor:pointer; flex:0 0 auto; color:#1e293b; }
+    .pp-toggle-row input[type=text] { padding:6px 10px; border:1px solid #cbd5e1; border-radius:6px; font-size:13px; flex:1; min-width:120px; }
+
+    /* pp-dev-hint — small dark hint chip (e.g. "filtered by airway") */
+    .pp-dev-hint { background:#0f172a; color:#94a3b8; padding:5px 10px; border-radius:6px; font-size:10px; font-family:monospace; margin:6px 0; }
+    .pp-dev-hint code { color:#fbbf24; }
+
+    /* Bridge: Bootstrap btn-check radios → render as pp-pill (preserves all medical interlocks) */
+    .pp-pill-row .btn-check + label.pp-pill { margin:0; }
+    .pp-pill-row .btn-check:checked + label.pp-pill { background:#1e3a5f; color:#fff; border-color:#1e3a5f; box-shadow:0 2px 6px rgba(30,58,95,0.3); }
+    .pp-pill-row.cyan .btn-check:checked + label.pp-pill { background:#06b6d4; border-color:#06b6d4; }
+    .pp-pill-row.sky  .btn-check:checked + label.pp-pill { background:#0ea5e9; border-color:#0ea5e9; }
+    .pp-pill-row.red  .btn-check:checked + label.pp-pill { background:#ef4444; border-color:#ef4444; }
+    .pp-pill-row.amber .btn-check:checked + label.pp-pill { background:#f59e0b; border-color:#f59e0b; }
+
+    /* pp-select — re-style native <select> to look consistent with pp-input */
+    .pp-select { padding:8px 12px; border:1px solid #cbd5e1; border-radius:8px; font-size:14px; background:#fff; width:100%; cursor:pointer; }
+    .pp-select:focus { border-color:#1e3a5f; outline:none; box-shadow:0 0 0 3px rgba(30,58,95,0.1); }
+
+    /* pp-vent-switch — On Ventilator toggle wrap */
+    .pp-vent-switch { background:#f8fafc; border:1px solid #e2e8f0; border-radius:10px; padding:12px 14px; display:flex; align-items:center; gap:12px; }
+    .pp-vent-switch .form-check-input { width:42px; height:22px; margin:0; cursor:pointer; }
+    .pp-vent-switch label { font-weight:700; color:#1e293b; cursor:pointer; margin:0; }
+
+    /* pp-vent-panel — light-blue ventilator detail panel */
+    .pp-vent-panel { background:#f0f9ff; border:1px solid #bae6fd; border-radius:10px; padding:14px; margin-top:12px; }
+    .pp-vent-panel .pp-sub-title { color:#0ea5e9; }
     /* ============================================================
        END: pp-* classes
        ============================================================ */
@@ -2855,106 +2912,173 @@
 
             <!-- STEP 2: PHYSICAL ASSESSMENT -->
             <div id="step2-panel" class="d-none">
-              <!-- Initial Vitals (V/S) — match prototype v2/preview/transport-step2-step3-redesign.html#L552.
-                   No Bootstrap mt-4/mb-4 — pp-island-card CSS controls spacing (14px) per user feedback. -->
-              <div class="card p-4 island-card pp-island-card red" style="margin-top:14px;">
-                <div class="d-flex justify-content-between align-items-center mb-3 border-bottom pb-2">
-                  <h5 class="card-title fw-bold text-dark m-0">
-                    <i class="bi bi-activity text-danger me-2"></i> สัญญาณชีพแรกรับ (ต้นทาง / จุดเกิดเหตุ)
-                    <small class="d-block fw-normal" style="font-size:11px; color:#64748b; margin-top:2px;">Initial V/S · จุดเริ่มต้น</small>
-                  </h5>
-                  <button type="button" class="btn btn-sm btn-outline-danger rounded-pill px-3 fw-bold shadow-sm no-print" id="btn-record-init-vitals" onclick="openInitVitalsPopup()">
-                    <i class="bi bi-plus-circle-fill me-1"></i> บันทึก V/S แรกรับ
+              <!-- Initial Vitals (V/S) — full rewrite per prototype v2/preview/transport-step2-step3-redesign.html#L552.
+                   PRESERVED (logic-critical): hidden inputs (init_bp/pr/rr/temp/spo2/dtx/init_vitals_time),
+                   ids (init-vitals-display, init-vitals-placeholder, init-vitals-time-display, iv-disp-*),
+                   onclick=openInitVitalsPopup(), button id btn-record-init-vitals. -->
+              <div class="card island-card pp-island-card red" style="margin-top:14px;">
+                <div class="pp-island-head">
+                  <i class="bi bi-activity ic" style="color:#ef4444;"></i>
+                  <div class="title">สัญญาณชีพแรกรับ (ต้นทาง / จุดเกิดเหตุ)<span class="sub">Initial V/S · จุดเริ่มต้น</span></div>
+                  <button type="button" class="pp-btn-quick red no-print" id="btn-record-init-vitals" onclick="openInitVitalsPopup()">
+                    <i class="bi bi-plus-circle-fill"></i> บันทึก V/S แรกรับ
                   </button>
                 </div>
-                <input type="hidden" name="init_bp"><input type="hidden" name="init_pr"><input type="hidden" name="init_rr">
-                <input type="hidden" name="init_temp"><input type="hidden" name="init_spo2"><input type="hidden" name="init_dtx"><input type="hidden" name="init_vitals_time">
-                <div id="init-vitals-display" class="d-none">
-                  <div class="d-flex align-items-center gap-2 mb-2">
-                    <span class="badge bg-danger-subtle text-danger rounded-pill px-3 py-2"><i class="bi bi-clock-fill me-1"></i> เวลาบันทึก: <span id="init-vitals-time-display" class="fw-bold">-</span></span>
-                    <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill px-2 no-print" onclick="openInitVitalsPopup()" title="แก้ไข V/S แรกรับ"><i class="bi bi-pencil"></i></button>
+                <div class="pp-island-body">
+                  <input type="hidden" name="init_bp"><input type="hidden" name="init_pr"><input type="hidden" name="init_rr">
+                  <input type="hidden" name="init_temp"><input type="hidden" name="init_spo2"><input type="hidden" name="init_dtx"><input type="hidden" name="init_vitals_time">
+
+                  <div id="init-vitals-placeholder" class="pp-empty-state">
+                    <i class="bi bi-heart-pulse"></i>
+                    กดปุ่ม <b>"บันทึก V/S แรกรับ"</b> เพื่อกรอกสัญญาณชีพ
                   </div>
-                  <div class="row g-2">
-                    <div class="col-6 col-md-2 text-center"><div class="bg-light rounded-3 p-2"><div class="fs-8 text-secondary fw-bold">BP</div><div class="fw-bold" id="iv-disp-bp">-</div></div></div>
-                    <div class="col-6 col-md-2 text-center"><div class="bg-light rounded-3 p-2"><div class="fs-8 text-secondary fw-bold">PR</div><div class="fw-bold" id="iv-disp-pr">-</div></div></div>
-                    <div class="col-6 col-md-2 text-center"><div class="bg-light rounded-3 p-2"><div class="fs-8 text-secondary fw-bold">RR</div><div class="fw-bold" id="iv-disp-rr">-</div></div></div>
-                    <div class="col-6 col-md-2 text-center"><div class="bg-light rounded-3 p-2"><div class="fs-8 text-secondary fw-bold">Temp</div><div class="fw-bold" id="iv-disp-temp">-</div></div></div>
-                    <div class="col-6 col-md-2 text-center"><div class="bg-light rounded-3 p-2"><div class="fs-8 text-secondary fw-bold">SpO2</div><div class="fw-bold" id="iv-disp-spo2">-</div></div></div>
-                    <div class="col-6 col-md-2 text-center"><div class="bg-light rounded-3 p-2"><div class="fs-8 text-secondary fw-bold">DTX</div><div class="fw-bold" id="iv-disp-dtx">-</div></div></div>
+
+                  <div id="init-vitals-display" class="d-none">
+                    <div class="d-flex align-items-center gap-2 mb-2">
+                      <span class="badge bg-danger-subtle text-danger rounded-pill px-3 py-2">
+                        <i class="bi bi-clock-fill me-1"></i> เวลาบันทึก: <span id="init-vitals-time-display" class="fw-bold">-</span>
+                      </span>
+                      <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill px-2 no-print" onclick="openInitVitalsPopup()" title="แก้ไข V/S แรกรับ"><i class="bi bi-pencil"></i> แก้ไข</button>
+                    </div>
+                    <div class="pp-init-vs-grid">
+                      <div class="pp-vs-tile"><div class="vs-lbl">BP</div><div class="vs-val" id="iv-disp-bp">-</div></div>
+                      <div class="pp-vs-tile"><div class="vs-lbl">PR</div><div class="vs-val" id="iv-disp-pr">-</div></div>
+                      <div class="pp-vs-tile"><div class="vs-lbl">RR</div><div class="vs-val" id="iv-disp-rr">-</div></div>
+                      <div class="pp-vs-tile"><div class="vs-lbl">Temp</div><div class="vs-val" id="iv-disp-temp">-</div></div>
+                      <div class="pp-vs-tile"><div class="vs-lbl">SpO2</div><div class="vs-val" id="iv-disp-spo2">-</div></div>
+                      <div class="pp-vs-tile"><div class="vs-lbl">DTX</div><div class="vs-val" id="iv-disp-dtx">-</div></div>
+                    </div>
                   </div>
-                </div>
-                <div id="init-vitals-placeholder" class="text-center text-muted py-3">
-                  <i class="bi bi-heart-pulse fs-3 d-block mb-2 text-danger opacity-50"></i>
-                  <p class="mb-0 small">กดปุ่ม <b>"บันทึก V/S แรกรับ"</b> เพื่อกรอกสัญญาณชีพ</p>
                 </div>
               </div>
 
-              <!-- Airway — match prototype line 583+ (auto pill removed: misleading — production has no auto-save) -->
-              <div class="card p-4 island-card pp-island-card cyan">
-                 <h5 class="card-title fw-bold text-dark mb-3 border-bottom pb-2">
-                   <i class="bi bi-lungs-fill text-info me-2"></i> ทางเดินหายใจ (Airway)
-                   <small class="d-block fw-normal" style="font-size:11px; color:#64748b; margin-top:2px;">Airway management</small>
-                 </h5>
-                 <div class="fw-bold text-secondary mb-2" style="font-size:12px; text-transform:uppercase; letter-spacing:0.5px;">ประเภททางเดินหายใจ</div>
-                 <div class="mb-3 d-flex flex-wrap gap-2">
-                     <input type="radio" class="btn-check airway-radio" name="airway_type" id="aw1" value="Open" checked onchange="updateAirwayLogic()"><label class="btn btn-outline-secondary rounded-pill fw-medium" for="aw1">Open Airway</label>
-                     <input type="radio" class="btn-check airway-radio" name="airway_type" id="aw2" value="Management" onchange="updateAirwayLogic()"><label class="btn btn-outline-secondary rounded-pill fw-medium" for="aw2">Airway Mgt.</label>
-                     <input type="radio" class="btn-check airway-radio" name="airway_type" id="aw3" value="ET Tube" onchange="updateAirwayLogic()"><label class="btn btn-outline-secondary rounded-pill fw-medium" for="aw3">ET Tube</label>
-                     <input type="radio" class="btn-check airway-radio" name="airway_type" id="aw4" value="Tracheostomy" onchange="updateAirwayLogic()"><label class="btn btn-outline-secondary rounded-pill fw-medium" for="aw4">Tracheostomy</label>
-                 </div>
-                 <div id="panel-airway-mgt" class="d-none bg-light p-3 rounded-3 mb-3 border">
-                    <label class="fw-bold fs-7 text-secondary mb-2 d-block">ชนิดอุปกรณ์:</label>
-                    <div class="form-check form-check-inline"><input class="form-check-input" type="radio" name="airway_mgt_sub" value="Oral" onclick="updateAirwayLogic()"> Oral</div>
-                    <div class="form-check form-check-inline"><input class="form-check-input" type="radio" name="airway_mgt_sub" value="Nasal" onclick="updateAirwayLogic()"> Nasal</div>
-                    <div class="form-check form-check-inline"><input class="form-check-input" type="radio" name="airway_mgt_sub" value="LMA/SGA" onclick="updateAirwayLogic()"> LMA/SGA</div>
-                    <input type="text" class="form-control form-control-sm d-inline-block d-none mt-2" style="width:120px" id="input-lma-no" name="aw_lma_no" placeholder="No / Size">
-                 </div>
-                 <div id="panel-et-trach" class="d-none bg-light p-3 rounded-3 mb-3 border">
-                   <div class="row g-3">
-                     <div class="col-md-4"><label class="fs-8 fw-bold text-secondary">Tube No.</label><input type="text" class="form-control bg-white" name="tube_no"></div>
-                     <div class="col-md-4"><label class="fs-8 fw-bold text-secondary">Mark (cm)</label><input type="text" class="form-control bg-white" name="tube_depth"></div>
-                     <div class="col-md-4"><label class="fs-8 fw-bold text-secondary">Cuff Status</label><select class="form-select bg-white" name="cuff_status"><option value="Inflated">Inflated</option><option value="Deflated">Deflated</option></select></div>
-                   </div>
-                 </div>
+              <!-- Airway — full rewrite per prototype line 583+. PRESERVED (logic-critical):
+                   name="airway_type" + ids aw1-aw4 + onchange=updateAirwayLogic(),
+                   name="airway_mgt_sub" + onclick=updateAirwayLogic(),
+                   id=panel-airway-mgt + id=panel-et-trach (toggled by .d-none),
+                   id=input-lma-no name=aw_lma_no, name=tube_no/tube_depth/cuff_status. -->
+              <div class="card island-card pp-island-card cyan">
+                <div class="pp-island-head">
+                  <i class="bi bi-lungs-fill ic" style="color:#06b6d4;"></i>
+                  <div class="title">ทางเดินหายใจ (Airway)<span class="sub">Airway management</span></div>
+                </div>
+                <div class="pp-island-body">
+                  <div class="pp-sub-title">ประเภททางเดินหายใจ</div>
+                  <div class="pp-pill-row cyan">
+                    <input type="radio" class="btn-check airway-radio" name="airway_type" id="aw1" value="Open" checked onchange="updateAirwayLogic()">
+                    <label class="pp-pill" for="aw1">Open Airway</label>
+                    <input type="radio" class="btn-check airway-radio" name="airway_type" id="aw2" value="Management" onchange="updateAirwayLogic()">
+                    <label class="pp-pill" for="aw2">Airway Mgt.</label>
+                    <input type="radio" class="btn-check airway-radio" name="airway_type" id="aw3" value="ET Tube" onchange="updateAirwayLogic()">
+                    <label class="pp-pill" for="aw3">ET Tube</label>
+                    <input type="radio" class="btn-check airway-radio" name="airway_type" id="aw4" value="Tracheostomy" onchange="updateAirwayLogic()">
+                    <label class="pp-pill" for="aw4">Tracheostomy</label>
+                  </div>
+
+                  <div id="panel-airway-mgt" class="d-none" style="background:#f0f9ff; padding:12px; border-radius:10px; margin-top:10px;">
+                    <div class="pp-sub-title" style="margin-top:0;">ชนิดอุปกรณ์</div>
+                    <div class="pp-pill-row cyan">
+                      <input type="radio" class="btn-check" name="airway_mgt_sub" id="aw-sub-oral" value="Oral" onclick="updateAirwayLogic()">
+                      <label class="pp-pill" for="aw-sub-oral">Oral</label>
+                      <input type="radio" class="btn-check" name="airway_mgt_sub" id="aw-sub-nasal" value="Nasal" onclick="updateAirwayLogic()">
+                      <label class="pp-pill" for="aw-sub-nasal">Nasal</label>
+                      <input type="radio" class="btn-check" name="airway_mgt_sub" id="aw-sub-lma" value="LMA/SGA" onclick="updateAirwayLogic()">
+                      <label class="pp-pill" for="aw-sub-lma">LMA/SGA</label>
+                    </div>
+                    <input type="text" class="pp-input d-none mt-2" style="max-width:200px;" id="input-lma-no" name="aw_lma_no" placeholder="LMA/SGA No / Size">
+                  </div>
+
+                  <div id="panel-et-trach" class="d-none" style="background:#f8fafc; padding:12px; border-radius:10px; margin-top:10px; border:1px solid #e2e8f0;">
+                    <div class="pp-sub-title" style="margin-top:0;">รายละเอียดท่อ</div>
+                    <div class="row g-3">
+                      <div class="col-md-4">
+                        <label class="form-label small fw-bold text-secondary">Tube No.</label>
+                        <input type="text" class="pp-input" name="tube_no" placeholder="7.5">
+                      </div>
+                      <div class="col-md-4">
+                        <label class="form-label small fw-bold text-secondary">Mark (cm)</label>
+                        <input type="text" class="pp-input" name="tube_depth" placeholder="22">
+                      </div>
+                      <div class="col-md-4">
+                        <label class="form-label small fw-bold text-secondary">Cuff Status</label>
+                        <select class="pp-select" name="cuff_status">
+                          <option value="Inflated">Inflated</option>
+                          <option value="Deflated">Deflated</option>
+                        </select>
+                      </div>
+                    </div>
+                  </div>
+                </div>
               </div>
 
-              <!-- Breathing -->
-              <div class="card p-4 island-card pp-island-card sky">
-                <h5 class="card-title fw-bold text-dark mb-3 border-bottom pb-2"><i class="bi bi-wind text-primary me-2"></i> การหายใจ & ออกซิเจน</h5>
-                <div class="form-check form-switch mb-4 bg-light p-3 rounded-3 border d-flex align-items-center">
-                  <input class="form-check-input fs-4 m-0 ms-1 me-3" type="checkbox" id="chk-ventilator" name="on_ventilator" onchange="updateVentLogic()">
-                  <label class="form-check-label fw-bold text-dark fs-6" for="chk-ventilator" style="cursor:pointer">ผู้ป่วยใช้เครื่องช่วยหายใจ (On Ventilator)</label>
+              <!-- Breathing — full rewrite per prototype line 638+. PRESERVED (logic-critical):
+                   id=chk-ventilator name=on_ventilator onchange=updateVentLogic(),
+                   id=panel-ventilator + id=panel-oxygen (toggled by .d-none),
+                   name=vent_mode + ids vm1-vm4 + onchange=updateVentLogic(),
+                   id=sub-vent-mode (toggled by .d-none), name=vent_submode,
+                   name=vent_rate/vent_vol_pres/vent_peep/vent_fio2/vent_ie + id=lbl-vol-pres,
+                   id=sel-o2-device name=o2_device onchange=updateO2Detail(),
+                   id=o2-detail-panel, id=grp-o2-flow/grp-o2-fio2/grp-o2-temp + name=o2_flow/o2_conc/o2_temp. -->
+              <div class="card island-card pp-island-card sky">
+                <div class="pp-island-head">
+                  <i class="bi bi-wind ic" style="color:#0ea5e9;"></i>
+                  <div class="title">การหายใจ &amp; ออกซิเจน<span class="sub">Breathing &amp; Oxygen · Vent ↔ O2 mutually exclusive</span></div>
                 </div>
-                <div id="panel-ventilator" class="d-none bg-primary-subtle p-3 border border-primary-subtle rounded-3">
-                   <div class="mb-3">
-                     <label class="fs-8 fw-bold text-primary text-uppercase mb-2">Ventilator Mode</label>
-                     <div class="d-flex gap-2 flex-wrap">
-                        <input type="radio" class="btn-check" name="vent_mode" id="vm1" value="PCV" onchange="updateVentLogic()" checked><label class="btn btn-outline-primary fw-medium" for="vm1">PCV</label>
-                        <input type="radio" class="btn-check" name="vent_mode" id="vm2" value="VCV" onchange="updateVentLogic()"><label class="btn btn-outline-primary fw-medium" for="vm2">VCV</label>
-                        <input type="radio" class="btn-check" name="vent_mode" id="vm3" value="CPAP" onchange="updateVentLogic()"><label class="btn btn-outline-primary fw-medium" for="vm3">CPAP</label>
-                        <input type="radio" class="btn-check" name="vent_mode" id="vm4" value="BIRD" onchange="updateVentLogic()"><label class="btn btn-outline-primary fw-medium" for="vm4">BIRD</label>
-                     </div>
-                   </div>
-                   <div id="sub-vent-mode" class="mb-3 bg-white p-2 rounded d-inline-block">
-                     <div class="form-check form-check-inline"><input class="form-check-input" type="radio" name="vent_submode" value="CMV" checked> CMV</div>
-                     <div class="form-check form-check-inline"><input class="form-check-input" type="radio" name="vent_submode" value="SIMV"> SIMV</div>
-                   </div>
-                   <div class="row g-2 bg-white p-3 rounded-3 shadow-sm">
-                     <div class="col-4 col-md-2"><label class="fs-8 fw-bold text-secondary">Rate</label><input type="text" name="vent_rate" class="form-control form-control-sm bg-light border-0"></div>
-                     <div class="col-4 col-md-2"><label class="fs-8 fw-bold text-secondary" id="lbl-vol-pres">Peak Flow</label><input type="text" name="vent_vol_pres" class="form-control form-control-sm bg-light border-0"></div>
-                     <div class="col-4 col-md-2"><label class="fs-8 fw-bold text-secondary">PEEP</label><input type="text" name="vent_peep" class="form-control form-control-sm bg-light border-0"></div>
-                     <div class="col-4 col-md-2"><label class="fs-8 fw-bold text-secondary">FiO2</label><input type="text" name="vent_fio2" class="form-control form-control-sm bg-light border-0"></div>
-                     <div class="col-4 col-md-2"><label class="fs-8 fw-bold text-secondary">I:E</label><input type="text" name="vent_ie" class="form-control form-control-sm bg-light border-0"></div>
-                   </div>
-                </div>
-                <div id="panel-oxygen" class="mt-2">
-                   <label class="fw-bold fs-7 text-secondary mb-2">อุปกรณ์ออกซิเจน (Oxygen Device)</label>
-                   <select class="form-select bg-light border-0 shadow-none mb-3 w-50" id="sel-o2-device" name="o2_device" onchange="updateO2Detail()"></select>
-                   <div id="o2-detail-panel" class="row g-3 d-none bg-light p-3 rounded-3 border">
-                      <div class="col-md-4" id="grp-o2-flow"><label class="fs-8 fw-bold text-secondary">Flow/Rate (LPM)</label><input type="text" name="o2_flow" class="form-control"></div>
-                      <div class="col-md-4" id="grp-o2-fio2"><label class="fs-8 fw-bold text-secondary">FiO2 / Conc.</label><input type="text" name="o2_conc" class="form-control"></div>
-                      <div class="col-md-4" id="grp-o2-temp"><label class="fs-8 fw-bold text-secondary">Temp</label><input type="text" name="o2_temp" class="form-control"></div>
-                   </div>
+                <div class="pp-island-body">
+                  <div class="pp-dev-hint">
+                    ℹ️ SpO2 / RR → กรอกที่ <b>V/S แรกรับ</b> + <b>Vitals Log</b> (ค่า realtime แสดงใน minibar ↑)
+                  </div>
+
+                  <div class="pp-sub-title" style="margin-top:10px;">เครื่องช่วยหายใจ (Ventilator)</div>
+                  <div class="form-check form-switch pp-vent-switch">
+                    <input class="form-check-input" type="checkbox" id="chk-ventilator" name="on_ventilator" onchange="updateVentLogic()">
+                    <label class="form-check-label" for="chk-ventilator">ผู้ป่วยใช้เครื่องช่วยหายใจ (On Ventilator)</label>
+                  </div>
+
+                  <!-- VENT PANEL (shown when on vent) -->
+                  <div id="panel-ventilator" class="d-none pp-vent-panel">
+                    <div class="pp-sub-title" style="margin-top:0;">Ventilator Mode</div>
+                    <div class="pp-pill-row sky">
+                      <input type="radio" class="btn-check" name="vent_mode" id="vm1" value="PCV" onchange="updateVentLogic()" checked>
+                      <label class="pp-pill" for="vm1">PCV</label>
+                      <input type="radio" class="btn-check" name="vent_mode" id="vm2" value="VCV" onchange="updateVentLogic()">
+                      <label class="pp-pill" for="vm2">VCV</label>
+                      <input type="radio" class="btn-check" name="vent_mode" id="vm3" value="CPAP" onchange="updateVentLogic()">
+                      <label class="pp-pill" for="vm3">CPAP</label>
+                      <input type="radio" class="btn-check" name="vent_mode" id="vm4" value="BIRD" onchange="updateVentLogic()">
+                      <label class="pp-pill" for="vm4">BIRD</label>
+                    </div>
+
+                    <div id="sub-vent-mode" style="margin-top:10px;">
+                      <label class="small fw-bold text-secondary">Sub-mode</label>
+                      <div class="pp-pill-row sky">
+                        <input type="radio" class="btn-check" name="vent_submode" id="vs-cmv" value="CMV" checked>
+                        <label class="pp-pill" for="vs-cmv">CMV</label>
+                        <input type="radio" class="btn-check" name="vent_submode" id="vs-simv" value="SIMV">
+                        <label class="pp-pill" for="vs-simv">SIMV</label>
+                      </div>
+                    </div>
+
+                    <div class="row g-2 mt-2">
+                      <div class="col-6 col-md-3 col-lg"><label class="small fw-bold text-secondary">Rate</label><input type="text" name="vent_rate" class="pp-input" placeholder="12"></div>
+                      <div class="col-6 col-md-3 col-lg"><label class="small fw-bold text-secondary" id="lbl-vol-pres">PIP / Peak</label><input type="text" name="vent_vol_pres" class="pp-input"></div>
+                      <div class="col-6 col-md-3 col-lg"><label class="small fw-bold text-secondary">PEEP</label><input type="text" name="vent_peep" class="pp-input" placeholder="5"></div>
+                      <div class="col-6 col-md-3 col-lg"><label class="small fw-bold text-secondary">FiO2</label><input type="text" name="vent_fio2" class="pp-input" placeholder="0.6"></div>
+                      <div class="col-6 col-md-3 col-lg"><label class="small fw-bold text-secondary">I:E</label><input type="text" name="vent_ie" class="pp-input" placeholder="1:2"></div>
+                    </div>
+                  </div>
+
+                  <!-- OXYGEN PANEL (shown when NOT on vent) -->
+                  <div id="panel-oxygen" style="margin-top:10px;">
+                    <div class="pp-sub-title" style="margin-top:0;">อุปกรณ์ออกซิเจน (O2 Device) <span style="text-transform:none; font-weight:500; color:#94a3b8;">· filtered by airway</span></div>
+                    <select class="pp-select" id="sel-o2-device" name="o2_device" onchange="updateO2Detail()" style="max-width:280px;"></select>
+
+                    <div id="o2-detail-panel" class="row g-3 d-none" style="margin-top:8px;">
+                      <div class="col-md-4" id="grp-o2-flow"><label class="small fw-bold text-secondary">Flow/Rate (LPM)</label><input type="text" name="o2_flow" class="pp-input" placeholder="10"></div>
+                      <div class="col-md-4" id="grp-o2-fio2"><label class="small fw-bold text-secondary">FiO2 / Conc. (%)</label><input type="text" name="o2_conc" class="pp-input" placeholder="60"></div>
+                      <div class="col-md-4" id="grp-o2-temp"><label class="small fw-bold text-secondary">Temp (°C)</label><input type="text" name="o2_temp" class="pp-input" placeholder="37"></div>
+                    </div>
+                  </div>
                 </div>
               </div>
 
