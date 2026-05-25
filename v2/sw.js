@@ -1,7 +1,7 @@
 // PT Medical V2 — Service Worker (scoped to /v2/)
 // Network-first strategy with cache fallback
 
-var CACHE_NAME = 'pt-v2-v1';
+var CACHE_NAME = 'pt-v2-v2';  // Bump on chrome.css / shared.css / shared.js change to invalidate cached assets
 var V2_SCOPE = '/pt-medical-system/v2/';
 
 var STATIC_ASSETS = [

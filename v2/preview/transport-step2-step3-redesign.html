@@ -1,0 +1,2748 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Interactive Prototype · Transport Step 2 + Step 3</title>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --navy-900:#0f2444; --navy-800:#163056; --navy-700:#1e3a5f; --navy-600:#264973;
+    --sky-500:#0ea5e9; --cyan-500:#06b6d4;
+    --teal-600:#0d9488;
+    --amber-500:#f59e0b; --amber-400:#fbbf24;
+    --red-700:#b91c1c; --red-600:#dc2626; --red-500:#ef4444;
+    --green-700:#15803d; --green-600:#16a34a; --green-500:#22c55e;
+    --slate-50:#f8fafc; --slate-100:#f1f5f9; --slate-200:#e2e8f0; --slate-300:#cbd5e1;
+    --slate-400:#94a3b8; --slate-500:#64748b; --slate-600:#475569; --slate-700:#334155;
+    --slate-800:#1e293b; --slate-900:#0f172a;
+  }
+  * { font-family: 'Sarabun', sans-serif; box-sizing: border-box; }
+  html, body { margin:0; padding:0; background:var(--slate-50); color:var(--slate-800); }
+  .pp-preview-banner { background:#fef3c7; border-bottom:2px solid var(--amber-500); padding:8px 16px; font-size:12px; color:#78350f; text-align:center; position:sticky; top:0; z-index:101; }
+  .pp-preview-banner b { color:#451a03; }
+  .pp-preview-banner .save-indicator { background:#fff; padding:2px 10px; border-radius:12px; margin-left:8px; font-family:monospace; font-size:11px; color:var(--green-700); display:inline-block; }
+  .pp-chip-nav { background:#fff; border-bottom:1px solid var(--slate-200); padding:8px 16px; display:flex; gap:6px; overflow-x:auto; position:sticky; top:34px; z-index:100; }
+  .pp-chip-nav .chip { flex:0 0 auto; background:var(--slate-100); color:var(--slate-700); border:1px solid var(--slate-200); border-radius:20px; padding:5px 12px; font-size:12px; font-weight:600; text-decoration:none; white-space:nowrap; display:inline-flex; align-items:center; gap:4px; cursor:pointer; }
+  .pp-chip-nav .chip:hover { background:var(--navy-700); color:#fff; border-color:var(--navy-700); }
+  .pp-chip-nav .chip .ic-modal { font-size:9px; color:var(--amber-500); }
+  .pp-chip-nav .label { font-size:11px; font-weight:700; color:var(--slate-500); letter-spacing:1px; align-self:center; }
+
+  .pp-wrap { max-width:1100px; margin:0 auto; padding:18px 14px; }
+  /* Option D — scale wrap wider on big monitors so 2-col mode breathes */
+  @media (min-width:1400px) { .pp-wrap { max-width:1500px; } }
+  @media (min-width:1800px) { .pp-wrap { max-width:1750px; } }
+
+  .pp-divider-big { text-align:center; margin:48px 0 24px; padding:16px; background:linear-gradient(135deg, var(--navy-900), var(--navy-700)); color:#fff; border-radius:12px; font-size:15px; font-weight:800; letter-spacing:2px; }
+
+  .pp-page-title { display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px; margin-bottom:16px; }
+  .pp-page-title h2 { font-size:20px; font-weight:800; color:var(--navy-700); margin:0; }
+  .pp-page-title .sub { font-size:12px; color:var(--slate-500); font-weight:500; }
+  .pp-btn-quick { background:var(--amber-500); color:#fff; border:none; padding:9px 16px; border-radius:30px; font-weight:700; font-size:13px; box-shadow:0 2px 8px rgba(245,158,11,0.3); display:inline-flex; align-items:center; gap:6px; cursor:pointer; }
+
+  /* Tiles */
+  .pp-tile-row { display:grid; grid-template-columns:repeat(2,1fr); gap:8px; margin-bottom:16px; }
+  @media(min-width:768px){ .pp-tile-row { grid-template-columns:repeat(4,1fr); } }
+  @media(min-width:1100px){ .pp-tile-row { grid-template-columns:repeat(7,1fr); } }
+
+  .pp-tile { background:#fff; border:1px solid var(--slate-200); border-radius:12px; padding:12px; cursor:pointer; transition:all 0.15s; border-left:4px solid var(--navy-700); min-height:78px; }
+  .pp-tile:hover { box-shadow:0 4px 12px rgba(0,0,0,0.08); transform:translateY(-1px); }
+  .pp-tile.amber { border-left-color:var(--amber-500); }
+  .pp-tile.teal { border-left-color:var(--teal-600); }
+  .pp-tile.cyan { border-left-color:var(--cyan-500); }
+  .pp-tile.red { border-left-color:var(--red-500); }
+  .pp-tile.slate { border-left-color:var(--slate-500); }
+  .pp-tile.dark { border-left-color:var(--slate-900); }
+  .pp-tile.sky { border-left-color:var(--sky-500); }
+  .pp-tile .lbl { font-size:9px; font-weight:700; color:var(--slate-500); letter-spacing:1px; text-transform:uppercase; }
+  .pp-tile .val { font-size:20px; font-weight:800; color:var(--green-600); line-height:1.1; margin-top:2px; }
+  .pp-tile .val.amber { color:var(--amber-500); }
+  .pp-tile .val.red { color:var(--red-600); }
+  .pp-tile .val.navy { color:var(--navy-700); }
+  .pp-tile .meta { font-size:10px; color:var(--slate-600); margin-top:2px; }
+
+  /* Row -> modal */
+  .pp-row { background:#fff; border:1px solid var(--slate-200); border-left:4px solid var(--navy-700); border-radius:12px; padding:12px 14px; margin-bottom:8px; display:flex; align-items:center; gap:12px; cursor:pointer; transition:all 0.15s; }
+  .pp-row:hover { background:#f8fafc; box-shadow:0 2px 8px rgba(0,0,0,0.06); }
+  .pp-row.amber { border-left-color:var(--amber-500); }
+  .pp-row.teal  { border-left-color:var(--teal-600); }
+  .pp-row.cyan  { border-left-color:var(--cyan-500); }
+  .pp-row.red   { border-left-color:var(--red-500); }
+  .pp-row.dark-red { border-left-color:var(--red-700); }
+  .pp-row.slate { border-left-color:var(--slate-500); }
+  .pp-row.dark  { border-left-color:var(--slate-900); }
+  .pp-row.sky   { border-left-color:var(--sky-500); }
+  .pp-row .ic { font-size:26px; flex:0 0 auto; width:36px; }
+  .pp-row .body { flex:1 1 auto; min-width:0; }
+  .pp-row .title { font-size:14px; font-weight:700; color:var(--navy-700); }
+  .pp-row .sub { font-size:11px; color:var(--slate-500); }
+  .pp-row .summary { font-size:12px; color:var(--slate-700); margin-top:3px; font-weight:500; }
+  .pp-row .edit-modal { background:var(--amber-500); color:#fff; border:none; padding:7px 12px; border-radius:18px; font-size:12px; font-weight:700; display:inline-flex; align-items:center; gap:4px; min-height:32px; cursor:pointer; box-shadow:0 2px 6px rgba(245,158,11,0.3); }
+
+  /* Inline island card */
+  .pp-island-card { background:#fff; border:1px solid var(--slate-200); border-radius:14px; border-top:5px solid var(--navy-700); box-shadow:0 2px 8px rgba(0,0,0,0.04); margin-bottom:14px; overflow:hidden; }
+  .pp-island-card.cyan  { border-top-color:var(--cyan-500); }
+  .pp-island-card.sky   { border-top-color:var(--sky-500); }
+  .pp-island-card.red   { border-top-color:var(--red-500); }
+  .pp-island-card.amber { border-top-color:var(--amber-500); }
+  .pp-island-card.teal  { border-top-color:var(--teal-600); }
+  .pp-island-card.dark-red { border-top-color:var(--red-700); }
+  .pp-island-head { padding:12px 16px; display:flex; align-items:center; gap:10px; border-bottom:1px solid var(--slate-100); flex-wrap:wrap; }
+  .pp-island-head .ic { font-size:22px; }
+  .pp-island-head .title { font-size:15px; font-weight:800; color:var(--slate-800); flex:1; line-height:1.2; min-width:0; }
+  .pp-island-head .title .sub { display:block; font-size:11px; font-weight:500; color:var(--slate-500); margin-top:2px; }
+  .pp-island-head .save-chip { background:#dcfce7; color:#15803d; padding:4px 10px; border-radius:20px; font-size:11px; font-weight:700; display:inline-flex; align-items:center; gap:4px; }
+  .pp-island-body { padding:16px; }
+
+  /* Modal — REAL working modal */
+  .pp-modal-backdrop { display:none; position:fixed; inset:0; background:rgba(15,36,68,0.55); z-index:200; align-items:flex-start; justify-content:center; overflow-y:auto; padding:20px 12px; }
+  .pp-modal-backdrop.open { display:flex; }
+  .pp-modal { background:#fff; border-radius:14px; max-width:680px; width:100%; margin:auto; box-shadow:0 20px 60px rgba(0,0,0,0.25); overflow:hidden; border-top:5px solid var(--navy-700); animation:modal-in 0.18s ease-out; }
+  @keyframes modal-in { from {opacity:0; transform:translateY(10px);} to {opacity:1; transform:translateY(0);} }
+  .pp-modal.amber { border-top-color:var(--amber-500); }
+  .pp-modal.teal  { border-top-color:var(--teal-600); }
+  .pp-modal.cyan  { border-top-color:var(--cyan-500); }
+  .pp-modal.red   { border-top-color:var(--red-500); }
+  .pp-modal.dark-red { border-top-color:var(--red-700); }
+  .pp-modal.sky   { border-top-color:var(--sky-500); }
+  .pp-modal.slate { border-top-color:var(--slate-500); }
+  .pp-modal.dark  { border-top-color:var(--slate-900); }
+  .pp-modal-head { padding:12px 16px; display:flex; align-items:center; gap:10px; border-bottom:1px solid var(--slate-100); flex-wrap:wrap; }
+  .pp-modal-head .ic { font-size:22px; }
+  .pp-modal-head .title { font-size:15px; font-weight:800; color:var(--slate-800); flex:1; line-height:1.2; min-width:0; }
+  .pp-modal-head .title .sub { display:block; font-size:11px; font-weight:500; color:var(--slate-500); margin-top:2px; }
+  .pp-modal-head .save-chip { background:#dcfce7; color:#15803d; padding:4px 10px; border-radius:20px; font-size:11px; font-weight:700; display:inline-flex; align-items:center; gap:4px; }
+  .pp-modal-head .close-x { width:34px; height:34px; border-radius:10px; background:var(--slate-100); border:none; display:flex; align-items:center; justify-content:center; color:var(--slate-600); font-size:18px; cursor:pointer; }
+  .pp-modal-body { padding:16px; max-height:75vh; overflow-y:auto; }
+  .pp-modal-foot { padding:10px 16px; border-top:1px solid var(--slate-100); display:flex; justify-content:space-between; align-items:center; gap:10px; }
+  .pp-modal-foot .btn { padding:8px 16px; border-radius:24px; font-weight:600; border:none; cursor:pointer; }
+  .pp-modal-foot .btn-cancel { background:#fff; border:1px solid var(--slate-300); color:var(--slate-700); }
+  .pp-modal-foot .btn-save { background:var(--navy-700); color:#fff; font-weight:700; }
+  .pp-modal-foot .btn-save.red { background:var(--red-600); }
+  .pp-modal-foot .btn-save.sky { background:var(--sky-500); }
+
+  /* Mobile fullscreen modal */
+  @media (max-width:767px) {
+    .pp-modal-backdrop { padding:0; }
+    .pp-modal { border-radius:0; max-width:100vw; min-height:100vh; border-top-width:4px; }
+    .pp-modal-body { max-height:calc(100vh - 120px); }
+  }
+
+  /* Pills */
+  .pp-pill-row { display:flex; gap:6px; flex-wrap:wrap; align-items:center; }
+  .pp-pill { min-width:42px; min-height:38px; padding:7px 14px; border:1px solid var(--slate-200); background:var(--slate-100); color:var(--slate-600); font-weight:600; font-size:14px; border-radius:22px; cursor:pointer; display:inline-flex; align-items:center; justify-content:center; transition:all 0.12s; user-select:none; }
+  .pp-pill:hover { border-color:var(--navy-700); }
+  .pp-pill.active { background:var(--navy-700); color:#fff; border-color:var(--navy-700); box-shadow:0 2px 6px rgba(30,58,95,0.3); }
+  .pp-pill.active.amber { background:var(--amber-500); border-color:var(--amber-500); }
+  .pp-pill.active.teal  { background:var(--teal-600); border-color:var(--teal-600); }
+  .pp-pill.active.red   { background:var(--red-500); border-color:var(--red-500); }
+  .pp-pill.active.green { background:var(--green-600); border-color:var(--green-600); }
+  .pp-pill.active.sky   { background:var(--sky-500); border-color:var(--sky-500); }
+  .pp-pill.active.cyan  { background:var(--cyan-500); border-color:var(--cyan-500); }
+  .pp-pill.locked { opacity:0.4; cursor:not-allowed; pointer-events:none; }
+  .pp-pill.pain-low    { background:#dcfce7; color:#166534; border-color:#bbf7d0; }
+  .pp-pill.pain-mid    { background:#fef9c3; color:#854d0e; border-color:#fde68a; }
+  .pp-pill.pain-high   { background:#fee2e2; color:#991b1b; border-color:#fecaca; }
+  .pp-pill.pain-active { background:var(--amber-500) !important; color:#fff !important; border-color:var(--amber-500) !important; font-weight:800; }
+
+  /* GCS */
+  .pp-ring-wrap { display:flex; align-items:center; gap:14px; flex-wrap:wrap; }
+  .pp-ring { width:110px; height:110px; border-radius:50%; flex:0 0 auto; display:flex; align-items:center; justify-content:center; transition:all 0.3s; }
+  .pp-ring .num { font-size:26px; font-weight:800; color:var(--green-700); line-height:1; }
+  .pp-ring .num.amber { color:var(--amber-500); }
+  .pp-ring .num.red { color:var(--red-600); }
+  .pp-ring .max { font-size:10px; color:var(--slate-500); font-weight:600; }
+  .pp-ring .lbl { font-size:10px; color:var(--slate-500); font-weight:700; letter-spacing:1px; margin-top:2px; }
+  .pp-ring-inner { background:#fff; width:84px; height:84px; border-radius:50%; display:flex; flex-direction:column; align-items:center; justify-content:center; }
+  .pp-ring-pills { flex:1; display:flex; flex-direction:column; gap:6px; min-width:0; }
+  .pp-gcs-line { display:flex; align-items:center; gap:6px; flex-wrap:wrap; }
+  .pp-gcs-line .lbl { font-size:11px; color:var(--slate-600); font-weight:700; min-width:60px; }
+  .pp-gcs-line .pp-pill { min-width:36px; padding:4px 9px; font-size:13px; min-height:34px; }
+
+  /* Status line */
+  .pp-status-line { font-size:13px; padding:8px 12px; border-radius:8px; margin-top:10px; display:flex; align-items:center; gap:6px; font-weight:600; flex-wrap:wrap; }
+  .pp-status-line.good { background:#dcfce7; color:var(--green-700); }
+  .pp-status-line.warn { background:#fef3c7; color:#92400e; }
+  .pp-status-line.bad  { background:#fee2e2; color:#991b1b; }
+
+  .pp-lock-banner { background:#fef3c7; border-left:3px solid var(--amber-500); padding:10px 14px; border-radius:8px; margin:10px 0; font-size:13px; color:#78350f; }
+  .pp-lock-banner .ref { font-size:11px; color:var(--slate-600); margin-top:2px; }
+  .pp-airway-mgt-chip { background:var(--slate-100); border-radius:8px; padding:8px 14px; font-size:13px; color:var(--slate-700); margin-bottom:10px; display:flex; align-items:center; gap:8px; }
+
+  /* Pupils */
+  .pp-pupils-grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+  .pp-pupil-card { background:var(--slate-50); border:1px solid var(--slate-200); border-radius:10px; padding:10px; text-align:center; }
+  .pp-pupil-eye { width:44px; height:22px; border:2px solid var(--slate-700); border-radius:24px; margin:0 auto 6px; display:flex; align-items:center; justify-content:center; background:#fff; }
+  .pp-pupil-eye .dot { width:12px; height:12px; background:var(--slate-900); border-radius:50%; }
+  .pp-pupil-card .lbl { font-size:11px; color:var(--slate-500); font-weight:700; letter-spacing:1px; }
+  .pp-pupil-card .size-row { display:inline-flex; align-items:center; gap:4px; margin:6px 0; }
+  .pp-pupil-card .size-row input { width:50px; padding:4px 8px; border:1px solid var(--slate-300); border-radius:6px; text-align:center; font-size:15px; font-weight:700; }
+  .pp-pupil-card .pp-pill-row { justify-content:center; }
+  .pp-pupil-card .pp-pill { padding:5px 10px; font-size:11px; min-height:30px; min-width:34px; }
+
+  .pp-sub-title { font-size:11px; font-weight:700; color:var(--slate-500); letter-spacing:1px; text-transform:uppercase; margin:14px 0 6px; padding-bottom:5px; border-bottom:1px solid var(--slate-100); }
+
+  /* Body figure */
+  .pp-body-area { display:grid; grid-template-columns:1fr; gap:14px; }
+  @media(min-width:768px){ .pp-body-area { grid-template-columns:220px 1fr; } }
+  .pp-body-figure { background:var(--slate-50); border-radius:12px; padding:10px; display:flex; flex-direction:column; align-items:center; border:1px solid var(--slate-200); }
+  .pp-body-figure svg { width:180px; height:260px; cursor:pointer; }
+  .pp-body-figure svg .limb-zone { cursor:pointer; transition:opacity 0.15s; }
+  .pp-body-figure svg .limb-zone:hover { opacity:0.7; }
+  .pp-body-note { font-size:11px; color:var(--slate-500); font-style:italic; margin-top:6px; text-align:center; }
+  .pp-limb-grid { display:grid; grid-template-columns:1fr 1fr; gap:8px; }
+  .pp-limb-card { background:#fff; border:1px solid var(--slate-200); border-radius:10px; padding:10px; cursor:pointer; transition:all 0.15s; }
+  .pp-limb-card:hover { border-color:var(--amber-500); }
+  .pp-limb-card.active { border-color:var(--amber-500); box-shadow:0 0 0 2px rgba(245,158,11,0.2); background:#fffbeb; }
+  .pp-limb-card .head { display:flex; align-items:center; gap:8px; }
+  .pp-limb-card .badge-num { width:28px; height:28px; border-radius:50%; background:var(--green-600); color:#fff; display:flex; align-items:center; justify-content:center; font-weight:800; font-size:13px; }
+  .pp-limb-card .name-th { font-size:13px; font-weight:700; color:var(--slate-800); }
+  .pp-limb-card .name-en { font-size:10px; color:var(--slate-500); }
+  .pp-active-banner { background:var(--navy-700); color:#fff; padding:8px 12px; border-radius:8px; font-size:13px; font-weight:700; margin-bottom:10px; display:flex; align-items:center; gap:8px; }
+
+  /* Drainage rows */
+  .pp-drain-row { background:#fff; border:1px solid var(--slate-200); border-radius:10px; padding:10px 12px; margin-bottom:6px; display:flex; align-items:center; gap:10px; flex-wrap:wrap; cursor:pointer; }
+  .pp-drain-row.checked { border-color:var(--teal-600); border-left:4px solid var(--teal-600); background:#f0fdfa; }
+  .pp-drain-row .chk { width:22px; height:22px; border:2px solid var(--slate-300); border-radius:6px; display:flex; align-items:center; justify-content:center; flex:0 0 auto; }
+  .pp-drain-row.checked .chk { background:var(--teal-600); border-color:var(--teal-600); color:#fff; }
+  .pp-drain-row .ic { font-size:18px; color:var(--slate-500); }
+  .pp-drain-row .lbl { flex:1 1 160px; }
+  .pp-drain-row .lbl b { font-size:13px; color:var(--slate-800); }
+  .pp-drain-row .lbl small { display:block; font-size:10px; color:var(--slate-500); }
+  .pp-drain-row input { flex:1 1 180px; padding:5px 10px; border:1px solid var(--slate-200); border-radius:6px; font-size:13px; }
+
+  /* Equipment grid */
+  .pp-eq-grid { display:grid; grid-template-columns:repeat(2,1fr); gap:8px; }
+  @media(min-width:768px){ .pp-eq-grid { grid-template-columns:repeat(3,1fr); } }
+  @media(min-width:1024px){ .pp-eq-grid { grid-template-columns:repeat(4,1fr); } }
+  .pp-eq-card { background:#fff; border:1px solid var(--slate-200); border-radius:10px; padding:10px; display:flex; align-items:center; gap:8px; cursor:pointer; min-height:54px; position:relative; transition:all 0.15s; }
+  .pp-eq-card:hover { border-color:var(--navy-700); }
+  .pp-eq-card.checked { background:#eff6ff; border-color:var(--navy-700); }
+  .pp-eq-card .chk { width:18px; height:18px; border:2px solid var(--slate-300); border-radius:4px; flex:0 0 auto; display:flex; align-items:center; justify-content:center; font-size:11px; }
+  .pp-eq-card.checked .chk { background:var(--navy-700); border-color:var(--navy-700); color:#fff; }
+  .pp-eq-card .ic { font-size:16px; color:var(--slate-500); }
+  .pp-eq-card.checked .ic { color:var(--navy-700); }
+  .pp-eq-card .lbl { font-size:12px; font-weight:600; color:var(--slate-800); }
+  .pp-eq-card .new-badge { position:absolute; top:3px; right:3px; background:var(--amber-500); color:#fff; font-size:8px; padding:1px 5px; border-radius:6px; font-weight:800; }
+
+  /* IV/Vital row in list — chip layout */
+  .pp-iv-row, .pp-vital-row { display:flex; align-items:center; gap:10px; padding:12px; background:#fff; border:1px solid var(--slate-200); border-radius:10px; margin-bottom:8px; flex-wrap:wrap; }
+  .pp-iv-row .time, .pp-vital-row .time { background:var(--slate-900); color:#fff; padding:5px 12px; border-radius:6px; font-size:13px; font-weight:700; font-family:monospace; flex:0 0 auto; }
+  .pp-iv-row .body, .pp-vital-row .vals { font-size:13px; color:var(--slate-700); flex:1 1 200px; display:flex; gap:6px; flex-wrap:wrap; align-items:center; }
+  .pp-vital-row .vs-chip { background:var(--slate-100); border:1px solid var(--slate-200); padding:3px 9px; border-radius:14px; font-size:12px; color:var(--slate-700); white-space:nowrap; }
+  .pp-vital-row .vs-chip b { color:var(--slate-900); margin-left:3px; }
+  .pp-vital-row .vs-chip.gcs { background:#dbeafe; border-color:#bfdbfe; color:#1e40af; }
+  .pp-vital-row .vs-chip.gcs b { color:#1e3a8a; }
+  .pp-vital-row .vs-chip.gcs.amber { background:#fef3c7; border-color:#fde68a; color:#92400e; }
+  .pp-vital-row .vs-chip.gcs.amber b { color:#78350f; }
+  .pp-vital-row .vs-chip.gcs.red { background:#fee2e2; border-color:#fecaca; color:#991b1b; }
+  .pp-vital-row .vs-chip.pain.warn { background:#fef3c7; border-color:#fde68a; color:#92400e; }
+  .pp-vital-row .vs-chip.pain.bad { background:#fee2e2; border-color:#fecaca; color:#991b1b; }
+  .pp-vital-row .note-line { flex:1 1 100%; font-size:12px; color:var(--slate-500); font-style:italic; padding-left:4px; border-left:3px solid var(--slate-200); }
+  .pp-iv-row .body b { color:var(--slate-900); font-size:14px; }
+  .pp-iv-row .body small { color:var(--slate-500); }
+  .pp-iv-row .badge-route { background:#dbeafe; color:#1e40af; padding:3px 9px; border-radius:14px; font-size:11px; font-weight:700; flex:0 0 auto; }
+  .pp-iv-row .badge-route.io { background:#fce7f3; color:#9d174d; }
+  .pp-iv-row .badge-route.cl { background:#f3e8ff; color:#6b21a8; }
+  .pp-iv-row .sedate-badge { background:#dbeafe; color:#1e40af; padding:2px 8px; border-radius:12px; font-size:11px; font-weight:700; }
+  .pp-iv-row .actions, .pp-vital-row .actions { display:flex; gap:4px; flex:0 0 auto; }
+  .pp-iv-row .actions .btn-sm, .pp-vital-row .actions .btn-sm { padding:5px 10px; border-radius:6px; border:1px solid var(--slate-200); background:#fff; color:var(--slate-600); font-size:12px; cursor:pointer; }
+  .pp-iv-row .actions .btn-sm:hover, .pp-vital-row .actions .btn-sm:hover { background:var(--red-500); color:#fff; border-color:var(--red-500); }
+  .pp-vital-row.arrest { background:#fef2f2; border-color:var(--red-500); border-left:4px solid var(--red-500); }
+  .pp-vital-row.arrest .vals { color:var(--red-700); font-weight:600; }
+  .pp-vital-row.arrest .time { background:var(--red-600); }
+
+  /* Fix toggle overflow */
+  .form-check.form-switch { display:flex; align-items:center; gap:10px; min-height:48px; padding-left:0 !important; flex-wrap:wrap; }
+  .form-check.form-switch .form-check-input { flex:0 0 auto; margin:0; width:42px; height:22px; }
+  .form-check.form-switch .form-check-label { flex:1 1 auto; margin:0; cursor:pointer; }
+
+  /* Generic toggle row (checkbox + label + optional inline input) — for Central Line etc. */
+  .pp-toggle-row {
+    display:flex; align-items:center; gap:10px;
+    padding:10px 14px; background:var(--slate-50);
+    border:1px solid var(--slate-200); border-radius:10px;
+    flex-wrap:wrap; min-width:0;
+  }
+  .pp-toggle-row input[type=checkbox] {
+    width:22px; height:22px; margin:0; flex:0 0 auto; cursor:pointer;
+  }
+  .pp-toggle-row label { font-weight:700; margin:0; cursor:pointer; flex:0 0 auto; color:var(--slate-800); }
+  .pp-toggle-row input[type=text] {
+    flex:1 1 180px; padding:6px 12px;
+    border:1px solid var(--slate-300); border-radius:8px;
+    font-size:13px; min-width:0;
+  }
+  .pp-toggle-row input[type=text]:disabled { background:#fff; color:var(--slate-400); }
+
+  /* Initial V/S display tiles */
+  .pp-init-vs-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:8px; }
+  @media(min-width:768px){ .pp-init-vs-grid { grid-template-columns:repeat(6,1fr); } }
+  .pp-vs-tile { background:var(--slate-50); border:1px solid var(--slate-200); border-radius:8px; padding:8px; text-align:center; }
+  .pp-vs-tile .vs-lbl { font-size:10px; color:var(--slate-500); font-weight:700; }
+  .pp-vs-tile .vs-val { font-size:16px; color:var(--slate-900); font-weight:800; }
+
+  /* Template button */
+  .pp-tmpl-row { display:flex; align-items:center; gap:8px; margin-bottom:10px; flex-wrap:wrap; }
+  .pp-tmpl-btn { background:#fffbeb; border:1px solid var(--amber-500); color:#92400e; padding:7px 14px; border-radius:24px; font-weight:700; font-size:13px; display:inline-flex; align-items:center; gap:5px; cursor:pointer; }
+  .pp-tmpl-help { font-size:11px; color:var(--slate-500); font-style:italic; }
+  .pp-textarea { width:100%; min-height:180px; padding:12px; border:1px solid var(--slate-300); border-radius:10px; font-family:'Sarabun', monospace; font-size:13px; background:#fffbeb; line-height:1.7; }
+
+  /* Refer doc */
+  .pp-refer-card { width:130px; background:#fff; border:1px solid var(--slate-200); border-radius:10px; overflow:hidden; position:relative; }
+  .pp-refer-card .thumb { height:90px; background:linear-gradient(135deg, #bae6fd, #38bdf8); display:flex; align-items:center; justify-content:center; color:#fff; font-size:28px; }
+  .pp-refer-card .name { font-size:10px; padding:5px 6px; color:var(--slate-700); border-top:1px solid var(--slate-100); }
+  .pp-refer-card .del-x { position:absolute; top:3px; right:3px; background:rgba(0,0,0,0.5); color:#fff; width:18px; height:18px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:11px; cursor:pointer; }
+
+  .pp-dev-hint { background:#0f172a; color:#94a3b8; padding:5px 10px; border-radius:6px; font-size:10px; font-family:monospace; margin:6px 0; }
+  .pp-dev-hint code { color:#fbbf24; }
+
+  /* Forms inputs */
+  .pp-input { padding:8px 12px; border:1px solid var(--slate-300); border-radius:8px; font-size:14px; width:100%; }
+  .pp-input:focus { border-color:var(--navy-700); outline:none; box-shadow:0 0 0 3px rgba(30,58,95,0.1); }
+  .pp-input-group { display:flex; gap:6px; align-items:center; }
+  .pp-input-group .pp-input { flex:1; }
+  .pp-input-group .pp-btn-now { background:#fff; border:1px solid var(--slate-300); padding:8px 12px; border-radius:8px; font-size:12px; color:var(--slate-700); cursor:pointer; font-weight:600; display:inline-flex; align-items:center; gap:4px; white-space:nowrap; }
+  .pp-input-group .pp-btn-now:hover { background:var(--slate-100); }
+
+  .pp-empty-state { background:var(--slate-50); border:2px dashed var(--slate-200); border-radius:10px; padding:24px; text-align:center; color:var(--slate-500); font-size:13px; }
+  .pp-empty-state i { font-size:32px; display:block; margin-bottom:8px; opacity:0.5; }
+
+  /* Toast */
+  .pp-toast { position:fixed; bottom:24px; left:50%; transform:translateX(-50%); background:var(--slate-900); color:#fff; padding:10px 18px; border-radius:24px; font-size:13px; font-weight:600; z-index:300; box-shadow:0 4px 16px rgba(0,0,0,0.3); animation:toast-in 0.2s; }
+  @keyframes toast-in { from {transform:translateX(-50%) translateY(20px); opacity:0;} to {transform:translateX(-50%) translateY(0); opacity:1;} }
+
+  .pp-context-chip { background:#dbeafe; color:#1e40af; padding:5px 12px; border-radius:18px; font-size:12px; font-weight:700; display:inline-flex; align-items:center; gap:5px; margin-bottom:10px; }
+
+  /* Vital minibar — compact 1-line (horizontal scroll on overflow) */
+  .pp-minibar {
+    background:#fff;
+    padding:5px 12px;
+    display:flex; align-items:center; gap:6px;
+  }
+  .pp-minibar .mb-vitals {
+    display:flex; gap:4px; align-items:center;
+    flex-wrap:nowrap; overflow-x:auto;
+    -webkit-overflow-scrolling:touch;
+    scrollbar-width:thin;
+    flex:1; min-width:0;
+    padding-bottom:2px;
+  }
+  .pp-minibar .mb-vitals::-webkit-scrollbar { height:3px; }
+  .pp-minibar .mb-vitals::-webkit-scrollbar-thumb { background:var(--slate-300); border-radius:3px; }
+  .pp-minibar .mb-chip {
+    flex:0 0 auto;
+    background:var(--slate-100); border:1px solid var(--slate-200);
+    padding:2px 7px; border-radius:11px;
+    font-size:10px; color:var(--slate-700);
+    display:inline-flex; align-items:center; gap:3px; white-space:nowrap;
+    line-height:1.2;
+  }
+  .pp-minibar .mb-chip .lbl { font-size:9px; font-weight:700; color:var(--slate-500); letter-spacing:0.5px; }
+  .pp-minibar .mb-chip b { color:var(--slate-900); font-size:11px; font-weight:700; }
+  .pp-minibar .mb-chip.gcs { background:#dbeafe; border-color:#bfdbfe; }
+  .pp-minibar .mb-chip.gcs b { color:#1e3a8a; }
+  .pp-minibar .mb-chip.gcs.amber { background:#fef3c7; border-color:#fde68a; }
+  .pp-minibar .mb-chip.gcs.amber b { color:#78350f; }
+  .pp-minibar .mb-chip.gcs.red { background:#fee2e2; border-color:#fecaca; }
+  .pp-minibar .mb-chip.gcs.red b { color:#991b1b; }
+  .pp-minibar .mb-chip.airway { background:#cffafe; border-color:#a5f3fc; color:#155e75; }
+  .pp-minibar .mb-chip.airway b { color:#155e75; }
+  .pp-minibar .mb-chip.arrest { background:var(--red-600); border-color:var(--red-700); color:#fff; animation:arrestPulse 1.5s infinite; }
+  .pp-minibar .mb-chip.arrest b { color:#fff; }
+  @keyframes arrestPulse { 0%,100% { box-shadow:0 0 0 0 rgba(220,38,38,0.5);} 50% { box-shadow:0 0 0 5px rgba(220,38,38,0);} }
+  .pp-minibar .mb-chip.shock { background:#fee2e2; border-color:#fecaca; color:#991b1b; }
+  .pp-minibar .mb-chip.shock b { color:#7f1d1d; }
+  .pp-minibar .mb-chip.pain.warn { background:#fef3c7; border-color:#fde68a; color:#92400e; }
+  .pp-minibar .mb-chip.pain.bad { background:#fee2e2; border-color:#fecaca; color:#991b1b; }
+  .pp-minibar .mb-chip.empty { opacity:0.45; }
+  /* Mobile: even smaller, swipe-able */
+  @media (max-width:767px) {
+    .pp-minibar { padding:4px 8px; }
+    .pp-minibar .mb-chip { padding:1px 6px; font-size:9px; gap:2px; }
+    .pp-minibar .mb-chip .lbl { font-size:8px; letter-spacing:0; }
+    .pp-minibar .mb-chip b { font-size:10px; }
+  }
+
+  /* Mock production topbar (replaces chip nav) */
+  .pp-prod-topbar {
+    background:#fff; border-bottom:2px solid var(--navy-700);
+    position:sticky; top:34px; z-index:99;
+    box-shadow:0 2px 8px rgba(0,0,0,0.05);
+  }
+  .tb-timeline {
+    background:#dbeafe; padding:5px 14px; font-size:11px; color:#1e3a8a; font-weight:600;
+    border-bottom:1px solid #bfdbfe; display:flex; align-items:center; gap:10px; flex-wrap:wrap;
+  }
+  .tb-pt-row {
+    padding:8px 14px; display:flex; align-items:center; gap:8px; flex-wrap:wrap;
+  }
+  .tb-pt-name { font-size:15px; font-weight:800; color:var(--slate-900); }
+  .tb-pt-name small { color:var(--slate-500); font-weight:500; }
+  .tb-pt-row .badge { font-size:11px; padding:4px 8px; }
+  .tb-expand-btn {
+    margin-left:auto; background:var(--slate-100); border:1px solid var(--slate-200);
+    width:34px; height:34px; border-radius:8px; display:flex; align-items:center; justify-content:center;
+    color:var(--slate-600); cursor:pointer; font-size:14px;
+  }
+  .tb-expand-btn:hover { background:var(--navy-700); color:#fff; }
+  .tb-expanded { padding:0 14px 8px; font-size:12px; color:var(--slate-600); }
+  .tb-expanded .tb-row { padding:4px 0; border-top:1px dashed var(--slate-200); display:flex; gap:8px; flex-wrap:wrap; }
+  .tb-expanded .tb-row b { color:var(--slate-800); }
+  .tb-expanded .tb-row .lb { font-size:10px; color:var(--slate-500); font-weight:700; min-width:50px; text-transform:uppercase; letter-spacing:1px; }
+
+  /* Step subnav (replaces section chip nav — switches Step 2/3 on narrow) */
+  .pp-step-subnav {
+    background:#fff; border-bottom:1px solid var(--slate-200);
+    padding:0; display:flex; position:sticky; top:34px; z-index:98;
+  }
+  .pp-step-subnav .step-tab {
+    flex:1; padding:12px 16px; background:#fff; border:none; border-bottom:3px solid transparent;
+    color:var(--slate-600); font-weight:700; font-size:14px; cursor:pointer; text-align:center;
+  }
+  .pp-step-subnav .step-tab:hover { background:var(--slate-50); }
+  .pp-step-subnav .step-tab.active { color:var(--navy-700); border-bottom-color:var(--navy-700); background:#f8fafc; }
+  .pp-step-subnav .step-tab .count { font-size:11px; color:var(--slate-500); font-weight:500; }
+
+  /* Step container — wide = side-by-side 2col, narrow = single switchable */
+  .pp-step-container { display:block; }
+  .pp-step-panel { display:none; }
+  .pp-step-panel.active { display:block; }
+  @media (min-width:1400px) {
+    .pp-step-container {
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      gap:18px;
+      align-items:start;
+    }
+    .pp-step-panel { display:block !important; }
+    .pp-step-subnav { display:none; }
+    .pp-bnav-mobile { display:none !important; }
+    .pp-step-panel .pp-page-title h2 { font-size:18px; }
+    /* compact sticky labels per side */
+    .pp-step-panel { position:relative; }
+    .pp-step-panel::before {
+      content:attr(data-step-label);
+      display:block;
+      position:sticky;
+      top:0;
+      background:linear-gradient(135deg, var(--navy-900), var(--navy-700));
+      color:#fff;
+      padding:6px 14px;
+      font-size:13px; font-weight:800; letter-spacing:1.5px;
+      border-radius:8px 8px 0 0;
+      z-index:5;
+      margin-bottom:8px;
+    }
+  }
+
+  /* Bottom nav (mobile only — narrow screen step switcher) */
+  .pp-bnav-mobile {
+    display:none;
+    position:fixed; bottom:0; left:0; right:0;
+    background:#fff; border-top:1px solid var(--slate-200);
+    box-shadow:0 -2px 8px rgba(0,0,0,0.08);
+    padding:6px; gap:6px; z-index:90;
+  }
+  @media (max-width:767px) {
+    .pp-bnav-mobile { display:flex; }
+    body { padding-bottom:64px; }
+  }
+  .pp-bnav-mobile .bnav-btn {
+    flex:1; padding:10px; background:var(--slate-50); border:1px solid var(--slate-200);
+    border-radius:10px; color:var(--slate-600); font-weight:700; font-size:13px;
+    display:flex; align-items:center; justify-content:center; gap:6px; cursor:pointer;
+  }
+  .pp-bnav-mobile .bnav-btn.active { background:var(--navy-700); color:#fff; border-color:var(--navy-700); }
+
+  /* Big divider — only in narrow mode (in wide split, sections don't need divider) */
+  @media (min-width:1400px) { .pp-divider-big { display:none; } }
+
+  /* Cardiac Arrest chip inside Circulation card */
+  .pp-circ-arrest-chip {
+    background:var(--slate-50); border:2px solid var(--slate-200);
+    border-radius:12px; padding:12px 16px; margin-top:14px;
+    display:flex; align-items:center; gap:12px; cursor:pointer;
+    transition:all 0.15s;
+  }
+  .pp-circ-arrest-chip:hover { border-color:var(--red-500); background:#fef2f2; }
+  .pp-circ-arrest-chip .ic { font-size:24px; color:var(--red-500); flex:0 0 auto; }
+  .pp-circ-arrest-chip .body { flex:1 1 auto; min-width:0; }
+  .pp-circ-arrest-chip .lbl { font-size:11px; font-weight:700; color:var(--slate-500); letter-spacing:1px; text-transform:uppercase; }
+  .pp-circ-arrest-chip .status { font-size:14px; font-weight:600; color:var(--slate-700); }
+  .pp-circ-arrest-chip .chev { color:var(--slate-400); font-size:18px; }
+  .pp-circ-arrest-chip.filled { background:#fef2f2; border-color:var(--red-500); border-width:2px; }
+  .pp-circ-arrest-chip.filled .ic { color:var(--red-600); animation:arrestPulse 1.5s infinite; }
+  .pp-circ-arrest-chip.filled .lbl { color:var(--red-700); }
+  .pp-circ-arrest-chip.filled .status { color:var(--red-700); font-weight:700; }
+</style>
+</head>
+<body>
+
+<!-- BANNER -->
+<div class="pp-preview-banner">
+  🎨 <b>Interactive Prototype</b> · Step 2 + Step 3 · Mixed Inline + Modal
+  <span class="save-indicator" id="save-indicator">✓ บันทึก --:--:--</span>
+</div>
+
+<!-- MOCK PRODUCTION TOPBAR (sticky, persists across Step 2 + Step 3) -->
+<div class="pp-prod-topbar" id="prod-topbar">
+  <div class="tb-timeline">
+    <span>🕐 ออกต้นทาง <b>09:10</b></span>
+    <span>· ถึงปลายทาง <b>11:22</b></span>
+    <span>· Transport <b>2 ชม 12 น.</b></span>
+  </div>
+  <div class="tb-pt-row">
+    <span class="tb-pt-name">Mock Patient <small>(45 / M)</small></span>
+    <span class="badge bg-danger-subtle text-danger border border-danger-subtle">Emergency</span>
+    <span class="badge bg-success-subtle text-success border border-success-subtle">✓ ลงนามแล้ว</span>
+    <button class="tb-expand-btn" onclick="toggleTopbarExpand()" id="tb-toggle-btn" title="กางรายละเอียด">
+      <i class="bi bi-chevron-down" id="tb-toggle-icon"></i>
+    </button>
+  </div>
+  <div class="tb-expanded" id="tb-expanded" style="display:none;">
+    <div class="tb-row"><span class="lb">ALS</span><span>รถเบอร์: คันที่ 1 (ALS) · EMT/EMR/RN ทีม Supwilai</span></div>
+    <div class="tb-row"><span class="lb">Route</span><span>ร.พ. รามาธิบดี → ศูนย์การแพทย์มหิดลบำรุงรักษ์</span></div>
+    <div class="tb-row"><span class="lb">Dx</span><span>Dance ca ovary with lung, liver, brain metastasis</span></div>
+    <div class="tb-row"><span class="lb">CC</span><span>ซึม ปลุกไม่ตื่น ขยับแขนขาได้ ไม่ตามคำสั่ง E3V1M5</span></div>
+    <div class="tb-row"><span class="lb">แพ้</span><span>-</span><span class="lb" style="margin-left:14px;">U/D</span><span>Anemia, PE</span></div>
+  </div>
+  <!-- Vital minibar — compact 1-line (horizontal scroll on narrow) -->
+  <div class="pp-minibar" id="vital-minibar" style="border-top:1px dashed var(--slate-200);">
+    <div class="mb-vitals">
+      <span class="mb-chip empty" id="mb-bp"><span class="lbl">BP</span><b>--</b></span>
+      <span class="mb-chip empty" id="mb-pr"><span class="lbl">PR</span><b>--</b></span>
+      <span class="mb-chip empty" id="mb-rr"><span class="lbl">RR</span><b>--</b></span>
+      <span class="mb-chip empty" id="mb-spo2"><span class="lbl">SpO2</span><b>--</b></span>
+      <span class="mb-chip empty" id="mb-temp"><span class="lbl">T°</span><b>--</b></span>
+      <span class="mb-chip empty" id="mb-dtx"><span class="lbl">DTX</span><b>--</b></span>
+      <span class="mb-chip gcs" id="mb-gcs"><span class="lbl">GCS</span><b>15</b></span>
+      <span class="mb-chip pain" id="mb-pain"><span class="lbl">Pain</span><b>0</b></span>
+      <span class="mb-chip airway" id="mb-airway" style="display:none;"><i class="bi bi-lock-fill"></i><b>--</b></span>
+      <span class="mb-chip arrest" id="mb-arrest" style="display:none;"><i class="bi bi-heart-pulse-fill"></i><b>ARREST</b></span>
+    </div>
+  </div>
+</div>
+
+<!-- STEP SUBNAV (narrow screen — switches Step 2/3) -->
+<div class="pp-step-subnav">
+  <button class="step-tab active" data-step="2" onclick="switchStep(2)">
+    <i class="bi bi-stethoscope"></i> Step 2 — การประเมิน
+  </button>
+  <button class="step-tab" data-step="3" onclick="switchStep(3)">
+    <i class="bi bi-truck"></i> Step 3 — ขณะนำส่ง
+  </button>
+</div>
+
+<div class="pp-wrap">
+
+<div class="pp-step-container">
+
+  <!-- =========== STEP 2 =========== -->
+  <section id="step2-page" class="pp-step-panel active" data-step-label="STEP 2 — การประเมินผู้ป่วย">
+    <div class="pp-page-title">
+      <div>
+        <h2>🩺 Step 2 — การประเมินผู้ป่วย</h2>
+        <div class="sub">Patient Assessment · Initial V/S + 3 inline + 3 modal · vitals tracked in minibar above ↑</div>
+      </div>
+    </div>
+
+    <!-- ============== INITIAL V/S inline card ============== -->
+    <div id="s2-initvs" class="pp-island-card" style="border-top-color:var(--red-500);">
+      <div class="pp-island-head">
+        <i class="bi bi-activity ic" style="color:var(--red-500);"></i>
+        <div class="title">สัญญาณชีพแรกรับ (ต้นทาง / จุดเกิดเหตุ)<span class="sub">Initial V/S · จุดเริ่มต้น</span></div>
+        <button class="pp-btn-quick" style="background:var(--red-600);" onclick="openModal('m-initvs')"><i class="bi bi-plus-circle-fill"></i> บันทึก V/S แรกรับ</button>
+      </div>
+      <div class="pp-island-body">
+        <div id="initvs-empty" class="pp-empty-state">
+          <i class="bi bi-heart-pulse"></i>
+          กดปุ่ม <b>"บันทึก V/S แรกรับ"</b> เพื่อกรอกสัญญาณชีพ
+        </div>
+        <div id="initvs-display" style="display:none;">
+          <div class="d-flex align-items-center gap-2 mb-2">
+            <span class="badge bg-danger-subtle text-danger rounded-pill px-3 py-2">
+              <i class="bi bi-clock-fill me-1"></i> เวลาบันทึก: <b id="initvs-time-disp">-</b>
+            </span>
+            <button class="btn btn-sm btn-outline-secondary rounded-pill" onclick="openModal('m-initvs')"><i class="bi bi-pencil"></i> แก้ไข</button>
+          </div>
+          <div class="pp-init-vs-grid">
+            <div class="pp-vs-tile"><div class="vs-lbl">BP</div><div class="vs-val" id="vs-bp">-</div></div>
+            <div class="pp-vs-tile"><div class="vs-lbl">PR</div><div class="vs-val" id="vs-pr">-</div></div>
+            <div class="pp-vs-tile"><div class="vs-lbl">RR</div><div class="vs-val" id="vs-rr">-</div></div>
+            <div class="pp-vs-tile"><div class="vs-lbl">Temp</div><div class="vs-val" id="vs-temp">-</div></div>
+            <div class="pp-vs-tile"><div class="vs-lbl">SpO2</div><div class="vs-val" id="vs-spo2">-</div></div>
+            <div class="pp-vs-tile"><div class="vs-lbl">DTX</div><div class="vs-val" id="vs-dtx">-</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============== INLINE: AIRWAY ============== -->
+    <div id="s2-airway" class="pp-island-card cyan">
+      <div class="pp-island-head">
+        <i class="bi bi-lungs-fill ic" style="color:var(--cyan-500);"></i>
+        <div class="title">ทางเดินหายใจ (Airway)<span class="sub">Airway management</span></div>
+        <span class="save-chip"><i class="bi bi-check-circle-fill"></i> auto</span>
+      </div>
+      <div class="pp-island-body">
+        <div class="pp-sub-title">ประเภททางเดินหายใจ</div>
+        <div class="pp-pill-row" data-pill-group="airway_type">
+          <div class="pp-pill" data-value="Open">Open Airway</div>
+          <div class="pp-pill" data-value="Management">Airway Mgt.</div>
+          <div class="pp-pill" data-value="ET Tube">ET Tube</div>
+          <div class="pp-pill" data-value="Tracheostomy">Tracheostomy</div>
+        </div>
+
+        <div id="airway-mgt-panel" style="display:none; background:#f0f9ff; padding:12px; border-radius:10px; margin-top:10px;">
+          <div class="pp-sub-title">ชนิดอุปกรณ์</div>
+          <div class="pp-pill-row" data-pill-group="airway_mgt_sub">
+            <div class="pp-pill" data-value="Oral">Oral</div>
+            <div class="pp-pill" data-value="Nasal">Nasal</div>
+            <div class="pp-pill" data-value="LMA/SGA">LMA/SGA</div>
+          </div>
+          <input type="text" class="pp-input mt-2" id="aw-lma-no" data-bind="aw_lma_no" placeholder="LMA/SGA No / Size" style="display:none;">
+        </div>
+
+        <div id="tube-panel" style="display:none;">
+          <div class="pp-sub-title">รายละเอียดท่อ</div>
+          <div class="row g-3">
+            <div class="col-md-4">
+              <label class="form-label small fw-bold text-secondary">Tube No.</label>
+              <input type="text" class="pp-input" data-bind="tube_no" placeholder="7.5">
+            </div>
+            <div class="col-md-4">
+              <label class="form-label small fw-bold text-secondary">Mark (cm)</label>
+              <input type="text" class="pp-input" data-bind="tube_depth" placeholder="22">
+            </div>
+            <div class="col-md-4">
+              <label class="form-label small fw-bold text-secondary">Cuff Status</label>
+              <div class="pp-pill-row" data-pill-group="cuff_status">
+                <div class="pp-pill" data-value="Inflated">Inflated</div>
+                <div class="pp-pill" data-value="Deflated">Deflated</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="pp-lock-banner" id="airway-interlock-note" style="display:none;">
+          🔗 <b>Linked:</b> Airway type นี้ → V=T บังคับใน Neuro modal
+          <div class="ref">hook: <code>updateGcsVerbalLock()</code></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============== INLINE: BREATHING ============== -->
+    <div id="s2-breath" class="pp-island-card sky">
+      <div class="pp-island-head">
+        <i class="bi bi-wind ic" style="color:var(--sky-500);"></i>
+        <div class="title">การหายใจ &amp; ออกซิเจน<span class="sub">Breathing &amp; Oxygen · Vent ↔ O2 mutually exclusive</span></div>
+        <span class="save-chip"><i class="bi bi-check-circle-fill"></i> auto</span>
+      </div>
+      <div class="pp-island-body">
+        <div class="pp-dev-hint">
+          ℹ️ SpO2 / RR → กรอกที่ <b>V/S แรกรับ</b> + <b>Vitals Log</b> (ค่า realtime แสดงใน minibar ↑)
+        </div>
+
+        <!-- Ventilator toggle FIRST (decides O2 vs Vent panel) -->
+        <div class="pp-sub-title">เครื่องช่วยหายใจ (Ventilator)</div>
+        <div class="form-check form-switch bg-light rounded-3 border p-3">
+          <input class="form-check-input" type="checkbox" id="vent-tog" data-bind="on_ventilator">
+          <label class="form-check-label fw-bold" for="vent-tog">ผู้ป่วยใช้เครื่องช่วยหายใจ (On Ventilator)</label>
+        </div>
+
+        <!-- OXYGEN PANEL (shown when NOT on vent) -->
+        <div id="panel-oxygen-pp">
+          <div class="pp-sub-title">อุปกรณ์ออกซิเจน (O2 Device) · <span style="font-weight:500; color:var(--slate-500);">filtered by airway</span></div>
+          <div class="pp-pill-row" id="o2-device-pills"></div>
+          <div class="pp-dev-hint" id="o2-filter-hint">filtered for airway_type=<code>--</code></div>
+
+          <div class="row g-3 mt-1" id="o2-detail-panel" style="display:none;">
+            <div class="col-md-4" id="o2-flow-grp">
+              <label class="form-label small fw-bold text-secondary">Flow (LPM)</label>
+              <input type="text" class="pp-input" data-bind="o2_flow" placeholder="10">
+            </div>
+            <div class="col-md-4" id="o2-fio2-grp" style="display:none;">
+              <label class="form-label small fw-bold text-secondary">FiO2 (%)</label>
+              <input type="text" class="pp-input" data-bind="o2_conc" placeholder="60">
+            </div>
+            <div class="col-md-4" id="o2-temp-grp" style="display:none;">
+              <label class="form-label small fw-bold text-secondary">Temp (°C)</label>
+              <input type="text" class="pp-input" data-bind="o2_temp" placeholder="37">
+            </div>
+          </div>
+        </div>
+
+        <!-- VENT PANEL (shown when on vent) -->
+        <div id="panel-vent-pp" style="display:none; background:#f0f9ff; padding:14px; border-radius:10px; margin-top:12px; border:1px solid #bae6fd;">
+          <!-- Interface hint chip (auto-detected from airway_type) -->
+          <div id="vent-interface-chip" style="background:#fff; border:1px solid #bae6fd; border-radius:24px; padding:6px 14px; display:inline-flex; align-items:center; gap:6px; margin-bottom:10px; font-size:13px; color:var(--sky-500); font-weight:600;">
+            <i class="bi bi-info-circle-fill"></i>
+            <span>Interface: <b id="vent-interface-text">--</b></span>
+          </div>
+          <div class="pp-sub-title" style="color:var(--sky-500);">Ventilator Mode</div>
+          <div class="pp-pill-row" data-pill-group="vent_mode">
+            <div class="pp-pill" data-value="PCV">PCV</div>
+            <div class="pp-pill" data-value="VCV">VCV</div>
+            <div class="pp-pill" data-value="CPAP">CPAP</div>
+            <div class="pp-pill" data-value="BIRD">BIRD</div>
+          </div>
+
+          <div id="vent-submode-wrap" style="margin-top:10px;">
+            <label class="small fw-bold text-secondary">Sub-mode</label>
+            <div class="pp-pill-row" data-pill-group="vent_submode">
+              <div class="pp-pill" data-value="CMV">CMV</div>
+              <div class="pp-pill" data-value="SIMV">SIMV</div>
+            </div>
+          </div>
+
+          <div class="row g-2 mt-2">
+            <div class="col-6 col-md-3 col-lg"><label class="small fw-bold text-secondary">Rate</label><input type="text" class="pp-input" data-bind="vent_rate" placeholder="12"></div>
+            <div class="col-6 col-md-3 col-lg"><label class="small fw-bold text-secondary" id="vent-vol-label">PIP / Peak</label><input type="text" class="pp-input" data-bind="vent_vol_pres" placeholder=""></div>
+            <div class="col-6 col-md-3 col-lg"><label class="small fw-bold text-secondary">PEEP</label><input type="text" class="pp-input" data-bind="vent_peep" placeholder="5"></div>
+            <div class="col-6 col-md-3 col-lg"><label class="small fw-bold text-secondary">FiO2</label><input type="text" class="pp-input" data-bind="vent_fio2" placeholder="0.6"></div>
+            <div class="col-6 col-md-3 col-lg"><label class="small fw-bold text-secondary">I:E</label><input type="text" class="pp-input" data-bind="vent_ie" placeholder="1:2"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============== INLINE: CIRCULATION ============== -->
+    <div id="s2-circ" class="pp-island-card red">
+      <div class="pp-island-head">
+        <i class="bi bi-heart-pulse-fill ic" style="color:var(--red-500);"></i>
+        <div class="title">ระบบไหลเวียนเลือด<span class="sub">Circulation</span></div>
+        <span class="save-chip"><i class="bi bi-check-circle-fill"></i> auto</span>
+      </div>
+      <div class="pp-island-body">
+        <div class="row g-3">
+          <div class="col-md-4">
+            <div class="pp-sub-title">สถานะ (Status)</div>
+            <div class="pp-pill-row" data-pill-group="circ_status">
+              <div class="pp-pill" data-value="Stable">Stable</div>
+              <div class="pp-pill" data-value="Shock">Shock</div>
+            </div>
+          </div>
+          <div class="col-md-4">
+            <div class="pp-sub-title">Cap Refill (sec)</div>
+            <input type="text" class="pp-input" data-bind="circ_cap" placeholder="< 2">
+          </div>
+          <div class="col-md-4">
+            <div class="pp-sub-title">EKG Rhythm</div>
+            <input type="text" class="pp-input" data-bind="circ_ekg" placeholder="NSR, AF, AFRVR...">
+          </div>
+        </div>
+
+        <div class="pp-dev-hint">
+          ℹ️ HR / BP / RR / Temp / SpO2 / DTX → กรอกที่ <b>V/S แรกรับ</b> + <b>Vitals Log</b> (ไม่ซ้ำใน Circulation, แสดงใน minibar ↑)
+        </div>
+
+        <div class="pp-sub-title">Central Line</div>
+        <div class="pp-toggle-row">
+          <input type="checkbox" id="cl-tog" data-bind="has_central_line">
+          <label for="cl-tog">มี Central Line</label>
+          <input type="text" id="cl-pos" data-bind="central_line_pos" placeholder="ตำแหน่ง..." style="display:none;">
+        </div>
+
+        <div class="pp-sub-title" style="display:flex; align-items:center; justify-content:space-between; gap:8px;">
+          <span>สารน้ำ / ยา ที่ได้รับมาก่อนนำส่ง (Initial IV)</span>
+          <button class="btn btn-sm btn-primary rounded-pill" onclick="openIvModal('Initial')"><i class="bi bi-plus"></i> เพิ่มรายการ</button>
+        </div>
+        <div id="initial-iv-list"></div>
+        <div id="initial-iv-empty" class="pp-empty-state" style="padding:14px;"><i class="bi bi-droplet" style="font-size:24px;"></i>ยังไม่มี Initial IV — กด "เพิ่มรายการ" เพื่อบันทึก</div>
+
+        <!-- Arrest chip — Option C (ABCDE clinical flow preserved) -->
+        <div class="pp-circ-arrest-chip" id="circ-arrest-chip" onclick="openModal('m-arrest')">
+          <i class="bi bi-heart-pulse-fill ic"></i>
+          <div class="body">
+            <div class="lbl">Cardiac Arrest · pre-arrival</div>
+            <div class="status" id="circ-arrest-status">ไม่มี · กดเพื่อบันทึก</div>
+          </div>
+          <i class="bi bi-chevron-right chev"></i>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============== MODAL ROWS ============== -->
+    <div class="pp-row" onclick="openModal('m-neuro')">
+      <i class="bi bi-person-bounding-box ic" style="color:var(--navy-700);"></i>
+      <div class="body">
+        <div class="title">ระบบประสาท &amp; ความเจ็บปวด</div>
+        <div class="sub">GCS · Pupils · Pain</div>
+        <div class="summary" id="row-neuro-summary">GCS 15 · Pupils 3/3 React · Pain 0</div>
+      </div>
+      <button class="edit-modal"><i class="bi bi-box-arrow-up-right"></i> Modal</button>
+    </div>
+
+    <div class="pp-row amber" onclick="openModal('m-body')">
+      <i class="bi bi-person-arms-up ic" style="color:var(--amber-500);"></i>
+      <div class="body">
+        <div class="title">การตรวจร่างกาย (Body Exam)</div>
+        <div class="sub">Motor power + Exposure</div>
+        <div class="summary" id="row-body-summary">RA5 · LA5 · RL5 · LL5 · ไม่มีบาดแผล</div>
+      </div>
+      <button class="edit-modal"><i class="bi bi-box-arrow-up-right"></i> Modal</button>
+    </div>
+
+    <div class="pp-row teal" onclick="openModal('m-drain')">
+      <i class="bi bi-funnel ic" style="color:var(--teal-600);"></i>
+      <div class="body">
+        <div class="title">สายระบาย &amp; ท่อต่างๆ</div>
+        <div class="sub">Drainage / Tubes</div>
+        <div class="summary" id="row-drain-summary">ไม่มีสายระบาย</div>
+      </div>
+      <button class="edit-modal"><i class="bi bi-box-arrow-up-right"></i> Modal</button>
+    </div>
+  </section>
+
+  <!-- ============================ STEP 3 ============================ -->
+  <div class="pp-divider-big">═══ STEP 3 — ขณะนำส่ง ═══</div>
+
+  <section id="step3-page" class="pp-step-panel" data-step-label="STEP 3 — ขณะนำส่ง">
+    <div class="pp-page-title">
+      <div>
+        <h2>🚑 Step 3 — ขณะนำส่ง</h2>
+        <div class="sub">During Transport · 3 modal + 2 inline · vitals live in minibar ↑</div>
+      </div>
+    </div>
+
+    <div class="pp-row slate" onclick="openModal('m-eq')">
+      <i class="bi bi-tools ic" style="color:var(--slate-500);"></i>
+      <div class="body">
+        <div class="title">อุปกรณ์ที่ใช้ (Equipment)</div>
+        <div class="sub">Devices in use</div>
+        <div class="summary" id="row-eq-summary">Monitor/Defib (1 รายการ)</div>
+      </div>
+      <button class="edit-modal"><i class="bi bi-box-arrow-up-right"></i> Modal</button>
+    </div>
+
+    <!-- INLINE: IV / MEDS (was modal, moved to inline per user request) -->
+    <div id="s3-iv" class="pp-island-card sky">
+      <div class="pp-island-head">
+        <i class="bi bi-droplet-fill ic" style="color:var(--sky-500);"></i>
+        <div class="title">สารน้ำ / ยา ระหว่างนำส่ง<span class="sub">Transport IV / Meds</span></div>
+        <button class="btn btn-sm btn-primary rounded-pill" onclick="openIvModal('Transport')"><i class="bi bi-plus"></i> เพิ่มรายการ</button>
+      </div>
+      <div class="pp-island-body">
+        <div id="transport-iv-list"></div>
+        <div id="transport-iv-empty" class="pp-empty-state"><i class="bi bi-droplet"></i>ยังไม่มี IV / ยา · กด "เพิ่มรายการ"</div>
+      </div>
+    </div>
+
+    <!-- INLINE: VITALS LOG -->
+    <div id="s3-vlog" class="pp-island-card" style="border-top-color:var(--slate-900);">
+      <div class="pp-island-head" style="background:var(--slate-900); color:#fff;">
+        <i class="bi bi-heart-pulse ic" style="color:#fff;"></i>
+        <div class="title" style="color:#fff;">บันทึกสัญญาณชีพ (Vitals Log)<span class="sub" style="color:#94a3b8;">Updated frequently during transport</span></div>
+        <button class="btn btn-sm btn-danger rounded-pill" onclick="openArrestAddModal()"><i class="bi bi-heart-pulse-fill"></i> Add Arrest</button>
+        <button class="btn btn-sm btn-light rounded-pill" onclick="openVitalAddModal()"><i class="bi bi-plus-circle-fill text-success"></i> Add Vital</button>
+      </div>
+      <div class="pp-island-body" style="background:#f8fafc;">
+        <div id="vital-list"></div>
+        <div id="vital-empty" class="pp-empty-state"><i class="bi bi-heart-pulse"></i>ยังไม่มี vital records · กด "Add Vital" หรือ "Add Arrest"</div>
+      </div>
+    </div>
+
+    <!-- INLINE: NURSE NOTE -->
+    <div id="s3-note" class="pp-island-card amber">
+      <div class="pp-island-head">
+        <i class="bi bi-journal-text ic" style="color:var(--amber-500);"></i>
+        <div class="title">บันทึกอาการ / การพยาบาล<span class="sub">Nurse Note · บันทึกเพิ่มได้ตลอด</span></div>
+        <span class="save-chip"><i class="bi bi-check-circle-fill"></i> auto</span>
+      </div>
+      <div class="pp-island-body">
+        <div class="pp-tmpl-row">
+          <button class="pp-tmpl-btn" onclick="injectTemplate('SAMPLE')"><i class="bi bi-clipboard"></i> SAMPLE</button>
+          <button class="pp-tmpl-btn" onclick="injectTemplate('OPQRST')"><i class="bi bi-clipboard"></i> OPQRST</button>
+          <button class="pp-tmpl-btn" onclick="injectTemplate('FDAR')"><i class="bi bi-clipboard"></i> FDAR</button>
+          <span class="pp-tmpl-help">💡 กดเพิ่มหัวข้อให้กรอกได้</span>
+        </div>
+        <textarea class="pp-textarea" id="nurse-note" data-bind="nurse_note" rows="8" placeholder="พิมพ์บันทึกการพยาบาล..."></textarea>
+      </div>
+    </div>
+
+    <!-- INLINE: REFER DOCS -->
+    <div id="s3-refer" class="pp-island-card sky">
+      <div class="pp-island-head">
+        <i class="bi bi-paperclip ic" style="color:var(--sky-500);"></i>
+        <div class="title">เอกสารแนบ (Refer Documents)<span class="sub">M/D consult · ไม่ถูกพิมพ์</span></div>
+        <span class="save-chip"><i class="bi bi-check-circle-fill"></i> auto</span>
+      </div>
+      <div class="pp-island-body">
+        <div class="d-flex justify-content-between align-items-center mb-2">
+          <div>
+            <b><span id="refer-count">0</span> / 5 ไฟล์</b>
+            <small class="text-muted d-block">JPG / PNG / PDF · สูงสุด 5 ไฟล์ · ไม่ถูกพิมพ์</small>
+          </div>
+          <button class="btn btn-info text-white rounded-pill" onclick="addReferMock()"><i class="bi bi-plus"></i> แนบไฟล์</button>
+        </div>
+        <div id="refer-list" class="d-flex flex-wrap gap-2"></div>
+        <div id="refer-empty" class="pp-empty-state" style="padding:14px;"><i class="bi bi-paperclip"></i>ยังไม่มีเอกสาร</div>
+      </div>
+    </div>
+  </section>
+
+</div><!-- /pp-step-container -->
+
+  <div style="margin:30px 0 60px; padding:16px; background:#fff; border-radius:12px; border:1px solid var(--slate-200); font-size:12px; color:var(--slate-600);">
+    🛠 <b>Prototype features active:</b>
+    Pill toggle · Modal open/close · GCS T-interlock (try ETT then check Neuro modal) · Add Vital/Arrest/IV via modals · localStorage persistence (per-session) · Template injection · Auto-save chip mock · Body figure limb click
+    <br><br>
+    <b>Try:</b>
+    <ol>
+      <li>กด "บันทึก V/S แรกรับ" → modal เปิด → กรอก → save</li>
+      <li>คลิก Airway: ET Tube → เปิด Neuro modal → V ถูกล็อก T อัตโนมัติ</li>
+      <li>เปิด Vitals Log modal → กด "+ Add Vital" → กรอก → row โผล่</li>
+      <li>เปิด Body Exam modal → คลิกแขนขาในรูป → active highlight + scroll to edit</li>
+    </ol>
+  </div>
+
+</div>
+
+<!-- ===================== MODALS ===================== -->
+
+<!-- INITIAL V/S MODAL -->
+<div class="pp-modal-backdrop" id="m-initvs" onclick="if(event.target===this)closeModal('m-initvs')">
+  <div class="pp-modal red">
+    <div class="pp-modal-head">
+      <i class="bi bi-activity ic" style="color:var(--red-500);"></i>
+      <div class="title">บันทึก V/S แรกรับ<span class="sub">Initial Vital Signs · จุดเกิดเหตุ</span></div>
+      <span class="save-chip"><i class="bi bi-check-circle-fill"></i> auto</span>
+      <button class="close-x" onclick="closeModal('m-initvs')"><i class="bi bi-x-lg"></i></button>
+    </div>
+    <div class="pp-modal-body">
+      <div class="pp-sub-title">เวลาบันทึก (HH:MM)</div>
+      <div class="pp-input-group">
+        <input type="text" class="pp-input" id="iv-time" placeholder="HH:MM" maxlength="5">
+        <button class="pp-btn-now" onclick="stampNow('iv-time')"><i class="bi bi-clock"></i> Now</button>
+      </div>
+      <div class="row g-3 mt-1">
+        <div class="col-6"><label class="form-label small fw-bold">BP (mmHg)</label><input type="text" class="pp-input" id="iv-bp" placeholder="120/80"></div>
+        <div class="col-6"><label class="form-label small fw-bold">PR (/min)</label><input type="text" class="pp-input" id="iv-pr" placeholder="80"></div>
+        <div class="col-6"><label class="form-label small fw-bold">RR (/min)</label><input type="text" class="pp-input" id="iv-rr" placeholder="20"></div>
+        <div class="col-6"><label class="form-label small fw-bold">Temp (°C)</label><input type="text" class="pp-input" id="iv-temp" placeholder="36.5"></div>
+        <div class="col-6"><label class="form-label small fw-bold">SpO2 (%)</label><input type="text" class="pp-input" id="iv-spo2" placeholder="98"></div>
+        <div class="col-6"><label class="form-label small fw-bold">DTX (mg/dL)</label><input type="text" class="pp-input" id="iv-dtx" placeholder="120"></div>
+      </div>
+    </div>
+    <div class="pp-modal-foot">
+      <button class="btn btn-cancel" onclick="closeModal('m-initvs')">ยกเลิก</button>
+      <button class="btn btn-save red" onclick="saveInitVs()"><i class="bi bi-check-lg"></i> บันทึก & ปิด</button>
+    </div>
+  </div>
+</div>
+
+<!-- NEURO MODAL -->
+<div class="pp-modal-backdrop" id="m-neuro" onclick="if(event.target===this)closeModal('m-neuro')">
+  <div class="pp-modal">
+    <div class="pp-modal-head">
+      <i class="bi bi-person-bounding-box ic" style="color:var(--navy-700);"></i>
+      <div class="title">ระบบประสาท &amp; ความเจ็บปวด<span class="sub">Neuro · GCS / Pupils / Pain</span></div>
+      <span class="save-chip"><i class="bi bi-check-circle-fill"></i> auto</span>
+      <button class="close-x" onclick="closeModal('m-neuro')"><i class="bi bi-x-lg"></i></button>
+    </div>
+    <div class="pp-modal-body">
+      <div class="pp-sub-title">GLASGOW COMA SCALE</div>
+      <div id="airway-chip-neuro" class="pp-airway-mgt-chip" style="display:none;">
+        <span style="font-size:10px; font-weight:700; color:var(--slate-500); letter-spacing:1px;">AIRWAY</span>
+        <i class="bi bi-lungs-fill" style="color:var(--cyan-500);"></i>
+        <b id="airway-chip-text">--</b>
+      </div>
+      <div id="gcs-lock-banner-neuro" class="pp-lock-banner" style="display:none;">
+        🔒 <b>V = T อัตโนมัติ</b> · ผู้ป่วยใส่ <b><span id="lock-airway-type">--</span></b> — Airway บังคับ
+        <div class="ref">ℹ️ ดูที่: Step 2 → Airway · hook <code>updateGcsVerbalLock()</code></div>
+      </div>
+
+      <div class="pp-ring-wrap">
+        <div class="pp-ring" id="gcs-ring">
+          <div class="pp-ring-inner">
+            <div class="num" id="gcs-total-num">15</div>
+            <div class="max">/ 15</div>
+            <div class="lbl">GCS</div>
+          </div>
+        </div>
+        <div class="pp-ring-pills">
+          <div class="pp-gcs-line">
+            <span class="lbl">EYE · E</span>
+            <div class="pp-pill-row" data-pill-group="gcs_e" style="gap:4px;">
+              <div class="pp-pill" data-value="1">1</div>
+              <div class="pp-pill" data-value="2">2</div>
+              <div class="pp-pill" data-value="3">3</div>
+              <div class="pp-pill" data-value="4">4</div>
+            </div>
+          </div>
+          <div class="pp-gcs-line">
+            <span class="lbl">VERBAL · V</span>
+            <div class="pp-pill-row" data-pill-group="gcs_v" id="gcs-v-row" style="gap:4px;">
+              <div class="pp-pill" data-value="1">1</div>
+              <div class="pp-pill" data-value="2">2</div>
+              <div class="pp-pill" data-value="3">3</div>
+              <div class="pp-pill" data-value="4">4</div>
+              <div class="pp-pill" data-value="5">5</div>
+              <div class="pp-pill" data-value="T">T</div>
+            </div>
+          </div>
+          <div class="pp-gcs-line">
+            <span class="lbl">MOTOR · M</span>
+            <div class="pp-pill-row" data-pill-group="gcs_m" style="gap:4px;">
+              <div class="pp-pill" data-value="1">1</div>
+              <div class="pp-pill" data-value="2">2</div>
+              <div class="pp-pill" data-value="3">3</div>
+              <div class="pp-pill" data-value="4">4</div>
+              <div class="pp-pill" data-value="5">5</div>
+              <div class="pp-pill" data-value="6">6</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="pp-status-line good" id="gcs-status-line">
+        <i class="bi bi-check-circle-fill"></i> <span id="gcs-status-text">Alert · E4V5M6 = 15</span>
+      </div>
+
+      <div class="pp-sub-title">PUPILS · รูม่านตา</div>
+      <div class="pp-pupils-grid">
+        <div class="pp-pupil-card">
+          <div class="pp-pupil-eye"><div class="dot"></div></div>
+          <div class="lbl">R · ขวา</div>
+          <div class="size-row"><input type="text" data-bind="pupil_size_r" placeholder="3"> mm</div>
+          <div class="pp-pill-row" data-pill-group="pupil_react_r">
+            <div class="pp-pill" data-value="React">React</div>
+            <div class="pp-pill" data-value="Sluggish">Slug</div>
+            <div class="pp-pill" data-value="No React">No</div>
+            <div class="pp-pill" data-value="Closed">Cl</div>
+          </div>
+        </div>
+        <div class="pp-pupil-card">
+          <div class="pp-pupil-eye"><div class="dot"></div></div>
+          <div class="lbl">L · ซ้าย</div>
+          <div class="size-row"><input type="text" data-bind="pupil_size_l" placeholder="3"> mm</div>
+          <div class="pp-pill-row" data-pill-group="pupil_react_l">
+            <div class="pp-pill" data-value="React">React</div>
+            <div class="pp-pill" data-value="Sluggish">Slug</div>
+            <div class="pp-pill" data-value="No React">No</div>
+            <div class="pp-pill" data-value="Closed">Cl</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="pp-sub-title">PAIN SCORE · ระดับความเจ็บปวด (0–10)</div>
+      <div class="pp-pill-row" data-pill-group="pain_score" id="pain-pills">
+        <div class="pp-pill pain-low" data-value="0">0</div>
+        <div class="pp-pill pain-low" data-value="1">1</div>
+        <div class="pp-pill pain-low" data-value="2">2</div>
+        <div class="pp-pill pain-low" data-value="3">3</div>
+        <div class="pp-pill pain-low" data-value="4">4</div>
+        <div class="pp-pill pain-mid" data-value="5">5</div>
+        <div class="pp-pill pain-mid" data-value="6">6</div>
+        <div class="pp-pill pain-high" data-value="7">7</div>
+        <div class="pp-pill pain-high" data-value="8">8</div>
+        <div class="pp-pill pain-high" data-value="9">9</div>
+        <div class="pp-pill pain-high" data-value="10">10</div>
+      </div>
+    </div>
+    <div class="pp-modal-foot">
+      <button class="btn btn-cancel" onclick="closeModal('m-neuro')">ปิด</button>
+    </div>
+  </div>
+</div>
+
+<!-- BODY EXAM MODAL -->
+<div class="pp-modal-backdrop" id="m-body" onclick="if(event.target===this)closeModal('m-body')">
+  <div class="pp-modal amber">
+    <div class="pp-modal-head">
+      <i class="bi bi-person-arms-up ic" style="color:var(--amber-500);"></i>
+      <div class="title">การตรวจร่างกาย<span class="sub">Body Exam · Motor + Exposure</span></div>
+      <span class="save-chip"><i class="bi bi-check-circle-fill"></i> auto</span>
+      <button class="close-x" onclick="closeModal('m-body')"><i class="bi bi-x-lg"></i></button>
+    </div>
+    <div class="pp-modal-body">
+      <div class="pp-active-banner" id="active-limb-banner">🎯 กำลังแก้ไข: <b id="active-limb-name">เลือกแขนขาที่ต้องการ</b></div>
+      <div class="pp-body-area">
+        <div class="pp-body-figure">
+          <svg viewBox="0 0 240 360" xmlns="http://www.w3.org/2000/svg" id="body-svg" style="width:220px; height:320px;">
+            <defs>
+              <linearGradient id="bodyGrad" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stop-color="#fef3e2"/>
+                <stop offset="100%" stop-color="#fde8c8"/>
+              </linearGradient>
+              <linearGradient id="bodyGrad2" x1="0" y1="0" x2="1" y2="0">
+                <stop offset="0%" stop-color="#fde8c8"/>
+                <stop offset="100%" stop-color="#fbcfa0"/>
+              </linearGradient>
+            </defs>
+
+            <!-- HEAD (anatomical oval, larger like medical chart) -->
+            <ellipse cx="120" cy="42" rx="28" ry="32" fill="url(#bodyGrad)" stroke="#475569" stroke-width="1.8"/>
+            <!-- Hair hint (gives orientation) -->
+            <path d="M 92 30 Q 120 12 148 30 Q 144 22 120 18 Q 96 22 92 30 Z" fill="#475569" opacity="0.8"/>
+            <!-- Ears -->
+            <ellipse cx="93" cy="44" rx="3" ry="6" fill="url(#bodyGrad)" stroke="#475569" stroke-width="1.2"/>
+            <ellipse cx="147" cy="44" rx="3" ry="6" fill="url(#bodyGrad)" stroke="#475569" stroke-width="1.2"/>
+            <!-- Eyes -->
+            <ellipse cx="108" cy="40" rx="3" ry="3.5" fill="#1e293b"/>
+            <ellipse cx="132" cy="40" rx="3" ry="3.5" fill="#1e293b"/>
+            <!-- Eyebrows -->
+            <path d="M 102 33 L 114 33" stroke="#475569" stroke-width="2" stroke-linecap="round"/>
+            <path d="M 126 33 L 138 33" stroke="#475569" stroke-width="2" stroke-linecap="round"/>
+            <!-- Nose -->
+            <path d="M 120 44 L 118 54 L 122 54 Z" fill="none" stroke="#475569" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/>
+            <!-- Mouth -->
+            <path d="M 110 62 Q 120 67 130 62" stroke="#475569" stroke-width="1.6" fill="none" stroke-linecap="round"/>
+
+            <!-- NECK -->
+            <path d="M 107 72 L 133 72 L 137 92 L 103 92 Z" fill="url(#bodyGrad)" stroke="#475569" stroke-width="1.8"/>
+
+            <!-- TORSO (rounded chest + waist) -->
+            <path d="M 70 95
+                     Q 120 86 170 95
+                     L 175 130
+                     Q 180 165 175 200
+                     L 168 235
+                     Q 162 250 150 252
+                     L 90 252
+                     Q 78 250 72 235
+                     L 65 200
+                     Q 60 165 65 130 Z"
+                  fill="url(#bodyGrad2)" stroke="#475569" stroke-width="1.8"/>
+
+            <!-- Chest line (subtle) -->
+            <path d="M 92 130 Q 120 142 148 130" stroke="#94a3b8" stroke-width="0.8" fill="none" opacity="0.5"/>
+            <!-- Waist line hint -->
+            <path d="M 78 200 Q 120 208 162 200" stroke="#94a3b8" stroke-width="0.8" fill="none" opacity="0.4"/>
+
+            <!-- ARMS — right (patient's R = viewer's L) — held slightly out -->
+            <path d="M 70 96
+                     Q 55 110 48 130
+                     Q 42 155 36 180
+                     Q 32 205 28 225
+                     L 24 245
+                     Q 22 250 26 252
+                     Q 32 250 35 245
+                     L 40 225
+                     Q 46 205 50 180
+                     Q 56 155 64 132
+                     Q 72 115 80 100 Z"
+                  fill="url(#bodyGrad)" stroke="#475569" stroke-width="1.8"/>
+            <!-- Right hand -->
+            <ellipse cx="25" cy="258" rx="9" ry="11" fill="url(#bodyGrad)" stroke="#475569" stroke-width="1.8"/>
+
+            <!-- ARMS — left -->
+            <path d="M 170 96
+                     Q 185 110 192 130
+                     Q 198 155 204 180
+                     Q 208 205 212 225
+                     L 216 245
+                     Q 218 250 214 252
+                     Q 208 250 205 245
+                     L 200 225
+                     Q 194 205 190 180
+                     Q 184 155 176 132
+                     Q 168 115 160 100 Z"
+                  fill="url(#bodyGrad)" stroke="#475569" stroke-width="1.8"/>
+            <ellipse cx="215" cy="258" rx="9" ry="11" fill="url(#bodyGrad)" stroke="#475569" stroke-width="1.8"/>
+
+            <!-- LEGS — right -->
+            <path d="M 90 252
+                     L 88 300
+                     Q 86 325 90 345
+                     L 108 345
+                     Q 110 325 109 300
+                     L 113 252 Z"
+                  fill="url(#bodyGrad)" stroke="#475569" stroke-width="1.8"/>
+            <!-- Right foot -->
+            <ellipse cx="99" cy="352" rx="14" ry="6" fill="url(#bodyGrad)" stroke="#475569" stroke-width="1.8"/>
+
+            <!-- LEGS — left -->
+            <path d="M 127 252
+                     L 131 300
+                     Q 130 325 132 345
+                     L 150 345
+                     Q 154 325 152 300
+                     L 150 252 Z"
+                  fill="url(#bodyGrad)" stroke="#475569" stroke-width="1.8"/>
+            <ellipse cx="141" cy="352" rx="14" ry="6" fill="url(#bodyGrad)" stroke="#475569" stroke-width="1.8"/>
+
+            <!-- R/L SAFETY LABELS ON TORSO (big, unmistakable) -->
+            <text x="95" y="175" font-size="28" font-weight="900" fill="#1e3a5f" text-anchor="middle" opacity="0.85">R</text>
+            <text x="145" y="175" font-size="28" font-weight="900" fill="#1e3a5f" text-anchor="middle" opacity="0.85">L</text>
+
+            <!-- BADGES on limbs (motor score circles) -->
+            <g class="limb-zone" data-limb="ra" onclick="selectLimb('ra')" style="cursor:pointer;">
+              <circle cx="45" cy="160" r="18" fill="#16a34a" stroke="#fff" stroke-width="2.5" id="badge-ra-c"/>
+              <text x="45" y="158" font-size="9" font-weight="800" fill="#fff" text-anchor="middle">RA</text>
+              <text x="45" y="170" font-size="13" font-weight="900" fill="#fff" text-anchor="middle" id="badge-ra-n">5</text>
+            </g>
+            <g class="limb-zone" data-limb="la" onclick="selectLimb('la')" style="cursor:pointer;">
+              <circle cx="195" cy="160" r="18" fill="#16a34a" stroke="#fff" stroke-width="2.5" id="badge-la-c"/>
+              <text x="195" y="158" font-size="9" font-weight="800" fill="#fff" text-anchor="middle">LA</text>
+              <text x="195" y="170" font-size="13" font-weight="900" fill="#fff" text-anchor="middle" id="badge-la-n">5</text>
+            </g>
+            <g class="limb-zone" data-limb="rl" onclick="selectLimb('rl')" style="cursor:pointer;">
+              <circle cx="92" cy="298" r="18" fill="#16a34a" stroke="#fff" stroke-width="2.5" id="badge-rl-c"/>
+              <text x="92" y="296" font-size="9" font-weight="800" fill="#fff" text-anchor="middle">RL</text>
+              <text x="92" y="308" font-size="13" font-weight="900" fill="#fff" text-anchor="middle" id="badge-rl-n">5</text>
+            </g>
+            <g class="limb-zone" data-limb="ll" onclick="selectLimb('ll')" style="cursor:pointer;">
+              <circle cx="148" cy="298" r="18" fill="#16a34a" stroke="#fff" stroke-width="2.5" id="badge-ll-c"/>
+              <text x="148" y="296" font-size="9" font-weight="800" fill="#fff" text-anchor="middle">LL</text>
+              <text x="148" y="308" font-size="13" font-weight="900" fill="#fff" text-anchor="middle" id="badge-ll-n">5</text>
+            </g>
+          </svg>
+          <div class="pp-body-note">👤 หันหน้าเข้าหาผู้ใช้ · R/L = ของผู้ป่วย (anatomical view)</div>
+        </div>
+        <div>
+          <div id="limb-edit-panel" style="display:none;">
+            <div class="pp-sub-title">MOTOR POWER · <span id="active-limb-th">--</span></div>
+            <div class="pp-pill-row" id="limb-motor-row"></div>
+            <div class="pp-sub-title">บาดแผล / รอยช้ำ (EXPOSURE)</div>
+            <input type="text" class="pp-input" id="limb-exp-input" placeholder="ระบุตำแหน่ง / ลักษณะ...">
+          </div>
+          <div class="pp-sub-title">4 แขนขา (per-limb summary)</div>
+          <div class="pp-limb-grid">
+            <div class="pp-limb-card" data-limb="ra" onclick="selectLimb('ra')"><div class="head"><div class="badge-num" id="card-ra-n">5</div><div><div class="name-th">RA · แขนขวา</div><div class="name-en">Right Arm</div></div></div></div>
+            <div class="pp-limb-card" data-limb="la" onclick="selectLimb('la')"><div class="head"><div class="badge-num" id="card-la-n">5</div><div><div class="name-th">LA · แขนซ้าย</div><div class="name-en">Left Arm</div></div></div></div>
+            <div class="pp-limb-card" data-limb="rl" onclick="selectLimb('rl')"><div class="head"><div class="badge-num" id="card-rl-n">5</div><div><div class="name-th">RL · ขาขวา</div><div class="name-en">Right Leg</div></div></div></div>
+            <div class="pp-limb-card" data-limb="ll" onclick="selectLimb('ll')"><div class="head"><div class="badge-num" id="card-ll-n">5</div><div><div class="name-th">LL · ขาซ้าย</div><div class="name-en">Left Leg</div></div></div></div>
+          </div>
+        </div>
+      </div>
+      <div class="pp-sub-title">บันทึกเพิ่มเติม (Other)</div>
+      <input type="text" class="pp-input" data-bind="exp_other" placeholder="ตำแหน่งอื่นๆ เพิ่มเติม...">
+    </div>
+    <div class="pp-modal-foot">
+      <button class="btn btn-cancel" onclick="closeModal('m-body')">ปิด</button>
+    </div>
+  </div>
+</div>
+
+<!-- DRAINAGE MODAL -->
+<div class="pp-modal-backdrop" id="m-drain" onclick="if(event.target===this)closeModal('m-drain')">
+  <div class="pp-modal teal">
+    <div class="pp-modal-head">
+      <i class="bi bi-funnel ic" style="color:var(--teal-600);"></i>
+      <div class="title">สายระบาย &amp; ท่อต่างๆ<span class="sub">Drainage / Tubes</span></div>
+      <span class="save-chip"><i class="bi bi-check-circle-fill"></i> auto</span>
+      <button class="close-x" onclick="closeModal('m-drain')"><i class="bi bi-x-lg"></i></button>
+    </div>
+    <div class="pp-modal-body" id="drain-modal-body">
+      <!-- Rows generated by JS -->
+    </div>
+    <div class="pp-modal-foot">
+      <button class="btn btn-cancel" onclick="closeModal('m-drain')">ปิด</button>
+    </div>
+  </div>
+</div>
+
+<!-- ARREST PRE MODAL -->
+<div class="pp-modal-backdrop" id="m-arrest" onclick="if(event.target===this)closeModal('m-arrest')">
+  <div class="pp-modal dark-red">
+    <div class="pp-modal-head">
+      <i class="bi bi-heart-pulse ic" style="color:var(--red-700);"></i>
+      <div class="title">Cardiac Arrest Log<span class="sub">Pre-arrival arrest</span></div>
+      <span class="save-chip"><i class="bi bi-check-circle-fill"></i> auto</span>
+      <button class="close-x" onclick="closeModal('m-arrest')"><i class="bi bi-x-lg"></i></button>
+    </div>
+    <div class="pp-modal-body">
+      <div class="form-check form-switch p-3 bg-light rounded-3 border mb-3">
+        <input class="form-check-input" type="checkbox" id="arrest-tog" data-bind="arrest_pre_arrest">
+        <label class="form-check-label fw-bold text-danger ms-2" for="arrest-tog">
+          <i class="bi bi-heart-pulse-fill"></i> Cardiac Arrest (ก่อน/ระหว่างรับผู้ป่วย)
+        </label>
+      </div>
+      <div id="arrest-detail" style="display:none;">
+        <div class="row g-3 mb-3">
+          <div class="col-md-6">
+            <label class="form-label small fw-bold">เวลา Arrest</label>
+            <div class="pp-input-group">
+              <input type="text" class="pp-input" data-bind="arrest_pre_time" placeholder="HH:MM" maxlength="5">
+              <button class="pp-btn-now" onclick="stampNow(null, 'arrest_pre_time')"><i class="bi bi-clock"></i> Now</button>
+            </div>
+          </div>
+          <div class="col-md-6">
+            <label class="form-label small fw-bold">เริ่ม CPR</label>
+            <div class="pp-input-group">
+              <input type="text" class="pp-input" data-bind="arrest_pre_cpr_time" placeholder="HH:MM" maxlength="5">
+              <button class="pp-btn-now" onclick="stampNow(null, 'arrest_pre_cpr_time')"><i class="bi bi-clock"></i> Now</button>
+            </div>
+          </div>
+        </div>
+        <div class="pp-sub-title">Initial Rhythm</div>
+        <div class="pp-pill-row" data-pill-group="arrest_pre_rhythm">
+          <div class="pp-pill" data-value="VF">VF</div>
+          <div class="pp-pill" data-value="pVT">pVT</div>
+          <div class="pp-pill" data-value="PEA">PEA</div>
+          <div class="pp-pill" data-value="Asystole">Asystole</div>
+          <div class="pp-pill" data-value="Unknown">Unknown</div>
+        </div>
+        <div class="pp-sub-title">Outcome</div>
+        <div class="pp-pill-row" data-pill-group="arrest_pre_outcome">
+          <div class="pp-pill" data-value="ROSC">ROSC</div>
+          <div class="pp-pill" data-value="Terminate CPR">Terminate CPR</div>
+          <div class="pp-pill" data-value="Ongoing CPR">Ongoing CPR</div>
+        </div>
+        <div id="rosc-time-wrap" style="display:none;">
+          <div class="pp-sub-title">ROSC Time</div>
+          <input type="text" class="pp-input" data-bind="arrest_pre_rosc_time" placeholder="HH:MM">
+        </div>
+        <div id="dead-time-wrap" style="display:none;">
+          <div class="pp-sub-title">Pronounced Time</div>
+          <input type="text" class="pp-input" data-bind="arrest_pre_dead_time" placeholder="HH:MM">
+        </div>
+        <div class="pp-sub-title">Summary / Note</div>
+        <textarea class="pp-input" data-bind="arrest_pre_note" rows="3" placeholder="สรุปเหตุการณ์..."></textarea>
+      </div>
+    </div>
+    <div class="pp-modal-foot">
+      <button class="btn btn-cancel" onclick="closeModal('m-arrest')">ปิด</button>
+    </div>
+  </div>
+</div>
+
+<!-- EQUIPMENT MODAL -->
+<div class="pp-modal-backdrop" id="m-eq" onclick="if(event.target===this)closeModal('m-eq')">
+  <div class="pp-modal slate">
+    <div class="pp-modal-head">
+      <i class="bi bi-tools ic" style="color:var(--slate-500);"></i>
+      <div class="title">อุปกรณ์ที่ใช้<span class="sub">Equipment in use</span></div>
+      <span class="save-chip"><i class="bi bi-check-circle-fill"></i> auto</span>
+      <button class="close-x" onclick="closeModal('m-eq')"><i class="bi bi-x-lg"></i></button>
+    </div>
+    <div class="pp-modal-body">
+      <div class="pp-eq-grid" id="eq-grid">
+        <div class="pp-eq-card" data-eq="eq_spinal"><div class="chk"></div><i class="bi bi-grid-3x3 ic"></i><div class="lbl">Spinal Board</div></div>
+        <div class="pp-eq-card" data-eq="eq_scoop"><div class="chk"></div><i class="bi bi-grip-horizontal ic"></i><div class="lbl">Scoop</div></div>
+        <div class="pp-eq-card" data-eq="eq_mattress"><div class="chk"></div><i class="bi bi-cloud ic"></i><div class="lbl">Vacuum Mattress</div></div>
+        <div class="pp-eq-card" data-eq="eq_monitor"><div class="chk"></div><i class="bi bi-display ic"></i><div class="lbl">Monitor / Defib</div></div>
+        <div class="pp-eq-card" data-eq="eq_ecmo"><div class="chk"></div><i class="bi bi-cpu ic"></i><div class="lbl">ECMO</div></div>
+        <div class="pp-eq-card" data-eq="eq_infusion"><span class="new-badge">NEW</span><div class="chk"></div><i class="bi bi-droplet-half ic"></i><div class="lbl">Infusion Pump</div></div>
+        <div class="pp-eq-card" data-eq="eq_syringe"><span class="new-badge">NEW</span><div class="chk"></div><i class="bi bi-eyedropper ic"></i><div class="lbl">Syringe Pump</div></div>
+        <div class="pp-eq-card" data-eq="eq_suction"><span class="new-badge">NEW</span><div class="chk"></div><i class="bi bi-arrow-down-circle ic"></i><div class="lbl">Suction</div></div>
+        <div class="pp-eq-card" data-eq="eq_other"><div class="chk"></div><i class="bi bi-three-dots ic"></i><div class="lbl">Other</div></div>
+      </div>
+    </div>
+    <div class="pp-modal-foot">
+      <button class="btn btn-cancel" onclick="closeModal('m-eq')">ปิด</button>
+    </div>
+  </div>
+</div>
+
+<!-- m-iv modal removed — moved to inline card in Step 3 -->
+<!-- m-vital modal removed — moved to inline card in Step 3 -->
+
+<!-- AIRWAY REASON MODAL (triggered when V≠T clicked while patient intubated — must be ON TOP of m-add-vital, z-index 250 > 200) -->
+<div class="pp-modal-backdrop" id="m-airway-reason" style="z-index:250;" onclick="if(event.target===this)closeModal('m-airway-reason')">
+  <div class="pp-modal amber">
+    <div class="pp-modal-head">
+      <i class="bi bi-question-circle-fill ic" style="color:var(--amber-500);"></i>
+      <div class="title">ระบุเหตุผลการเปลี่ยน V<span class="sub">Airway Status Change · บันทึกใน Assess/Tx อัตโนมัติ</span></div>
+      <button class="close-x" onclick="closeModal('m-airway-reason')"><i class="bi bi-x-lg"></i></button>
+    </div>
+    <div class="pp-modal-body">
+      <div class="pp-status-line warn">
+        🚨 ผู้ป่วยใส่ <b id="ar-aw-type">ETT</b> · ขอเหตุผลที่ V = <b id="ar-target-v">5</b> (ไม่ใช่ T)
+      </div>
+      <div class="pp-sub-title">เหตุผล (เลือก preset หรือพิมพ์เอง)</div>
+      <div class="pp-pill-row" id="ar-reason-presets">
+        <div class="pp-pill" data-reason="ETT หลุดเอง (self-extubation)">ETT หลุดเอง</div>
+        <div class="pp-pill" data-reason="ถอด ETT ตามแผน (planned extubation)">ถอด ETT ตามแผน</div>
+        <div class="pp-pill" data-reason="Tracheostomy decannulated">Trach decannulated</div>
+        <div class="pp-pill" data-reason="LMA/SGA removed">LMA/SGA ถอด</div>
+        <div class="pp-pill" data-reason="อื่นๆ (ระบุด้านล่าง)">อื่นๆ</div>
+      </div>
+      <div class="pp-sub-title">รายละเอียดเพิ่มเติม</div>
+      <textarea class="pp-input" id="ar-reason-text" rows="3" placeholder="ระบุเหตุผล / สรุปเหตุการณ์..."></textarea>
+
+      <div class="pp-dev-hint" style="margin-top:10px;">
+        ℹ️ เมื่อบันทึก: V = <b><span id="ar-target-v2">5</span></b> + note เพิ่มใน Assess/Tx อัตโนมัติ + <b>Modal Vital ครั้งต่อไปจะไม่ถามอีก</b> (จนกว่าจะ re-intubate ผ่าน Airway card)
+      </div>
+    </div>
+    <div class="pp-modal-foot">
+      <button class="btn btn-cancel" onclick="cancelAirwayReason()">ยกเลิก · คง V=T</button>
+      <button class="btn btn-save" onclick="saveAirwayReason()"><i class="bi bi-check-lg"></i> บันทึกเหตุผล &amp; ปลดล็อค V</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== ADD MODALS ===================== -->
+
+<!-- ADD VITAL -->
+<div class="pp-modal-backdrop" id="m-add-vital" onclick="if(event.target===this)closeModal('m-add-vital')">
+  <div class="pp-modal dark">
+    <div class="pp-modal-head">
+      <i class="bi bi-heart-pulse ic" style="color:var(--slate-900);"></i>
+      <div class="title">บันทึกสัญญาณชีพ<span class="sub">Add Vital Record</span></div>
+      <span class="save-chip"><i class="bi bi-check-circle-fill"></i> auto</span>
+      <button class="close-x" onclick="closeModal('m-add-vital')"><i class="bi bi-x-lg"></i></button>
+    </div>
+    <div class="pp-modal-body">
+      <div class="pp-sub-title">เวลาบันทึก</div>
+      <div class="pp-input-group" style="max-width:240px;">
+        <input type="text" class="pp-input" id="av-time" placeholder="HH:MM" maxlength="5">
+        <button class="pp-btn-now" onclick="stampNow('av-time')"><i class="bi bi-clock"></i> Now</button>
+      </div>
+      <div class="pp-sub-title">สัญญาณชีพ · Vital Signs</div>
+      <div class="row g-2">
+        <div class="col-6 col-md-4"><label class="small fw-bold">BP (sys/dia)</label><input type="text" class="pp-input" id="av-bp" placeholder="120/80"></div>
+        <div class="col-6 col-md-4"><label class="small fw-bold">PR (/min)</label><input type="text" class="pp-input" id="av-pr" placeholder="80"></div>
+        <div class="col-6 col-md-4"><label class="small fw-bold">RR (/min)</label><input type="text" class="pp-input" id="av-rr" placeholder="20"></div>
+        <div class="col-6 col-md-4"><label class="small fw-bold">Temp (°C)</label><input type="text" class="pp-input" id="av-temp" placeholder="36.5"></div>
+        <div class="col-6 col-md-4"><label class="small fw-bold">SpO2 (%)</label><input type="text" class="pp-input" id="av-spo2" placeholder="98"></div>
+      </div>
+      <div class="pp-sub-title">PAIN (0–10)</div>
+      <div class="pp-pill-row" id="av-pain-row">
+        <div class="pp-pill pain-low" data-value="0">0</div>
+        <div class="pp-pill pain-low" data-value="1">1</div>
+        <div class="pp-pill pain-low" data-value="2">2</div>
+        <div class="pp-pill pain-low" data-value="3">3</div>
+        <div class="pp-pill pain-low" data-value="4">4</div>
+        <div class="pp-pill pain-mid" data-value="5">5</div>
+        <div class="pp-pill pain-mid" data-value="6">6</div>
+        <div class="pp-pill pain-high" data-value="7">7</div>
+        <div class="pp-pill pain-high" data-value="8">8</div>
+        <div class="pp-pill pain-high" data-value="9">9</div>
+        <div class="pp-pill pain-high" data-value="10">10</div>
+      </div>
+      <div class="pp-sub-title">GCS Score</div>
+      <div id="av-gcs-lock" class="pp-lock-banner" style="display:none;">
+        🔒 <b>V = T อัตโนมัติ</b> · ผู้ป่วยใส่ <b><span id="av-lock-airway">--</span></b>
+        <div class="ref">ถ้าคนไข้ดึง ETT/ออก trach → กลับไปแก้ Airway card ก่อน, V จะ unlock</div>
+      </div>
+      <div class="row g-2" style="font-size:13px;">
+        <div class="col-md-4">
+          <label class="small fw-bold">E</label>
+          <div class="pp-pill-row" id="av-gcs-e">
+            <div class="pp-pill" data-value="1">1</div>
+            <div class="pp-pill" data-value="2">2</div>
+            <div class="pp-pill" data-value="3">3</div>
+            <div class="pp-pill" data-value="4">4</div>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <label class="small fw-bold">V</label>
+          <div class="pp-pill-row" id="av-gcs-v">
+            <div class="pp-pill" data-value="1">1</div>
+            <div class="pp-pill" data-value="2">2</div>
+            <div class="pp-pill" data-value="3">3</div>
+            <div class="pp-pill" data-value="4">4</div>
+            <div class="pp-pill" data-value="5">5</div>
+            <div class="pp-pill" data-value="T">T</div>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <label class="small fw-bold">M</label>
+          <div class="pp-pill-row" id="av-gcs-m">
+            <div class="pp-pill" data-value="1">1</div>
+            <div class="pp-pill" data-value="2">2</div>
+            <div class="pp-pill" data-value="3">3</div>
+            <div class="pp-pill" data-value="4">4</div>
+            <div class="pp-pill" data-value="5">5</div>
+            <div class="pp-pill" data-value="6">6</div>
+          </div>
+        </div>
+      </div>
+      <div class="pp-sub-title">Assess / Tx (บันทึกเพิ่มเติม)</div>
+      <textarea class="pp-input" id="av-note" rows="2" placeholder="พิมพ์บันทึกการประเมิน..."></textarea>
+    </div>
+    <div class="pp-modal-foot">
+      <button class="btn btn-cancel" onclick="closeModal('m-add-vital')">ยกเลิก</button>
+      <button class="btn btn-save" onclick="saveAddVital()"><i class="bi bi-check-lg"></i> บันทึก &amp; ปิด</button>
+    </div>
+  </div>
+</div>
+
+<!-- ADD ARREST -->
+<div class="pp-modal-backdrop" id="m-add-arrest" onclick="if(event.target===this)closeModal('m-add-arrest')">
+  <div class="pp-modal red">
+    <div class="pp-modal-head">
+      <i class="bi bi-heart-pulse-fill ic" style="color:var(--red-500);"></i>
+      <div class="title">บันทึก Cardiac Arrest<span class="sub">Arrest Event Log</span></div>
+      <span class="save-chip"><i class="bi bi-check-circle-fill"></i> auto</span>
+      <button class="close-x" onclick="closeModal('m-add-arrest')"><i class="bi bi-x-lg"></i></button>
+    </div>
+    <div class="pp-modal-body">
+      <div style="background:var(--red-600); color:#fff; padding:8px 14px; border-radius:8px; font-weight:800; margin-bottom:12px;">🚨 ARREST EVENT</div>
+      <div class="row g-3">
+        <div class="col-md-4">
+          <label class="small fw-bold text-danger">เวลา Arrest</label>
+          <div class="pp-input-group">
+            <input type="text" class="pp-input" id="aa-time" placeholder="HH:MM" maxlength="5">
+            <button class="pp-btn-now" onclick="stampNow('aa-time')"><i class="bi bi-clock"></i></button>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <label class="small fw-bold text-danger">เริ่ม CPR</label>
+          <div class="pp-input-group">
+            <input type="text" class="pp-input" id="aa-cpr" placeholder="HH:MM" maxlength="5">
+            <button class="pp-btn-now" onclick="stampNow('aa-cpr')"><i class="bi bi-clock"></i></button>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <label class="small fw-bold">CPR Duration</label>
+          <div class="pp-input" style="background:#fef3c7; text-align:center;" id="aa-dur">--</div>
+        </div>
+      </div>
+      <div class="pp-sub-title">Initial Rhythm</div>
+      <div class="pp-pill-row" id="aa-rhythm-row">
+        <div class="pp-pill" data-value="VF">VF</div>
+        <div class="pp-pill" data-value="pVT">pVT</div>
+        <div class="pp-pill" data-value="PEA">PEA</div>
+        <div class="pp-pill" data-value="Asystole">Asystole</div>
+        <div class="pp-pill" data-value="Unknown">Unknown</div>
+      </div>
+      <div class="pp-sub-title">Outcome</div>
+      <div class="pp-pill-row" id="aa-outcome-row">
+        <div class="pp-pill" data-value="ROSC">✓ ROSC</div>
+        <div class="pp-pill" data-value="Terminate CPR">✕ Terminate CPR</div>
+        <div class="pp-pill" data-value="Ongoing CPR">⏱ Ongoing CPR</div>
+      </div>
+      <div id="aa-rosc-wrap" style="display:none; margin-top:10px;">
+        <label class="small fw-bold text-success">ROSC Time</label>
+        <div class="pp-input-group" style="max-width:240px;">
+          <input type="text" class="pp-input" id="aa-rosc-time" placeholder="HH:MM" maxlength="5">
+          <button class="pp-btn-now" onclick="stampNow('aa-rosc-time')"><i class="bi bi-clock"></i></button>
+        </div>
+      </div>
+      <div id="aa-dead-wrap" style="display:none; margin-top:10px;">
+        <label class="small fw-bold">Pronounced Time</label>
+        <div class="pp-input-group" style="max-width:240px;">
+          <input type="text" class="pp-input" id="aa-dead-time" placeholder="HH:MM" maxlength="5">
+          <button class="pp-btn-now" onclick="stampNow('aa-dead-time')"><i class="bi bi-clock"></i></button>
+        </div>
+      </div>
+      <div class="pp-sub-title">Summary / สรุปเหตุการณ์</div>
+      <textarea class="pp-input" id="aa-note" rows="3" placeholder="สรุปเหตุการณ์..."></textarea>
+    </div>
+    <div class="pp-modal-foot">
+      <button class="btn btn-cancel" onclick="closeModal('m-add-arrest')">ยกเลิก</button>
+      <button class="btn btn-save red" onclick="saveAddArrest()"><i class="bi bi-check-lg"></i> บันทึก &amp; ปิด</button>
+    </div>
+  </div>
+</div>
+
+<!-- ADD IV -->
+<div class="pp-modal-backdrop" id="m-add-iv" onclick="if(event.target===this)closeModal('m-add-iv')">
+  <div class="pp-modal sky">
+    <div class="pp-modal-head">
+      <i class="bi bi-droplet-fill ic" style="color:var(--sky-500);"></i>
+      <div class="title">เพิ่มสารน้ำ / ยา<span class="sub">Add IV / Medication</span></div>
+      <span class="save-chip"><i class="bi bi-check-circle-fill"></i> auto</span>
+      <button class="close-x" onclick="closeModal('m-add-iv')"><i class="bi bi-x-lg"></i></button>
+    </div>
+    <div class="pp-modal-body">
+      <div class="pp-context-chip" id="iv-context-chip">
+        <i class="bi bi-truck"></i> <b>Context: Transport</b> (เพิ่มเข้า Step 3 IV log)
+      </div>
+      <div class="pp-sub-title">เวลา</div>
+      <div class="pp-input-group" style="max-width:240px;">
+        <input type="text" class="pp-input" id="aiv-time" placeholder="HH:MM" maxlength="5">
+        <button class="pp-btn-now" onclick="stampNow('aiv-time')"><i class="bi bi-clock"></i> Now</button>
+      </div>
+      <div class="pp-sub-title">Route</div>
+      <div class="pp-pill-row" id="aiv-route-row">
+        <div class="pp-pill active sky" data-value="IV"><i class="bi bi-droplet"></i> IV</div>
+        <div class="pp-pill" data-value="IO"><i class="bi bi-record-circle"></i> IO</div>
+        <div class="pp-pill" data-value="Central Line" id="aiv-cline"><i class="bi bi-lock-fill"></i> Central Line</div>
+      </div>
+      <div class="pp-sub-title">ชื่อสารน้ำ / ยา</div>
+      <input type="text" class="pp-input" id="aiv-name" placeholder="เช่น NSS, Adrenaline, Morphine...">
+      <div class="row g-3 mt-1">
+        <div class="col-md-6">
+          <label class="small fw-bold">Rate / Dose</label>
+          <input type="text" class="pp-input" id="aiv-rate" placeholder="100">
+        </div>
+        <div class="col-md-6">
+          <label class="small fw-bold">Unit</label>
+          <div class="pp-pill-row" id="aiv-unit-row">
+            <div class="pp-pill" data-value="ml/hr">ml/hr</div>
+            <div class="pp-pill" data-value="drops/min">drops/min</div>
+            <div class="pp-pill" data-value="mg">mg</div>
+            <div class="pp-pill" data-value="mcg/kg/min">mcg/kg/min</div>
+          </div>
+        </div>
+      </div>
+      <div class="form-check form-switch p-3 bg-light rounded-3 border mt-3">
+        <input class="form-check-input" type="checkbox" id="aiv-sedate">
+        <label class="form-check-label fw-bold ms-2" for="aiv-sedate">🔵 Sedate · ยานอนหลับ / sedation</label>
+      </div>
+    </div>
+    <div class="pp-modal-foot">
+      <button class="btn btn-cancel" onclick="closeModal('m-add-iv')">ยกเลิก</button>
+      <button class="btn btn-save sky" onclick="saveAddIv()"><i class="bi bi-plus-circle-fill"></i> บันทึก &amp; เพิ่มแถว</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============== JS ============== -->
+<script>
+// ========== STATE ==========
+const KEY = 'pp_prototype_state_v1';
+const DEFAULT = {
+  init_vitals: null, // {time, bp, pr, rr, temp, spo2, dtx}
+  airway_type: '', airway_mgt_sub: '', aw_lma_no: '',
+  tube_no: '', tube_depth: '', cuff_status: 'Inflated',
+  o2_device: '', o2_flow: '', o2_conc: '', o2_temp: '', o2_sat: '', o2_rr: '',
+  on_ventilator: false,
+  vent_mode: 'PCV', vent_submode: 'CMV',
+  vent_rate: '', vent_vol_pres: '', vent_peep: '', vent_fio2: '', vent_ie: '',
+  circ_status: 'Stable', circ_ekg: '', circ_cap: '',
+  has_central_line: false, central_line_pos: '',
+  initial_iv_lines: [], iv_lines: [],
+  gcs_e: '4', gcs_v: '5', gcs_m: '6',
+  pupil_size_r: '3', pupil_react_r: 'React', pupil_size_l: '3', pupil_react_l: 'React',
+  pain_score: '0',
+  motor_ra: 5, motor_la: 5, motor_rl: 5, motor_ll: 5,
+  exp_ra: '', exp_la: '', exp_rl: '', exp_ll: '', exp_other: '',
+  dr_icd: false, dr_icd_note: '', dr_ng: false, dr_ng_note: '',
+  dr_foley: false, dr_foley_note: '', dr_other: false, dr_other_note: '',
+  arrest_pre_arrest: false,
+  arrest_pre_time: '', arrest_pre_cpr_time: '',
+  arrest_pre_rhythm: 'Unknown', arrest_pre_outcome: '',
+  arrest_pre_rosc_time: '', arrest_pre_dead_time: '', arrest_pre_note: '',
+  airway_ett_pulled: false, // flag — set true after first VT-unlock reason submitted, lets subsequent Add Vital not prompt
+  equipment: { eq_spinal:false, eq_scoop:false, eq_mattress:false, eq_monitor:true,
+    eq_ecmo:false, eq_infusion:false, eq_syringe:false, eq_suction:false,
+    eq_other:false, eq_other_note:'' },
+  vitals_log: [], refer_count: 0, nurse_note: '',
+  _active_limb: null, _iv_context: 'Transport',
+};
+let STATE = loadState();
+
+function loadState() {
+  try {
+    const s = sessionStorage.getItem(KEY);
+    if (!s) { console.log('[STATE] no saved state — using DEFAULT'); return Object.assign({}, DEFAULT); }
+    const parsed = JSON.parse(s);
+    const merged = Object.assign({}, DEFAULT, parsed);
+    console.log('[STATE] loaded from sessionStorage:', {
+      on_ventilator: merged.on_ventilator,
+      vent_mode: merged.vent_mode, vent_submode: merged.vent_submode,
+      vent_rate: merged.vent_rate, vent_vol_pres: merged.vent_vol_pres,
+      vent_peep: merged.vent_peep, vent_fio2: merged.vent_fio2, vent_ie: merged.vent_ie,
+      airway_type: merged.airway_type,
+    });
+    return merged;
+  } catch(e){ console.error('[STATE] load error:', e); return Object.assign({}, DEFAULT); }
+}
+function saveState() {
+  sessionStorage.setItem(KEY, JSON.stringify(STATE));
+  updateSaveIndicator();
+}
+function updateSaveIndicator() {
+  const el = document.getElementById('save-indicator');
+  const t = new Date();
+  el.textContent = '✓ บันทึก ' + t.toLocaleTimeString('th-TH', {hour12:false});
+}
+
+// ========== STEP SWITCH (narrow screen only — wide shows both) ==========
+function switchStep(step) {
+  document.querySelectorAll('.pp-step-panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.step-tab, .bnav-btn').forEach(t => t.classList.remove('active'));
+  const panel = document.getElementById('step' + step + '-page');
+  if (panel) panel.classList.add('active');
+  document.querySelectorAll('[data-step="' + step + '"]').forEach(t => t.classList.add('active'));
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+function toggleTopbarExpand() {
+  const ex = document.getElementById('tb-expanded');
+  const ic = document.getElementById('tb-toggle-icon');
+  const isOpen = ex.style.display !== 'none';
+  ex.style.display = isOpen ? 'none' : '';
+  ic.className = isOpen ? 'bi bi-chevron-down' : 'bi bi-chevron-up';
+}
+
+// ========== VT UNLOCK PROMPT (when user wants to change V≠T while still intubated) ==========
+// returns true if user confirmed ETT out, false otherwise
+function confirmEttRemoved(targetVValue) {
+  const aw = STATE.airway_type === 'Management' ? 'LMA/SGA' : STATE.airway_type;
+  const ok = confirm(
+    '🚨 ผู้ป่วยใส่ ' + aw + ' อยู่ — V กำลังถูกล็อก T\n\n' +
+    'ETT/Trach/LMA หลุดหรือถูกถอดออกไปแล้วใช่ไหม?\n\n' +
+    '[ตกลง] = ใช่ → V จะถูกตั้งเป็น ' + targetVValue + ' + บันทึก note อัตโนมัติ\n' +
+    '[ยกเลิก] = ไม่ → V ยังคงเป็น T (ไม่เปลี่ยน)'
+  );
+  return ok;
+}
+
+// ========== MODAL ==========
+function openModal(id) {
+  document.getElementById(id).classList.add('open');
+  document.body.style.overflow = 'hidden';
+  if (id === 'm-initvs') prefillInitVs();
+  if (id === 'm-add-iv') updateIvContextChip();
+}
+function closeModal(id) {
+  document.getElementById(id).classList.remove('open');
+  document.body.style.overflow = '';
+}
+function scrollTo_(id) {
+  const el = document.getElementById(id);
+  if (el) el.scrollIntoView({behavior:'smooth', block:'start'});
+}
+window.addEventListener('keydown', e => {
+  if (e.key === 'Escape') {
+    document.querySelectorAll('.pp-modal-backdrop.open').forEach(m => m.classList.remove('open'));
+    document.body.style.overflow = '';
+  }
+});
+
+// ========== PILL TOGGLE ==========
+function bindPillGroups() {
+  document.querySelectorAll('[data-pill-group]').forEach(group => {
+    const key = group.dataset.pillGroup;
+    group.querySelectorAll('.pp-pill').forEach(pill => {
+      pill.addEventListener('click', () => {
+        // VT unlock prompt — Neuro V pill while intubated
+        if (key === 'gcs_v' && pill.classList.contains('locked')) {
+          const targetV = pill.dataset.value;
+          if (!confirmEttRemoved(targetV)) return;
+          // user confirmed ETT out → change airway to Open + unlock V
+          STATE.airway_type = 'Open';
+          STATE.airway_mgt_sub = '';
+          // Reflect airway change on UI
+          const awGroup = document.querySelector('[data-pill-group="airway_type"]');
+          if (awGroup) {
+            awGroup.querySelectorAll('.pp-pill').forEach(p => p.classList.remove('active','cyan'));
+            const openPill = awGroup.querySelector('.pp-pill[data-value="Open"]');
+            if (openPill) openPill.classList.add('active','cyan');
+          }
+          // Trigger downstream updates
+          refreshAirwayPanels();
+          refreshO2Options();
+          toast('⚠️ ETT/Trach หลุด · Airway → Open · V → ' + targetV);
+        }
+        if (pill.classList.contains('locked')) return;
+        const value = pill.dataset.value;
+        // single-select: deactivate others
+        group.querySelectorAll('.pp-pill').forEach(p => {
+          p.classList.remove('active');
+          // Pain pill: remove pain-active when deselected
+          if (p.classList.contains('pain-active')) {
+            p.classList.remove('pain-active');
+            p.classList.add(painClassFor(p.dataset.value));
+          }
+        });
+        pill.classList.add('active');
+        // Pain pill: swap pain-low/mid/high -> pain-active for visibility
+        if (group.id === 'pain-pills' || group.id === 'av-pain-row') {
+          pill.classList.remove('pain-low','pain-mid','pain-high');
+          pill.classList.add('pain-active');
+        }
+        STATE[key] = value;
+        onStateChange(key);
+        saveState();
+      });
+    });
+  });
+}
+function painClassFor(v) {
+  const n = parseInt(v) || 0;
+  if (n <= 3) return 'pain-low';
+  if (n <= 6) return 'pain-mid';
+  return 'pain-high';
+}
+
+// ========== INPUT BIND ==========
+function bindInputs() {
+  document.querySelectorAll('[data-bind]').forEach(el => {
+    const key = el.dataset.bind;
+    if (el.type === 'checkbox') {
+      el.addEventListener('change', () => {
+        STATE[key] = el.checked;
+        onStateChange(key);
+        saveState();
+      });
+    } else {
+      el.addEventListener('input', () => {
+        STATE[key] = el.value;
+        onStateChange(key);
+        saveState();
+      });
+    }
+  });
+}
+
+// ========== RESTORE UI FROM STATE ==========
+function restoreUi() {
+  // Pills
+  document.querySelectorAll('[data-pill-group]').forEach(group => {
+    const key = group.dataset.pillGroup;
+    const val = STATE[key];
+    if (val !== undefined && val !== '') {
+      group.querySelectorAll('.pp-pill').forEach(p => {
+        if (p.dataset.value === String(val)) p.classList.add('active');
+      });
+    }
+  });
+  // Inputs
+  document.querySelectorAll('[data-bind]').forEach(el => {
+    const key = el.dataset.bind;
+    if (STATE[key] !== undefined) {
+      if (el.type === 'checkbox') el.checked = !!STATE[key];
+      else el.value = STATE[key] || '';
+    }
+  });
+  // Equipment
+  document.querySelectorAll('.pp-eq-card[data-eq]').forEach(card => {
+    const key = card.dataset.eq;
+    if (STATE.equipment[key]) card.classList.add('checked');
+    card.querySelector('.chk').innerHTML = STATE.equipment[key] ? '<i class="bi bi-check-lg"></i>' : '';
+  });
+  // Restore pain pill active state
+  ['pain-pills'].forEach(id => {
+    const r = document.getElementById(id);
+    if (!r) return;
+    r.querySelectorAll('.pp-pill.active').forEach(p => {
+      p.classList.remove('pain-low','pain-mid','pain-high');
+      p.classList.add('pain-active');
+    });
+  });
+  // Initial V/S display
+  refreshInitVsDisplay();
+  refreshAirwayPanels();
+  refreshO2Options();
+  refreshVentPanel();
+  // Belt-and-suspenders: re-sync vent pills + inputs after panel visible
+  // (in case the initial display:none state caused any UI sync issue)
+  ['vent_mode','vent_submode'].forEach(grpKey => {
+    const grp = document.querySelector('[data-pill-group="' + grpKey + '"]');
+    if (grp && STATE[grpKey]) {
+      grp.querySelectorAll('.pp-pill').forEach(p => {
+        p.classList.toggle('active', p.dataset.value === String(STATE[grpKey]));
+      });
+    }
+  });
+  ['vent_rate','vent_vol_pres','vent_peep','vent_fio2','vent_ie'].forEach(k => {
+    const el = document.querySelector('[data-bind="' + k + '"]');
+    if (el && STATE[k] !== undefined) el.value = STATE[k] || '';
+  });
+  console.log('[STATE] after restore — vent values verified in DOM:',
+    document.querySelector('[data-bind="vent_rate"]')?.value,
+    document.querySelector('[data-bind="vent_peep"]')?.value);
+  refreshGcs();
+  refreshTiles();
+  refreshIvList('Initial');
+  refreshIvList('Transport');
+  refreshVitalLog();
+  refreshDrainage();
+  refreshLimbDisplay();
+  refreshArrestDetail();
+  refreshSummaryRows();
+  updateSaveIndicator();
+}
+
+// ========== STATE CHANGE HANDLER ==========
+function onStateChange(key) {
+  if (['airway_type','airway_mgt_sub'].includes(key)) {
+    // Re-intubation? Reset the ETT-pulled flag (user re-confirmed airway via card)
+    if (isIntubated()) STATE.airway_ett_pulled = false;
+    refreshAirwayPanels();
+    refreshO2Options();
+    refreshVentPanel();  // Interface chip depends on airway too
+    refreshGcs();
+  }
+  if (key === 'o2_device') refreshO2DetailFields();
+  if (key === 'on_ventilator' || key === 'vent_mode') refreshVentPanel();
+  if (key.startsWith('gcs_') || key.startsWith('pupil_') || key === 'pain_score') refreshGcs();
+  if (key === 'has_central_line') {
+    document.getElementById('cl-pos').style.display = STATE.has_central_line ? '' : 'none';
+  }
+  if (key === 'arrest_pre_outcome' || key === 'arrest_pre_arrest') refreshArrestDetail();
+  refreshTiles();
+  refreshSummaryRows();
+}
+
+// ========== O2 OPTIONS — filter by airway_type (production logic verified) ==========
+function refreshO2Options() {
+  const type = STATE.airway_type || '';
+  const sub = STATE.airway_mgt_sub || '';
+  const isLma = (sub === 'LMA/SGA');
+  let opts = [];
+  if (type === 'Open' || type === '') {
+    opts = ['Room Air', 'Cannula', 'Mask c Bag', 'HFNC', 'BVM'];
+  } else if (type === 'Management') {
+    opts = isLma ? ['BVM'] : ['Room Air', 'Cannula', 'Mask c Bag', 'HFNC', 'BVM'];
+  } else if (type === 'ET Tube') {
+    opts = ['BVM'];
+  } else if (type === 'Tracheostomy') {
+    opts = ['Collar Mask', 'T-Piece', 'BVM', 'Personal Vent', 'Room Air'];
+  }
+  const container = document.getElementById('o2-device-pills');
+  if (!container) return;
+  container.innerHTML = '';
+  opts.forEach(o => {
+    const p = document.createElement('div');
+    p.className = 'pp-pill' + (STATE.o2_device === o ? ' active sky' : '');
+    p.dataset.value = o;
+    p.textContent = o;
+    p.onclick = () => {
+      if (p.classList.contains('locked')) return;
+      container.querySelectorAll('.pp-pill').forEach(x => x.classList.remove('active','sky'));
+      p.classList.add('active','sky');
+      STATE.o2_device = o;
+      onStateChange('o2_device');
+      saveState();
+    };
+    container.appendChild(p);
+  });
+  // If current value not in opts, clear
+  if (STATE.o2_device && !opts.includes(STATE.o2_device)) STATE.o2_device = '';
+  document.getElementById('o2-filter-hint').innerHTML = 'filtered for airway_type=<code>' + (type || '--') + '</code>' + (isLma ? ' + LMA/SGA' : '');
+  refreshO2DetailFields();
+}
+
+// O2 device → which fields show (production rule)
+function refreshO2DetailFields() {
+  const dev = STATE.o2_device || '';
+  const showFlow = ['Cannula', 'Mask c Bag', 'Collar Mask', 'HFNC', 'BVM', 'T-Piece'].includes(dev);
+  const showFiO2 = dev === 'HFNC';
+  const showTemp = dev === 'HFNC';
+  document.getElementById('o2-detail-panel').style.display = showFlow ? '' : 'none';
+  document.getElementById('o2-fio2-grp').style.display = showFiO2 ? '' : 'none';
+  document.getElementById('o2-temp-grp').style.display = showTemp ? '' : 'none';
+}
+
+// Vent ↔ O2 panel toggle (mutually exclusive — production rule)
+function refreshVentPanel() {
+  const onVent = !!STATE.on_ventilator;
+  document.getElementById('panel-vent-pp').style.display = onVent ? '' : 'none';
+  document.getElementById('panel-oxygen-pp').style.display = onVent ? 'none' : '';
+  // Auto-detect interface from airway_type + airway_mgt_sub
+  if (onVent) {
+    const t = STATE.airway_type || '';
+    const sub = STATE.airway_mgt_sub || '';
+    let interfaceText = 'Mask NIV (face mask)';
+    if (t === 'ET Tube') interfaceText = '🔒 Invasive · ETT';
+    else if (t === 'Tracheostomy') interfaceText = '🔒 Invasive · Tracheostomy';
+    else if (t === 'Management' && sub === 'LMA/SGA') interfaceText = 'LMA/SGA';
+    else if (t === 'Management') interfaceText = sub + ' adjunct + NIV';
+    else if (t === '' || t === 'Open') interfaceText = 'Mask NIV (CPAP/BiPAP via face mask)';
+    document.getElementById('vent-interface-text').textContent = interfaceText;
+  }
+  // Vent mode submode + label
+  const mode = STATE.vent_mode || 'PCV';
+  const submodeWrap = document.getElementById('vent-submode-wrap');
+  const lblVol = document.getElementById('vent-vol-label');
+  if (mode === 'PCV' || mode === 'VCV') {
+    if (submodeWrap) submodeWrap.style.display = '';
+    if (lblVol) lblVol.textContent = (mode === 'VCV') ? 'Tidal Vol' : 'PIP / Peak';
+  } else {
+    if (submodeWrap) submodeWrap.style.display = 'none';
+    if (lblVol) lblVol.textContent = 'Pressure';
+  }
+}
+
+// ========== AIRWAY PANELS ==========
+function refreshAirwayPanels() {
+  document.getElementById('airway-mgt-panel').style.display = STATE.airway_type === 'Management' ? '' : 'none';
+  document.getElementById('tube-panel').style.display = ['ET Tube','Tracheostomy'].includes(STATE.airway_type) ? '' : 'none';
+  document.getElementById('aw-lma-no').style.display = STATE.airway_mgt_sub === 'LMA/SGA' ? '' : 'none';
+  const intubated = isIntubated();
+  document.getElementById('airway-interlock-note').style.display = intubated ? '' : 'none';
+}
+
+function isIntubated() {
+  return ['ET Tube','Tracheostomy'].includes(STATE.airway_type) ||
+         (STATE.airway_type === 'Management' && STATE.airway_mgt_sub === 'LMA/SGA');
+}
+
+// ========== GCS CALCULATION (Mode A) ==========
+function refreshGcs() {
+  const intubated = isIntubated();
+  // Force V=T if intubated
+  if (intubated && STATE.gcs_v !== 'T') {
+    STATE.gcs_v = 'T';
+    saveState();
+    // Update V pill UI
+    const vRow = document.getElementById('gcs-v-row');
+    if (vRow) {
+      vRow.querySelectorAll('.pp-pill').forEach(p => {
+        p.classList.remove('active');
+        if (p.dataset.value === 'T') p.classList.add('active','amber');
+      });
+    }
+  }
+  // Lock V pills 1-5 if intubated
+  const vRow = document.getElementById('gcs-v-row');
+  if (vRow) {
+    vRow.querySelectorAll('.pp-pill').forEach(p => {
+      if (p.dataset.value !== 'T') {
+        p.classList.toggle('locked', intubated);
+      }
+    });
+  }
+  // Show/hide chips and banners
+  document.getElementById('airway-chip-neuro').style.display = intubated ? '' : 'none';
+  document.getElementById('gcs-lock-banner-neuro').style.display = intubated ? '' : 'none';
+  if (intubated) {
+    document.getElementById('airway-chip-text').textContent = STATE.airway_type === 'Management' ? 'LMA/SGA' : STATE.airway_type;
+    document.getElementById('lock-airway-type').textContent = STATE.airway_type === 'Management' ? 'LMA/SGA' : STATE.airway_type;
+  }
+  // Compute total
+  const E = parseInt(STATE.gcs_e) || 0;
+  const M = parseInt(STATE.gcs_m) || 0;
+  let total, totalStr, color;
+  if (STATE.gcs_v === 'T') {
+    total = E + M;
+    totalStr = total + 'T';
+  } else {
+    const V = parseInt(STATE.gcs_v) || 0;
+    total = E + V + M;
+    totalStr = String(total);
+  }
+  if (total >= 13) color = 'green';
+  else if (total >= 9) color = 'amber';
+  else color = 'red';
+  // Update ring
+  const ring = document.getElementById('gcs-ring');
+  const ringNum = document.getElementById('gcs-total-num');
+  if (ring) {
+    const pct = Math.max(0, Math.min(100, (total/15)*100));
+    const bgColor = color === 'green' ? 'var(--green-500)' : color === 'amber' ? 'var(--amber-500)' : 'var(--red-500)';
+    ring.style.background = 'conic-gradient(' + bgColor + ' 0% ' + pct + '%, var(--slate-100) ' + pct + '%)';
+    ringNum.textContent = totalStr;
+    ringNum.className = 'num ' + color;
+  }
+  // Status line
+  const line = document.getElementById('gcs-status-line');
+  const text = document.getElementById('gcs-status-text');
+  if (line && text) {
+    line.className = 'pp-status-line ' + (color === 'green' ? 'good' : color === 'amber' ? 'warn' : 'bad');
+    const breakdown = 'E' + (STATE.gcs_e||'-') + (STATE.gcs_v === 'T' ? '·VT·' : 'V' + (STATE.gcs_v||'-')) + 'M' + (STATE.gcs_m||'-');
+    const stateText = STATE.gcs_v === 'T' ? 'ใส่ท่อ · Intubated' : (color === 'green' ? 'Alert' : color === 'amber' ? 'Drowsy' : 'Coma');
+    text.innerHTML = stateText + ' · ' + breakdown + ' = <b>' + totalStr + '</b>';
+  }
+}
+
+// ========== INITIAL V/S ==========
+function prefillInitVs() {
+  if (STATE.init_vitals) {
+    const v = STATE.init_vitals;
+    ['time','bp','pr','rr','temp','spo2','dtx'].forEach(k => {
+      document.getElementById('iv-' + k).value = v[k] || '';
+    });
+  } else {
+    document.getElementById('iv-time').value = nowStr();
+  }
+}
+function saveInitVs() {
+  STATE.init_vitals = {
+    time: document.getElementById('iv-time').value,
+    bp: document.getElementById('iv-bp').value,
+    pr: document.getElementById('iv-pr').value,
+    rr: document.getElementById('iv-rr').value,
+    temp: document.getElementById('iv-temp').value,
+    spo2: document.getElementById('iv-spo2').value,
+    dtx: document.getElementById('iv-dtx').value,
+  };
+  saveState();
+  refreshInitVsDisplay();
+  refreshTiles();
+  closeModal('m-initvs');
+  toast('✓ บันทึก V/S แรกรับ');
+}
+function refreshInitVsDisplay() {
+  const v = STATE.init_vitals;
+  if (v && (v.bp || v.pr || v.spo2)) {
+    document.getElementById('initvs-empty').style.display = 'none';
+    document.getElementById('initvs-display').style.display = '';
+    document.getElementById('initvs-time-disp').textContent = v.time || '-';
+    ['bp','pr','rr','temp','spo2','dtx'].forEach(k => {
+      document.getElementById('vs-' + k).textContent = v[k] || '-';
+    });
+  } else {
+    document.getElementById('initvs-empty').style.display = '';
+    document.getElementById('initvs-display').style.display = 'none';
+  }
+}
+
+// ========== ADD VITAL ==========
+let _avPain = '0', _avE = '4', _avV = '5', _avM = '6';
+function openVitalAddModal() {
+  ['av-time','av-bp','av-pr','av-rr','av-temp','av-spo2','av-note'].forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
+  document.getElementById('av-time').value = nowStr();
+  _avPain = '0'; _avE = '4';
+  // V default: T if intubated AND ETT not yet pulled. Otherwise 5.
+  _avV = (isIntubated() && !STATE.airway_ett_pulled) ? 'T' : '5';
+  _avM = '6';
+  // Soft hint banner (not lock) — only when intubated & flag not set
+  const lockBox = document.getElementById('av-gcs-lock');
+  if (isIntubated() && !STATE.airway_ett_pulled) {
+    lockBox.style.display = '';
+    lockBox.style.background = '#fef3c7';
+    lockBox.style.borderLeftColor = 'var(--amber-500)';
+    lockBox.innerHTML = 'ℹ️ ผู้ป่วยใส่ <b>' + (STATE.airway_type === 'Management' ? 'LMA/SGA' : STATE.airway_type) + '</b> · V default = T · กด V≠T จะถามเหตุผล (เพิ่มใน Assess/Tx อัตโนมัติ)';
+  } else {
+    lockBox.style.display = 'none';
+  }
+  setupAddVitalPills();
+  openModal('m-add-vital');
+}
+
+// ========== AIRWAY REASON MODAL (V≠T while intubated) ==========
+let _arPendingV = null; // pending V value waiting for reason
+let _arReasonText = '';
+function openAirwayReasonModal(targetV) {
+  _arPendingV = targetV;
+  _arReasonText = '';
+  document.getElementById('ar-aw-type').textContent = STATE.airway_type === 'Management' ? 'LMA/SGA' : STATE.airway_type;
+  document.getElementById('ar-target-v').textContent = targetV;
+  document.getElementById('ar-target-v2').textContent = targetV;
+  document.getElementById('ar-reason-text').value = '';
+  // Bind reason preset pills
+  const presets = document.getElementById('ar-reason-presets');
+  presets.querySelectorAll('.pp-pill').forEach(p => {
+    p.classList.remove('active','amber');
+    p.onclick = () => {
+      presets.querySelectorAll('.pp-pill').forEach(x => x.classList.remove('active','amber'));
+      p.classList.add('active','amber');
+      _arReasonText = p.dataset.reason;
+      // Auto-fill text field if not "อื่นๆ"
+      if (!p.dataset.reason.startsWith('อื่นๆ')) {
+        document.getElementById('ar-reason-text').value = p.dataset.reason;
+      } else {
+        document.getElementById('ar-reason-text').focus();
+      }
+    };
+  });
+  openModal('m-airway-reason');
+}
+function cancelAirwayReason() {
+  _arPendingV = null;
+  closeModal('m-airway-reason');
+  toast('ยกเลิก · V ยังเป็น T');
+}
+function saveAirwayReason() {
+  const reasonText = (document.getElementById('ar-reason-text').value || _arReasonText || '').trim();
+  if (!reasonText) { alert('กรุณาระบุเหตุผล'); return; }
+  const tv = _arPendingV;
+  // Set flag: ETT pulled — subsequent Add Vital modals don't prompt
+  STATE.airway_ett_pulled = true;
+  // Set V in Add Vital modal
+  _avV = tv;
+  const vRow = document.getElementById('av-gcs-v');
+  vRow.querySelectorAll('.pp-pill').forEach(p => {
+    p.classList.remove('active','amber');
+    if (p.dataset.value === tv) p.classList.add('active');
+  });
+  // Inject note to assess/tx
+  const noteEl = document.getElementById('av-note');
+  const noteText = '⚠️ Airway: ' + reasonText + ' @ ' + nowStr() + ' · V = ' + tv;
+  noteEl.value = noteEl.value ? (noteEl.value + '\n' + noteText) : noteText;
+  // Hide soft hint banner in Add Vital (no longer needed)
+  document.getElementById('av-gcs-lock').style.display = 'none';
+  saveState();
+  closeModal('m-airway-reason');
+  toast('⚠️ บันทึกเหตุผล · note เพิ่มใน Assess/Tx · ครั้งต่อไป V ไม่ถามอีก');
+}
+function setupAddVitalPills() {
+  bindAddPills('av-pain-row', v => { _avPain = v; }, _avPain, true);
+  bindAddPills('av-gcs-e', v => { _avE = v; }, _avE);
+  // V pills: NOT locked. T just default if intubated + flag not set. Soft hint banner.
+  bindAddPills('av-gcs-v', v => { _avV = v; }, _avV);
+  bindAddPills('av-gcs-m', v => { _avM = v; }, _avM);
+}
+function bindAddPills(rowId, onChange, initial, isPain) {
+  const row = document.getElementById(rowId);
+  if (!row) return;
+  row.querySelectorAll('.pp-pill').forEach(p => {
+    p.classList.remove('active','locked');
+    if (isPain) {
+      p.classList.remove('pain-active');
+      p.classList.add(painClassFor(p.dataset.value));
+    }
+    if (p.dataset.value === String(initial)) {
+      p.classList.add('active');
+      if (isPain) {
+        p.classList.remove('pain-low','pain-mid','pain-high');
+        p.classList.add('pain-active');
+      }
+    }
+    p.onclick = () => {
+      // Add Vital V pill — open reason modal if intubated + flag not set + clicked non-T
+      if (rowId === 'av-gcs-v' && p.dataset.value !== 'T' && isIntubated() && !STATE.airway_ett_pulled) {
+        openAirwayReasonModal(p.dataset.value);
+        return; // wait for user to confirm reason
+      }
+      if (p.classList.contains('locked')) return;
+      row.querySelectorAll('.pp-pill').forEach(x => {
+        x.classList.remove('active');
+        if (isPain && x.classList.contains('pain-active')) {
+          x.classList.remove('pain-active');
+          x.classList.add(painClassFor(x.dataset.value));
+        }
+      });
+      p.classList.add('active');
+      if (isPain) {
+        p.classList.remove('pain-low','pain-mid','pain-high');
+        p.classList.add('pain-active');
+      }
+      onChange(p.dataset.value);
+    };
+  });
+}
+function saveAddVital() {
+  const r = {
+    type: 'vital',
+    time: document.getElementById('av-time').value || nowStr(),
+    bp: document.getElementById('av-bp').value, pr: document.getElementById('av-pr').value,
+    rr: document.getElementById('av-rr').value, temp: document.getElementById('av-temp').value,
+    spo2: document.getElementById('av-spo2').value,
+    pain: _avPain, gcs_e: _avE, gcs_v: _avV, gcs_m: _avM,
+    note: document.getElementById('av-note').value, isLocked: false,
+  };
+  STATE.vitals_log.push(r);
+  saveState();
+  refreshVitalLog();
+  refreshTiles();
+  closeModal('m-add-vital');
+  toast('✓ เพิ่ม Vital Record');
+}
+
+// ========== ADD ARREST ==========
+let _aaRhythm = 'Unknown', _aaOutcome = '';
+function openArrestAddModal() {
+  ['aa-time','aa-cpr','aa-rosc-time','aa-dead-time','aa-note'].forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
+  document.getElementById('aa-time').value = nowStr();
+  document.getElementById('aa-dur').textContent = '--';
+  _aaRhythm = 'Unknown'; _aaOutcome = '';
+  document.getElementById('aa-rosc-wrap').style.display = 'none';
+  document.getElementById('aa-dead-wrap').style.display = 'none';
+  bindAddPills('aa-rhythm-row', v => { _aaRhythm = v; }, _aaRhythm);
+  bindAddPills('aa-outcome-row', v => {
+    _aaOutcome = v;
+    document.getElementById('aa-rosc-wrap').style.display = v === 'ROSC' ? '' : 'none';
+    document.getElementById('aa-dead-wrap').style.display = v === 'Terminate CPR' ? '' : 'none';
+  }, _aaOutcome);
+  // Auto-calc duration on CPR time change
+  ['aa-time','aa-cpr'].forEach(id => {
+    document.getElementById(id).oninput = recalcArrestDuration;
+  });
+  openModal('m-add-arrest');
+}
+function recalcArrestDuration() {
+  const t1 = document.getElementById('aa-time').value;
+  const t2 = document.getElementById('aa-cpr').value;
+  const dur = diffMinutes(t1, t2);
+  document.getElementById('aa-dur').textContent = dur != null ? dur + ' นาที' : '--';
+}
+function diffMinutes(t1, t2) {
+  const m1 = parseTime(t1), m2 = parseTime(t2);
+  if (m1 == null || m2 == null) return null;
+  return Math.max(0, m2 - m1);
+}
+function parseTime(t) {
+  if (!t || !/^([01]?\d|2[0-3]):[0-5]\d$/.test(t)) return null;
+  const [h, m] = t.split(':').map(Number);
+  return h * 60 + m;
+}
+function saveAddArrest() {
+  const r = {
+    type: 'arrest',
+    time: document.getElementById('aa-time').value || nowStr(),
+    arrest_time: document.getElementById('aa-time').value,
+    arrest_cpr_time: document.getElementById('aa-cpr').value,
+    arrest_rhythm: _aaRhythm, arrest_outcome: _aaOutcome,
+    arrest_rosc_time: document.getElementById('aa-rosc-time').value,
+    arrest_dead_time: document.getElementById('aa-dead-time').value,
+    arrest_note: document.getElementById('aa-note').value, isLocked: false,
+  };
+  STATE.vitals_log.push(r);
+  saveState();
+  refreshVitalLog();
+  refreshTiles();
+  closeModal('m-add-arrest');
+  toast('✓ เพิ่ม Arrest Record');
+}
+
+// ========== ADD IV ==========
+let _aivRoute = 'IV', _aivUnit = 'ml/hr';
+function openIvModal(context) {
+  STATE._iv_context = context;
+  ['aiv-time','aiv-name','aiv-rate'].forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
+  document.getElementById('aiv-time').value = nowStr();
+  document.getElementById('aiv-sedate').checked = false;
+  _aivRoute = 'IV'; _aivUnit = 'ml/hr';
+  bindAddPills('aiv-route-row', v => { _aivRoute = v; }, _aivRoute);
+  bindAddPills('aiv-unit-row', v => { _aivUnit = v; }, _aivUnit);
+  // C-Line lock if no central line
+  const cline = document.getElementById('aiv-cline');
+  cline.classList.toggle('locked', !STATE.has_central_line);
+  cline.title = STATE.has_central_line ? '' : 'ต้อง check "มี Central Line" ที่ Circulation ก่อน';
+  updateIvContextChip();
+  openModal('m-add-iv');
+}
+function updateIvContextChip() {
+  const chip = document.getElementById('iv-context-chip');
+  if (STATE._iv_context === 'Initial') {
+    chip.innerHTML = '<i class="bi bi-geo-alt-fill"></i> <b>Context: Initial</b> (สารน้ำที่ได้รับมาก่อนนำส่ง — Step 2)';
+    chip.style.background = '#fef3c7'; chip.style.color = '#92400e';
+  } else {
+    chip.innerHTML = '<i class="bi bi-truck"></i> <b>Context: Transport</b> (เพิ่มเข้า Step 3 IV log)';
+    chip.style.background = '#dbeafe'; chip.style.color = '#1e40af';
+  }
+}
+function saveAddIv() {
+  const r = {
+    time: document.getElementById('aiv-time').value || nowStr(),
+    route: _aivRoute, name: document.getElementById('aiv-name').value,
+    rate: document.getElementById('aiv-rate').value, unit: _aivUnit,
+    isSedate: document.getElementById('aiv-sedate').checked, isLocked: false,
+  };
+  if (STATE._iv_context === 'Initial') STATE.initial_iv_lines.push(r);
+  else STATE.iv_lines.push(r);
+  saveState();
+  refreshIvList(STATE._iv_context);
+  refreshTiles();
+  refreshSummaryRows();
+  closeModal('m-add-iv');
+  toast('✓ เพิ่มสารน้ำ/ยา (' + STATE._iv_context + ')');
+}
+
+// ========== RENDER LISTS ==========
+function refreshIvList(context) {
+  const list = context === 'Initial' ? STATE.initial_iv_lines : STATE.iv_lines;
+  const containerId = context === 'Initial' ? 'initial-iv-list' : 'transport-iv-list';
+  const emptyId = context === 'Initial' ? 'initial-iv-empty' : 'transport-iv-empty';
+  const cont = document.getElementById(containerId);
+  const empty = document.getElementById(emptyId);
+  if (!cont) return;
+  cont.innerHTML = '';
+  if (list.length === 0) { if (empty) empty.style.display = ''; return; }
+  if (empty) empty.style.display = 'none';
+  list.forEach((r, i) => {
+    const div = document.createElement('div');
+    div.className = 'pp-iv-row';
+    const routeClass = r.route === 'IO' ? 'io' : (r.route === 'Central Line' ? 'cl' : '');
+    div.innerHTML = '<span class="time">' + (r.time || '--:--') + '</span>' +
+      '<span class="badge-route ' + routeClass + '">' + (r.route || 'IV') + '</span>' +
+      '<div class="body"><b>' + escHtml(r.name || '--') + '</b>' +
+      (r.rate ? ' <span style="color:var(--slate-600);"> · ' + escHtml(r.rate) + ' ' + escHtml(r.unit || '') + '</span>' : '') + '</div>' +
+      (r.isSedate ? '<span class="sedate-badge">🔵 Sedate</span>' : '') +
+      '<div class="actions"><button class="btn-sm" onclick="deleteIv(\'' + context + '\',' + i + ')"><i class="bi bi-trash"></i></button></div>';
+    cont.appendChild(div);
+  });
+}
+function deleteIv(context, idx) {
+  if (context === 'Initial') STATE.initial_iv_lines.splice(idx, 1);
+  else STATE.iv_lines.splice(idx, 1);
+  saveState();
+  refreshIvList(context);
+  refreshTiles();
+  refreshSummaryRows();
+}
+function refreshVitalLog() {
+  const cont = document.getElementById('vital-list');
+  const empty = document.getElementById('vital-empty');
+  if (!cont) return;
+  cont.innerHTML = '';
+  if (STATE.vitals_log.length === 0) { empty.style.display = ''; return; }
+  empty.style.display = 'none';
+  STATE.vitals_log.forEach((r, i) => {
+    const div = document.createElement('div');
+    if (r.type === 'arrest') {
+      div.className = 'pp-vital-row arrest';
+      div.innerHTML = '<span class="time">' + (r.time || '--:--') + '</span>' +
+        '<div class="vals">🚨 <b>ARREST</b> · Rhythm: <b>' + escHtml(r.arrest_rhythm) + '</b> · ' +
+        escHtml(r.arrest_outcome || 'Ongoing') +
+        (r.arrest_rosc_time ? ' · ROSC@' + r.arrest_rosc_time : '') +
+        (r.arrest_note ? '<br><small>' + escHtml(r.arrest_note) + '</small>' : '') + '</div>' +
+        '<div class="actions"><button class="btn-sm" onclick="deleteVital(' + i + ')"><i class="bi bi-trash"></i></button></div>';
+    } else {
+      const gcsNum = r.gcs_v === 'T' ? (parseInt(r.gcs_e)+parseInt(r.gcs_m)) : (parseInt(r.gcs_e)+parseInt(r.gcs_v)+parseInt(r.gcs_m));
+      const gcsStr = r.gcs_v === 'T' ? (gcsNum + 'T') : String(gcsNum);
+      const gcsClass = gcsNum >= 13 ? '' : gcsNum >= 9 ? 'amber' : 'red';
+      const painN = parseInt(r.pain) || 0;
+      const painClass = painN === 0 ? '' : painN <= 3 ? '' : painN <= 6 ? 'warn' : 'bad';
+      div.className = 'pp-vital-row';
+      div.innerHTML = '<span class="time">' + (r.time || '--:--') + '</span>' +
+        '<div class="vals">' +
+        (r.bp ? '<span class="vs-chip">BP <b>' + escHtml(r.bp) + '</b></span>' : '') +
+        (r.pr ? '<span class="vs-chip">PR <b>' + escHtml(r.pr) + '</b></span>' : '') +
+        (r.rr ? '<span class="vs-chip">RR <b>' + escHtml(r.rr) + '</b></span>' : '') +
+        (r.temp ? '<span class="vs-chip">T° <b>' + escHtml(r.temp) + '</b></span>' : '') +
+        (r.spo2 ? '<span class="vs-chip">SpO2 <b>' + escHtml(r.spo2) + '%</b></span>' : '') +
+        '<span class="vs-chip gcs ' + gcsClass + '">GCS <b>' + gcsStr + '</b></span>' +
+        '<span class="vs-chip pain ' + painClass + '">Pain <b>' + (r.pain || '0') + '</b></span>' +
+        (r.note ? '<div class="note-line">' + escHtml(r.note) + '</div>' : '') +
+        '</div><div class="actions"><button class="btn-sm" onclick="deleteVital(' + i + ')"><i class="bi bi-trash"></i></button></div>';
+    }
+    cont.appendChild(div);
+  });
+}
+function deleteVital(idx) {
+  STATE.vitals_log.splice(idx, 1);
+  saveState();
+  refreshVitalLog();
+  refreshTiles();
+  refreshSummaryRows();
+}
+
+// ========== DRAINAGE ==========
+const DRAIN_TYPES = [
+  { key: 'icd', label: 'ICD', sub: 'Chest tube · ตำแหน่งทรวงอก', icon: 'bi-lungs', placeholder: 'ตำแหน่ง' },
+  { key: 'ng', label: 'NG / OG', sub: 'Gastric · สายให้อาหาร', icon: 'bi-cup-straw', placeholder: 'Type / ชนิด' },
+  { key: 'foley', label: 'Foley', sub: 'Urinary · สายสวนปัสสาวะ', icon: 'bi-droplet', placeholder: 'Size / เบอร์' },
+  { key: 'other', label: 'Other', sub: 'อื่นๆ', icon: 'bi-three-dots', placeholder: 'ระบุเพิ่มเติม' },
+];
+function refreshDrainage() {
+  const body = document.getElementById('drain-modal-body');
+  if (!body) return;
+  body.innerHTML = '';
+  DRAIN_TYPES.forEach(t => {
+    const checked = STATE['dr_' + t.key];
+    const note = STATE['dr_' + t.key + '_note'] || '';
+    const row = document.createElement('div');
+    row.className = 'pp-drain-row' + (checked ? ' checked' : '');
+    row.innerHTML = '<div class="chk">' + (checked ? '<i class="bi bi-check-lg"></i>' : '') + '</div>' +
+      '<i class="bi ' + t.icon + ' ic"></i>' +
+      '<div class="lbl"><b>' + t.label + '</b><small>' + t.sub + '</small></div>' +
+      '<input type="text" data-drain-note="' + t.key + '" value="' + escHtml(note) + '" placeholder="' + t.placeholder + '">';
+    row.querySelector('.chk').onclick = (e) => {
+      e.stopPropagation();
+      STATE['dr_' + t.key] = !STATE['dr_' + t.key];
+      saveState();
+      refreshDrainage();
+      refreshSummaryRows();
+    };
+    row.onclick = (e) => {
+      if (e.target.tagName === 'INPUT') return;
+      STATE['dr_' + t.key] = !STATE['dr_' + t.key];
+      saveState();
+      refreshDrainage();
+      refreshSummaryRows();
+    };
+    row.querySelector('input').oninput = (e) => {
+      STATE['dr_' + t.key + '_note'] = e.target.value;
+      saveState();
+      refreshSummaryRows();
+    };
+    body.appendChild(row);
+  });
+}
+
+// ========== EQUIPMENT ==========
+function bindEquipment() {
+  document.querySelectorAll('.pp-eq-card[data-eq]').forEach(card => {
+    card.onclick = () => {
+      const key = card.dataset.eq;
+      STATE.equipment[key] = !STATE.equipment[key];
+      card.classList.toggle('checked', STATE.equipment[key]);
+      card.querySelector('.chk').innerHTML = STATE.equipment[key] ? '<i class="bi bi-check-lg"></i>' : '';
+      saveState();
+      refreshTiles();
+      refreshSummaryRows();
+    };
+  });
+}
+
+// ========== LIMB SELECTION ==========
+function selectLimb(limb) {
+  STATE._active_limb = limb;
+  refreshLimbDisplay();
+}
+function refreshLimbDisplay() {
+  const limbs = ['ra','la','rl','ll'];
+  const names = { ra: 'แขนขวา · Right Arm', la: 'แขนซ้าย · Left Arm', rl: 'ขาขวา · Right Leg', ll: 'ขาซ้าย · Left Leg' };
+  limbs.forEach(l => {
+    const motor = STATE['motor_' + l];
+    const color = motor >= 5 ? '#16a34a' : motor >= 3 ? '#f59e0b' : '#dc2626';
+    const badge = document.getElementById('badge-' + l + '-c');
+    if (badge) badge.setAttribute('fill', color);
+    const num = document.getElementById('badge-' + l + '-n');
+    if (num) num.textContent = motor;
+    const card = document.querySelector('.pp-limb-card[data-limb="' + l + '"]');
+    if (card) {
+      card.classList.toggle('active', STATE._active_limb === l);
+      const bnum = card.querySelector('.badge-num');
+      bnum.textContent = motor;
+      bnum.style.background = color;
+    }
+    // Highlight on SVG too
+    const svgBadge = document.getElementById('badge-' + l + '-c');
+    if (svgBadge && STATE._active_limb === l) {
+      svgBadge.setAttribute('stroke', '#f59e0b');
+      svgBadge.setAttribute('stroke-width', '3');
+      svgBadge.setAttribute('stroke-dasharray', '3,2');
+    } else if (svgBadge) {
+      svgBadge.setAttribute('stroke', '#fff');
+      svgBadge.setAttribute('stroke-width', '2');
+      svgBadge.removeAttribute('stroke-dasharray');
+    }
+  });
+  if (STATE._active_limb) {
+    document.getElementById('active-limb-name').textContent = names[STATE._active_limb] + ' (ของผู้ป่วย)';
+    document.getElementById('active-limb-th').textContent = names[STATE._active_limb];
+    document.getElementById('limb-edit-panel').style.display = '';
+    // Render motor pill row
+    const row = document.getElementById('limb-motor-row');
+    row.innerHTML = '';
+    const cur = STATE['motor_' + STATE._active_limb];
+    [0,1,2,3,4,5].forEach(n => {
+      const p = document.createElement('div');
+      p.className = 'pp-pill' + (cur === n ? ' active amber' : '');
+      p.textContent = n;
+      p.onclick = () => {
+        STATE['motor_' + STATE._active_limb] = n;
+        saveState();
+        refreshLimbDisplay();
+        refreshSummaryRows();
+      };
+      row.appendChild(p);
+    });
+    // Exposure input
+    const exp = document.getElementById('limb-exp-input');
+    exp.value = STATE['exp_' + STATE._active_limb] || '';
+    exp.oninput = () => {
+      STATE['exp_' + STATE._active_limb] = exp.value;
+      saveState();
+      refreshSummaryRows();
+    };
+  } else {
+    document.getElementById('active-limb-name').textContent = 'เลือกแขนขาที่ต้องการ';
+  }
+}
+
+// ========== ARREST DETAIL TOGGLE ==========
+function refreshArrestDetail() {
+  document.getElementById('arrest-detail').style.display = STATE.arrest_pre_arrest ? '' : 'none';
+  document.getElementById('rosc-time-wrap').style.display = STATE.arrest_pre_outcome === 'ROSC' ? '' : 'none';
+  document.getElementById('dead-time-wrap').style.display = STATE.arrest_pre_outcome === 'Terminate CPR' ? '' : 'none';
+}
+
+// ========== MINIBAR (replaces tile rows — sticky vital strip) ==========
+// Pulls latest values: prefer last Vitals Log row (most recent) over Initial V/S
+function refreshTiles() {  // keep name for backward compat; routes to minibar
+  refreshMinibar();
+  refreshCircArrestChip();
+}
+function getLatestVital() {
+  // Latest vital from Vitals Log (filter type=vital, take last)
+  const vitals = STATE.vitals_log.filter(r => r.type === 'vital');
+  return vitals.length ? vitals[vitals.length - 1] : null;
+}
+function refreshMinibar() {
+  const init = STATE.init_vitals || {};
+  const latest = getLatestVital();
+  // pick: prefer latest vital, else initial
+  function pick(field, initField) {
+    if (latest && latest[field]) return latest[field];
+    if (init[initField || field]) return init[initField || field];
+    return null;
+  }
+  setMbChip('mb-bp',   pick('bp'));
+  setMbChip('mb-pr',   pick('pr'));
+  setMbChip('mb-rr',   pick('rr'));
+  setMbChip('mb-spo2', pick('spo2'));
+  setMbChip('mb-temp', pick('temp'));
+  setMbChip('mb-dtx',  init.dtx || null);   // DTX only from init
+  // GCS (always show)
+  const E = parseInt(STATE.gcs_e) || 0, M = parseInt(STATE.gcs_m) || 0;
+  const isT = STATE.gcs_v === 'T';
+  const total = isT ? E + M : E + (parseInt(STATE.gcs_v) || 0) + M;
+  const gcsChip = document.getElementById('mb-gcs');
+  gcsChip.classList.remove('amber','red');
+  if (total < 9) gcsChip.classList.add('red');
+  else if (total < 13) gcsChip.classList.add('amber');
+  gcsChip.querySelector('b').textContent = isT ? (total + 'T') : total;
+  // Pain
+  const painN = parseInt(STATE.pain_score) || 0;
+  const painChip = document.getElementById('mb-pain');
+  painChip.classList.remove('warn','bad');
+  if (painN >= 7) painChip.classList.add('bad');
+  else if (painN >= 4) painChip.classList.add('warn');
+  painChip.querySelector('b').textContent = painN;
+  // Airway (show only if intubated)
+  const aw = document.getElementById('mb-airway');
+  if (isIntubated()) {
+    aw.style.display = '';
+    aw.querySelector('b').textContent = STATE.airway_type === 'Management' ? 'LMA/SGA' : STATE.airway_type;
+  } else {
+    aw.style.display = 'none';
+  }
+  // Shock indicator on circ (show as a 4th chip on row if Shock)
+  // Arrest chip on minibar
+  const ar = document.getElementById('mb-arrest');
+  if (STATE.arrest_pre_arrest) {
+    ar.style.display = '';
+    const o = STATE.arrest_pre_outcome || 'Ongoing';
+    ar.querySelector('b').textContent = (STATE.arrest_pre_rhythm || '?') + ' · ' + o;
+  } else {
+    ar.style.display = 'none';
+  }
+}
+function setMbChip(id, val) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  if (val) {
+    el.classList.remove('empty');
+    el.querySelector('b').textContent = val;
+  } else {
+    el.classList.add('empty');
+    el.querySelector('b').textContent = '--';
+  }
+}
+function refreshCircArrestChip() {
+  const chip = document.getElementById('circ-arrest-chip');
+  if (!chip) return;
+  const status = document.getElementById('circ-arrest-status');
+  if (STATE.arrest_pre_arrest) {
+    chip.classList.add('filled');
+    const o = STATE.arrest_pre_outcome || 'Ongoing CPR';
+    const time = STATE.arrest_pre_time || '--:--';
+    const rhythm = STATE.arrest_pre_rhythm || '?';
+    let extra = '';
+    if (o === 'ROSC' && STATE.arrest_pre_rosc_time) extra = ' · ROSC @ ' + STATE.arrest_pre_rosc_time;
+    else if (o === 'Terminate CPR' && STATE.arrest_pre_dead_time) extra = ' · Dead @ ' + STATE.arrest_pre_dead_time;
+    status.textContent = '🚨 ' + rhythm + ' @ ' + time + ' · ' + o + extra;
+  } else {
+    chip.classList.remove('filled');
+    status.textContent = 'ไม่มี · กดเพื่อบันทึก';
+  }
+}
+
+// ========== SUMMARY ROWS ==========
+function refreshSummaryRows() {
+  const E = STATE.gcs_e, V = STATE.gcs_v, M = STATE.gcs_m;
+  const total = V === 'T' ? (parseInt(E)+parseInt(M))+'T' : (parseInt(E)+parseInt(V)+parseInt(M));
+  document.getElementById('row-neuro-summary').textContent = 'GCS ' + total + (V === 'T' ? ' (ใส่ท่อ)' : '') + ' · Pupils ' + STATE.pupil_size_r + '/' + STATE.pupil_size_l + ' ' + STATE.pupil_react_r + ' · Pain ' + STATE.pain_score + '/10';
+  const limbs = STATE.motor_ra + ' · ' + STATE.motor_la + ' · ' + STATE.motor_rl + ' · ' + STATE.motor_ll;
+  const hasWounds = STATE.exp_ra || STATE.exp_la || STATE.exp_rl || STATE.exp_ll || STATE.exp_other;
+  document.getElementById('row-body-summary').textContent = 'RA' + STATE.motor_ra + ' · LA' + STATE.motor_la + ' · RL' + STATE.motor_rl + ' · LL' + STATE.motor_ll + ' · ' + (hasWounds ? 'มีบาดแผล' : 'ไม่มีบาดแผล');
+  const drainList = DRAIN_TYPES.filter(t => STATE['dr_' + t.key]).map(t => t.label + (STATE['dr_' + t.key + '_note'] ? ' ' + STATE['dr_' + t.key + '_note'] : ''));
+  const drainSum = document.getElementById('row-drain-summary');
+  if (drainSum) drainSum.textContent = drainList.length ? drainList.join(' · ') : 'ไม่มีสายระบาย';
+  // arrest summary now in Circulation chip (refreshCircArrestChip) + minibar
+  const eqList = Object.entries(STATE.equipment).filter(([k,v]) => v && !k.includes('_note')).map(([k]) => k.replace('eq_',''));
+  const eqSum = document.getElementById('row-eq-summary');
+  if (eqSum) eqSum.textContent = eqList.length ? eqList.join(', ') + ' (' + eqList.length + ' รายการ)' : 'ยังไม่บันทึก';
+  // row-iv-summary + row-vlog-summary REMOVED — those rows became inline cards
+}
+
+// ========== TEMPLATE ==========
+const TEMPLATES = {
+  SAMPLE: '\n[SAMPLE]\nS (Signs/Symptoms): \nA (Allergies): \nM (Medications): \nP (Past History): \nL (Last Meal): \nE (Events): \n',
+  OPQRST: '\n[OPQRST]\nO (Onset): \nP (Provocation): \nQ (Quality): \nR (Region/Radiation): \nS (Severity 0-10): \nT (Time): \n',
+  FDAR:   '\n[FDAR]\nF (Focus): \nD (Data): \nA (Action): \nR (Response): \n',
+};
+function injectTemplate(name) {
+  const ta = document.getElementById('nurse-note');
+  const tmpl = TEMPLATES[name];
+  const pos = ta.selectionStart || ta.value.length;
+  ta.value = ta.value.slice(0, pos) + tmpl + ta.value.slice(pos);
+  STATE.nurse_note = ta.value;
+  saveState();
+  ta.focus();
+  toast('✓ Template ' + name);
+}
+
+// ========== REFER ==========
+function addReferMock() {
+  if (STATE.refer_count >= 5) { toast('⚠️ Max 5 ไฟล์'); return; }
+  STATE.refer_count++;
+  saveState();
+  renderRefer();
+}
+function renderRefer() {
+  const list = document.getElementById('refer-list');
+  const empty = document.getElementById('refer-empty');
+  list.innerHTML = '';
+  if (STATE.refer_count === 0) { empty.style.display = ''; return; }
+  empty.style.display = 'none';
+  for (let i = 0; i < STATE.refer_count; i++) {
+    const c = document.createElement('div');
+    c.className = 'pp-refer-card';
+    c.innerHTML = '<div class="thumb"><i class="bi bi-file-earmark-image"></i></div>' +
+      '<div class="name">refer-doc-' + String(i+1).padStart(2,'0') + '.jpg</div>' +
+      '<div class="del-x" onclick="delRefer(' + i + ')"><i class="bi bi-x"></i></div>';
+    list.appendChild(c);
+  }
+  document.getElementById('refer-count').textContent = STATE.refer_count;
+}
+function delRefer(i) {
+  STATE.refer_count = Math.max(0, STATE.refer_count - 1);
+  saveState();
+  renderRefer();
+}
+
+// ========== HELPERS ==========
+function nowStr() {
+  const n = new Date();
+  return n.getHours().toString().padStart(2,'0') + ':' + n.getMinutes().toString().padStart(2,'0');
+}
+
+// Time input mask — strip non-digits, auto-insert ":" between HH and MM
+// User types "1935" → display "19:35". Cap hours at 23, minutes at 59.
+function maskTime(input) {
+  let v = input.value.replace(/\D/g, '').slice(0, 4);
+  if (v.length === 0) { input.value = ''; return; }
+  // Cap hours (first 2 digits) at 23
+  if (v.length >= 2) {
+    let h = parseInt(v.slice(0, 2), 10);
+    if (h > 23) v = '23' + v.slice(2);
+  }
+  // Cap minutes (last 2 digits) at 59
+  if (v.length === 4) {
+    let m = parseInt(v.slice(2, 4), 10);
+    if (m > 59) v = v.slice(0, 2) + '59';
+  }
+  // Auto-insert colon after 2 digits
+  if (v.length > 2) v = v.slice(0, 2) + ':' + v.slice(2);
+  input.value = v;
+}
+function bindTimeInputs() {
+  // Apply to all inputs that look like time fields (placeholder HH:MM)
+  document.querySelectorAll('input[placeholder="HH:MM"]').forEach(el => {
+    el.setAttribute('inputmode', 'numeric');
+    el.setAttribute('maxlength', '5');
+    el.setAttribute('pattern', '[0-9]{2}:[0-9]{2}');
+    el.addEventListener('input', () => maskTime(el));
+  });
+}
+function stampNow(elId, stateKey) {
+  if (elId) {
+    document.getElementById(elId).value = nowStr();
+    if (elId === 'aa-time' || elId === 'aa-cpr') recalcArrestDuration();
+  }
+  if (stateKey) {
+    STATE[stateKey] = nowStr();
+    const el = document.querySelector('[data-bind="' + stateKey + '"]');
+    if (el) el.value = STATE[stateKey];
+    saveState();
+  }
+}
+function escHtml(s) {
+  return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+function toast(msg) {
+  const old = document.querySelector('.pp-toast');
+  if (old) old.remove();
+  const t = document.createElement('div');
+  t.className = 'pp-toast';
+  t.textContent = msg;
+  document.body.appendChild(t);
+  setTimeout(() => t.remove(), 2200);
+}
+
+// ========== INIT ==========
+document.addEventListener('DOMContentLoaded', () => {
+  bindPillGroups();
+  bindInputs();
+  bindEquipment();
+  bindTimeInputs();
+  restoreUi();
+  renderRefer();
+  // Auto-update save indicator every 30s for "alive" feeling
+  setInterval(updateSaveIndicator, 30000);
+});
+</script>
+
+<!-- BOTTOM NAV (mobile only) -->
+<div class="pp-bnav-mobile">
+  <button class="bnav-btn active" data-step="2" onclick="switchStep(2)"><i class="bi bi-stethoscope"></i> Step 2 — การประเมิน</button>
+  <button class="bnav-btn" data-step="3" onclick="switchStep(3)"><i class="bi bi-truck"></i> Step 3 — ขณะนำส่ง</button>
+</div>
+
+</body>
+</html>
