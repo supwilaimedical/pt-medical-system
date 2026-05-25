@@ -1316,9 +1316,13 @@
     .pp-toggle-row label { font-weight:700; margin:0; cursor:pointer; flex:0 0 auto; color:#1e293b; }
     .pp-toggle-row input[type=text] { padding:6px 10px; border:1px solid #cbd5e1; border-radius:6px; font-size:13px; flex:1; min-width:120px; }
 
-    /* pp-dev-hint — small dark hint chip (e.g. "filtered by airway") */
-    .pp-dev-hint { background:#0f172a; color:#94a3b8; padding:5px 10px; border-radius:6px; font-size:10px; font-family:monospace; margin:6px 0; }
-    .pp-dev-hint code { color:#fbbf24; }
+    /* (Removed 2026-05-25 per user: pp-dev-hint dark chip — prototype-only artefact) */
+
+    /* pp-vent-iface-chip — light-blue info chip showing detected airway → vent interface */
+    .pp-vent-iface-chip { background:#fff; border:1px solid #bae6fd; border-radius:24px; padding:6px 14px; display:inline-flex; align-items:center; gap:6px; margin-bottom:10px; font-size:13px; color:#0ea5e9; font-weight:600; }
+
+    /* pp-airway-hint — small italic note under airway pills (e.g. "filtered by airway type") */
+    .pp-airway-hint { font-size:11px; color:#94a3b8; font-weight:500; font-style:normal; }
 
     /* Bridge: Bootstrap btn-check radios → render as pp-pill (preserves all medical interlocks) */
     .pp-pill-row .btn-check + label.pp-pill { margin:0; }
@@ -3008,6 +3012,12 @@
                       </div>
                     </div>
                   </div>
+
+                  <!-- Interlock note — surfaces when ET Tube / Tracheostomy / LMA forces GCS V=T.
+                       Shown by ppUpdateAirwayInterlock() (UI-only). Hidden by default. -->
+                  <div class="pp-lock-banner" id="airway-interlock-note" style="display:none;">
+                    <i class="bi bi-link-45deg"></i> <b>เชื่อมโยง:</b> ทางเดินหายใจชนิดนี้ → GCS Verbal บังคับเป็น <b>T</b> ใน Neuro
+                  </div>
                 </div>
               </div>
 
@@ -3025,18 +3035,35 @@
                   <div class="title">การหายใจ &amp; ออกซิเจน<span class="sub">Breathing &amp; Oxygen · Vent ↔ O2 mutually exclusive</span></div>
                 </div>
                 <div class="pp-island-body">
-                  <div class="pp-dev-hint">
-                    ℹ️ SpO2 / RR → กรอกที่ <b>V/S แรกรับ</b> + <b>Vitals Log</b> (ค่า realtime แสดงใน minibar ↑)
-                  </div>
+                  <!-- NO pp-dev-hint per user 2026-05-25 — was prototype-only artefact -->
 
-                  <div class="pp-sub-title" style="margin-top:10px;">เครื่องช่วยหายใจ (Ventilator)</div>
+                  <div class="pp-sub-title" style="margin-top:0;">เครื่องช่วยหายใจ (Ventilator)</div>
                   <div class="form-check form-switch pp-vent-switch">
                     <input class="form-check-input" type="checkbox" id="chk-ventilator" name="on_ventilator" onchange="updateVentLogic()">
                     <label class="form-check-label" for="chk-ventilator">ผู้ป่วยใช้เครื่องช่วยหายใจ (On Ventilator)</label>
                   </div>
 
-                  <!-- VENT PANEL (shown when on vent) -->
+                  <!-- OXYGEN PANEL (visible when NOT on vent) — order matches prototype -->
+                  <div id="panel-oxygen" style="margin-top:10px;">
+                    <div class="pp-sub-title" style="margin-top:0;">อุปกรณ์ออกซิเจน (O2 Device) <span class="pp-airway-hint">· filtered by airway</span></div>
+                    <!-- Hidden native <select> drives the existing updateAirwayLogic() / updateO2Detail() / getFormData() logic.
+                         Visual pill row #o2-device-pills is mirrored by ppRenderO2Pills() (UI sync only — wraps via _orig.apply). -->
+                    <select id="sel-o2-device" name="o2_device" onchange="updateO2Detail()" style="display:none;"></select>
+                    <div class="pp-pill-row sky" id="o2-device-pills"></div>
+
+                    <div id="o2-detail-panel" class="row g-3 d-none" style="margin-top:8px;">
+                      <div class="col-md-4" id="grp-o2-flow"><label class="small fw-bold text-secondary">Flow/Rate (LPM)</label><input type="text" name="o2_flow" class="pp-input" placeholder="10"></div>
+                      <div class="col-md-4" id="grp-o2-fio2"><label class="small fw-bold text-secondary">FiO2 / Conc. (%)</label><input type="text" name="o2_conc" class="pp-input" placeholder="60"></div>
+                      <div class="col-md-4" id="grp-o2-temp"><label class="small fw-bold text-secondary">Temp (°C)</label><input type="text" name="o2_temp" class="pp-input" placeholder="37"></div>
+                    </div>
+                  </div>
+
+                  <!-- VENT PANEL (visible when on vent) -->
                   <div id="panel-ventilator" class="d-none pp-vent-panel">
+                    <div class="pp-vent-iface-chip">
+                      <i class="bi bi-info-circle-fill"></i>
+                      <span>Interface: <b id="vent-interface-text">--</b></span>
+                    </div>
                     <div class="pp-sub-title" style="margin-top:0;">Ventilator Mode</div>
                     <div class="pp-pill-row sky">
                       <input type="radio" class="btn-check" name="vent_mode" id="vm1" value="PCV" onchange="updateVentLogic()" checked>
@@ -3065,18 +3092,6 @@
                       <div class="col-6 col-md-3 col-lg"><label class="small fw-bold text-secondary">PEEP</label><input type="text" name="vent_peep" class="pp-input" placeholder="5"></div>
                       <div class="col-6 col-md-3 col-lg"><label class="small fw-bold text-secondary">FiO2</label><input type="text" name="vent_fio2" class="pp-input" placeholder="0.6"></div>
                       <div class="col-6 col-md-3 col-lg"><label class="small fw-bold text-secondary">I:E</label><input type="text" name="vent_ie" class="pp-input" placeholder="1:2"></div>
-                    </div>
-                  </div>
-
-                  <!-- OXYGEN PANEL (shown when NOT on vent) -->
-                  <div id="panel-oxygen" style="margin-top:10px;">
-                    <div class="pp-sub-title" style="margin-top:0;">อุปกรณ์ออกซิเจน (O2 Device) <span style="text-transform:none; font-weight:500; color:#94a3b8;">· filtered by airway</span></div>
-                    <select class="pp-select" id="sel-o2-device" name="o2_device" onchange="updateO2Detail()" style="max-width:280px;"></select>
-
-                    <div id="o2-detail-panel" class="row g-3 d-none" style="margin-top:8px;">
-                      <div class="col-md-4" id="grp-o2-flow"><label class="small fw-bold text-secondary">Flow/Rate (LPM)</label><input type="text" name="o2_flow" class="pp-input" placeholder="10"></div>
-                      <div class="col-md-4" id="grp-o2-fio2"><label class="small fw-bold text-secondary">FiO2 / Conc. (%)</label><input type="text" name="o2_conc" class="pp-input" placeholder="60"></div>
-                      <div class="col-md-4" id="grp-o2-temp"><label class="small fw-bold text-secondary">Temp (°C)</label><input type="text" name="o2_temp" class="pp-input" placeholder="37"></div>
                     </div>
                   </div>
                 </div>
@@ -5631,6 +5646,100 @@
       if(show) el.classList.remove('d-none');
       else el.classList.add('d-none');
     }
+
+    // ========================================================
+    // PP UI sync layer (2026-05-25) — wrap-and-style only.
+    // Does NOT modify updateAirwayLogic / updateVentLogic /
+    // updateO2Detail. Mirrors hidden <select id="sel-o2-device">
+    // → visible pill row #o2-device-pills, and updates
+    // #vent-interface-text + #airway-interlock-note.
+    // ========================================================
+    function ppRenderO2Pills() {
+      var sel = document.getElementById('sel-o2-device');
+      var row = document.getElementById('o2-device-pills');
+      if (!sel || !row) return;
+      var html = '';
+      for (var i = 0; i < sel.options.length; i++) {
+        var opt = sel.options[i];
+        var active = (opt.value === sel.value) ? ' active' : '';
+        var safe = String(opt.value).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;');
+        html += '<div class="pp-pill' + active + '" data-pp-o2="' + safe + '">' + opt.text + '</div>';
+      }
+      row.innerHTML = html;
+      var pills = row.querySelectorAll('[data-pp-o2]');
+      for (var j = 0; j < pills.length; j++) {
+        pills[j].onclick = function() {
+          var v = this.getAttribute('data-pp-o2');
+          var s = document.getElementById('sel-o2-device');
+          if (!s) return;
+          s.value = v;
+          try { s.dispatchEvent(new Event('change')); } catch(e) { if(typeof updateO2Detail==='function') updateO2Detail(); }
+        };
+      }
+    }
+    function ppUpdateVentInterface() {
+      var el = document.getElementById('vent-interface-text');
+      if (!el) return;
+      var typeEl = document.querySelector('input[name="airway_type"]:checked');
+      var subEl = document.querySelector('input[name="airway_mgt_sub"]:checked');
+      var type = typeEl ? typeEl.value : null;
+      var sub = subEl ? subEl.value : null;
+      var label = '--';
+      if (type === 'Open') label = 'Face Mask';
+      else if (type === 'Management') {
+        if (sub === 'Oral') label = 'OPA (Oral)';
+        else if (sub === 'Nasal') label = 'NPA (Nasal)';
+        else if (sub === 'LMA/SGA') label = 'LMA / SGA';
+        else label = 'Airway Mgt.';
+      }
+      else if (type === 'ET Tube') label = 'ET Tube';
+      else if (type === 'Tracheostomy') label = 'Tracheostomy';
+      el.textContent = label;
+    }
+    function ppUpdateAirwayInterlock() {
+      var banner = document.getElementById('airway-interlock-note');
+      if (!banner) return;
+      var typeEl = document.querySelector('input[name="airway_type"]:checked');
+      var subEl = document.querySelector('input[name="airway_mgt_sub"]:checked');
+      var type = typeEl ? typeEl.value : null;
+      var sub = subEl ? subEl.value : null;
+      var locked = (type === 'ET Tube' || type === 'Tracheostomy' || (type === 'Management' && sub === 'LMA/SGA'));
+      banner.style.display = locked ? '' : 'none';
+    }
+    // Wrap production logic — preserve _orig.apply contract per memory/danger_zones_ux_refactor.md
+    (function() {
+      if (typeof updateAirwayLogic === 'function') {
+        var _orig = updateAirwayLogic;
+        window.updateAirwayLogic = function() {
+          _orig.apply(this, arguments);
+          ppRenderO2Pills();
+          ppUpdateVentInterface();
+          ppUpdateAirwayInterlock();
+        };
+      }
+      if (typeof updateO2Detail === 'function') {
+        var _origO = updateO2Detail;
+        window.updateO2Detail = function() {
+          _origO.apply(this, arguments);
+          ppRenderO2Pills();
+        };
+      }
+      if (typeof updateVentLogic === 'function') {
+        var _origV = updateVentLogic;
+        window.updateVentLogic = function() {
+          _origV.apply(this, arguments);
+          ppUpdateVentInterface();
+        };
+      }
+    })();
+    // Initial mirror after DOM ready (in case populateForm ran before wrappers)
+    document.addEventListener('DOMContentLoaded', function() {
+      setTimeout(function() {
+        if (document.getElementById('sel-o2-device')) ppRenderO2Pills();
+        if (document.getElementById('vent-interface-text')) ppUpdateVentInterface();
+        if (document.getElementById('airway-interlock-note')) ppUpdateAirwayInterlock();
+      }, 150);
+    });
 
     // --- MEDICAL LOGIC: CIRCULATION ---
     function toggleCentralLine() {
