@@ -9059,9 +9059,19 @@
       if (!confirm.isConfirmed) return;
 
       Swal.fire({ title: 'กำลังลบ...', didOpen: function(){ Swal.showLoading(); }, allowOutsideClick: false });
-      var res = await _supabase.from('transport_consents').delete().eq('id', ver.id);
+      // .select() returns the deleted rows so we can detect silent RLS rejection
+      // (Supabase doesn't throw an error when RLS blocks DELETE — affected_rows=0).
+      var res = await _supabase.from('transport_consents').delete().eq('id', ver.id).select();
       if (res.error) {
         Swal.fire({ icon: 'error', title: 'ลบไม่สำเร็จ', text: res.error.message });
+        return;
+      }
+      if (!res.data || res.data.length === 0) {
+        Swal.fire({
+          icon: 'error',
+          title: 'ลบไม่สำเร็จ',
+          html: 'ไม่มีสิทธิ์ลบ (Supabase RLS block, 0 rows affected)<br><small class="text-muted">กรุณารัน <code>sql/fix_consent_delete_policy.sql</code> ใน Supabase SQL Editor</small>'
+        });
         return;
       }
 
@@ -9103,9 +9113,19 @@
       if (!confirm.isConfirmed) return;
 
       Swal.fire({ title: 'กำลังลบ...', didOpen: function(){ Swal.showLoading(); }, allowOutsideClick: false });
-      var res = await _supabase.from('transport_consents').delete().eq('id', ver.id);
+      // .select() returns the deleted rows so we can detect silent RLS rejection
+      // (Supabase doesn't throw when RLS blocks DELETE — affected_rows=0 with no error).
+      var res = await _supabase.from('transport_consents').delete().eq('id', ver.id).select();
       if (res.error) {
         Swal.fire({ icon: 'error', title: 'ลบไม่สำเร็จ', text: res.error.message });
+        return;
+      }
+      if (!res.data || res.data.length === 0) {
+        Swal.fire({
+          icon: 'error',
+          title: 'ลบไม่สำเร็จ',
+          html: 'ไม่มีสิทธิ์ลบ (Supabase RLS block, 0 rows affected)<br><small class="text-muted">กรุณารัน <code>sql/fix_consent_delete_policy.sql</code> ใน Supabase SQL Editor</small>'
+        });
         return;
       }
 
