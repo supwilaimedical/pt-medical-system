@@ -1190,17 +1190,26 @@
        Hardcoded colors (no :root vars) to prevent CSS variable leakage
        ============================================================ */
 
-    /* pp-island-card — wraps existing .card with new visual accent.
-       margin-bottom !important to beat Bootstrap .mb-4 (24px) — user wanted 12-14px. */
-    .pp-island-card { background:#fff; border:1px solid #e2e8f0; border-radius:14px; border-top:5px solid #1e3a5f; box-shadow:0 2px 8px rgba(0,0,0,0.04); margin-bottom:14px !important; margin-top:0 !important; }
-    .pp-island-card.cyan { border-top-color:#06b6d4; }
-    .pp-island-card.sky  { border-top-color:#0ea5e9; }
-    .pp-island-card.red  { border-top-color:#ef4444; }
-    .pp-island-card.amber{ border-top-color:#f59e0b; }
-    .pp-island-card.teal { border-top-color:#0d9488; }
-    .pp-island-card.slate{ border-top-color:#64748b; }
-    .pp-island-card.dark { border-top-color:#0f172a; }
-    .pp-island-card.dark-red { border-top-color:#b91c1c; }
+    /* pp-island-card — wraps existing .card with colored top accent.
+       !important on border-* needed because chrome.css loads AFTER this inline <style>
+       and Bootstrap .card has equal specificity → border-top color was being overridden.
+       margin-top NOT set — lets inline style="margin-top:14px" on first card breathe from banner. */
+    .pp-island-card {
+      background:#fff !important;
+      border:1px solid #e2e8f0 !important;
+      border-top:5px solid #1e3a5f !important;
+      border-radius:14px !important;
+      box-shadow:0 2px 8px rgba(0,0,0,0.04) !important;
+      margin-bottom:14px !important;
+    }
+    .pp-island-card.cyan { border-top-color:#06b6d4 !important; }
+    .pp-island-card.sky  { border-top-color:#0ea5e9 !important; }
+    .pp-island-card.red  { border-top-color:#ef4444 !important; }
+    .pp-island-card.amber{ border-top-color:#f59e0b !important; }
+    .pp-island-card.teal { border-top-color:#0d9488 !important; }
+    .pp-island-card.slate{ border-top-color:#64748b !important; }
+    .pp-island-card.dark { border-top-color:#0f172a !important; }
+    .pp-island-card.dark-red { border-top-color:#b91c1c !important; }
 
     /* pp-row — clickable summary row → opens pp-modal */
     .pp-row { background:#fff; border:1px solid #e2e8f0; border-left:4px solid #1e3a5f; border-radius:12px; padding:12px 14px; margin-bottom:8px; display:flex; align-items:center; gap:12px; cursor:pointer; transition:all 0.15s; }
