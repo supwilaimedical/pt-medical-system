@@ -1714,14 +1714,89 @@
           <div class="mb-3">
             <label class="field-label">ระยะเวลาลิงก์</label>
             <div class="segmented-group" id="share-hours-group">
-              <button type="button" class="segmented-btn" data-h="1">1 ชม.</button>
-              <button type="button" class="segmented-btn" data-h="3">3 ชม.</button>
-              <button type="button" class="segmented-btn active" data-h="6">6 ชม.</button>
+              <button type="button" class="segmented-btn active" data-h="1">1 ชม.</button>
+              <button type="button" class="segmented-btn" data-h="4">4 ชม.</button>
               <button type="button" class="segmented-btn" data-h="12">12 ชม.</button>
               <button type="button" class="segmented-btn" data-h="24">24 ชม.</button>
             </div>
-            <input type="hidden" id="share-hours" value="6">
+            <input type="hidden" id="share-hours" value="1">
+            <div class="form-text" style="font-size:0.75rem; color:var(--slate-500); margin-top:4px;">Default 1 ชม. — เลือกตามระยะเวลานำส่ง</div>
           </div>
+
+          <!-- ====== Destination mode toggle (Phase 2 — ETA feature) ====== -->
+          <div class="mb-3">
+            <label class="field-label">ปลายทาง (สำหรับ ETA)</label>
+            <div class="segmented-group" id="share-dest-mode-group">
+              <button type="button" class="segmented-btn active" data-mode="paramedic_set"><i class="bi bi-pin-map-fill"></i> ฉันตั้งเลย</button>
+              <button type="button" class="segmented-btn" data-mode="customer_choose"><i class="bi bi-person-raised-hand"></i> ให้ลูกค้าเลือก</button>
+            </div>
+            <input type="hidden" id="share-dest-mode" value="paramedic_set">
+          </div>
+
+          <!-- Dest input methods (visible only when paramedic_set) -->
+          <div id="dest-input-wrap" class="mb-3" style="border:1px solid #cbd5e1; border-radius:8px; padding:12px; background:var(--navy-50);">
+            <div class="segmented-group" id="dest-method-group" style="margin-bottom:10px; flex-wrap:wrap;">
+              <button type="button" class="segmented-btn active" data-method="link">📋 Link</button>
+              <button type="button" class="segmented-btn" data-method="search">🔍 ค้นหา</button>
+              <button type="button" class="segmented-btn" data-method="preset">🏥 รพ.ใกล้</button>
+              <button type="button" class="segmented-btn" data-method="map_click">📍 แผนที่</button>
+            </div>
+
+            <!-- Method: link -->
+            <div class="dest-method-pane" data-pane="link">
+              <div class="d-flex gap-2">
+                <input type="text" class="form-control form-control-sm" id="dest-link-input" placeholder="วาง Google Maps Link หรือ lat,lng">
+                <button type="button" class="btn btn-sm" id="dest-link-decode" style="background:var(--navy-700); color:#fff; padding:4px 12px; border-radius:7px; white-space:nowrap;">
+                  <i class="bi bi-arrow-down-circle"></i> Decode
+                </button>
+              </div>
+              <div class="form-text" id="dest-link-feedback" style="font-size:0.78rem; margin-top:6px;"></div>
+            </div>
+
+            <!-- Method: search -->
+            <div class="dest-method-pane" data-pane="search" style="display:none;">
+              <input type="text" class="form-control form-control-sm" id="dest-search-input" placeholder="พิมพ์ชื่อสถานที่ (≥3 ตัวอักษร)...">
+              <div id="dest-search-results" style="margin-top:8px; max-height:200px; overflow-y:auto;"></div>
+            </div>
+
+            <!-- Method: preset -->
+            <div class="dest-method-pane" data-pane="preset" style="display:none;">
+              <button type="button" class="btn btn-sm" id="dest-preset-load" style="background:var(--slate-100); color:var(--slate-700); padding:4px 12px; border-radius:7px;">
+                <i class="bi bi-arrow-clockwise"></i> โหลด รพ. ใกล้รถ (25 km)
+              </button>
+              <select class="form-select form-select-sm mt-2" id="dest-preset-select" style="display:none;"></select>
+            </div>
+
+            <!-- Method: map_click -->
+            <div class="dest-method-pane" data-pane="map_click" style="display:none;">
+              <button type="button" class="btn btn-sm" id="dest-map-pick" style="background:var(--slate-100); color:var(--slate-700); padding:4px 12px; border-radius:7px;">
+                <i class="bi bi-geo-alt"></i> ปิด dialog → คลิกบนแผนที่ → กลับมา
+              </button>
+              <div class="form-text" style="font-size:0.75rem; margin-top:4px;">Modal จะปิดชั่วคราว ปักหมุดบนแผนที่หลัก แล้วเปิดกลับมา</div>
+            </div>
+
+            <!-- Summary of picked dest -->
+            <div id="dest-picked-summary" style="display:none; margin-top:10px; padding:8px 12px; background:#dcfce7; border:1px solid #86efac; border-radius:7px; color:#166534; font-size:0.82rem;">
+              <i class="bi bi-check-circle-fill"></i> <span id="dest-picked-text">--</span>
+            </div>
+          </div>
+
+          <!-- Audience selector (optional) -->
+          <div class="mb-3">
+            <label class="field-label">ประเภทผู้รับ (optional)</label>
+            <div class="segmented-group" id="share-audience-group">
+              <button type="button" class="segmented-btn active" data-aud="">ไม่ระบุ</button>
+              <button type="button" class="segmented-btn" data-aud="family">ญาติคนไข้</button>
+              <button type="button" class="segmented-btn" data-aud="contractor">Contractor</button>
+            </div>
+            <input type="hidden" id="share-audience" value="">
+          </div>
+
+          <!-- Hidden state — captured by dest pickers -->
+          <input type="hidden" id="dest-lat" value="">
+          <input type="hidden" id="dest-lng" value="">
+          <input type="hidden" id="dest-name" value="">
+          <input type="hidden" id="dest-source" value="">
 
           <div class="mb-3">
             <label class="field-label">เหตุผล</label>
@@ -2517,10 +2592,35 @@
       document.getElementById('share-result').style.display = 'none';
       document.getElementById('share-reason').value = '';
       document.getElementById('share-allow-camera').checked = false;
-      document.getElementById('share-hours').value = '6';
-      // Reset segmented buttons
+      // Reset TTL to default 1 hr
+      document.getElementById('share-hours').value = '1';
       document.querySelectorAll('#share-hours-group .segmented-btn').forEach(function(b) {
-        b.classList.toggle('active', b.dataset.h === '6');
+        b.classList.toggle('active', b.dataset.h === '1');
+      });
+      // Reset dest-mode to paramedic_set
+      document.getElementById('share-dest-mode').value = 'paramedic_set';
+      document.querySelectorAll('#share-dest-mode-group .segmented-btn').forEach(function(b) {
+        b.classList.toggle('active', b.dataset.mode === 'paramedic_set');
+      });
+      document.getElementById('dest-input-wrap').style.display = '';
+      // Reset audience to none
+      document.getElementById('share-audience').value = '';
+      document.querySelectorAll('#share-audience-group .segmented-btn').forEach(function(b) {
+        b.classList.toggle('active', b.dataset.aud === '');
+      });
+      // Clear picked dest
+      ['dest-lat','dest-lng','dest-name','dest-source'].forEach(function(id){
+        var el = document.getElementById(id); if (el) el.value = '';
+      });
+      document.getElementById('dest-picked-summary').style.display = 'none';
+      // Reset link feedback + tab to "link"
+      var fb = document.getElementById('dest-link-feedback'); if (fb) fb.innerHTML = '';
+      var linkIn = document.getElementById('dest-link-input'); if (linkIn) linkIn.value = '';
+      document.querySelectorAll('#dest-method-group .segmented-btn').forEach(function(b) {
+        b.classList.toggle('active', b.dataset.method === 'link');
+      });
+      document.querySelectorAll('.dest-method-pane').forEach(function(p) {
+        p.style.display = (p.getAttribute('data-pane') === 'link') ? '' : 'none';
       });
       document.getElementById('btnCreateShare').disabled = false;
       new bootstrap.Modal(document.getElementById('shareModal')).show();
@@ -2539,6 +2639,172 @@
       });
     })();
 
+    // ====== Phase 2 — Dest mode + dest input method + audience wiring ======
+    (function bindShareDestUI() {
+      // Dest-mode toggle (paramedic_set / customer_choose)
+      document.addEventListener('click', function(e) {
+        var btn = e.target.closest('#share-dest-mode-group .segmented-btn');
+        if (!btn) return;
+        document.querySelectorAll('#share-dest-mode-group .segmented-btn').forEach(function(b){ b.classList.remove('active'); });
+        btn.classList.add('active');
+        var mode = btn.dataset.mode;
+        document.getElementById('share-dest-mode').value = mode;
+        document.getElementById('dest-input-wrap').style.display = (mode === 'paramedic_set') ? '' : 'none';
+        if (mode === 'customer_choose') {
+          ['dest-lat','dest-lng','dest-name','dest-source'].forEach(function(id){
+            var el = document.getElementById(id); if (el) el.value = '';
+          });
+          document.getElementById('dest-picked-summary').style.display = 'none';
+        }
+      });
+
+      // Audience toggle
+      document.addEventListener('click', function(e) {
+        var btn = e.target.closest('#share-audience-group .segmented-btn');
+        if (!btn) return;
+        document.querySelectorAll('#share-audience-group .segmented-btn').forEach(function(b){ b.classList.remove('active'); });
+        btn.classList.add('active');
+        document.getElementById('share-audience').value = btn.dataset.aud || '';
+      });
+
+      // Dest-method tab switcher
+      document.addEventListener('click', function(e) {
+        var btn = e.target.closest('#dest-method-group .segmented-btn');
+        if (!btn) return;
+        var method = btn.dataset.method;
+        document.querySelectorAll('#dest-method-group .segmented-btn').forEach(function(b){ b.classList.remove('active'); });
+        btn.classList.add('active');
+        document.querySelectorAll('.dest-method-pane').forEach(function(p){
+          p.style.display = (p.getAttribute('data-pane') === method) ? '' : 'none';
+        });
+      });
+    })();
+
+    // Helper — set picked destination + show summary
+    function setPickedDest(lat, lng, name, source) {
+      document.getElementById('dest-lat').value    = lat;
+      document.getElementById('dest-lng').value    = lng;
+      document.getElementById('dest-name').value   = name || '';
+      document.getElementById('dest-source').value = source;
+      var summary = document.getElementById('dest-picked-summary');
+      var text    = document.getElementById('dest-picked-text');
+      if (text) text.textContent = (name || '(ไม่มีชื่อ)') + ' · ' + Number(lat).toFixed(5) + ', ' + Number(lng).toFixed(5);
+      if (summary) summary.style.display = '';
+    }
+
+    // Method 1: Decode pasted Maps link
+    document.addEventListener('click', async function(e) {
+      if (!e.target.closest || !e.target.closest('#dest-link-decode')) return;
+      var input = document.getElementById('dest-link-input');
+      var fb    = document.getElementById('dest-link-feedback');
+      fb.textContent = 'กำลัง decode...';
+      try {
+        var result = await PlacesAPI.decodeGoogleMapsLink(input.value);
+        if (!result) {
+          fb.innerHTML = '<span style="color:#dc2626;">❌ ไม่พบพิกัด — ลองวาง Link แบบเต็ม หรือใช้ tab อื่น</span>';
+          return;
+        }
+        fb.innerHTML = '<span style="color:#16a34a;">✓ พบพิกัด: ' + result.lat.toFixed(5) + ', ' + result.lng.toFixed(5) + '</span>';
+        setPickedDest(result.lat, result.lng, result.name || 'จาก Link', 'link');
+      } catch (err) {
+        fb.innerHTML = '<span style="color:#dc2626;">❌ ' + (err.message || err) + '</span>';
+      }
+    });
+
+    // Method 2: Text search (Places API)
+    document.addEventListener('input', function(e) {
+      if (!e.target || e.target.id !== 'dest-search-input') return;
+      var q = (e.target.value || '').trim();
+      var results = document.getElementById('dest-search-results');
+      if (!q || q.length < 3) { results.innerHTML = ''; return; }
+      clearTimeout(window._destSearchDebounce);
+      window._destSearchDebounce = setTimeout(async function() {
+        try {
+          var origin = (typeof resolveHospitalOrigin === 'function') ? resolveHospitalOrigin() : null;
+          var lat = origin ? origin.lat : 13.7563;
+          var lng = origin ? origin.lng : 100.5018;
+          var places = await PlacesAPI.searchText({
+            query: q, lat: lat, lng: lng, radius: 50000, maxResults: 5
+          });
+          if (!places.length) { results.innerHTML = '<div class="text-muted small">ไม่พบผลลัพธ์</div>'; return; }
+          results.innerHTML = places.map(function(p, i) {
+            return '<button type="button" class="btn btn-sm btn-outline-secondary d-block w-100 text-start mb-1" '
+                 + 'data-idx="' + i + '" style="font-size:0.78rem;">'
+                 + '<b>' + (p.name || '').replace(/</g,'&lt;') + '</b>'
+                 + '<br><small class="text-muted">' + (p.address || '').replace(/</g,'&lt;') + '</small>'
+                 + '</button>';
+          }).join('');
+          // Cache list on the container
+          results._places = places;
+        } catch (err) {
+          results.innerHTML = '<div class="text-danger small">ค้นไม่ได้: ' + (err.message || err) + '</div>';
+        }
+      }, 300);
+    });
+    // Click on search result → pick
+    document.addEventListener('click', function(e) {
+      var btn = e.target.closest('#dest-search-results button[data-idx]');
+      if (!btn) return;
+      var idx = parseInt(btn.dataset.idx, 10);
+      var places = document.getElementById('dest-search-results')._places;
+      if (!places || !places[idx]) return;
+      var p = places[idx];
+      setPickedDest(p.lat, p.lng, p.name, 'search');
+    });
+
+    // Method 3: Preset hospitals (uses searchHospitalsCombined)
+    document.addEventListener('click', async function(e) {
+      if (!e.target.closest || !e.target.closest('#dest-preset-load')) return;
+      var btn = e.target.closest('#dest-preset-load');
+      var sel = document.getElementById('dest-preset-select');
+      var origin = (typeof resolveHospitalOrigin === 'function') ? resolveHospitalOrigin() : null;
+      if (!origin) { Swal.fire('เลือกรถก่อน', 'กรุณาเลือกรถในรายการ Fleet ก่อนใช้ preset', 'warning'); return; }
+      btn.disabled = true;
+      btn.innerHTML = '<i class="bi bi-hourglass-split"></i> กำลังโหลด...';
+      try {
+        var hosp = await PlacesAPI.searchHospitalsCombined(origin.lat, origin.lng, 25000);
+        sel.innerHTML = '<option value="">-- เลือก --</option>' +
+          hosp.map(function(p, i) {
+            var km = Math.round(p.distanceM / 100) / 10;
+            return '<option value="' + i + '">' + (p.name || '').replace(/</g,'&lt;') + ' (' + km + ' km)</option>';
+          }).join('');
+        sel.style.display = '';
+        sel._hospCache = hosp;
+        sel.onchange = function() {
+          var idx = parseInt(this.value, 10);
+          if (isNaN(idx)) return;
+          var p = sel._hospCache[idx];
+          setPickedDest(p.lat, p.lng, p.name, 'preset');
+        };
+      } catch (err) {
+        Swal.fire('Error', err.message || String(err), 'error');
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = '<i class="bi bi-arrow-clockwise"></i> โหลด รพ. ใกล้รถ (25 km)';
+      }
+    });
+
+    // Method 4: Pick on map (one-shot Leaflet click handler)
+    document.addEventListener('click', function(e) {
+      if (!e.target.closest || !e.target.closest('#dest-map-pick')) return;
+      if (typeof map === 'undefined' || !map) { Swal.fire('Map ไม่พร้อม', 'รีโหลดหน้าและลองใหม่', 'error'); return; }
+      var modalEl = document.getElementById('shareModal');
+      var bsModal = bootstrap.Modal.getInstance(modalEl);
+      if (bsModal) bsModal.hide();
+      Swal.fire({
+        title: 'คลิกบนแผนที่หลัก',
+        text: 'ปักหมุดที่ปลายทาง — dialog จะเปิดกลับมาเอง',
+        icon: 'info', timer: 3000, showConfirmButton: false
+      });
+      var oneShot = function(ev) {
+        map.off('click', oneShot);
+        var ll = ev.latlng;
+        setPickedDest(ll.lat, ll.lng, 'ปักหมุดบนแผนที่', 'map_click');
+        if (bsModal) bsModal.show();
+      };
+      map.on('click', oneShot);
+    });
+
     async function createShareToken() {
       var deviceId = document.getElementById('share-device-id').value;
       var providerId = document.getElementById('share-provider-id').value;
@@ -2546,6 +2812,23 @@
       var reason = document.getElementById('share-reason').value.trim();
 
       if (!reason) { Swal.fire('กรุณาระบุเหตุผล', '', 'warning'); return; }
+
+      // Phase 2: dest mode + dest fields + audience
+      var destMode = document.getElementById('share-dest-mode').value || 'paramedic_set';
+      var dLat   = document.getElementById('dest-lat').value;
+      var dLng   = document.getElementById('dest-lng').value;
+      var dName  = document.getElementById('dest-name').value;
+      var dSrc   = document.getElementById('dest-source').value;
+      var audience = document.getElementById('share-audience').value || null;
+
+      if (destMode === 'paramedic_set' && (!dLat || !dLng)) {
+        Swal.fire(
+          'กรุณาเลือกปลายทาง',
+          'เลือก Link / ค้นหา / รพ.ใกล้ / บนแผนที่ — หรือเปลี่ยนเป็น "ให้ลูกค้าเลือก"',
+          'warning'
+        );
+        return;
+      }
 
       document.getElementById('btnCreateShare').disabled = true;
 
@@ -2557,7 +2840,16 @@
         await _supabase.from('gps_shared_tokens').insert({
           token: token, device_id: deviceId, provider: providerId,
           expires_at: expiresAt, created_by: getUserName(), reason: reason,
-          allow_camera: allowCamera
+          allow_camera: allowCamera,
+          // Phase 2 fields
+          ttl_hours: hours,
+          dest_mode: destMode,
+          dest_lat:   dLat ? parseFloat(dLat) : null,
+          dest_lng:   dLng ? parseFloat(dLng) : null,
+          dest_name:  dName || null,
+          dest_source: dSrc || null,
+          dest_locked_at: (destMode === 'paramedic_set' && dLat) ? new Date().toISOString() : null,
+          audience: audience
         });
 
         var shareUrl = window.location.origin + CONFIG.BASE_URL + '/v2/gps/share.html?token=' + token;
@@ -2567,7 +2859,12 @@
         await _supabase.from('activity_log').insert({
           username: getUserName(), role: getUserRole(),
           action: 'GPS_SHARE_CREATE',
-          target: deviceId, details: 'Token: ' + token + ', Hours: ' + hours + ', Reason: ' + reason + (allowCamera ? ', Camera: ON' : '')
+          target: deviceId,
+          details: 'Token: ' + token + ', Hours: ' + hours + ', Mode: ' + destMode
+                 + (dName ? ', Dest: ' + dName : '')
+                 + (audience ? ', Audience: ' + audience : '')
+                 + ', Reason: ' + reason
+                 + (allowCamera ? ', Camera: ON' : '')
         });
 
         loadSharedTokens();
