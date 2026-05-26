@@ -483,6 +483,31 @@
     .token-meta { font-size: 0.7rem; color: var(--slate-500); line-height: 1.5; }
     .token-id-mono { font-family: 'Courier New', monospace; color: var(--slate-600); }
 
+    .token-dest {
+      font-size: 0.72rem;
+      color: var(--slate-700);
+      margin-top: 4px;
+      padding: 4px 8px;
+      background: var(--navy-50);
+      border-radius: 6px;
+      display: flex; align-items: center; gap: 6px; flex-wrap: wrap;
+    }
+    .token-eta-badge {
+      display: inline-block;
+      padding: 1px 7px;
+      border-radius: 10px;
+      font-size: 0.68rem;
+      font-weight: 700;
+      background: #dbeafe; color: #1e40af;
+    }
+    .token-eta-badge.arrived { background: #dcfce7; color: #166534; }
+    .token-eta-badge.pending { background: #dbeafe; color: #1e40af; }
+    .token-eta-refresh {
+      background: transparent; border: none; color: var(--navy-600);
+      cursor: pointer; padding: 0 4px; font-size: 0.72rem;
+    }
+    .token-eta-refresh:hover { color: var(--navy-900); }
+
     .token-actions {
       display: flex; gap: 4px; margin-top: 8px;
     }
@@ -2928,6 +2953,27 @@
             ? '<i class="bi bi-camera-video-fill" style="color:var(--red-600); font-size:0.75rem;" title="เปิดกล้องได้"></i>'
             : '';
 
+          // Phase 2: dest + ETA sub-row
+          var destLine = '';
+          if (t.dest_mode === 'paramedic_set' && t.dest_name) {
+            var etaTxt = (t.last_eta_seconds != null) ? formatEtaShort(t.last_eta_seconds) : '—';
+            var etaCls = (t.last_distance_m != null && t.last_distance_m < 100) ? 'arrived' : 'pending';
+            destLine = '<div class="token-dest"><i class="bi bi-pin-map-fill" style="color:var(--navy-600); font-size:0.75rem;"></i> ' +
+                       esc(t.dest_name) +
+                       ' <span class="token-eta-badge ' + etaCls + '">ETA ' + etaTxt + '</span>' +
+                       (isActive ? ' <button class="token-eta-refresh" onclick="refreshTokenEta(\'' + esc(t.token) + '\')" title="Refresh ETA"><i class="bi bi-arrow-clockwise"></i></button>' : '') +
+                       '</div>';
+          } else if (t.dest_mode === 'customer_choose') {
+            if (t.dest_locked_at && t.dest_name) {
+              var etaTxt2 = (t.last_eta_seconds != null) ? formatEtaShort(t.last_eta_seconds) : '—';
+              destLine = '<div class="token-dest"><i class="bi bi-person-check-fill" style="color:#16a34a; font-size:0.75rem;"></i> ลูกค้าเลือก: ' +
+                         esc(t.dest_name) +
+                         ' <span class="token-eta-badge pending">ETA ' + etaTxt2 + '</span></div>';
+            } else {
+              destLine = '<div class="token-dest"><i class="bi bi-hourglass-split" style="color:var(--slate-500); font-size:0.75rem;"></i> รอลูกค้าเลือกปลายทาง...</div>';
+            }
+          }
+
           html += '<div class="token-card' + (!isActive ? ' expired' : '') + (t.allow_camera ? ' has-camera' : '') + '">' +
             '<div class="token-header">' +
               '<div class="token-vehicle"><i class="bi bi-truck" style="color:var(--navy-500); font-size:0.8rem;"></i>' + esc(vName) + camIcon + '</div>' +
@@ -2937,6 +2983,7 @@
               '<span class="token-id-mono">' + esc(t.token) + '</span> · ' + esc(t.reason || '-') +
               '<br>โดย ' + esc(t.created_by || '-') + ' · หมดอายุ ' + expStr +
             '</div>' +
+            destLine +
             (isActive
               ? '<div class="token-actions">' +
                   '<button class="token-btn" onclick="copyTokenLink(\'' + esc(t.token) + '\')" title="Copy link"><i class="bi bi-clipboard"></i>Copy</button>' +
@@ -2950,6 +2997,33 @@
         });
         el.innerHTML = html;
       } catch(e) { console.error(e); }
+    }
+
+    // Phase 2 — token row ETA helpers
+    function formatEtaShort(seconds) {
+      if (seconds == null) return '—';
+      if (seconds < 60) return seconds + ' วิ';
+      if (seconds < 3600) return Math.round(seconds / 60) + ' นาที';
+      var hr = Math.floor(seconds / 3600);
+      var mn = Math.round((seconds - hr*3600) / 60);
+      return hr + ' ชม. ' + mn + ' นาที';
+    }
+
+    async function refreshTokenEta(token) {
+      var workerUrl = (window.CONFIG && CONFIG.DEFAULTS && CONFIG.DEFAULTS.NOTIFY_PROXY_URL)
+                      || 'https://gps-proxy.supwilai-ambulance.workers.dev';
+      try {
+        var res = await fetch(workerUrl.replace(/\/+$/,'') + '/api/eta/refresh?token=' + encodeURIComponent(token));
+        var j = await res.json();
+        if (!j.ok) {
+          Swal.fire('Error', j.error || ('HTTP ' + res.status), 'error');
+          return;
+        }
+        // Reload list to pick up writeback
+        loadSharedTokens();
+      } catch (e) {
+        Swal.fire('Error', e.message || String(e), 'error');
+      }
     }
 
     function copyTokenLink(token) {
