@@ -2,6 +2,10 @@
 // Requires: config.js loaded before this, supabase-js CDN
 
 const _supabase = supabase.createClient(CONFIG.SUPABASE_URL, CONFIG.SUPABASE_ANON_KEY);
+// Expose for shared modules (e.g. PlacesAPI.decodeGoogleMapsLink uses
+// _supabase.rpc('expand_maps_url') for short URL expansion). const at
+// script-level doesn't auto-attach to window.
+window._supabase = _supabase;
 
 // =============================================
 // Session policy

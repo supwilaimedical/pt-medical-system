@@ -382,10 +382,15 @@
       if (direct) return direct;
 
       // Step 2: short URL → expand via Supabase RPC (server-side redirect)
+      // _supabase is `const` in auth.js — accessible as bare identifier across
+      // classic <script> tags via shared lexical scope (not via window).
       var isShort = /^https?:\/\/(maps\.app\.goo\.gl|goo\.gl\/maps|bit\.ly|shorturl)/i.test(s);
-      if (isShort && typeof window !== 'undefined' && window._supabase) {
+      var sb = (typeof _supabase !== 'undefined') ? _supabase
+             : (typeof window !== 'undefined' && window._supabase) ? window._supabase
+             : null;
+      if (isShort && sb) {
         try {
-          var rpc = await window._supabase.rpc('expand_maps_url', { short_url: s });
+          var rpc = await sb.rpc('expand_maps_url', { short_url: s });
           if (!rpc.error && rpc.data) {
             if (rpc.data.success && rpc.data.lat != null && rpc.data.lng != null) {
               return { lat: parseFloat(rpc.data.lat), lng: parseFloat(rpc.data.lng) };
