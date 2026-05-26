@@ -323,50 +323,98 @@
     },
 
     /**
-     * Decode lat/lng from various Google Maps URL formats.
-     * Supports:
-     *   "15.7008, 100.1362"                       → raw coords
-     *   https://www.google.com/maps/place/@15.7,100.1,17z
-     *   https://www.google.com/maps?q=15.7,100.1   (also ?ll= or ?destination=)
-     *   https://maps.app.goo.gl/abc                → follows redirect
-     *   https://goo.gl/maps/abc                    → follows redirect
+     * Parse Google Maps URL patterns. Same patterns as Location module's
+     * loc_parseGoogleMapsUrl — covers !3d!4d, @lat,lng, q=, ll=, center=, sll=,
+     * daddr/saddr, /dir/, /search/, and standalone lat,lng formats.
+     * Synchronous — pattern-only, no network.
      *
-     * Returns Promise<{lat:number, lng:number, name?:string} | null>
-     * Used by GPS share dialog "paste Maps link" input method.
+     * @param {string} url
+     * @returns {{lat:number, lng:number} | null}
+     */
+    parseMapsUrlPatterns: function(url) {
+      if (!url) return null;
+      var patterns = [
+        /!3d([-]?[0-9]+\.[0-9]+)!4d([-]?[0-9]+\.[0-9]+)/,            // !3d!4d pin data
+        /@([-]?[0-9]+\.[0-9]+),([-]?[0-9]+\.[0-9]+)/,                // @lat,lng viewport
+        /[?&]q=([-]?[0-9]+\.[0-9]+),([-]?[0-9]+\.[0-9]+)/,           // ?q=lat,lng
+        /[?&]ll=([-]?[0-9]+\.[0-9]+),([-]?[0-9]+\.[0-9]+)/,          // ?ll=lat,lng
+        /[?&]center=([-]?[0-9]+\.[0-9]+),([-]?[0-9]+\.[0-9]+)/,      // ?center=lat,lng
+        /[?&]sll=([-]?[0-9]+\.[0-9]+),([-]?[0-9]+\.[0-9]+)/,         // ?sll=lat,lng
+        /[?&][ds]addr=([-]?[0-9]+\.[0-9]+),([-]?[0-9]+\.[0-9]+)/,    // daddr/saddr
+        /[?&]destination=([-]?[0-9]+\.[0-9]+),([-]?[0-9]+\.[0-9]+)/, // destination=
+        /\/dir\/([-]?[0-9]+\.[0-9]+),([-]?[0-9]+\.[0-9]+)/,          // /dir/lat,lng
+        /\/search\/([-]?[0-9]+\.[0-9]+)[,+%20]+([-]?[0-9]+\.[0-9]+)/,// /search/ from redirect
+        /([-]?[0-9]{1,2}\.[0-9]{4,8})[,%20+\s]+([-]?[0-9]{1,3}\.[0-9]{4,8})/  // standalone
+      ];
+      for (var i = 0; i < patterns.length; i++) {
+        var m = url.match(patterns[i]);
+        if (m) {
+          var lat = parseFloat(m[1]), lng = parseFloat(m[2]);
+          if (lat >= -90 && lat <= 90 && lng >= -180 && lng <= 180) {
+            return { lat: lat, lng: lng };
+          }
+        }
+      }
+      return null;
+    },
+
+    /**
+     * Decode lat/lng from a Google Maps URL or coordinate string.
+     *
+     * Strategy (same as v2/location/index.html loc_extractCoordsFromLink):
+     *  1. Try pattern parse on raw input (handles raw coords + most URL forms)
+     *  2. If input is a short URL (maps.app.goo.gl, goo.gl/maps), expand
+     *     server-side via Supabase RPC `expand_maps_url` (follows redirects
+     *     server-side — bypasses browser CORS), then re-parse the resolved URL
+     *  3. Fallback to Supabase Edge Function `expand-url`
+     *
+     * Requires `_supabase` global from caller's page (Supabase JS client).
+     *
+     * @param {string} input
+     * @returns {Promise<{lat:number, lng:number} | null>}
      */
     decodeGoogleMapsLink: async function(input) {
       var s = (input || '').trim();
       if (!s) return null;
 
-      // 1. Raw "lat, lng" string
-      var raw = s.match(/^(-?\d{1,3}(?:\.\d+)?)\s*,\s*(-?\d{1,3}(?:\.\d+)?)$/);
-      if (raw) {
-        return { lat: parseFloat(raw[1]), lng: parseFloat(raw[2]) };
-      }
+      // Step 1: pattern parse — handles raw "lat, lng" and full Maps URLs
+      var direct = this.parseMapsUrlPatterns(s);
+      if (direct) return direct;
 
-      // 2. /@lat,lng,zoom format (within URL path)
-      var atForm = s.match(/[@\?](-?\d{1,3}\.\d+),(-?\d{1,3}\.\d+)/);
-      if (atForm) {
-        return { lat: parseFloat(atForm[1]), lng: parseFloat(atForm[2]) };
-      }
-
-      // 3. ?q=lat,lng or ?ll=lat,lng or destination=lat,lng query string
-      var qForm = s.match(/[?&](?:q|ll|destination)=(-?\d{1,3}\.\d+),(-?\d{1,3}\.\d+)/);
-      if (qForm) {
-        return { lat: parseFloat(qForm[1]), lng: parseFloat(qForm[2]) };
-      }
-
-      // 4. Shortened URL — fetch + follow redirect, then recurse on resolved URL
-      if (/^https?:\/\/(maps\.app\.goo\.gl|goo\.gl\/maps)/.test(s)) {
+      // Step 2: short URL → expand via Supabase RPC (server-side redirect)
+      var isShort = /^https?:\/\/(maps\.app\.goo\.gl|goo\.gl\/maps|bit\.ly|shorturl)/i.test(s);
+      if (isShort && typeof window !== 'undefined' && window._supabase) {
         try {
-          var res = await fetch(s, { method: 'GET', redirect: 'follow' });
-          var finalUrl = res.url || '';
-          if (finalUrl && finalUrl !== s) {
-            return await this.decodeGoogleMapsLink(finalUrl);
+          var rpc = await window._supabase.rpc('expand_maps_url', { short_url: s });
+          if (!rpc.error && rpc.data) {
+            if (rpc.data.success && rpc.data.lat != null && rpc.data.lng != null) {
+              return { lat: parseFloat(rpc.data.lat), lng: parseFloat(rpc.data.lng) };
+            }
+            if (rpc.data.resolved_url) {
+              var resolved = this.parseMapsUrlPatterns(rpc.data.resolved_url);
+              if (resolved) return resolved;
+            }
           }
-        } catch (e) {
-          // CORS or network — fall through to null
-        }
+        } catch (e) { /* fall through */ }
+
+        // Step 3: Edge Function fallback
+        try {
+          if (window.CONFIG && CONFIG.SUPABASE_URL && CONFIG.SUPABASE_ANON_KEY) {
+            var edgeRes = await fetch(CONFIG.SUPABASE_URL + '/functions/v1/expand-url', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + CONFIG.SUPABASE_ANON_KEY },
+              body: JSON.stringify({ url: s })
+            });
+            var edge = await edgeRes.json();
+            if (edge.success && edge.lat != null && edge.lng != null) {
+              return { lat: parseFloat(edge.lat), lng: parseFloat(edge.lng) };
+            }
+            if (edge.resolvedUrl) {
+              var resolved2 = this.parseMapsUrlPatterns(edge.resolvedUrl);
+              if (resolved2) return resolved2;
+            }
+          }
+        } catch (e) { /* fall through */ }
       }
 
       return null;
