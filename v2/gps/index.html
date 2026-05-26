@@ -2928,6 +2928,7 @@
         var res = await _supabase.from('gps_shared_tokens').select('*')
           .order('created_at', { ascending: false }).limit(20);
         var tokens = res.data || [];
+        window._cachedTokens = tokens;
         var el = document.getElementById('tokenList');
         var countEl = document.getElementById('token-count');
         var activeCount = tokens.filter(function(t){ return t.status === 'Active' && new Date(t.expires_at) > new Date(); }).length;
@@ -3010,10 +3011,31 @@
     }
 
     async function refreshTokenEta(token) {
+      // Look up device_id from token list → find live position in _statuses
+      var t = (window._cachedTokens || []).find(function(x) { return x.token === token; });
+      if (!t) {
+        Swal.fire('Error', 'token not in active list', 'error');
+        return;
+      }
+      // Scan _statuses for any entry matching this device_id (provider varies)
+      var pos = null;
+      Object.keys(_statuses || {}).forEach(function(k) {
+        var s = _statuses[k];
+        if (s && s.deviceId === t.device_id && s.lat && s.lng) {
+          pos = { lat: s.lat, lng: s.lng };
+        }
+      });
+      if (!pos) {
+        Swal.fire('ยังไม่มีตำแหน่งรถ', 'รอ refresh status ก่อน แล้วลองใหม่', 'warning');
+        return;
+      }
       var workerUrl = (window.CONFIG && CONFIG.DEFAULTS && CONFIG.DEFAULTS.NOTIFY_PROXY_URL)
                       || 'https://gps-proxy.supwilai-ambulance.workers.dev';
+      var qs = '?token=' + encodeURIComponent(token)
+             + '&lat=' + encodeURIComponent(pos.lat)
+             + '&lng=' + encodeURIComponent(pos.lng);
       try {
-        var res = await fetch(workerUrl.replace(/\/+$/,'') + '/api/eta/refresh?token=' + encodeURIComponent(token));
+        var res = await fetch(workerUrl.replace(/\/+$/,'') + '/api/eta/refresh' + qs);
         var j = await res.json();
         if (!j.ok) {
           Swal.fire('Error', j.error || ('HTTP ' + res.status), 'error');

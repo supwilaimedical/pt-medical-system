@@ -764,6 +764,8 @@ async function callDistanceMatrix(origin, dest, apiKey) {
 async function handleEtaRefresh(request, env) {
   const url = new URL(request.url);
   const token = (url.searchParams.get('token') || '').trim();
+  const vehLat = parseFloat(url.searchParams.get('lat'));
+  const vehLng = parseFloat(url.searchParams.get('lng'));
 
   if (!token) {
     return jsonResponse({ ok: false, error: 'TOKEN_REQUIRED' }, 400, request, env);
@@ -799,19 +801,14 @@ async function handleEtaRefresh(request, env) {
     return jsonResponse({ ok: false, error: 'DEST_NOT_LOCKED' }, 409, request, env);
   }
 
-  // Fetch vehicle's current position
-  const vehUrl = env.SUPABASE_URL + '/rest/v1/gps_vehicles'
-               + '?device_id=eq.' + encodeURIComponent(row.device_id)
-               + '&select=device_id,last_lat,last_lng,last_seen_at';
-  const vRes = await fetch(vehUrl, { headers: sbHdrs });
-  if (!vRes.ok) {
-    return jsonResponse({ ok: false, error: 'VEHICLE_READ_FAILED' }, 502, request, env);
+  // Vehicle position comes from the caller (frontend already polls gpsGetStatus
+  // every 10s — gps_vehicles is just a registry, not a position store).
+  // Validate sane lat/lng.
+  if (!isFinite(vehLat) || !isFinite(vehLng) ||
+      vehLat < -90 || vehLat > 90 || vehLng < -180 || vehLng > 180) {
+    return jsonResponse({ ok: false, error: 'VEHICLE_NO_POSITION', hint: 'pass &lat= &lng= query params' }, 400, request, env);
   }
-  const vehRows = await vRes.json();
-  const veh = vehRows[0];
-  if (!veh || veh.last_lat == null || veh.last_lng == null) {
-    return jsonResponse({ ok: false, error: 'VEHICLE_NO_POSITION' }, 503, request, env);
-  }
+  const veh = { last_lat: vehLat, last_lng: vehLng };
 
   // Cadence decision
   const now = Date.now();

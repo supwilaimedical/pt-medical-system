@@ -555,10 +555,19 @@
 
     async function refreshEtaFromWorker() {
       if (!_tokenData) return;
+      var pos = window._currentVehiclePos;
+      if (!pos || pos.lat == null || pos.lng == null) {
+        // No live position yet — retry in 5s when fetchStatus has populated it
+        _etaRefreshTimer = setTimeout(refreshEtaFromWorker, 5000);
+        return;
+      }
       var workerUrl = (window.CONFIG && CONFIG.DEFAULTS && CONFIG.DEFAULTS.NOTIFY_PROXY_URL)
                       || 'https://gps-proxy.supwilai-ambulance.workers.dev';
+      var qs = '?token=' + encodeURIComponent(_tokenData.token)
+             + '&lat=' + encodeURIComponent(pos.lat)
+             + '&lng=' + encodeURIComponent(pos.lng);
       try {
-        var res = await fetch(workerUrl.replace(/\/+$/,'') + '/api/eta/refresh?token=' + encodeURIComponent(_tokenData.token));
+        var res = await fetch(workerUrl.replace(/\/+$/,'') + '/api/eta/refresh' + qs);
         var j = await res.json();
         if (j.ok) {
           if (j.fresh) {
@@ -751,6 +760,8 @@
         }
 
         if (s.lat && s.lng && !(s.lat === 0 && s.lng === 0)) {
+          // Cache live position for ETA refresh calls (Worker needs lat/lng)
+          window._currentVehiclePos = { lat: s.lat, lng: s.lng };
           var ringColor = !s.online ? '#94a3b8' : (speedNum < 1 ? '#f59e0b' : '#22c55e');
           var pulseRing = (s.online && speedNum > 1)
             ? '<div style="position:absolute;top:-6px;left:-6px;width:52px;height:52px;border-radius:50%;background:' + ringColor + ';opacity:0.3;animation:sharePulseRing 1.6s ease-out infinite;"></div>'
