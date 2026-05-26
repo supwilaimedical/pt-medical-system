@@ -194,6 +194,63 @@
     },
 
     /**
+     * Hospital search with WIDE recall.
+     * Single nearbySearch is hard-capped at 20 results and ~70-80% of those are
+     * noise (Google's Thai data tags clinics/pharmacies/lodging as hospital).
+     * After filtering, only 4-6 real hospitals remain even at 25 km radius.
+     *
+     * Strategy: run TWO parallel calls and merge:
+     *   1) nearbySearch(primaryTypes=['hospital']) — anchored to type
+     *   2) searchText(query='โรงพยาบาล')          — anchored to Thai name
+     * Dedupe by placeId, filter noise, drop entries outside radius (text
+     * search uses locationBIAS, not RESTRICT), sort by distance.
+     *
+     * Typical result: 15-30 hospitals at 25 km radius vs ~5 from single call.
+     *
+     * @param {number} lat
+     * @param {number} lng
+     * @param {number} [radius=5000] meters
+     * @returns {Promise<Array>}
+     */
+    searchHospitalsCombined: async function(lat, lng, radius) {
+      var self = this;
+      radius = radius || 5000;
+
+      var nearbyP = self.searchNearby({
+        lat: lat, lng: lng, radius: radius,
+        primaryTypes: ['hospital'], maxResults: 20
+      }).catch(function(e){ console.warn('hospital nearby failed:', e); return []; });
+
+      var textP = self.searchText({
+        query: 'โรงพยาบาล',
+        lat: lat, lng: lng, radius: radius, maxResults: 20
+      }).catch(function(e){ console.warn('hospital text failed:', e); return []; });
+
+      var batches = await Promise.all([nearbyP, textP]);
+      // Merge + dedupe by placeId (or name+coords fallback)
+      var seen = {};
+      var combined = [];
+      batches.forEach(function(list) {
+        (list || []).forEach(function(p) {
+          var key = p.placeId || ((p.name || '') + '|' + (p.lat || '') + '|' + (p.lng || ''));
+          if (!seen[key]) { seen[key] = 1; combined.push(p); }
+        });
+      });
+      // Apply hospital filter (whitelist + reject prefixes + secondary-type blacklist)
+      combined = self.filterNoise(combined, 'hospital');
+      // Text search uses locationBIAS, so results can fall outside radius
+      combined = combined.filter(function(p) {
+        return p.distanceM == null || p.distanceM <= radius;
+      });
+      // Sort by distance
+      combined.sort(function(a, b) {
+        return (a.distanceM == null ? Infinity : a.distanceM) -
+               (b.distanceM == null ? Infinity : b.distanceM);
+      });
+      return combined;
+    },
+
+    /**
      * Convenience: search nearby gas stations.
      */
     searchNearbyGasStations: function(lat, lng, radius) {

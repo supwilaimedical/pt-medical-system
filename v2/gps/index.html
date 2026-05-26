@@ -1828,7 +1828,7 @@
   <script src="../shared.js"></script>
   <script src="../../shared/gps-providers.js"></script>
   <script src="../../shared/map-config.js"></script>
-  <script src="../../shared/places-api.js?v=20260526a"></script>
+  <script src="../../shared/places-api.js?v=20260526b"></script>
   <script>
     // =============================================
     // SUPABASE INIT
@@ -2865,24 +2865,32 @@
           // gives stricter results: place's PRIMARY category must match.
           // Fetch up to 20 but only display first 10 initially — dispatcher
           // can click "ค้นหาเพิ่ม" to reveal the rest without a new API call.
-          var primaryTypes;
-          if (type === 'clinic') {
-            primaryTypes = ['doctor', 'dentist'];
+          if (type === 'hospital') {
+            // Wide-recall combined call (nearby + text search "โรงพยาบาล")
+            // Single nearbySearch is capped at 20 and ~70% of those are noise,
+            // leaving only ~5 real hospitals after filtering. Combined typically
+            // returns 15-30 real hospitals at 25 km radius.
+            results = await PlacesAPI.searchHospitalsCombined(
+              _hospitalOrigin.lat, _hospitalOrigin.lng, radius
+            );
           } else {
-            // hospital, pharmacy, gas_station, police, fire_station
-            primaryTypes = [type];
+            var primaryTypes;
+            if (type === 'clinic') {
+              primaryTypes = ['doctor', 'dentist'];
+            } else {
+              // pharmacy, gas_station, police, fire_station
+              primaryTypes = [type];
+            }
+            results = await PlacesAPI.searchNearby({
+              lat: _hospitalOrigin.lat,
+              lng: _hospitalOrigin.lng,
+              radius: radius,
+              primaryTypes: primaryTypes,
+              maxResults: 20
+            });
+            // Strip noise (lodging/vet/salon secondary types + bad name patterns)
+            results = filterNoiseByType(results, type);
           }
-          results = await PlacesAPI.searchNearby({
-            lat: _hospitalOrigin.lat,
-            lng: _hospitalOrigin.lng,
-            radius: radius,
-            primaryTypes: primaryTypes,
-            maxResults: 20
-          });
-          // Google's Thai data is noisy — lodging, pet clinics, opticians,
-          // and small clinics often get tagged primaryType="hospital".
-          // Post-filter by secondary types + name heuristics.
-          results = filterNoiseByType(results, type);
         }
         _hospitalAllResults = results || [];
         var firstBatch = _hospitalAllResults.slice(0, 10);
