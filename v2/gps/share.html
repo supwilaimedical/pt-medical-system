@@ -315,6 +315,63 @@
         <span id="expireText">--</span>
       </div>
     </div>
+
+    <!-- Phase 3 — ETA panel (state-driven) -->
+    <div id="eta-panel" style="background:white; border-top:2px solid var(--navy-700, #1e40af); padding:14px 16px; box-shadow:0 -4px 12px rgba(0,0,0,.08);">
+
+      <!-- State A — awaiting customer pick (customer_choose mode, not locked) -->
+      <div id="eta-state-awaiting" style="display:none;">
+        <div style="text-align:center; margin-bottom:10px;">
+          <div style="font-weight:700; font-size:1rem;">📍 คุณจะติดตามรถถึงที่ไหน?</div>
+          <div style="font-size:0.78rem; color:#64748b; margin-top:2px;">เลือกเพียงครั้งเดียว · ระบบจะเริ่มคำนวณ ETA</div>
+        </div>
+        <div style="display:flex; gap:8px; justify-content:center; flex-wrap:wrap;">
+          <button id="btn-pick-on-map" class="btn btn-primary"
+                  style="padding:10px 18px; border-radius:8px; font-weight:600; min-width:160px;">
+            <i class="bi bi-map-fill"></i> เลือกบนแผนที่
+          </button>
+          <button id="btn-pick-geo" class="btn btn-outline-primary"
+                  style="padding:10px 18px; border-radius:8px; font-weight:600; min-width:160px;">
+            <i class="bi bi-geo-alt-fill"></i> ใช้ตำแหน่งฉัน
+          </button>
+        </div>
+      </div>
+
+      <!-- State B — live ETA countdown -->
+      <div id="eta-state-live" style="display:none;">
+        <div style="display:flex; justify-content:space-between; align-items:baseline; gap:12px; flex-wrap:wrap;">
+          <div>
+            <div style="font-size:0.72rem; color:#64748b;">ถึงปลายทางใน</div>
+            <div id="eta-countdown" style="font-size:1.8rem; font-weight:800; color:#1e40af; line-height:1.2;">--</div>
+          </div>
+          <div style="text-align:right;">
+            <div style="font-size:0.72rem; color:#64748b;">ปลายทาง</div>
+            <div id="eta-dest-name" style="font-weight:700; font-size:0.92rem;">--</div>
+            <div style="font-size:0.72rem; color:#64748b;">
+              <span id="eta-distance">--</span> · อัปเดต <span id="eta-updated">--</span>
+            </div>
+          </div>
+        </div>
+        <div id="eta-signal-banner" style="display:none; margin-top:8px; padding:6px 10px; background:#fef3c7; border:1px solid #fde68a; border-radius:6px; color:#92400e; font-size:0.82rem;">
+          <i class="bi bi-exclamation-triangle-fill"></i> ไม่มีสัญญาณ — ตำแหน่งล่าสุด <span id="eta-last-seen">--</span>
+        </div>
+      </div>
+
+      <!-- State C — arrived -->
+      <div id="eta-state-arrived" style="display:none; text-align:center; padding:10px 0;">
+        <i class="bi bi-check-circle-fill" style="color:#16a34a; font-size:2.6rem;"></i>
+        <div style="font-size:1.2rem; font-weight:700; margin-top:6px;">ถึงปลายทางแล้ว ✓</div>
+        <div style="font-size:0.82rem; color:#64748b;">ขอบคุณที่ใช้บริการ Supwilai PT-Amb</div>
+      </div>
+
+    </div>
+
+    <!-- Map picker overlay (visible during state A → user clicks map) -->
+    <div id="map-picker-overlay" style="display:none; position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(0,0,0,0.35); z-index:2000; pointer-events:none;">
+      <div style="position:absolute; top:20px; left:50%; transform:translateX(-50%); background:white; padding:12px 18px; border-radius:10px; font-weight:700; box-shadow:0 4px 12px rgba(0,0,0,.2);">
+        <i class="bi bi-hand-index-thumb-fill" style="color:#1e40af;"></i> แตะบนแผนที่เพื่อเลือกปลายทาง
+      </div>
+    </div>
   </div>
 
   <!-- Loading -->
@@ -405,6 +462,9 @@
         updateExpireCountdown();
         _expireInterval = setInterval(updateExpireCountdown, 1000);
 
+        // Phase 3 — boot ETA state machine (awaiting/live/arrived/expired)
+        try { bootEtaStateMachine(); } catch (e) { console.warn('eta boot:', e.message); }
+
       } catch(e) {
         console.error(e);
         showError('เกิดข้อผิดพลาด', e.message);
@@ -415,6 +475,248 @@
       return String(s == null ? '' : s)
         .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
         .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+    }
+
+    // =========================================================================
+    // Phase 3 — ETA state machine (spec §7)
+    // =========================================================================
+    var _shareState = 'unknown';
+    var _countdownTimer = null;
+    var _etaRefreshTimer = null;
+    var _destMarker = null;
+    var _vehiclePosCheckTimer = null;
+    var _etaChannel = null;
+
+    function setEtaState(s) {
+      _shareState = s;
+      var panel = document.getElementById('eta-panel');
+      if (!panel) return;
+      ['awaiting','live','arrived'].forEach(function(name) {
+        var el = document.getElementById('eta-state-' + name);
+        if (el) el.style.display = (s === name) ? '' : 'none';
+      });
+    }
+
+    function decideEtaState(row) {
+      if (!row) return 'expired';
+      if (row.status !== 'Active') return 'expired';
+      if (new Date(row.expires_at) < new Date()) return 'expired';
+      if (row.dest_mode === 'customer_choose' && !row.dest_locked_at) return 'awaiting';
+      if (row.last_distance_m != null && row.last_distance_m < 100) return 'arrived';
+      return 'live';
+    }
+
+    function renderEtaLive(row) {
+      var nameEl = document.getElementById('eta-dest-name');
+      if (nameEl) nameEl.textContent = row.dest_name || '(ปลายทาง)';
+      if (row.dest_lat != null && row.dest_lng != null && _map) {
+        if (_destMarker) { try { _map.removeLayer(_destMarker); } catch(_){} }
+        _destMarker = L.marker([row.dest_lat, row.dest_lng], {
+          icon: L.divIcon({
+            html: '<div style="font-size:28px; line-height:1;">🏥</div>',
+            className: '',
+            iconSize: [28, 28]
+          })
+        }).addTo(_map);
+      }
+      startEtaCountdown(row);
+    }
+
+    function startEtaCountdown(row) {
+      if (_countdownTimer) clearInterval(_countdownTimer);
+      if (row.last_eta_seconds == null || !row.last_eta_at) {
+        var ec = document.getElementById('eta-countdown');
+        if (ec) ec.textContent = 'กำลังคำนวณ...';
+        return;
+      }
+      var etaAt  = new Date(row.last_eta_at).getTime();
+      var etaSec = row.last_eta_seconds;
+      _countdownTimer = setInterval(function() {
+        var elapsed = Math.floor((Date.now() - etaAt) / 1000);
+        var remain  = Math.max(0, etaSec - elapsed);
+        var hr = Math.floor(remain / 3600);
+        var mn = Math.floor((remain - hr*3600) / 60);
+        var sc = remain - hr*3600 - mn*60;
+        var txt = (hr ? hr + ' ชม. ' : '') + mn + ' นาที ' + (sc < 10 ? '0' : '') + sc + ' วินาที';
+        var ec = document.getElementById('eta-countdown');
+        if (ec) ec.textContent = txt;
+        var ed = document.getElementById('eta-distance');
+        if (ed) ed.textContent = (row.last_distance_m != null)
+          ? ((row.last_distance_m / 1000).toFixed(1) + ' กม.')
+          : '--';
+        var updatedSec = Math.floor((Date.now() - etaAt) / 1000);
+        var eu = document.getElementById('eta-updated');
+        if (eu) {
+          if (updatedSec < 60) eu.textContent = updatedSec + ' วิ ที่แล้ว';
+          else eu.textContent = Math.floor(updatedSec / 60) + ' นาที ที่แล้ว';
+        }
+      }, 1000);
+    }
+
+    async function refreshEtaFromWorker() {
+      if (!_tokenData) return;
+      var workerUrl = (window.CONFIG && CONFIG.DEFAULTS && CONFIG.DEFAULTS.NOTIFY_PROXY_URL)
+                      || 'https://gps-proxy.supwilai-ambulance.workers.dev';
+      try {
+        var res = await fetch(workerUrl.replace(/\/+$/,'') + '/api/eta/refresh?token=' + encodeURIComponent(_tokenData.token));
+        var j = await res.json();
+        if (j.ok) {
+          if (j.fresh) {
+            _tokenData.last_eta_seconds = j.eta_seconds;
+            _tokenData.last_eta_at      = j.eta_at;
+            _tokenData.last_distance_m  = j.distance_m;
+            startEtaCountdown(_tokenData);
+          }
+          if (j.arrived) setEtaState('arrived');
+        }
+        var nextMs = ((j.next_refresh_in || 60) + 2) * 1000; // +2s slop
+        _etaRefreshTimer = setTimeout(refreshEtaFromWorker, nextMs);
+      } catch (e) {
+        // Backoff: try again in 60s
+        _etaRefreshTimer = setTimeout(refreshEtaFromWorker, 60000);
+      }
+    }
+
+    // Customer destination picker (customer_choose mode → state awaiting → live)
+    async function confirmCustomerDest(lat, lng, name, source) {
+      var ok = await Swal.fire({
+        title: 'ยืนยันปลายทาง?',
+        text: name + ' (' + lat.toFixed(5) + ', ' + lng.toFixed(5) + ')',
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonText: 'ยืนยัน',
+        cancelButtonText: 'ยกเลิก'
+      });
+      if (!ok.isConfirmed) return;
+
+      // PATCH with race-condition guard (spec §5 H1)
+      var nowIso = new Date().toISOString();
+      var res = await _supabase.from('gps_shared_tokens')
+        .update({
+          dest_lat: lat, dest_lng: lng,
+          dest_name: name, dest_source: source,
+          dest_locked_at: nowIso
+        })
+        .eq('token', _tokenData.token)
+        .is('dest_locked_at', null)
+        .select();
+
+      if (res.error) {
+        Swal.fire('Error', res.error.message, 'error');
+        return;
+      }
+
+      if (!res.data || res.data.length === 0) {
+        // Lost the race — someone else already locked
+        await refetchTokenRow();
+        var st = decideEtaState(_tokenData);
+        setEtaState(st);
+        if (st === 'live') {
+          renderEtaLive(_tokenData);
+          refreshEtaFromWorker();
+        }
+        return;
+      }
+
+      _tokenData = res.data[0];
+      setEtaState('live');
+      renderEtaLive(_tokenData);
+      refreshEtaFromWorker();
+      subscribeEtaUpdates();
+    }
+
+    async function refetchTokenRow() {
+      var res = await _supabase.from('gps_shared_tokens').select('*').eq('token', _tokenData.token).maybeSingle();
+      if (res.data) _tokenData = res.data;
+    }
+
+    // Picker UI handlers
+    document.addEventListener('click', function(e) {
+      if (e.target.closest && e.target.closest('#btn-pick-on-map')) {
+        if (!_map) return;
+        document.getElementById('map-picker-overlay').style.display = '';
+        var oneShot = function(ev) {
+          _map.off('click', oneShot);
+          document.getElementById('map-picker-overlay').style.display = 'none';
+          confirmCustomerDest(ev.latlng.lat, ev.latlng.lng, 'จุดที่คุณเลือก', 'customer_map_pick');
+        };
+        _map.on('click', oneShot);
+      }
+      if (e.target.closest && e.target.closest('#btn-pick-geo')) {
+        if (!navigator.geolocation) {
+          Swal.fire('Browser ไม่รองรับ', 'อุปกรณ์นี้ไม่รองรับการระบุตำแหน่ง — ใช้ "เลือกบนแผนที่" แทน', 'warning');
+          return;
+        }
+        navigator.geolocation.getCurrentPosition(function(pos) {
+          confirmCustomerDest(pos.coords.latitude, pos.coords.longitude, 'ตำแหน่งของคุณ', 'customer_geo');
+        }, function() {
+          Swal.fire('ไม่ได้รับอนุญาต', 'ต้องอนุญาตการเข้าถึงตำแหน่งก่อน — หรือใช้ "เลือกบนแผนที่"', 'warning');
+        }, { enableHighAccuracy: true, timeout: 10000 });
+      }
+    });
+
+    // Realtime — listen for Worker writeback (UPDATE on this token's row)
+    function subscribeEtaUpdates() {
+      if (!_tokenData || !_supabase) return;
+      if (_etaChannel) { try { _supabase.removeChannel(_etaChannel); } catch(_){} }
+      _etaChannel = _supabase.channel('eta-' + _tokenData.token)
+        .on('postgres_changes', {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'gps_shared_tokens',
+          filter: 'token=eq.' + _tokenData.token
+        }, function(payload) {
+          var newRow = payload.new;
+          if (!newRow) return;
+          _tokenData = newRow;
+          var st = decideEtaState(_tokenData);
+          if (st !== _shareState) setEtaState(st);
+          if (st === 'live') startEtaCountdown(_tokenData);
+        })
+        .subscribe();
+    }
+
+    // GPS offline banner — 30s ticker checks gps_vehicles.last_seen_at
+    function startVehicleFreshnessCheck() {
+      if (_vehiclePosCheckTimer) clearInterval(_vehiclePosCheckTimer);
+      _vehiclePosCheckTimer = setInterval(async function() {
+        if (!_tokenData) return;
+        try {
+          var res = await _supabase.from('gps_vehicles')
+            .select('last_seen_at')
+            .eq('device_id', _tokenData.device_id)
+            .maybeSingle();
+          if (!res.data || !res.data.last_seen_at) return;
+          var ageMs = Date.now() - new Date(res.data.last_seen_at).getTime();
+          var banner = document.getElementById('eta-signal-banner');
+          var seenLabel = document.getElementById('eta-last-seen');
+          if (!banner) return;
+          if (ageMs > 2 * 60 * 1000) {
+            banner.style.display = '';
+            var min = Math.floor(ageMs / 60000);
+            if (seenLabel) seenLabel.textContent = min + ' นาทีที่แล้ว';
+          } else {
+            banner.style.display = 'none';
+          }
+        } catch (e) { /* ignore */ }
+      }, 30000);
+    }
+
+    // Wire ETA state machine into existing init flow
+    function bootEtaStateMachine() {
+      if (!_tokenData) return;
+      var st = decideEtaState(_tokenData);
+      setEtaState(st);
+      if (st === 'expired') {
+        window.location.href = 'share-expired.html';
+        return;
+      }
+      if (st === 'live' || st === 'arrived') {
+        renderEtaLive(_tokenData);
+        if (st === 'live') refreshEtaFromWorker();
+        subscribeEtaUpdates();
+      }
+      startVehicleFreshnessCheck();
     }
 
     function displayName() {
