@@ -398,9 +398,9 @@
             <span style="font-size:0.72rem; color:#94a3b8; font-weight:600;">หรือ</span>
             <div style="flex:1; height:1px; background:#e2e8f0;"></div>
           </div>
-          <button id="btn-pick-on-map" class="btn btn-outline-primary"
+          <button id="btn-pick-geo" class="btn btn-outline-primary"
                   style="width:100%; padding:12px 18px; border-radius:10px; font-weight:600; font-size:0.95rem;">
-            <i class="bi bi-map-fill"></i> เลือกบนแผนที่
+            <i class="bi bi-geo-alt-fill"></i> ใช้ตำแหน่งของฉัน
           </button>
         </div>
       </div>
@@ -435,12 +435,6 @@
     </div>
 
     <!-- Map picker overlay (visible during state A → user clicks map) -->
-    <!-- Hint pill only (no full-screen dim) so map touch events reach Leaflet -->
-    <div id="map-picker-overlay" style="display:none; position:fixed; top:20px; left:50%; transform:translateX(-50%); z-index:2000; pointer-events:none;">
-      <div style="background:#1e40af; color:#fff; padding:10px 16px; border-radius:100px; font-weight:700; font-size:0.86rem; box-shadow:0 4px 14px rgba(0,0,0,.25); white-space:nowrap;">
-        <i class="bi bi-hand-index-thumb-fill"></i> แตะบนแผนที่เพื่อเลือกปลายทาง
-      </div>
-    </div>
   </div>
 
   <!-- Loading -->
@@ -826,18 +820,24 @@
 
     // Picker UI handlers
     document.addEventListener('click', function(e) {
-      if (e.target.closest && e.target.closest('#btn-pick-on-map')) {
-        if (!_map) return;
-        // Hide modal so user can interact with map; map-picker-overlay shows hint
-        var awaitingEl = document.getElementById('eta-state-awaiting');
-        if (awaitingEl) awaitingEl.style.display = 'none';
-        document.getElementById('map-picker-overlay').style.display = '';
-        var oneShot = function(ev) {
-          _map.off('click', oneShot);
-          document.getElementById('map-picker-overlay').style.display = 'none';
-          confirmCustomerDest(ev.latlng.lat, ev.latlng.lng, 'จุดที่คุณเลือก', 'customer_map_pick');
-        };
-        _map.on('click', oneShot);
+      if (e.target.closest && e.target.closest('#btn-pick-geo')) {
+        if (!navigator.geolocation) {
+          Swal.fire('Browser ไม่รองรับ', 'อุปกรณ์นี้ไม่รองรับการระบุตำแหน่ง — กรุณาใช้ช่องค้นหาแทน', 'warning');
+          return;
+        }
+        var geoBtn = e.target.closest('#btn-pick-geo');
+        var origLabel = geoBtn.innerHTML;
+        geoBtn.disabled = true;
+        geoBtn.innerHTML = '<i class="bi bi-hourglass-split"></i> กำลังขอตำแหน่ง...';
+        navigator.geolocation.getCurrentPosition(function(pos) {
+          confirmCustomerDest(pos.coords.latitude, pos.coords.longitude, 'ตำแหน่งของคุณ', 'customer_geo');
+          geoBtn.disabled = false;
+          geoBtn.innerHTML = origLabel;
+        }, function() {
+          geoBtn.disabled = false;
+          geoBtn.innerHTML = origLabel;
+          Swal.fire('ไม่ได้รับอนุญาต', 'ต้องอนุญาตการเข้าถึงตำแหน่งก่อน — หรือใช้ช่องค้นหา', 'warning');
+        }, { enableHighAccuracy: true, timeout: 10000 });
       }
       // Click on search result → confirm dest
       var resultBtn = e.target.closest && e.target.closest('#dest-search-results button[data-idx]');
