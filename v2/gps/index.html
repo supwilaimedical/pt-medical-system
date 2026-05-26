@@ -711,6 +711,28 @@
       font-size: 0.72rem; color: var(--slate-600); margin-top: 2px;
     }
 
+    /* Speed toggle — softer navy theme (less sensitive than camera) */
+    .speed-toggle-card {
+      display: flex; align-items: center; gap: 12px;
+      padding: 12px 14px;
+      background: #eff6ff;
+      border: 1px solid #bfdbfe;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: all 0.15s;
+      margin-top: 10px;
+    }
+    .speed-toggle-card:hover { border-color: var(--navy-500, #3b82f6); }
+    .speed-toggle-card input { margin: 0; width: 18px; height: 18px; flex-shrink: 0; accent-color: var(--navy-700, #1e40af); }
+    .speed-toggle-card .toggle-content { flex: 1; }
+    .speed-toggle-card .toggle-label {
+      font-size: 0.88rem; font-weight: 700; color: #1e40af;
+      display: flex; align-items: center; gap: 6px;
+    }
+    .speed-toggle-card .toggle-desc {
+      font-size: 0.72rem; color: var(--slate-600); margin-top: 2px;
+    }
+
     .share-result {
       background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
       border: 1px solid #86efac;
@@ -718,6 +740,7 @@
       padding: 14px;
       margin-top: 16px;
     }
+    @keyframes route-spin { to { transform: rotate(360deg); } }
     .share-result-label {
       font-size: 0.72rem; font-weight: 700; color: #15803d;
       text-transform: uppercase; letter-spacing: 0.04em;
@@ -1836,11 +1859,23 @@
             </div>
           </label>
 
+          <label class="speed-toggle-card" for="share-show-speed">
+            <input type="checkbox" id="share-show-speed" checked>
+            <div class="toggle-content">
+              <div class="toggle-label"><i class="bi bi-speedometer2"></i>แสดงความเร็วรถ</div>
+              <div class="toggle-desc">ปิดเพื่อซ่อนตัวเลข km/h บนหน้าผู้รับ (ยังเห็นสถานะวิ่ง/หยุด)</div>
+            </div>
+          </label>
+
           <div id="share-result" class="share-result" style="display:none;">
             <div class="share-result-label"><i class="bi bi-check-circle-fill"></i>ลิงก์พร้อมใช้งาน</div>
             <div class="d-flex gap-2">
               <input type="text" id="share-url" class="form-control form-control-sm" readonly>
               <button class="btn btn-sm" style="background:var(--navy-700); color:#fff; font-weight:600; padding:4px 14px; border-radius:7px;" onclick="copyShareUrl()"><i class="bi bi-clipboard me-1"></i>Copy</button>
+            </div>
+            <div id="share-route-loading" style="display:none; align-items:center; gap:8px; margin-top:10px; font-size:0.78rem; color:#15803d; font-weight:600;">
+              <span style="display:inline-block; width:14px; height:14px; border:2px solid rgba(21,128,61,0.25); border-top-color:#15803d; border-radius:50%; animation:route-spin 0.8s linear infinite;"></span>
+              <span>กำลังคำนวณเส้นทาง…</span>
             </div>
           </div>
         </div>
@@ -2615,8 +2650,10 @@
       var nameDisplay = document.getElementById('share-vehicle-name-display');
       if (nameDisplay) nameDisplay.textContent = vehicleName;
       document.getElementById('share-result').style.display = 'none';
+      var rl = document.getElementById('share-route-loading'); if (rl) rl.style.display = 'none';
       document.getElementById('share-reason').value = '';
       document.getElementById('share-allow-camera').checked = false;
+      var ssp = document.getElementById('share-show-speed'); if (ssp) ssp.checked = true;
       // Reset TTL to default 1 hr
       document.getElementById('share-hours').value = '1';
       document.querySelectorAll('#share-hours-group .segmented-btn').forEach(function(b) {
@@ -2861,11 +2898,12 @@
         var token = 'TK-' + crypto.randomUUID().substring(0, 8).toUpperCase();
         var expiresAt = new Date(Date.now() + hours * 60 * 60 * 1000).toISOString();
         var allowCamera = document.getElementById('share-allow-camera').checked;
+        var showSpeed = document.getElementById('share-show-speed').checked;
 
         await _supabase.from('gps_shared_tokens').insert({
           token: token, device_id: deviceId, provider: providerId,
           expires_at: expiresAt, created_by: getUserName(), reason: reason,
-          allow_camera: allowCamera,
+          allow_camera: allowCamera, show_speed: showSpeed,
           // Phase 2 fields
           ttl_hours: hours,
           dest_mode: destMode,
@@ -2895,13 +2933,16 @@
           if (vehPos) {
             var workerUrl = (window.CONFIG && CONFIG.DEFAULTS && CONFIG.DEFAULTS.NOTIFY_PROXY_URL)
                             || 'https://gps-proxy.supwilai-ambulance.workers.dev';
-            // Fire-and-forget — share link works without polyline; route can fail
-            // gracefully (customer just won't see the route line).
+            var routeLoader = document.getElementById('share-route-loading');
+            if (routeLoader) routeLoader.style.display = 'inline-flex';
+            // Share link works without polyline; route can fail gracefully
+            // (customer just won't see the route line). Spinner hides on settle.
             fetch(workerUrl.replace(/\/+$/,'') + '/api/route/refresh'
                 + '?token=' + encodeURIComponent(token)
                 + '&lat=' + encodeURIComponent(vehPos.lat)
                 + '&lng=' + encodeURIComponent(vehPos.lng))
-              .catch(function(e){ console.warn('initial route refresh failed:', e); });
+              .catch(function(e){ console.warn('initial route refresh failed:', e); })
+              .finally(function(){ if (routeLoader) routeLoader.style.display = 'none'; });
           }
         }
 
@@ -2914,6 +2955,7 @@
                  + (audience ? ', Audience: ' + audience : '')
                  + ', Reason: ' + reason
                  + (allowCamera ? ', Camera: ON' : '')
+                 + (showSpeed ? '' : ', Speed: HIDDEN')
         });
 
         loadSharedTokens();
