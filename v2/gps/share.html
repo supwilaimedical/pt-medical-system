@@ -168,8 +168,14 @@
     .map-wrap { position: relative; }
     #map {
       width: 100%;
-      height: calc(100vh - 140px);
+      height: calc(100vh - 280px);   /* reserve room for eta-panel below */
       min-height: 320px;
+    }
+    /* ETA panel — bottom sheet, fixed height */
+    #eta-panel {
+      position: relative;
+      z-index: 1000;
+      min-height: 120px;
     }
     .leaflet-container { background: var(--slate-100); }
 
