@@ -381,21 +381,27 @@
       <!-- State A — awaiting customer pick (customer_choose mode, not locked) -->
       <div id="eta-state-awaiting" class="dest-modal-overlay" style="display:none;">
         <div class="dest-modal-card">
-          <div style="text-align:center; margin-bottom:18px;">
+          <div style="text-align:center; margin-bottom:16px;">
             <div style="font-size:2rem; margin-bottom:6px;">📍</div>
             <div style="font-weight:700; font-size:1.05rem; color:#0f2444;">คุณจะติดตามรถถึงที่ไหน?</div>
             <div style="font-size:0.8rem; color:#64748b; margin-top:6px;">เลือกเพียงครั้งเดียว · ระบบจะเริ่มคำนวณ ETA</div>
           </div>
-          <div style="display:flex; gap:10px; flex-direction:column;">
-            <button id="btn-pick-on-map" class="btn btn-primary"
-                    style="padding:12px 18px; border-radius:10px; font-weight:600; font-size:0.95rem;">
-              <i class="bi bi-map-fill"></i> เลือกบนแผนที่
-            </button>
-            <button id="btn-pick-geo" class="btn btn-outline-primary"
-                    style="padding:12px 18px; border-radius:10px; font-weight:600; font-size:0.95rem;">
-              <i class="bi bi-geo-alt-fill"></i> ใช้ตำแหน่งฉัน
-            </button>
+          <div style="position:relative;">
+            <i class="bi bi-search" style="position:absolute; left:12px; top:50%; transform:translateY(-50%); color:#64748b; font-size:0.9rem;"></i>
+            <input type="text" id="dest-search-input" autocomplete="off"
+                   placeholder="พิมพ์ชื่อสถานที่ (≥3 ตัว)..."
+                   style="width:100%; padding:10px 12px 10px 34px; border:1px solid #cbd5e1; border-radius:8px; font-size:0.95rem;">
           </div>
+          <div id="dest-search-results" style="margin-top:8px; max-height:220px; overflow-y:auto;"></div>
+          <div style="display:flex; align-items:center; gap:10px; margin:14px 0 10px;">
+            <div style="flex:1; height:1px; background:#e2e8f0;"></div>
+            <span style="font-size:0.72rem; color:#94a3b8; font-weight:600;">หรือ</span>
+            <div style="flex:1; height:1px; background:#e2e8f0;"></div>
+          </div>
+          <button id="btn-pick-on-map" class="btn btn-outline-primary"
+                  style="width:100%; padding:12px 18px; border-radius:10px; font-weight:600; font-size:0.95rem;">
+            <i class="bi bi-map-fill"></i> เลือกบนแผนที่
+          </button>
         </div>
       </div>
 
@@ -429,9 +435,10 @@
     </div>
 
     <!-- Map picker overlay (visible during state A → user clicks map) -->
-    <div id="map-picker-overlay" style="display:none; position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(0,0,0,0.35); z-index:2000; pointer-events:none;">
-      <div style="position:absolute; top:20px; left:50%; transform:translateX(-50%); background:white; padding:12px 18px; border-radius:10px; font-weight:700; box-shadow:0 4px 12px rgba(0,0,0,.2);">
-        <i class="bi bi-hand-index-thumb-fill" style="color:#1e40af;"></i> แตะบนแผนที่เพื่อเลือกปลายทาง
+    <!-- Hint pill only (no full-screen dim) so map touch events reach Leaflet -->
+    <div id="map-picker-overlay" style="display:none; position:fixed; top:20px; left:50%; transform:translateX(-50%); z-index:2000; pointer-events:none;">
+      <div style="background:#1e40af; color:#fff; padding:10px 16px; border-radius:100px; font-weight:700; font-size:0.86rem; box-shadow:0 4px 14px rgba(0,0,0,.25); white-space:nowrap;">
+        <i class="bi bi-hand-index-thumb-fill"></i> แตะบนแผนที่เพื่อเลือกปลายทาง
       </div>
     </div>
   </div>
@@ -446,6 +453,8 @@
   <script src="../../shared/config.js"></script>
   <script src="../../shared/settings.js"></script>
   <script src="../../shared/gps-providers.js"></script>
+  <script src="../../shared/map-config.js"></script>
+  <script src="../../shared/places-api.js"></script>
   <script>
     var _supabase = null;
     var _tokenData = null;
@@ -458,6 +467,11 @@
 
     async function init() {
       _supabase = supabase.createClient(CONFIG.SUPABASE_URL, CONFIG.SUPABASE_ANON_KEY);
+
+      // Load Map provider config — gives us API key for PlacesAPI.searchText
+      // (customer dest picker search). Best-effort; if it fails, search button
+      // shows error but "เลือกบนแผนที่" still works.
+      try { if (window.MapConfig) await MapConfig.load(_supabase); } catch(e){ console.warn('MapConfig load:', e.message); }
 
       // Guard: respect GPS_ENABLED admin toggle (block public share when GPS module is disabled)
       try {
@@ -825,17 +839,52 @@
         };
         _map.on('click', oneShot);
       }
-      if (e.target.closest && e.target.closest('#btn-pick-geo')) {
-        if (!navigator.geolocation) {
-          Swal.fire('Browser ไม่รองรับ', 'อุปกรณ์นี้ไม่รองรับการระบุตำแหน่ง — ใช้ "เลือกบนแผนที่" แทน', 'warning');
-          return;
-        }
-        navigator.geolocation.getCurrentPosition(function(pos) {
-          confirmCustomerDest(pos.coords.latitude, pos.coords.longitude, 'ตำแหน่งของคุณ', 'customer_geo');
-        }, function() {
-          Swal.fire('ไม่ได้รับอนุญาต', 'ต้องอนุญาตการเข้าถึงตำแหน่งก่อน — หรือใช้ "เลือกบนแผนที่"', 'warning');
-        }, { enableHighAccuracy: true, timeout: 10000 });
+      // Click on search result → confirm dest
+      var resultBtn = e.target.closest && e.target.closest('#dest-search-results button[data-idx]');
+      if (resultBtn) {
+        var idx = parseInt(resultBtn.dataset.idx, 10);
+        var cached = document.getElementById('dest-search-results')._places;
+        if (!cached || !cached[idx]) return;
+        var p = cached[idx];
+        confirmCustomerDest(p.lat, p.lng, p.name, 'customer_search');
       }
+    });
+
+    // Places text search — debounced on input
+    document.addEventListener('input', function(e) {
+      if (!e.target || e.target.id !== 'dest-search-input') return;
+      var q = (e.target.value || '').trim();
+      var resultsEl = document.getElementById('dest-search-results');
+      if (!resultsEl) return;
+      if (!q || q.length < 3) { resultsEl.innerHTML = ''; resultsEl._places = null; return; }
+      clearTimeout(window._destSearchDebounce);
+      window._destSearchDebounce = setTimeout(async function() {
+        try {
+          if (!window.PlacesAPI || !window.MapConfig || !MapConfig.getConfig().apiKey) {
+            resultsEl.innerHTML = '<div style="font-size:0.78rem; color:#dc2626;">ไม่ได้ตั้งค่า API key — ใช้ "เลือกบนแผนที่" แทน</div>';
+            return;
+          }
+          var origin = window._currentVehiclePos || null;
+          var lat = origin ? origin.lat : 13.7563;
+          var lng = origin ? origin.lng : 100.5018;
+          resultsEl.innerHTML = '<div style="font-size:0.78rem; color:#64748b; padding:6px;"><i class="bi bi-hourglass-split"></i> กำลังค้นหา...</div>';
+          var places = await PlacesAPI.searchText({
+            query: q, lat: lat, lng: lng, radius: 50000, maxResults: 6
+          });
+          if (!places.length) { resultsEl.innerHTML = '<div style="font-size:0.78rem; color:#64748b; padding:6px;">ไม่พบผลลัพธ์</div>'; return; }
+          resultsEl.innerHTML = places.map(function(p, i) {
+            return '<button type="button" data-idx="' + i + '" '
+                 + 'style="display:block; width:100%; text-align:left; padding:8px 10px; margin-bottom:4px; '
+                 + 'background:#f8fafc; border:1px solid #e2e8f0; border-radius:6px; cursor:pointer; font-size:0.82rem;">'
+                 + '<b style="color:#0f2444;">' + (p.name || '').replace(/</g,'&lt;') + '</b>'
+                 + '<br><small style="color:#64748b;">' + (p.address || '').replace(/</g,'&lt;') + '</small>'
+                 + '</button>';
+          }).join('');
+          resultsEl._places = places;
+        } catch (err) {
+          resultsEl.innerHTML = '<div style="font-size:0.78rem; color:#dc2626;">ค้นไม่ได้: ' + (err.message || err) + '</div>';
+        }
+      }, 300);
     });
 
     // Realtime — listen for Worker writeback (UPDATE on this token's row)
