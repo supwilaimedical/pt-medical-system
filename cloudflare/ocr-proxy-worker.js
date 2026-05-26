@@ -69,9 +69,178 @@ export default {
       return jsonResponse({ error: 'Unknown /notify route', path }, 404, request, env);
     }
 
+    // Google Cloud Monitoring API proxy — for admin quota dashboard.
+    // Requires GOOGLE_SA_JSON env secret (service account JSON key).
+    // PROTOTYPE — not yet wired into admin UI. Test endpoint to verify CF Worker
+    // can authenticate to Google APIs via JWT + OAuth.
+    if (path === '/api/quota/google' && request.method === 'GET') {
+      return await handleGoogleQuota(request, env);
+    }
+
     return await handleOcr(request, env);
   }
 };
+
+// =============================================
+// /api/quota/google — Google Cloud Monitoring proxy
+// =============================================
+async function handleGoogleQuota(request, env) {
+  if (!env.GOOGLE_SA_JSON) {
+    return jsonResponse({
+      error: 'GOOGLE_SA_JSON env secret not set',
+      hint: 'wrangler secret put GOOGLE_SA_JSON  → paste service account JSON'
+    }, 500, request, env);
+  }
+
+  let sa;
+  try {
+    sa = JSON.parse(env.GOOGLE_SA_JSON);
+  } catch (e) {
+    return jsonResponse({ error: 'GOOGLE_SA_JSON is not valid JSON', detail: e.message }, 500, request, env);
+  }
+
+  if (!sa.client_email || !sa.private_key || !sa.project_id) {
+    return jsonResponse({
+      error: 'Service account JSON missing required fields',
+      need: ['client_email', 'private_key', 'project_id'],
+      got: Object.keys(sa)
+    }, 500, request, env);
+  }
+
+  try {
+    // Step 1: Sign JWT
+    const jwt = await signServiceAccountJWT(sa);
+
+    // Step 2: Exchange JWT for OAuth access token
+    const tokenResp = await fetch('https://oauth2.googleapis.com/token', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: 'grant_type=urn%3Aietf%3Aparams%3Aoauth%3Agrant-type%3Ajwt-bearer&assertion=' + encodeURIComponent(jwt)
+    });
+    const tokenJson = await tokenResp.json();
+    if (!tokenJson.access_token) {
+      return jsonResponse({ error: 'OAuth token exchange failed', detail: tokenJson }, 500, request, env);
+    }
+
+    // Step 3: Query Cloud Monitoring API for current-month Maps Platform usage
+    const startOfMonth = new Date();
+    startOfMonth.setUTCDate(1);
+    startOfMonth.setUTCHours(0, 0, 0, 0);
+    const startIso = startOfMonth.toISOString();
+    const endIso = new Date().toISOString();
+
+    // Metric: serviceruntime.googleapis.com/api/request_count
+    // Filter: only Maps Platform services
+    const filter = 'metric.type="serviceruntime.googleapis.com/api/request_count" AND ' +
+                   'resource.type="consumed_api" AND ' +
+                   'resource.label.service=monitoring.regex.full_match("(maps-backend|distance-matrix-backend|directions-backend|geocoding-backend|places-backend|places).googleapis.com")';
+
+    const params = new URLSearchParams({
+      filter: filter,
+      'interval.startTime': startIso,
+      'interval.endTime': endIso,
+      'aggregation.alignmentPeriod': '2592000s',  // 30 days
+      'aggregation.perSeriesAligner': 'ALIGN_SUM',
+      'aggregation.crossSeriesReducer': 'REDUCE_SUM',
+      'aggregation.groupByFields': 'resource.label.service'
+    });
+
+    const url = 'https://monitoring.googleapis.com/v3/projects/' + sa.project_id +
+                '/timeSeries?' + params.toString();
+
+    const monResp = await fetch(url, {
+      headers: { 'Authorization': 'Bearer ' + tokenJson.access_token }
+    });
+    const monJson = await monResp.json();
+
+    if (!monResp.ok) {
+      return jsonResponse({
+        error: 'Monitoring API call failed',
+        status: monResp.status,
+        detail: monJson
+      }, 502, request, env);
+    }
+
+    // Parse: extract { service: count } map
+    const usage = {};
+    if (monJson.timeSeries) {
+      for (const ts of monJson.timeSeries) {
+        const svc = (ts.resource && ts.resource.labels && ts.resource.labels.service) || 'unknown';
+        const total = (ts.points || []).reduce(function(sum, p) {
+          return sum + Number((p.value && p.value.int64Value) || (p.value && p.value.doubleValue) || 0);
+        }, 0);
+        usage[svc] = (usage[svc] || 0) + total;
+      }
+    }
+
+    return jsonResponse({
+      ok: true,
+      project_id: sa.project_id,
+      month_start: startIso,
+      month_end: endIso,
+      usage_by_service: usage,
+      total_calls: Object.values(usage).reduce(function(s, n) { return s + n; }, 0),
+      raw_series_count: (monJson.timeSeries || []).length
+    }, 200, request, env);
+
+  } catch (e) {
+    return jsonResponse({ error: 'handleGoogleQuota failed', detail: String(e && e.message || e), stack: String(e && e.stack || '') }, 500, request, env);
+  }
+}
+
+// JWT signing for Google service account (RS256).
+// Uses Web Crypto API (available in CF Workers + modern browsers).
+async function signServiceAccountJWT(sa) {
+  const header = { alg: 'RS256', typ: 'JWT', kid: sa.private_key_id };
+  const now = Math.floor(Date.now() / 1000);
+  const claims = {
+    iss:   sa.client_email,
+    scope: 'https://www.googleapis.com/auth/monitoring.read',
+    aud:   'https://oauth2.googleapis.com/token',
+    exp:   now + 3600,
+    iat:   now
+  };
+
+  const encodedHeader = base64UrlEncode(JSON.stringify(header));
+  const encodedClaims = base64UrlEncode(JSON.stringify(claims));
+  const signingInput  = encodedHeader + '.' + encodedClaims;
+
+  // Import PEM-encoded private key
+  const pem = sa.private_key.replace(/-----BEGIN PRIVATE KEY-----/, '')
+                            .replace(/-----END PRIVATE KEY-----/, '')
+                            .replace(/\s+/g, '');
+  const keyData = Uint8Array.from(atob(pem), function(c) { return c.charCodeAt(0); });
+
+  const cryptoKey = await crypto.subtle.importKey(
+    'pkcs8',
+    keyData.buffer,
+    { name: 'RSASSA-PKCS1-v1_5', hash: 'SHA-256' },
+    false,
+    ['sign']
+  );
+
+  const signature = await crypto.subtle.sign(
+    'RSASSA-PKCS1-v1_5',
+    cryptoKey,
+    new TextEncoder().encode(signingInput)
+  );
+
+  return signingInput + '.' + base64UrlEncode(new Uint8Array(signature));
+}
+
+function base64UrlEncode(input) {
+  let str;
+  if (typeof input === 'string') {
+    str = btoa(input);
+  } else {
+    // Uint8Array or ArrayBuffer
+    const bytes = input instanceof Uint8Array ? input : new Uint8Array(input);
+    let bin = '';
+    for (let i = 0; i < bytes.length; i++) bin += String.fromCharCode(bytes[i]);
+    str = btoa(bin);
+  }
+  return str.replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+}
 
 // =============================================
 // /notify/check — Supabase Database Webhook entry

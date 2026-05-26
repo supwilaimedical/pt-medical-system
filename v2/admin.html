@@ -757,6 +757,42 @@
                     </select>
                   </div>
                 </div>
+
+                <!-- Quota usage — เดือนปัจจุบัน (Google Cloud Monitoring API) -->
+                <div class="form-row">
+                  <div>
+                    <div class="form-row-label"><i class="bi bi-bar-chart-line" style="color:var(--aaccent);"></i> Usage เดือนนี้</div>
+                    <div class="form-row-desc">ดึงจาก Google Cloud Monitoring · Free tier 10,000 calls / SKU / เดือน</div>
+                  </div>
+                  <div class="form-row-input">
+                    <button class="abtn abtn-sm" onclick="loadGoogleQuota()"><i class="bi bi-arrow-clockwise"></i> โหลด / Refresh</button>
+                  </div>
+                </div>
+                <div style="padding:0 0 12px;">
+                  <div id="ov-quota-loading" style="display:none; text-align:center; padding:20px; color:var(--atext-3); font-size:13px;">
+                    <i class="bi bi-hourglass-split"></i> กำลังโหลด quota จาก Google Cloud Monitoring...
+                  </div>
+                  <div id="ov-quota-error" style="display:none; padding:12px 14px; background:#fef2f2; border:1px solid #fecaca; border-radius:8px; color:#991b1b; font-size:13px;">
+                    <i class="bi bi-exclamation-triangle-fill"></i> <span id="ov-quota-error-msg"></span>
+                  </div>
+                  <div id="ov-quota-table" style="display:none; border:1px solid var(--aborder); border-radius:8px; overflow:hidden; background:var(--asurface-2);">
+                    <table class="quota-table" style="width:100%; border-collapse:collapse;">
+                      <thead>
+                        <tr style="background:var(--asurface-3); border-bottom:1px solid var(--aborder);">
+                          <th style="text-align:left; padding:8px 12px; font-size:12px; color:var(--atext-3); font-weight:600;">SKU</th>
+                          <th style="text-align:right; padding:8px 12px; font-size:12px; color:var(--atext-3); font-weight:600;">Calls</th>
+                          <th style="text-align:right; padding:8px 12px; font-size:12px; color:var(--atext-3); font-weight:600;">Free Tier</th>
+                          <th style="padding:8px 12px;"></th>
+                          <th style="text-align:right; padding:8px 12px; font-size:12px; color:var(--atext-3); font-weight:600;">%</th>
+                        </tr>
+                      </thead>
+                      <tbody id="ov-quota-rows"></tbody>
+                    </table>
+                    <div style="padding:10px 14px; background:#f1f5f9; font-size:12px; color:var(--atext-3); border-top:1px solid var(--aborder);">
+                      <i class="bi bi-info-circle"></i> Period: <span id="ov-quota-period"></span> · Project: <span id="ov-quota-project"></span> · Total: <b id="ov-quota-total">0</b> calls
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
@@ -1703,10 +1739,17 @@
     if (txt) txt.textContent = en ? 'เปิดใช้งานแล้ว' : 'ปิดอยู่';
     if (en && typeof loadGpsAdminData === 'function') loadGpsAdminData();
   }
+  var _quotaLoadedOnce = false;
   function toggleMapProviderConfig() {
     var sel = document.getElementById('admin-map-provider');
     var cfg = document.getElementById('admin-map-google-config');
-    if (cfg) cfg.style.display = (sel && sel.value === 'google') ? '' : 'none';
+    var isGoogle = (sel && sel.value === 'google');
+    if (cfg) cfg.style.display = isGoogle ? '' : 'none';
+    // Auto-load quota on first entry when Google is the active provider
+    if (isGoogle && !_quotaLoadedOnce && typeof loadGoogleQuota === 'function') {
+      _quotaLoadedOnce = true;
+      try { loadGoogleQuota(); } catch(_) {}
+    }
   }
   function toggleGmapKeyVisibility() {
     var inp = document.getElementById('admin-gmap-key');
@@ -2751,6 +2794,7 @@
 
     // ===== Notify gateway (Cloudflare Worker /notify/health) =====
     try {
+      var settings = (window.CONFIG && window.CONFIG.DEFAULTS) || {};
       var notifyUrl = (settings && settings.NOTIFY_PROXY_URL) ||
                       'https://gps-proxy.supwilai-ambulance.workers.dev';
       var ns = Date.now();
@@ -2780,6 +2824,96 @@
         (window.APP_VERSION_DATE ? ' (' + window.APP_VERSION_DATE + ')' : '') +
         ' · ตรวจสถานะล่าสุด ' + now + ' · <i class="bi bi-heart-fill" style="color:var(--adanger);"></i> for healthcare';
     }
+  }
+
+  // =============================================
+  // Google Maps API Quota Usage (calls /api/quota/google in CF Worker)
+  // =============================================
+  async function loadGoogleQuota() {
+    var loadingEl = document.getElementById('ov-quota-loading');
+    var errorEl = document.getElementById('ov-quota-error');
+    var tableEl = document.getElementById('ov-quota-table');
+    if (loadingEl) loadingEl.style.display = '';
+    if (errorEl) errorEl.style.display = 'none';
+    if (tableEl) tableEl.style.display = 'none';
+
+    try {
+      var settings = (window.CONFIG && window.CONFIG.DEFAULTS) || {};
+      var workerUrl = (settings.NOTIFY_PROXY_URL || 'https://gps-proxy.supwilai-ambulance.workers.dev')
+                       .replace(/\/+$/, '');
+      var r = await fetch(workerUrl + '/api/quota/google');
+      var j = await r.json();
+      if (!r.ok || !j.ok) {
+        throw new Error(j.error || ('HTTP ' + r.status));
+      }
+      renderQuotaTable(j);
+    } catch (e) {
+      if (loadingEl) loadingEl.style.display = 'none';
+      if (errorEl) {
+        errorEl.style.display = '';
+        var msg = document.getElementById('ov-quota-error-msg');
+        if (msg) msg.textContent = String(e && e.message || e);
+      }
+    }
+  }
+
+  function renderQuotaTable(data) {
+    document.getElementById('ov-quota-loading').style.display = 'none';
+    document.getElementById('ov-quota-error').style.display = 'none';
+    document.getElementById('ov-quota-table').style.display = '';
+
+    // Friendly labels for each SKU
+    var SKU_LABELS = {
+      'maps-backend.googleapis.com':            { name: 'Maps JavaScript API',  icon: 'bi-map' },
+      'distance-matrix-backend.googleapis.com': { name: 'Distance Matrix',      icon: 'bi-truck' },
+      'directions-backend.googleapis.com':      { name: 'Directions',           icon: 'bi-signpost-split' },
+      'geocoding-backend.googleapis.com':       { name: 'Geocoding',            icon: 'bi-geo-alt' },
+      'places-backend.googleapis.com':          { name: 'Places API (legacy)',  icon: 'bi-pin-map' },
+      'places.googleapis.com':                  { name: 'Places API (New)',     icon: 'bi-pin-map-fill' }
+    };
+    var FREE_TIER = 10000;
+
+    var usage = data.usage_by_service || {};
+    var rows = '';
+    Object.keys(usage).sort(function(a, b) { return usage[b] - usage[a]; }).forEach(function(sku) {
+      var calls = usage[sku] || 0;
+      var info = SKU_LABELS[sku] || { name: sku, icon: 'bi-question-circle' };
+      var pct = Math.min(100, (calls / FREE_TIER) * 100);
+      var pctRound = pct.toFixed(1);
+
+      // Color thresholds
+      var barColor = '#10b981'; // green
+      var pctColor = '#166534';
+      if (pct >= 95) { barColor = '#dc2626'; pctColor = '#991b1b'; }
+      else if (pct >= 80) { barColor = '#f59e0b'; pctColor = '#92400e'; }
+      else if (pct >= 50) { barColor = '#0ea5e9'; pctColor = '#0369a1'; }
+
+      rows += '<tr style="border-bottom:1px solid var(--aline);">' +
+        '<td style="padding:10px 12px;"><i class="bi ' + info.icon + '" style="color:var(--ainfo); margin-right:8px;"></i><b>' + escapeHtml(info.name) + '</b></td>' +
+        '<td style="text-align:right; padding:10px 12px; font-variant-numeric:tabular-nums;"><b>' + calls.toLocaleString() + '</b></td>' +
+        '<td style="text-align:right; padding:10px 12px; color:var(--atext-3); font-variant-numeric:tabular-nums;">' + FREE_TIER.toLocaleString() + '</td>' +
+        '<td style="padding:10px 12px; min-width:160px;"><div style="height:8px; background:var(--abg-2); border-radius:4px; overflow:hidden;"><div style="height:100%; width:' + pct + '%; background:' + barColor + ';"></div></div></td>' +
+        '<td style="text-align:right; padding:10px 12px; color:' + pctColor + '; font-weight:600; font-variant-numeric:tabular-nums;">' + pctRound + '%</td>' +
+      '</tr>';
+    });
+
+    if (!rows) {
+      rows = '<tr><td colspan="5" style="padding:20px; text-align:center; color:var(--atext-3);">ไม่มีข้อมูล usage เดือนนี้</td></tr>';
+    }
+
+    document.getElementById('ov-quota-rows').innerHTML = rows;
+    document.getElementById('ov-quota-total').textContent = (data.total_calls || 0).toLocaleString();
+    document.getElementById('ov-quota-project').textContent = data.project_id || '-';
+
+    var period = '-';
+    if (data.month_start && data.month_end) {
+      var s = new Date(data.month_start);
+      var e = new Date(data.month_end);
+      period = s.toLocaleDateString('th-TH', { day:'numeric', month:'short' }) +
+               ' → ' +
+               e.toLocaleDateString('th-TH', { day:'numeric', month:'short', year:'numeric' });
+    }
+    document.getElementById('ov-quota-period').textContent = period;
   }
 
   // =============================================

@@ -2303,12 +2303,21 @@
                 var q = (document.getElementById('mwgp-nb-text').value || '').trim();
                 if (!q) { listEl.innerHTML = '<div class="mwgp-nb-error">กรุณาพิมพ์คำค้น</div>'; return; }
                 results = await PlacesAPI.searchText({ query: q, lat: _mwgpNbOrigin.lat, lng: _mwgpNbOrigin.lng, radius: _mwgpNbRadius, maxResults: 20 });
+            } else if (_mwgpNbType === 'hospital') {
+                // Wide-recall combined search (nearby + text "โรงพยาบาล")
+                results = await PlacesAPI.searchHospitalsCombined(
+                    _mwgpNbOrigin.lat, _mwgpNbOrigin.lng, _mwgpNbRadius
+                );
             } else {
                 var primaryTypes = _mwgpNbType === 'clinic' ? ['doctor', 'dentist'] : [_mwgpNbType];
                 results = await PlacesAPI.searchNearby({
                     lat: _mwgpNbOrigin.lat, lng: _mwgpNbOrigin.lng,
                     radius: _mwgpNbRadius, primaryTypes: primaryTypes, maxResults: 20
                 });
+                // Strip noise (lodging, vet, parking, hospital sub-units, non-hospital names)
+                if (typeof PlacesAPI.filterNoise === 'function') {
+                    results = PlacesAPI.filterNoise(results, _mwgpNbType);
+                }
             }
             _mwgpNbAllResults = results || [];
             var firstBatch = _mwgpNbAllResults.slice(0, 10);
@@ -4670,7 +4679,7 @@
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script src="../../shared/map-config.js"></script>
-    <script src="../../shared/places-api.js"></script>
+    <script src="../../shared/places-api.js?v=20260526b"></script>
     <script>
     // =============================================
     // GPS Modal Logic
@@ -4871,12 +4880,21 @@
                 var q = (document.getElementById('gps-nearby-text-query').value || '').trim();
                 if (!q) { loading.style.display = 'none'; err.innerHTML = 'กรุณาพิมพ์คำค้น'; err.style.display = ''; return; }
                 results = await PlacesAPI.searchText({ query: q, lat: _gpsNearbyOrigin.lat, lng: _gpsNearbyOrigin.lng, radius: radius, maxResults: 20 });
+            } else if (type === 'hospital') {
+                // Wide-recall combined search (nearby + text "โรงพยาบาล")
+                results = await PlacesAPI.searchHospitalsCombined(
+                    _gpsNearbyOrigin.lat, _gpsNearbyOrigin.lng, radius
+                );
             } else {
                 var primaryTypes = type === 'clinic' ? ['doctor', 'dentist'] : [type];
                 results = await PlacesAPI.searchNearby({
                     lat: _gpsNearbyOrigin.lat, lng: _gpsNearbyOrigin.lng,
                     radius: radius, primaryTypes: primaryTypes, maxResults: 20
                 });
+                // Strip noise (lodging, vet, parking, hospital sub-units, non-hospital names)
+                if (typeof PlacesAPI.filterNoise === 'function') {
+                    results = PlacesAPI.filterNoise(results, type);
+                }
             }
             _gpsNearbyAllResults = results || [];
             var firstBatch = _gpsNearbyAllResults.slice(0, 10);
