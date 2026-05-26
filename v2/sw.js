@@ -1,7 +1,7 @@
 // PT Medical V2 — Service Worker (scoped to /v2/)
 // Network-first strategy with cache fallback
 
-var CACHE_NAME = 'pt-v2-v8';  // Bump on chrome.css / shared.css / shared.js / transport CSS change to invalidate cached assets. v8: gps-share customer picker = search + geolocation (map-tap removed)
+var CACHE_NAME = 'pt-v2-v9';  // Bump on chrome.css / shared.css / shared.js / transport CSS change to invalidate cached assets. v9: gps-share — load SweetAlert (was silently breaking customer dest pick)
 var V2_SCOPE = '/pt-medical-system/v2/';
 
 var STATIC_ASSETS = [
