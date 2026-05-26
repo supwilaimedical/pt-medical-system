@@ -61,7 +61,7 @@ INSERT INTO gps_shared_tokens (
   'TK-TESTSEED', '51041', NULL, NOW() + INTERVAL '4 hours', 'system-test',
   'Phase 1 Worker /api/eta/refresh verification — DELETE after Phase 4',
   'Active', 4, 'paramedic_set', 15.7008, 100.1362, 'รพ.ร่มฉัตร (test)',
-  'manual', NOW()
+  'preset', NOW()
 ) ON CONFLICT (token) DO UPDATE
   SET expires_at = EXCLUDED.expires_at,
       dest_lat = EXCLUDED.dest_lat,
