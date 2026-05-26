@@ -77,6 +77,18 @@ export default {
       return await handleGoogleQuota(request, env);
     }
 
+    // GPS Shared Link — live ETA via Distance Matrix (cached on token row)
+    // Spec: docs/superpowers/specs/2026-05-26-gps-shared-eta-design.md §8
+    if (path === '/api/eta/refresh' && request.method === 'GET') {
+      // CORS origin check — only allow calls from configured frontends
+      // (audit HIGH finding: scanner from arbitrary origin can drain quota)
+      const origin = request.headers.get('origin') || '';
+      if (origin && !isAllowedOrigin(origin, env)) {
+        return jsonResponse({ ok: false, error: 'ORIGIN_NOT_ALLOWED' }, 403, request, env);
+      }
+      return await handleEtaRefresh(request, env);
+    }
+
     return await handleOcr(request, env);
   }
 };
@@ -693,4 +705,205 @@ function corsHeaders(request, env) {
 }
 function jsonResponse(data, status, request, env) {
   return new Response(JSON.stringify(data), { status, headers: { 'Content-Type': 'application/json', ...corsHeaders(request, env) } });
+}
+
+// =============================================================================
+// GPS Shared Link ETA — /api/eta/refresh
+// Returns cached ETA, refreshing via Google Distance Matrix when cooldown
+// elapsed. Cache lives on gps_shared_tokens.last_eta_* columns (single SoT).
+// Spec: docs/superpowers/specs/2026-05-26-gps-shared-eta-design.md §3,5,6,8
+// Requires GOOGLE_MAPS_KEY_SERVER secret (Distance-Matrix-restricted API key).
+// AUDIT-OK 2026-05-26: see chat (Phase 1 security-engineer subagent).
+// =============================================================================
+
+/**
+ * Call Google Distance Matrix API for one origin → one destination.
+ * @param {{lat:number,lng:number}} origin
+ * @param {{lat:number,lng:number}} dest
+ * @param {string} apiKey  Server-restricted Maps API key
+ * @returns {Promise<{seconds:number,meters:number}>}
+ * @throws Error on HTTP failure, status != OK, or element status != OK
+ */
+async function callDistanceMatrix(origin, dest, apiKey) {
+  const url = 'https://maps.googleapis.com/maps/api/distancematrix/json'
+            + '?origins=' + encodeURIComponent(origin.lat + ',' + origin.lng)
+            + '&destinations=' + encodeURIComponent(dest.lat + ',' + dest.lng)
+            + '&mode=driving'
+            + '&departure_time=now'
+            + '&language=th'
+            + '&key=' + encodeURIComponent(apiKey);
+  const res = await fetch(url);
+  if (!res.ok) {
+    throw new Error('DistanceMatrix HTTP ' + res.status);
+  }
+  const j = await res.json();
+  if (j.status !== 'OK') {
+    throw new Error('DistanceMatrix status: ' + j.status + ' ' + (j.error_message || ''));
+  }
+  const row = (j.rows && j.rows[0]) || {};
+  const el  = (row.elements && row.elements[0]) || {};
+  if (el.status !== 'OK') {
+    throw new Error('DistanceMatrix element status: ' + el.status);
+  }
+  // Prefer duration_in_traffic when available (departure_time=now triggers it)
+  const dur = el.duration_in_traffic || el.duration || {};
+  const dis = el.distance || {};
+  return { seconds: dur.value || 0, meters: dis.value || 0 };
+}
+
+/**
+ * GET /api/eta/refresh?token=TK-XXXXXXXX
+ * Returns: { ok, eta_seconds, eta_at, distance_m, fresh, arrived, next_refresh_in }
+ *
+ * Cadence (spec §6):
+ *  - just-locked  → refresh immediately
+ *  - moving       (last_distance_m >= 1000 m) → 5 min cooldown
+ *  - stopped      (last_distance_m  < 1000 m) → 2 min cooldown
+ *  - arrived      (last_distance_m  <  100 m) → return cache (no API call)
+ *
+ * Race condition (spec §5 H2): we use a simple read-then-write pattern.
+ * Worst-case is one duplicate Distance Matrix call per ~5 min if two requests
+ * land in the ~50 ms window. Cost is bounded and acceptable; explicit FOR
+ * UPDATE NOWAIT was considered but adds PG transaction complexity for
+ * negligible savings.
+ */
+async function handleEtaRefresh(request, env) {
+  const url = new URL(request.url);
+  const token = (url.searchParams.get('token') || '').trim();
+  const vehLat = parseFloat(url.searchParams.get('lat'));
+  const vehLng = parseFloat(url.searchParams.get('lng'));
+
+  if (!token) {
+    return jsonResponse({ ok: false, error: 'TOKEN_REQUIRED' }, 400, request, env);
+  }
+  if (!env.SUPABASE_URL || !env.SUPABASE_SERVICE_KEY) {
+    return jsonResponse({ ok: false, error: 'WORKER_MISCONFIGURED' }, 500, request, env);
+  }
+  if (!env.GOOGLE_MAPS_KEY_SERVER) {
+    return jsonResponse({ ok: false, error: 'NO_MAPS_KEY' }, 500, request, env);
+  }
+
+  // Token validation
+  const sbHdrs = {
+    apikey: env.SUPABASE_SERVICE_KEY,
+    Authorization: 'Bearer ' + env.SUPABASE_SERVICE_KEY,
+    'Content-Type': 'application/json'
+  };
+  const tokenUrl = env.SUPABASE_URL + '/rest/v1/gps_shared_tokens'
+                 + '?token=eq.' + encodeURIComponent(token) + '&select=*';
+  const tRes = await fetch(tokenUrl, { headers: sbHdrs });
+  if (!tRes.ok) {
+    return jsonResponse({ ok: false, error: 'DB_READ_FAILED', status: tRes.status }, 502, request, env);
+  }
+  const tokenRows = await tRes.json();
+  const row = tokenRows[0];
+  if (!row) {
+    return jsonResponse({ ok: false, error: 'TOKEN_INVALID' }, 404, request, env);
+  }
+  if (row.status !== 'Active' || new Date(row.expires_at) < new Date()) {
+    return jsonResponse({ ok: false, error: 'TOKEN_INVALID' }, 404, request, env);
+  }
+  if (!row.dest_locked_at || row.dest_lat == null || row.dest_lng == null) {
+    return jsonResponse({ ok: false, error: 'DEST_NOT_LOCKED' }, 409, request, env);
+  }
+
+  // Vehicle position comes from the caller (frontend already polls gpsGetStatus
+  // every 10s — gps_vehicles is just a registry, not a position store).
+  // Validate sane lat/lng.
+  if (!isFinite(vehLat) || !isFinite(vehLng) ||
+      vehLat < -90 || vehLat > 90 || vehLng < -180 || vehLng > 180) {
+    return jsonResponse({ ok: false, error: 'VEHICLE_NO_POSITION', hint: 'pass &lat= &lng= query params' }, 400, request, env);
+  }
+  const veh = { last_lat: vehLat, last_lng: vehLng };
+
+  // Cadence decision
+  const now = Date.now();
+  const lastEtaAt = row.last_eta_at ? new Date(row.last_eta_at).getTime() : 0;
+  const sinceLastMs = now - lastEtaAt;
+  const justLocked = !row.last_eta_at;
+  const lastDistM = row.last_distance_m == null ? 99999 : row.last_distance_m;
+  const STOPPED_MS = 2 * 60 * 1000;
+  const MOVING_MS  = 5 * 60 * 1000;
+  const cadenceMs = (lastDistM < 1000) ? STOPPED_MS : MOVING_MS;
+
+  // Arrival short-circuit (no API call)
+  if (!justLocked && lastDistM < 100) {
+    return jsonResponse({
+      ok: true,
+      eta_seconds: 0,
+      eta_at: row.last_eta_at,
+      distance_m: lastDistM,
+      fresh: false,
+      arrived: true,
+      next_refresh_in: Math.max(0, Math.round((STOPPED_MS - sinceLastMs) / 1000))
+    }, 200, request, env);
+  }
+
+  // Cooldown not met → return cache
+  if (!justLocked && sinceLastMs < cadenceMs) {
+    return jsonResponse({
+      ok: true,
+      eta_seconds: row.last_eta_seconds,
+      eta_at: row.last_eta_at,
+      distance_m: row.last_distance_m,
+      fresh: false,
+      arrived: false,
+      next_refresh_in: Math.max(0, Math.round((cadenceMs - sinceLastMs) / 1000))
+    }, 200, request, env);
+  }
+
+  // Call Distance Matrix
+  let dm;
+  try {
+    dm = await callDistanceMatrix(
+      { lat: veh.last_lat, lng: veh.last_lng },
+      { lat: row.dest_lat, lng: row.dest_lng },
+      env.GOOGLE_MAPS_KEY_SERVER
+    );
+  } catch (e) {
+    // Log full error server-side; expose only generic code to caller (audit
+    // LOW finding — avoid forwarding raw e.message which could echo API key
+    // if Google ever includes it in error responses).
+    console.error('Distance Matrix failed:', e && e.message);
+    if (row.last_eta_at) {
+      return jsonResponse({
+        ok: true,
+        eta_seconds: row.last_eta_seconds,
+        eta_at: row.last_eta_at,
+        distance_m: row.last_distance_m,
+        fresh: false,
+        arrived: false,
+        next_refresh_in: 60,
+        warning: 'DISTANCE_MATRIX_UNAVAILABLE'
+      }, 200, request, env);
+    }
+    return jsonResponse({
+      ok: false,
+      error: 'DISTANCE_MATRIX_UNAVAILABLE'
+    }, 503, request, env);
+  }
+
+  // Writeback cache
+  const nowIso = new Date().toISOString();
+  const patchUrl = env.SUPABASE_URL + '/rest/v1/gps_shared_tokens'
+                 + '?token=eq.' + encodeURIComponent(token);
+  await fetch(patchUrl, {
+    method: 'PATCH',
+    headers: { ...sbHdrs, Prefer: 'return=minimal' },
+    body: JSON.stringify({
+      last_eta_seconds: dm.seconds,
+      last_eta_at: nowIso,
+      last_distance_m: dm.meters
+    })
+  });
+
+  return jsonResponse({
+    ok: true,
+    eta_seconds: dm.seconds,
+    eta_at: nowIso,
+    distance_m: dm.meters,
+    fresh: true,
+    arrived: dm.meters < 100,
+    next_refresh_in: Math.round(cadenceMs / 1000)
+  }, 200, request, env);
 }

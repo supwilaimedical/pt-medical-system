@@ -322,6 +322,56 @@
       });
     },
 
+    /**
+     * Decode lat/lng from various Google Maps URL formats.
+     * Supports:
+     *   "15.7008, 100.1362"                       → raw coords
+     *   https://www.google.com/maps/place/@15.7,100.1,17z
+     *   https://www.google.com/maps?q=15.7,100.1   (also ?ll= or ?destination=)
+     *   https://maps.app.goo.gl/abc                → follows redirect
+     *   https://goo.gl/maps/abc                    → follows redirect
+     *
+     * Returns Promise<{lat:number, lng:number, name?:string} | null>
+     * Used by GPS share dialog "paste Maps link" input method.
+     */
+    decodeGoogleMapsLink: async function(input) {
+      var s = (input || '').trim();
+      if (!s) return null;
+
+      // 1. Raw "lat, lng" string
+      var raw = s.match(/^(-?\d{1,3}(?:\.\d+)?)\s*,\s*(-?\d{1,3}(?:\.\d+)?)$/);
+      if (raw) {
+        return { lat: parseFloat(raw[1]), lng: parseFloat(raw[2]) };
+      }
+
+      // 2. /@lat,lng,zoom format (within URL path)
+      var atForm = s.match(/[@\?](-?\d{1,3}\.\d+),(-?\d{1,3}\.\d+)/);
+      if (atForm) {
+        return { lat: parseFloat(atForm[1]), lng: parseFloat(atForm[2]) };
+      }
+
+      // 3. ?q=lat,lng or ?ll=lat,lng or destination=lat,lng query string
+      var qForm = s.match(/[?&](?:q|ll|destination)=(-?\d{1,3}\.\d+),(-?\d{1,3}\.\d+)/);
+      if (qForm) {
+        return { lat: parseFloat(qForm[1]), lng: parseFloat(qForm[2]) };
+      }
+
+      // 4. Shortened URL — fetch + follow redirect, then recurse on resolved URL
+      if (/^https?:\/\/(maps\.app\.goo\.gl|goo\.gl\/maps)/.test(s)) {
+        try {
+          var res = await fetch(s, { method: 'GET', redirect: 'follow' });
+          var finalUrl = res.url || '';
+          if (finalUrl && finalUrl !== s) {
+            return await this.decodeGoogleMapsLink(finalUrl);
+          }
+        } catch (e) {
+          // CORS or network — fall through to null
+        }
+      }
+
+      return null;
+    },
+
     _geoCache: {},
     _geoInflight: {}, // pending promises per cacheKey
     _geoCooldownUntil: 0, // Unix ms — skip geocoding until this time
