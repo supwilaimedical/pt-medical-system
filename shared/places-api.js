@@ -204,6 +204,67 @@
       });
     },
 
+    /**
+     * Filter noise from Places API results.
+     * Google's Thai data is permissive — primaryType=hospital matches lodging,
+     * pet clinics, opticians, parking lots, hospital sub-departments, and
+     * unrelated places that happen to be tagged hospital.
+     *
+     * Strategy:
+     *  • Global blacklist on secondary types (lodging, salon, vet, parking, etc.)
+     *  • UI-specific type blacklist (clinic excludes hospital; hospital excludes doctor/dentist)
+     *  • Generic name blacklist (hotel/resort/spa/vet/eyewear)
+     *  • For uiType='hospital': WHITELIST — name MUST contain hospital keyword
+     *    (โรงพยาบาล | รพ. | ร.พ. | hospital | ศูนย์การแพทย์ | medical center),
+     *    AND reject sub-units/parking by name prefix.
+     *
+     * @param {Array} places   Output of searchNearby / searchText
+     * @param {string} uiType  UI category: hospital | clinic | pharmacy | gas_station | police | fire_station
+     * @returns {Array} filtered
+     */
+    filterNoise: function(places, uiType) {
+      if (!places || !places.length) return places;
+
+      var globalBadTypes = {
+        'lodging':1,'hotel':1,'motel':1,'resort_hotel':1,'hostel':1,'bed_and_breakfast':1,
+        'guest_house':1,'inn':1,'rv_park':1,'campground':1,'apartment_complex':1,
+        'veterinary_care':1,'pet_store':1,'animal_hospital':1,
+        'beauty_salon':1,'hair_care':1,'spa':1,'nail_salon':1,
+        'optician':1,'eyewear_store':1,
+        'massage':1,
+        'parking':1,'parking_lot':1
+      };
+      var uiBadTypes = {
+        hospital:    { 'doctor':1, 'dentist':1, 'dental_clinic':1, 'physiotherapist':1, 'chiropractor':1 },
+        clinic:      { 'hospital':1 },
+        pharmacy:    {},
+        gas_station: {},
+        police:      {},
+        fire_station:{}
+      };
+      var uiBad = uiBadTypes[uiType] || {};
+      var badNameRe = /ห้องพัก|หอพัก|รีสอร์ท|รีสอร์ต|โรงแรม|hotel|hostel|resort|apartment|อพาร์ท|คอนโด|condo|B&B|guest.?house|pet|สัตว์|สัตวแพทย์|vet|นวด|massage|salon|สปา|spa|แว่น|optic|eyewear|พระเครื่อง/i;
+      // Hospital whitelist — must contain ONE of these keywords
+      var hospitalNameRequiredRe = /โรงพยาบาล|รพ\.|ร\.พ\.|hospital|medical\s*cent(re|er)|ศูนย์การแพทย์/i;
+      // Hospital reject prefixes — sub-units, departments, parking lots of hospitals
+      var hospitalNameRejectRe = /^\s*(คลินิก|clinic|ลานจอด|parking|แผนก|หน่วย)/i;
+
+      return places.filter(function(p) {
+        var types = p.types || [];
+        for (var i = 0; i < types.length; i++) {
+          if (globalBadTypes[types[i]]) return false;
+          if (uiBad[types[i]]) return false;
+        }
+        if (uiType === 'hospital') {
+          if (!p.name) return false;
+          if (hospitalNameRejectRe.test(p.name)) return false;
+          if (!hospitalNameRequiredRe.test(p.name)) return false;
+        }
+        if (p.name && badNameRe.test(p.name)) return false;
+        return true;
+      });
+    },
+
     _geoCache: {},
     _geoInflight: {}, // pending promises per cacheKey
     _geoCooldownUntil: 0, // Unix ms — skip geocoding until this time

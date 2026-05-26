@@ -2309,6 +2309,10 @@
                     lat: _mwgpNbOrigin.lat, lng: _mwgpNbOrigin.lng,
                     radius: _mwgpNbRadius, primaryTypes: primaryTypes, maxResults: 20
                 });
+                // Strip noise (lodging, vet, parking, hospital sub-units, non-hospital names)
+                if (typeof PlacesAPI.filterNoise === 'function') {
+                    results = PlacesAPI.filterNoise(results, _mwgpNbType);
+                }
             }
             _mwgpNbAllResults = results || [];
             var firstBatch = _mwgpNbAllResults.slice(0, 10);
@@ -4670,7 +4674,7 @@
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script src="../../shared/map-config.js"></script>
-    <script src="../../shared/places-api.js"></script>
+    <script src="../../shared/places-api.js?v=20260526a"></script>
     <script>
     // =============================================
     // GPS Modal Logic
@@ -4877,6 +4881,10 @@
                     lat: _gpsNearbyOrigin.lat, lng: _gpsNearbyOrigin.lng,
                     radius: radius, primaryTypes: primaryTypes, maxResults: 20
                 });
+                // Strip noise (lodging, vet, parking, hospital sub-units, non-hospital names)
+                if (typeof PlacesAPI.filterNoise === 'function') {
+                    results = PlacesAPI.filterNoise(results, type);
+                }
             }
             _gpsNearbyAllResults = results || [];
             var firstBatch = _gpsNearbyAllResults.slice(0, 10);
