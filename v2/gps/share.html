@@ -604,25 +604,25 @@
       });
       if (!ok.isConfirmed) return;
 
-      // PATCH with race-condition guard (spec §5 H1)
-      var nowIso = new Date().toISOString();
-      var res = await _supabase.from('gps_shared_tokens')
-        .update({
-          dest_lat: lat, dest_lng: lng,
-          dest_name: name, dest_source: source,
-          dest_locked_at: nowIso
-        })
-        .eq('token', _tokenData.token)
-        .is('dest_locked_at', null)
-        .select();
+      // Use SECURITY DEFINER RPC — restricts writes to 5 dest-lock columns
+      // (spec §5 H1 race-guard + audit hardening — was anon UPDATE policy
+      // that didn't column-restrict)
+      var rpcRes = await _supabase.rpc('lock_customer_dest', {
+        p_token:  _tokenData.token,
+        p_lat:    lat,
+        p_lng:    lng,
+        p_name:   name,
+        p_source: source
+      });
 
-      if (res.error) {
-        Swal.fire('Error', res.error.message, 'error');
+      if (rpcRes.error) {
+        Swal.fire('Error', rpcRes.error.message, 'error');
         return;
       }
 
-      if (!res.data || res.data.length === 0) {
-        // Lost the race — someone else already locked
+      // RPC returns true if this caller won the race; false if someone else
+      // had already locked the destination.
+      if (rpcRes.data !== true) {
         await refetchTokenRow();
         var st = decideEtaState(_tokenData);
         setEtaState(st);
@@ -633,7 +633,8 @@
         return;
       }
 
-      _tokenData = res.data[0];
+      // Refetch the row to get the now-locked values (RPC returns bool, not row)
+      await refetchTokenRow();
       setEtaState('live');
       renderEtaLive(_tokenData);
       refreshEtaFromWorker();

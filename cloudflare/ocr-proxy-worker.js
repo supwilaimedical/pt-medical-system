@@ -80,6 +80,12 @@ export default {
     // GPS Shared Link — live ETA via Distance Matrix (cached on token row)
     // Spec: docs/superpowers/specs/2026-05-26-gps-shared-eta-design.md §8
     if (path === '/api/eta/refresh' && request.method === 'GET') {
+      // CORS origin check — only allow calls from configured frontends
+      // (audit HIGH finding: scanner from arbitrary origin can drain quota)
+      const origin = request.headers.get('origin') || '';
+      if (origin && !isAllowedOrigin(origin, env)) {
+        return jsonResponse({ ok: false, error: 'ORIGIN_NOT_ALLOWED' }, 403, request, env);
+      }
       return await handleEtaRefresh(request, env);
     }
 
@@ -855,7 +861,10 @@ async function handleEtaRefresh(request, env) {
       env.GOOGLE_MAPS_KEY_SERVER
     );
   } catch (e) {
-    // Soft fallback: return cached value if we have one
+    // Log full error server-side; expose only generic code to caller (audit
+    // LOW finding — avoid forwarding raw e.message which could echo API key
+    // if Google ever includes it in error responses).
+    console.error('Distance Matrix failed:', e && e.message);
     if (row.last_eta_at) {
       return jsonResponse({
         ok: true,
@@ -865,13 +874,12 @@ async function handleEtaRefresh(request, env) {
         fresh: false,
         arrived: false,
         next_refresh_in: 60,
-        warning: 'DISTANCE_MATRIX_FAILED: ' + e.message
+        warning: 'DISTANCE_MATRIX_UNAVAILABLE'
       }, 200, request, env);
     }
     return jsonResponse({
       ok: false,
-      error: 'DISTANCE_MATRIX_FAILED',
-      detail: e.message
+      error: 'DISTANCE_MATRIX_UNAVAILABLE'
     }, 503, request, env);
   }
 
