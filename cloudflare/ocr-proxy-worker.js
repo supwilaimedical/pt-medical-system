@@ -89,6 +89,15 @@ export default {
       return await handleEtaRefresh(request, env);
     }
 
+    // GPS Shared Link — Directions route polyline (called once at create + on deviation > 500m)
+    if (path === '/api/route/refresh' && request.method === 'GET') {
+      const origin = request.headers.get('origin') || '';
+      if (origin && !isAllowedOrigin(origin, env)) {
+        return jsonResponse({ ok: false, error: 'ORIGIN_NOT_ALLOWED' }, 403, request, env);
+      }
+      return await handleRouteRefresh(request, env);
+    }
+
     return await handleOcr(request, env);
   }
 };
@@ -905,5 +914,119 @@ async function handleEtaRefresh(request, env) {
     fresh: true,
     arrived: dm.meters < 100,
     next_refresh_in: Math.round(cadenceMs / 1000)
+  }, 200, request, env);
+}
+
+// =============================================================================
+// GPS Shared Link — /api/route/refresh
+// Calls Google Directions API to get an encoded polyline + writes to the
+// gps_shared_tokens row. Caller decides WHEN to refresh (initial create +
+// on deviation > 500m). Worker doesn't track deviation itself.
+// =============================================================================
+
+/**
+ * Call Google Directions API.
+ * @returns {Promise<{polyline:string, seconds:number, meters:number}>}
+ */
+async function callDirections(origin, dest, apiKey) {
+  const url = 'https://maps.googleapis.com/maps/api/directions/json'
+            + '?origin=' + encodeURIComponent(origin.lat + ',' + origin.lng)
+            + '&destination=' + encodeURIComponent(dest.lat + ',' + dest.lng)
+            + '&mode=driving'
+            + '&departure_time=now'
+            + '&language=th'
+            + '&key=' + encodeURIComponent(apiKey);
+  const res = await fetch(url);
+  if (!res.ok) throw new Error('Directions HTTP ' + res.status);
+  const j = await res.json();
+  if (j.status !== 'OK') throw new Error('Directions status: ' + j.status);
+  const route = (j.routes && j.routes[0]) || {};
+  const leg   = (route.legs && route.legs[0]) || {};
+  const dur   = leg.duration_in_traffic || leg.duration || {};
+  const dis   = leg.distance || {};
+  const poly  = (route.overview_polyline && route.overview_polyline.points) || '';
+  if (!poly) throw new Error('Directions returned no polyline');
+  return { polyline: poly, seconds: dur.value || 0, meters: dis.value || 0 };
+}
+
+async function handleRouteRefresh(request, env) {
+  const url = new URL(request.url);
+  const token = (url.searchParams.get('token') || '').trim();
+  const vehLat = parseFloat(url.searchParams.get('lat'));
+  const vehLng = parseFloat(url.searchParams.get('lng'));
+
+  if (!token) {
+    return jsonResponse({ ok: false, error: 'TOKEN_REQUIRED' }, 400, request, env);
+  }
+  if (!env.SUPABASE_URL || !env.SUPABASE_SERVICE_KEY) {
+    return jsonResponse({ ok: false, error: 'WORKER_MISCONFIGURED' }, 500, request, env);
+  }
+  if (!env.GOOGLE_MAPS_KEY_SERVER) {
+    return jsonResponse({ ok: false, error: 'NO_MAPS_KEY' }, 500, request, env);
+  }
+  if (!isFinite(vehLat) || !isFinite(vehLng) ||
+      vehLat < -90 || vehLat > 90 || vehLng < -180 || vehLng > 180) {
+    return jsonResponse({ ok: false, error: 'VEHICLE_NO_POSITION', hint: 'pass &lat= &lng= query params' }, 400, request, env);
+  }
+
+  const sbHdrs = {
+    apikey: env.SUPABASE_SERVICE_KEY,
+    Authorization: 'Bearer ' + env.SUPABASE_SERVICE_KEY,
+    'Content-Type': 'application/json'
+  };
+
+  // Validate token + read dest
+  const tokenUrl = env.SUPABASE_URL + '/rest/v1/gps_shared_tokens'
+                 + '?token=eq.' + encodeURIComponent(token)
+                 + '&select=token,status,expires_at,dest_lat,dest_lng,dest_locked_at';
+  const tRes = await fetch(tokenUrl, { headers: sbHdrs });
+  if (!tRes.ok) {
+    return jsonResponse({ ok: false, error: 'DB_READ_FAILED' }, 502, request, env);
+  }
+  const tokenRows = await tRes.json();
+  const row = tokenRows[0];
+  if (!row) return jsonResponse({ ok: false, error: 'TOKEN_INVALID' }, 404, request, env);
+  if (row.status !== 'Active' || new Date(row.expires_at) < new Date()) {
+    return jsonResponse({ ok: false, error: 'TOKEN_INVALID' }, 404, request, env);
+  }
+  if (!row.dest_locked_at || row.dest_lat == null || row.dest_lng == null) {
+    return jsonResponse({ ok: false, error: 'DEST_NOT_LOCKED' }, 409, request, env);
+  }
+
+  // Call Directions
+  let dir;
+  try {
+    dir = await callDirections(
+      { lat: vehLat, lng: vehLng },
+      { lat: row.dest_lat, lng: row.dest_lng },
+      env.GOOGLE_MAPS_KEY_SERVER
+    );
+  } catch (e) {
+    console.error('Directions failed:', e && e.message);
+    return jsonResponse({ ok: false, error: 'DIRECTIONS_UNAVAILABLE' }, 503, request, env);
+  }
+
+  // Writeback polyline + also update ETA cache (Directions gives both)
+  const nowIso = new Date().toISOString();
+  const patchUrl = env.SUPABASE_URL + '/rest/v1/gps_shared_tokens'
+                 + '?token=eq.' + encodeURIComponent(token);
+  await fetch(patchUrl, {
+    method: 'PATCH',
+    headers: { ...sbHdrs, Prefer: 'return=minimal' },
+    body: JSON.stringify({
+      route_polyline: dir.polyline,
+      route_updated_at: nowIso,
+      last_eta_seconds: dir.seconds,
+      last_eta_at: nowIso,
+      last_distance_m: dir.meters
+    })
+  });
+
+  return jsonResponse({
+    ok: true,
+    polyline: dir.polyline,
+    eta_seconds: dir.seconds,
+    distance_m: dir.meters,
+    route_updated_at: nowIso
   }, 200, request, env);
 }
