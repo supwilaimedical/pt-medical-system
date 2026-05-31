@@ -1,7 +1,7 @@
 // PT Medical V2 — Service Worker (scoped to /v2/)
 // Network-first strategy with cache fallback
 
-var CACHE_NAME = 'pt-v2-v11';  // v11: merge LINE Quota into Line OA card (was separate section)
+var CACHE_NAME = 'pt-v2-v12';  // v12: LINE Quota row repositioned under เปิดใช้งาน (was at top)
 var V2_SCOPE = '/pt-medical-system/v2/';
 
 var STATIC_ASSETS = [

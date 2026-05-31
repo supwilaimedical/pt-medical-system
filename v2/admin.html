@@ -843,6 +843,15 @@
           <div class="section-header"><h2><i class="bi bi-line"></i> Line Official Account</h2></div>
           <div class="section-body">
             <div class="form-row">
+              <div><div class="form-row-label">เปิดใช้งาน</div></div>
+              <div class="form-row-input">
+                <select class="aselect" id="notify-line-enabled" style="max-width:200px;">
+                  <option value="false">ปิด</option>
+                  <option value="true">เปิด</option>
+                </select>
+              </div>
+            </div>
+            <div class="form-row">
               <div>
                 <div class="form-row-label">Quota เดือนนี้</div>
                 <div class="form-row-desc">ระบบ <strong>หยุดส่ง LINE อัตโนมัติ</strong> เมื่อใช้ครบเพื่อกัน 429 — CRITICAL ส่งได้ถึง limit, SPEED_OVER บล็อกที่ ≥95%</div>
@@ -854,15 +863,6 @@
                 </div>
                 <button class="abtn abtn-sm" onclick="loadLineQuota()"><i class="bi bi-arrow-repeat"></i> Refresh</button>
                 <div id="line-quota-warning" style="margin-top:10px;display:none;"></div>
-              </div>
-            </div>
-            <div class="form-row">
-              <div><div class="form-row-label">เปิดใช้งาน</div></div>
-              <div class="form-row-input">
-                <select class="aselect" id="notify-line-enabled" style="max-width:200px;">
-                  <option value="false">ปิด</option>
-                  <option value="true">เปิด</option>
-                </select>
               </div>
             </div>
             <div class="form-row">
