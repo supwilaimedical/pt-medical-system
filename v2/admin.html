@@ -840,6 +840,26 @@
         </div>
 
         <div class="settings-section">
+          <div class="section-header">
+            <h2><i class="bi bi-bar-chart-line"></i> LINE Message Quota</h2>
+            <p>โควต้าข้อความ LINE OA เดือนปัจจุบัน — ระบบจะ <strong>หยุดส่ง LINE อัตโนมัติ</strong> เมื่อใช้ครบเพื่อกัน 429 (CRITICAL ยังส่งได้ถึง limit, SPEED_OVER บล็อกที่ ≥95%)</p>
+          </div>
+          <div class="section-body">
+            <div class="form-row">
+              <div><div class="form-row-label">การใช้งาน</div></div>
+              <div class="form-row-input">
+                <div id="line-quota-display" style="margin-bottom:10px;color:var(--atext-3);">กดปุ่ม Refresh เพื่อโหลด</div>
+                <div id="line-quota-bar-wrap" style="display:none;height:14px;background:#e5e7eb;border-radius:7px;overflow:hidden;margin-bottom:10px;">
+                  <div id="line-quota-bar" style="height:100%;width:0%;background:#10b981;transition:width 0.4s, background 0.3s;"></div>
+                </div>
+                <button class="abtn abtn-sm" onclick="loadLineQuota()"><i class="bi bi-arrow-repeat"></i> Refresh</button>
+                <div id="line-quota-warning" style="margin-top:10px;display:none;"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="settings-section">
           <div class="section-header"><h2><i class="bi bi-line"></i> Line Official Account</h2></div>
           <div class="section-body">
             <div class="form-row">
@@ -938,9 +958,9 @@
               </div>
             </div>
             <div class="form-row">
-              <div><div class="form-row-label">Max alerts ต่อ trip</div><div class="form-row-desc">ส่งซ้ำได้กี่ครั้งต่อรถ-1-trip (กัน spam) — default 2</div></div>
+              <div><div class="form-row-label">Cooldown (นาที)</div><div class="form-row-desc">ส่ง alert <strong>1 ครั้ง</strong> ต่อรถ ภายในช่วงเวลานี้ (wall-clock) — กัน spam จาก speed oscillation รอบ threshold. <strong>ไม่ reset</strong> เมื่อรถลดความเร็วลง. Default 30 นาที (5–180)</div></div>
               <div class="form-row-input">
-                <input class="ainput" type="number" min="1" max="10" step="1" id="notify-speed-max-alerts" placeholder="2" style="max-width:140px;">
+                <input class="ainput" type="number" min="5" max="180" step="5" id="notify-speed-cooldown" placeholder="30" style="max-width:140px;">
               </div>
             </div>
             <div class="form-row">
@@ -1602,7 +1622,7 @@
       document.getElementById('notify-speed-enabled').value     = ov('SPEED_WATCH_ENABLED') || 'false';
       document.getElementById('notify-speed-threshold').value   = ov('SPEED_THRESHOLD_KMH') || '130';
       document.getElementById('notify-speed-warn').value        = ov('SPEED_WARN_KMH') || '120';
-      document.getElementById('notify-speed-max-alerts').value  = ov('SPEED_MAX_ALERTS_PER_EVENT') || '2';
+      document.getElementById('notify-speed-cooldown').value    = ov('SPEED_ALERT_COOLDOWN_MIN') || '30';
       document.getElementById('notify-speed-vehicles').value    = ov('SPEED_WATCH_VEHICLES') || '';
 
       // Map Provider
@@ -2988,26 +3008,26 @@
     var en       = document.getElementById('notify-speed-enabled').value;
     var thr      = document.getElementById('notify-speed-threshold').value.trim();
     var warn     = document.getElementById('notify-speed-warn').value.trim();
-    var maxAlt   = document.getElementById('notify-speed-max-alerts').value.trim();
+    var cooldown = document.getElementById('notify-speed-cooldown').value.trim();
     var vehicles = document.getElementById('notify-speed-vehicles').value.trim();
 
     // Validate (explicit per working-rules: no silent magic defaults)
     var thrN  = parseInt(thr, 10);
     var warnN = parseInt(warn, 10);
-    var maxN  = parseInt(maxAlt, 10);
+    var coolN = parseInt(cooldown, 10);
     if (!(thrN >= 60 && thrN <= 220))   { Swal.fire('Invalid', 'Alert threshold ต้องอยู่ระหว่าง 60–220 km/h', 'error'); return; }
     if (!(warnN >= 60 && warnN <= 220)) { Swal.fire('Invalid', 'Warning badge threshold ต้องอยู่ระหว่าง 60–220 km/h', 'error'); return; }
     if (warnN > thrN) { Swal.fire('Warning', 'Warning badge ('+warnN+') มากกว่า Alert threshold ('+thrN+') — wallboard จะแสดง badge แต่ยังไม่ส่ง Line/TG. ตั้งใจหรือเปล่า?', 'warning'); }
-    if (!(maxN >= 1 && maxN <= 10))     { Swal.fire('Invalid', 'Max alerts ต้องอยู่ระหว่าง 1–10', 'error'); return; }
+    if (!(coolN >= 5 && coolN <= 180))  { Swal.fire('Invalid', 'Cooldown ต้องอยู่ระหว่าง 5–180 นาที', 'error'); return; }
 
     Swal.fire({ title:'Saving...', didOpen:function(){ Swal.showLoading(); } });
     try {
       await _supabase.from('settings').upsert([
-        { key:'SPEED_WATCH_ENABLED',         value: en },
-        { key:'SPEED_THRESHOLD_KMH',         value: String(thrN) },
-        { key:'SPEED_WARN_KMH',              value: String(warnN) },
-        { key:'SPEED_MAX_ALERTS_PER_EVENT',  value: String(maxN) },
-        { key:'SPEED_WATCH_VEHICLES',        value: vehicles }
+        { key:'SPEED_WATCH_ENABLED',        value: en },
+        { key:'SPEED_THRESHOLD_KMH',        value: String(thrN) },
+        { key:'SPEED_WARN_KMH',             value: String(warnN) },
+        { key:'SPEED_ALERT_COOLDOWN_MIN',   value: String(coolN) },
+        { key:'SPEED_WATCH_VEHICLES',       value: vehicles }
       ]);
       if (typeof settingsRefresh === 'function') await settingsRefresh(_supabase);
       Swal.fire({ icon:'success', title:'บันทึกแล้ว', text:'Monitor wallboard ต้อง refresh เพื่อใช้ค่าใหม่', timer:2000, showConfirmButton:false });
@@ -3037,8 +3057,61 @@
     else Swal.fire('ส่งไม่สำเร็จ', (r && r.error) || 'unknown error', 'error');
   }
 
+  async function loadLineQuota() {
+    var disp = document.getElementById('line-quota-display');
+    var barWrap = document.getElementById('line-quota-bar-wrap');
+    var bar = document.getElementById('line-quota-bar');
+    var warn = document.getElementById('line-quota-warning');
+    disp.innerHTML = '<span class="text-muted">กำลังโหลด...</span>';
+    warn.style.display = 'none';
+
+    var base = (typeof settingsGet === 'function' ? settingsGet('NOTIFY_PROXY_URL') : '') || (window.CONFIG && (CONFIG.NOTIFY_PROXY_URL || CONFIG.OCR_PROXY_URL)) || '';
+    if (!base) {
+      disp.innerHTML = '<span style="color:var(--adanger);">❌ NOTIFY_PROXY_URL ไม่ได้ตั้ง</span>';
+      return;
+    }
+    try {
+      var resp = await fetch(base.replace(/\/+$/, '') + '/notify/quota', {
+        headers: { 'Origin': window.location.origin }
+      });
+      var data = await resp.json();
+      if (!data.ok) {
+        disp.innerHTML = '<span style="color:var(--adanger);">❌ ' + (data.error || 'unknown error') + '</span>';
+        return;
+      }
+      if (data.type !== 'limited') {
+        disp.innerHTML = '<span style="color:var(--asuccess);">✅ Unlimited plan</span> · ใช้ไปแล้ว <strong>' + data.used + '</strong> ข้อความเดือนนี้';
+        barWrap.style.display = 'none';
+        return;
+      }
+      var pct = data.percent || 0;
+      var color = '#10b981';   // green
+      if (pct >= 95)      color = '#dc2626';   // red
+      else if (pct >= 80) color = '#f59e0b';   // amber
+      disp.innerHTML =
+        '<div style="font-size:15px;">ใช้ไปแล้ว <strong>' + data.used.toLocaleString() + '</strong> / ' +
+        data.max.toLocaleString() + ' ข้อความ ' +
+        '<span style="color:var(--atext-3);">(' + pct + '%)</span></div>' +
+        '<div style="font-size:13px;color:var(--atext-3);margin-top:4px;">เหลือ ' + data.remaining.toLocaleString() + ' ข้อความ</div>';
+      barWrap.style.display = '';
+      bar.style.width = Math.min(100, pct) + '%';
+      bar.style.background = color;
+
+      if (pct >= 95) {
+        warn.innerHTML = '<div class="alert-box alert-danger" style="padding:10px 12px;"><i class="bi bi-exclamation-triangle-fill"></i> <strong>เกือบเต็ม!</strong> ระบบจะหยุดส่ง LINE สำหรับ SPEED_OVER แล้ว — CRITICAL ยังส่งได้จนกว่าจะหมด</div>';
+        warn.style.display = '';
+      } else if (pct >= 80) {
+        warn.innerHTML = '<div class="alert-box alert-warning" style="padding:10px 12px;"><i class="bi bi-info-circle-fill"></i> ใกล้ครบโควต้า — ระวังเดือนนี้</div>';
+        warn.style.display = '';
+      }
+    } catch (e) {
+      disp.innerHTML = '<span style="color:var(--adanger);">❌ ' + e.message + '</span>';
+    }
+  }
+
   function loadNotifySection() {
     checkNotifyHealth();
+    loadLineQuota();
     loadNotifyLog();
   }
 

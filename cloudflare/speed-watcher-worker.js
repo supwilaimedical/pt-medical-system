@@ -4,19 +4,21 @@
  * Polls GPS providers every 2 min, alerts via existing notify worker
  * (/notify/send) when a vehicle's reported speed exceeds threshold.
  *
- * Alert policy:
+ * Alert policy (revised 2026-05-27 — protect LINE quota):
  *   - threshold default 130 km/h (admin override via settings.SPEED_THRESHOLD_KMH)
- *   - max 2 alerts per continuous over-speed event
- *   - reset when speed drops back to <= threshold (state cleared)
- *   - cron interval 2 min → ~2-4 min between the two alerts of an event
+ *   - **1 alert per vehicle per cooldown window** (default 30 min)
+ *   - cooldown does NOT reset on speed dropping back to normal —
+ *     it's a wall-clock window. Prevents alert storms from oscillation
+ *     around threshold (e.g. highway with overtaking pulses).
+ *   - admin override: settings.SPEED_ALERT_COOLDOWN_MIN
  *
  * KV layout (SPEED_WATCH_KV):
  *   key   = "v:<deviceId>"
- *   value = { eventStart: ISO, alertCount: 1|2, lastSpeed: number, lastUpdated: ISO }
- *   ttl   = 6h (cleanup if vehicle stops reporting)
+ *   value = { alertedAt: ISO, alertedSpeed: number, threshold: number }
+ *   ttl   = cooldown minutes (KV auto-expires → next over-threshold tick alerts again)
  *
  * Notify payload — unique case_id per alert avoids notify-worker debounce:
- *   case_id    = `speed:<deviceId>:<eventStartUnix>:<alertN>`
+ *   case_id    = `speed:<deviceId>:<alertedAtUnix>`
  *   alert_type = "SPEED_OVER"
  *
  * Manual trigger for testing:
@@ -24,7 +26,7 @@
  *   GET https://speed-watcher.<acct>.workers.dev/run            (live)
  */
 
-const KV_TTL_SECONDS = 6 * 3600;
+const DEFAULT_COOLDOWN_MIN = 30;
 const FETCH_TIMEOUT_MS = 8000;
 
 export default {
@@ -75,9 +77,7 @@ export default {
         display: 'รถทดสอบ (test-alert endpoint)',
         speed: 145.0,
         threshold: 130,
-        alertN: 1,
-        maxN: 2,
-        eventStart: Date.now()
+        alertedAt: Date.now()
       });
       return jsonResponse({ ok: true, fakeAlert: true, result: r });
     }
@@ -112,10 +112,11 @@ async function runCycle(env, opts) {
   }
 
   const threshold = parseFloat(settings.SPEED_THRESHOLD_KMH || '130') || 130;
-  const maxAlerts = parseInt(settings.SPEED_MAX_ALERTS_PER_EVENT || '2', 10) || 2;
+  const cooldownMin = parseInt(settings.SPEED_ALERT_COOLDOWN_MIN || String(DEFAULT_COOLDOWN_MIN), 10) || DEFAULT_COOLDOWN_MIN;
+  const cooldownSec = cooldownMin * 60;
   const allowList = String(settings.SPEED_WATCH_VEHICLES || '').split(',').map(s => s.trim()).filter(Boolean);
   log.threshold = threshold;
-  log.maxAlerts = maxAlerts;
+  log.cooldownMin = cooldownMin;
   if (allowList.length) log.allowList = allowList;
 
   let providers, vehicles;
@@ -158,28 +159,23 @@ async function runCycle(env, opts) {
           log.overThreshold++;
           const display = nameMap[id] || id;
           if (!prev) {
-            // New event — alert #1
-            const eventStart = Date.now();
-            const newState = { eventStart, alertCount: 1, lastSpeed: s.speed, lastUpdated: new Date().toISOString() };
-            if (!dry) await env.SPEED_WATCH_KV.put(kvKey, JSON.stringify(newState), { expirationTtl: KV_TTL_SECONDS });
-            const r = await sendAlert(env, dry, { vehicleId: id, display, speed: s.speed, threshold, alertN: 1, maxN: maxAlerts, eventStart });
-            if (r.sent) log.alertsSent++; else log.alertsSkipped++;
-          } else if (prev.alertCount < maxAlerts) {
-            const nextN = prev.alertCount + 1;
-            const newState = { ...prev, alertCount: nextN, lastSpeed: s.speed, lastUpdated: new Date().toISOString() };
-            if (!dry) await env.SPEED_WATCH_KV.put(kvKey, JSON.stringify(newState), { expirationTtl: KV_TTL_SECONDS });
-            const r = await sendAlert(env, dry, { vehicleId: id, display, speed: s.speed, threshold, alertN: nextN, maxN: maxAlerts, eventStart: prev.eventStart });
+            // Cooldown window open — fire ONE alert + start cooldown
+            const alertedAt = Date.now();
+            const newState = {
+              alertedAt: new Date(alertedAt).toISOString(),
+              alertedSpeed: s.speed,
+              threshold: threshold
+            };
+            if (!dry) await env.SPEED_WATCH_KV.put(kvKey, JSON.stringify(newState), { expirationTtl: cooldownSec });
+            const r = await sendAlert(env, dry, { vehicleId: id, display, speed: s.speed, threshold, alertedAt });
             if (r.sent) log.alertsSent++; else log.alertsSkipped++;
           } else {
-            // Already alerted max times this event → silent
+            // Still in cooldown window → silent (KV will auto-expire after cooldown)
             log.alertsSkipped++;
           }
-        } else {
-          // Speed back to normal — clear event state
-          if (prev) {
-            if (!dry) await env.SPEED_WATCH_KV.delete(kvKey);
-          }
         }
+        // NOTE: speed back to normal does NOT clear KV — wall-clock cooldown only.
+        // This prevents alert storms from speed oscillating around threshold.
       }
     } catch (e) {
       log.errors.push('provider ' + provider.name + ': ' + e.message);
@@ -265,11 +261,11 @@ async function proxiedFetch(base, pathAndQuery, settings) {
 // =============================================================
 async function sendAlert(env, dry, info) {
   // Unique case_id per alert → avoids notify worker's debounce-on-unacked
-  const eventUnix = Math.floor(info.eventStart / 1000);
-  const caseId = `speed:${info.vehicleId}:${eventUnix}:${info.alertN}`;
+  const alertedUnix = Math.floor(info.alertedAt / 1000);
+  const caseId = `speed:${info.vehicleId}:${alertedUnix}`;
   const speedStr = info.speed.toFixed(1);
   const message =
-    `🚨 ความเร็วเกินกำหนด (${info.alertN}/${info.maxN})\n` +
+    `🚨 ความเร็วเกินกำหนด\n` +
     `รถ: ${info.display}\n` +
     `ความเร็ว: ${speedStr} km/h (เกิน ${info.threshold})\n` +
     `เวลา: ${formatThaiTime(new Date())}`;
@@ -308,7 +304,7 @@ async function loadSettings(env) {
   const keys = [
     'SPEED_WATCH_ENABLED',
     'SPEED_THRESHOLD_KMH',
-    'SPEED_MAX_ALERTS_PER_EVENT',
+    'SPEED_ALERT_COOLDOWN_MIN',
     'SPEED_WATCH_VEHICLES',
     'GPS_PROXY_SYNOLOGY',
     'GPS_PROXY_RENDER',
@@ -319,10 +315,10 @@ async function loadSettings(env) {
   const out = {};
   for (const r of rows) out[r.key] = r.value;
   // Defaults
-  if (!('SPEED_WATCH_ENABLED' in out))           out.SPEED_WATCH_ENABLED = 'true';
-  if (!('SPEED_THRESHOLD_KMH' in out))           out.SPEED_THRESHOLD_KMH = '130';
-  if (!('SPEED_MAX_ALERTS_PER_EVENT' in out))    out.SPEED_MAX_ALERTS_PER_EVENT = '2';
-  if (!('SPEED_WATCH_VEHICLES' in out))          out.SPEED_WATCH_VEHICLES = '';
+  if (!('SPEED_WATCH_ENABLED' in out))         out.SPEED_WATCH_ENABLED = 'true';
+  if (!('SPEED_THRESHOLD_KMH' in out))         out.SPEED_THRESHOLD_KMH = '130';
+  if (!('SPEED_ALERT_COOLDOWN_MIN' in out))    out.SPEED_ALERT_COOLDOWN_MIN = String(DEFAULT_COOLDOWN_MIN);
+  if (!('SPEED_WATCH_VEHICLES' in out))        out.SPEED_WATCH_VEHICLES = '';
   return out;
 }
 

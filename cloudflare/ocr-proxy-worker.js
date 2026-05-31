@@ -66,6 +66,7 @@ export default {
       if (path === '/notify/check' && request.method === 'POST') return await handleNotifyCheck(request, env);
       if (path === '/notify/send'  && request.method === 'POST') return await handleNotifySend(request, env);
       if (path === '/notify/test'  && request.method === 'POST') return await handleNotifyTest(request, env);
+      if (path === '/notify/quota' && request.method === 'GET')  return await handleNotifyQuota(request, env);
       return jsonResponse({ error: 'Unknown /notify route', path }, 404, request, env);
     }
 
@@ -327,8 +328,14 @@ async function handleNotifyCheck(request, env) {
   const settings = await loadNotifySettings(env);
   const results = [];
   if (settings.NOTIFY_LINE_ENABLED === 'true' && env.LINE_ACCESS_TOKEN) {
-    const r = await sendLine(env, settings, fullText);
-    results.push({ channel: 'line', ...r });
+    // Quota guard — CRITICAL is allowed through up to hard cap (used >= max)
+    const guard = await checkLineQuotaGuard(env, 'CRITICAL');
+    if (guard.allow) {
+      const r = await sendLine(env, settings, fullText);
+      results.push({ channel: 'line', ...r });
+    } else {
+      results.push({ channel: 'line', ok: false, skipped: true, error: guard.reason, quota: guard.quota });
+    }
   }
   if (settings.NOTIFY_TELEGRAM_ENABLED === 'true' && env.TELEGRAM_BOT_TOKEN && settings.NOTIFY_TELEGRAM_CHAT_ID) {
     const r = await sendTelegram(env, settings.NOTIFY_TELEGRAM_CHAT_ID, fullText);
@@ -339,7 +346,7 @@ async function handleNotifyCheck(request, env) {
     await sbInsert(env, 'notification_log', results.map(r => ({
       case_id: rec.case_id, alert_type: 'CRITICAL',
       channel: r.channel,
-      status:  r.ok ? 'sent' : 'failed',
+      status:  r.ok ? 'sent' : (r.skipped ? 'skipped' : 'failed'),
       error:   r.ok ? reason : (r.error || 'unknown'),
       payload: { message: fullText, severity: detected.severity, alerts: detected.alerts }
     })));
@@ -519,7 +526,13 @@ async function handleNotifySend(request, env) {
   const fullText = deepLink ? `${message}\n${deepLink}` : message;
   const results = [];
   if (settings.NOTIFY_LINE_ENABLED === 'true' && env.LINE_ACCESS_TOKEN) {
-    results.push({ channel: 'line', ...(await sendLine(env, settings, fullText)) });
+    // Quota guard — non-CRITICAL (e.g. SPEED_OVER) blocked at >= 95% to preserve last 5%
+    const guard = await checkLineQuotaGuard(env, alertType);
+    if (guard.allow) {
+      results.push({ channel: 'line', ...(await sendLine(env, settings, fullText)) });
+    } else {
+      results.push({ channel: 'line', ok: false, skipped: true, error: guard.reason, quota: guard.quota });
+    }
   }
   if (settings.NOTIFY_TELEGRAM_ENABLED === 'true' && env.TELEGRAM_BOT_TOKEN && settings.NOTIFY_TELEGRAM_CHAT_ID) {
     results.push({ channel: 'telegram', ...(await sendTelegram(env, settings.NOTIFY_TELEGRAM_CHAT_ID, fullText)) });
@@ -527,7 +540,8 @@ async function handleNotifySend(request, env) {
   if (results.length > 0) {
     await sbInsert(env, 'notification_log', results.map(r => ({
       case_id: caseId, alert_type: alertType,
-      channel: r.channel, status: r.ok ? 'sent' : 'failed',
+      channel: r.channel,
+      status: r.ok ? 'sent' : (r.skipped ? 'skipped' : 'failed'),
       error: r.ok ? null : (r.error || 'unknown'),
       payload: { message: fullText }
     })));
@@ -568,6 +582,78 @@ async function handleNotifyTest(request, env) {
     return jsonResponse(r, r.ok ? 200 : 502, request, env);
   }
   return jsonResponse({ error: 'channel must be "line" or "telegram"' }, 400, request, env);
+}
+
+// =============================================
+// LINE Quota — Messaging API helpers
+// =============================================
+// LINE provides two free read endpoints (do NOT count against quota):
+//   GET /v2/bot/message/quota             → { type: 'limited'|'none', value: <max> }
+//   GET /v2/bot/message/quota/consumption → { totalUsage: '<number>' }
+// We call both, return a unified object. ~100-200ms per check.
+async function getLineQuota(env) {
+  if (!env.LINE_ACCESS_TOKEN) return { ok: false, error: 'LINE_ACCESS_TOKEN not set' };
+  try {
+    const headers = { 'Authorization': `Bearer ${env.LINE_ACCESS_TOKEN}` };
+    const [qResp, cResp] = await Promise.all([
+      fetch('https://api.line.me/v2/bot/message/quota', { headers }),
+      fetch('https://api.line.me/v2/bot/message/quota/consumption', { headers })
+    ]);
+    if (!qResp.ok) {
+      const t = await qResp.text();
+      return { ok: false, error: `LINE quota ${qResp.status}: ${t.slice(0, 200)}` };
+    }
+    if (!cResp.ok) {
+      const t = await cResp.text();
+      return { ok: false, error: `LINE consumption ${cResp.status}: ${t.slice(0, 200)}` };
+    }
+    const q = await qResp.json();
+    const c = await cResp.json();
+    const type = q.type || 'none';
+    const max = type === 'limited' ? Number(q.value || 0) : Infinity;
+    const used = Number(c.totalUsage || 0);
+    const remaining = max === Infinity ? Infinity : Math.max(0, max - used);
+    const percent = max === Infinity ? 0 : (max > 0 ? Math.round((used / max) * 1000) / 10 : 0);
+    return { ok: true, type, max, used, remaining, percent };
+  } catch (e) {
+    return { ok: false, error: e.message };
+  }
+}
+
+// Quota guard — call before sendLine to decide if we should send
+// Returns { allow: bool, reason: string, quota: <obj> }
+// Policy:
+//   - Plan type 'none' (unlimited) → always allow
+//   - used >= max          → block all LINE sends (would 429)
+//   - used >= 95% of max   → allow only CRITICAL, block SPEED_OVER + others
+//   - else                 → allow
+async function checkLineQuotaGuard(env, alertType) {
+  const q = await getLineQuota(env);
+  if (!q.ok) {
+    // If quota check itself fails, fail-OPEN (don't block legitimate critical alerts
+    // because of a transient LINE API hiccup). Log it though.
+    return { allow: true, reason: 'quota_check_failed:' + (q.error || ''), quota: q };
+  }
+  if (q.type !== 'limited') return { allow: true, reason: 'unlimited_plan', quota: q };
+  if (q.used >= q.max) {
+    return { allow: false, reason: 'LINE_QUOTA_EXHAUSTED', quota: q };
+  }
+  if (q.used >= q.max * 0.95) {
+    // Soft cap — preserve last 5% for CRITICAL only
+    const isCritical = String(alertType || '').toUpperCase() === 'CRITICAL';
+    if (!isCritical) {
+      return { allow: false, reason: 'LINE_QUOTA_NEAR_LIMIT_NONCRITICAL_BLOCKED', quota: q };
+    }
+  }
+  return { allow: true, reason: 'ok', quota: q };
+}
+
+// =============================================
+// /notify/quota — admin panel reads LINE quota
+// =============================================
+async function handleNotifyQuota(request, env) {
+  const q = await getLineQuota(env);
+  return jsonResponse(q, q.ok ? 200 : 502, request, env);
 }
 
 // =============================================
