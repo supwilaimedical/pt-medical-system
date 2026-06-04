@@ -168,19 +168,78 @@
     .map-wrap { position: relative; }
     #map {
       width: 100%;
-      height: calc(100vh - 280px);   /* reserve room for eta-panel below */
+      /* Header + info-bar are above the map; reserve only that much.
+         The eta-panel floats over the map as a bottom-sheet (see below). */
+      height: calc(100vh - 150px);
       min-height: 320px;
-    }
-    /* ETA panel — bottom sheet, fixed height */
-    #eta-panel {
-      position: relative;
-      z-index: 1000;
-      min-height: 120px;
     }
     .leaflet-container { background: var(--slate-100); }
 
+    /* ETA panel — floating bottom sheet (drag-to-expand/collapse) */
+    #eta-panel {
+      position: fixed;
+      left: 0; right: 0; bottom: 0;
+      background: #fff;
+      border-top: 2px solid var(--navy-700);
+      border-radius: 16px 16px 0 0;
+      box-shadow: 0 -8px 24px rgba(15, 36, 68, 0.14);
+      z-index: 1100;
+      padding: 0 16px 14px;
+      transform: translateY(0);
+      transition: transform 0.28s cubic-bezier(0.32, 0.72, 0, 1);
+      max-height: 80vh;
+      overflow: hidden;
+    }
+    #eta-panel.collapsed {
+      transform: translateY(calc(100% - 72px));
+    }
+    .eta-handle {
+      display: flex; flex-direction: column; align-items: center;
+      padding: 8px 0 4px;
+      cursor: grab;
+      user-select: none;
+      -webkit-user-select: none;
+      touch-action: none;
+    }
+    .eta-handle:active { cursor: grabbing; }
+    .eta-handle-bar {
+      width: 42px; height: 4px; border-radius: 2px;
+      background: var(--slate-300);
+      margin-bottom: 6px;
+      transition: background 0.15s;
+    }
+    .eta-handle:hover .eta-handle-bar { background: var(--slate-400); }
+    .eta-peek {
+      width: 100%;
+      display: flex; align-items: center; gap: 10px;
+      font-size: 0.82rem; color: var(--slate-600); font-weight: 600;
+      padding: 0 4px 4px;
+    }
+    .eta-peek-label { color: var(--slate-500); font-weight: 500; }
+    .eta-peek-value { color: var(--navy-700); font-weight: 800; }
+    .eta-peek-chevron {
+      margin-left: auto; font-size: 1rem; color: var(--slate-400);
+      transition: transform 0.2s;
+    }
+    #eta-panel:not(.collapsed) .eta-peek-chevron {
+      transform: rotate(180deg);
+    }
+    /* Track-only state — compact, no drag handle needed */
+    #eta-panel.track-only {
+      max-height: none;
+    }
+    .track-only-bar {
+      display: flex; align-items: center; gap: 8px;
+      padding: 12px 4px 4px;
+      font-size: 0.86rem; font-weight: 600; color: var(--slate-700);
+    }
+    .track-only-bar i { color: var(--navy-700); font-size: 1.05rem; }
+    .track-only-bar .track-only-sub {
+      margin-left: auto; font-size: 0.74rem; color: var(--slate-500); font-weight: 500;
+    }
+
     .expire-bar {
-      position: absolute; bottom: 14px; left: 14px; z-index: 999;
+      position: absolute; bottom: 84px; left: 14px; z-index: 999;
       background: rgba(15,36,68,0.92);
       color: #fff;
       padding: 8px 14px;
@@ -311,8 +370,9 @@
       .vehicle-name { font-size: 0.98rem; }
       .speed-display { font-size: 1.25rem; }
       .btn-camera { padding: 9px 14px; font-size: 0.8rem; }
-      #map { height: calc(100vh - 150px); }
-      .expire-bar { font-size: 0.72rem; padding: 7px 12px; bottom: 10px; left: 10px; }
+      /* Mobile: header (~70) + info-bar (~70, often wraps) = ~140 */
+      #map { height: calc(100vh - 140px); }
+      .expire-bar { font-size: 0.72rem; padding: 7px 12px; bottom: 84px; left: 10px; }
     }
   </style>
 </head>
@@ -375,8 +435,27 @@
       </div>
     </div>
 
-    <!-- Phase 3 — ETA panel (state-driven) -->
-    <div id="eta-panel" style="background:white; border-top:2px solid var(--navy-700, #1e40af); padding:14px 16px; box-shadow:0 -4px 12px rgba(0,0,0,.08);">
+    <!-- Phase 3 — ETA panel (bottom-sheet, drag-to-expand/collapse) -->
+    <div id="eta-panel">
+
+      <!-- Drag handle + peek summary (hidden in track-only + awaiting/arrived) -->
+      <div id="eta-drag-area" class="eta-handle">
+        <div class="eta-handle-bar"></div>
+        <div class="eta-peek">
+          <span class="eta-peek-label">ถึงปลายทาง</span>
+          <span class="eta-peek-value" id="eta-peek-countdown">--</span>
+          <i class="bi bi-chevron-up eta-peek-chevron"></i>
+        </div>
+      </div>
+
+      <!-- State T — track-only (no destination set, dest_mode='none') -->
+      <div id="eta-state-track-only" style="display:none;">
+        <div class="track-only-bar">
+          <i class="bi bi-broadcast-pin"></i>
+          <span>ติดตามรถสด · ไม่ระบุปลายทาง</span>
+          <span class="track-only-sub">อัปเดต 10 วินาที</span>
+        </div>
+      </div>
 
       <!-- State A — awaiting customer pick (customer_choose mode, not locked) -->
       <div id="eta-state-awaiting" class="dest-modal-overlay" style="display:none;">
@@ -611,16 +690,31 @@
       _shareState = s;
       var panel = document.getElementById('eta-panel');
       if (!panel) return;
-      ['awaiting','live','arrived'].forEach(function(name) {
+      ['awaiting','live','arrived','track-only'].forEach(function(name) {
         var el = document.getElementById('eta-state-' + name);
         if (el) el.style.display = (s === name) ? '' : 'none';
       });
+      // Drag handle is only meaningful in 'live' / 'arrived' (peek summary needs
+      // ETA data). Hide it in awaiting (modal owns the screen) and track-only
+      // (compact bar, no expand needed).
+      var drag = document.getElementById('eta-drag-area');
+      if (drag) {
+        drag.style.display = (s === 'live' || s === 'arrived') ? '' : 'none';
+      }
+      // Track-only uses a different visual treatment — no drag/peek, no scroll
+      panel.classList.toggle('track-only', s === 'track-only');
+      // Awaiting renders a position:fixed full-screen modal (#eta-state-awaiting)
+      // that is a child of #eta-panel — so we must keep the panel visible.
+      // The empty panel chrome (just border-top + padding) shows as a thin strip
+      // at the bottom, which the z-index 2000 modal overlay fully covers.
+      panel.style.display = '';
     }
 
     function decideEtaState(row) {
       if (!row) return 'expired';
       if (row.status !== 'Active') return 'expired';
       if (new Date(row.expires_at) < new Date()) return 'expired';
+      if (row.dest_mode === 'none') return 'track-only';
       if (row.dest_mode === 'customer_choose' && !row.dest_locked_at) return 'awaiting';
       if (row.last_distance_m != null && row.last_distance_m < 100) return 'arrived';
       return 'live';
@@ -703,6 +797,8 @@
       if (row.last_eta_seconds == null || !row.last_eta_at) {
         var ec = document.getElementById('eta-countdown');
         if (ec) ec.textContent = 'กำลังคำนวณ...';
+        var pk = document.getElementById('eta-peek-countdown');
+        if (pk) pk.textContent = 'กำลังคำนวณ';
         return;
       }
       var etaAt  = new Date(row.last_eta_at).getTime();
@@ -716,6 +812,9 @@
         var txt = (hr ? hr + ' ชม. ' : '') + mn + ' นาที ' + (sc < 10 ? '0' : '') + sc + ' วินาที';
         var ec = document.getElementById('eta-countdown');
         if (ec) ec.textContent = txt;
+        // Short form for the collapsed peek summary
+        var pk = document.getElementById('eta-peek-countdown');
+        if (pk) pk.textContent = (hr ? hr + ' ชม. ' : '') + mn + ' นาที';
         var ed = document.getElementById('eta-distance');
         if (ed) ed.textContent = (row.last_distance_m != null)
           ? ((row.last_distance_m / 1000).toFixed(1) + ' กม.')
@@ -956,9 +1055,68 @@
         renderEtaLive(_tokenData);
         if (st === 'live') refreshEtaFromWorker();
         subscribeEtaUpdates();
+        // Default collapsed on small screens so the map is more visible;
+        // user can drag/tap to expand. Desktop: stay expanded.
+        if (window.innerWidth <= 640) collapseEtaPanel(true);
       }
+      // 'track-only' and 'awaiting': no ETA worker calls, no countdown,
+      // no realtime subscription needed. Vehicle freshness check still runs
+      // so the offline banner works on every state.
       startVehicleFreshnessCheck();
     }
+
+    // ====== Bottom-sheet drag handlers (eta-panel) ======
+    function collapseEtaPanel(c) {
+      var p = document.getElementById('eta-panel');
+      if (!p) return;
+      if (c) p.classList.add('collapsed'); else p.classList.remove('collapsed');
+    }
+    function toggleEtaPanel() {
+      var p = document.getElementById('eta-panel');
+      if (!p) return;
+      collapseEtaPanel(!p.classList.contains('collapsed'));
+    }
+    (function bindEtaPanelDrag() {
+      var startY = null, currentY = null, dragging = false;
+      function onStart(y) { startY = y; currentY = y; dragging = true; }
+      function onMove(y) { if (dragging) currentY = y; }
+      function onEnd() {
+        if (!dragging) return;
+        dragging = false;
+        var p = document.getElementById('eta-panel');
+        if (!p || startY == null || currentY == null) { startY = currentY = null; return; }
+        var delta = currentY - startY;
+        var THRESHOLD = 40;
+        // Drag down → collapse; drag up → expand. Small drags = treat as tap → toggle.
+        if (Math.abs(delta) < 6) {
+          toggleEtaPanel();
+        } else if (delta > THRESHOLD) {
+          collapseEtaPanel(true);
+        } else if (delta < -THRESHOLD) {
+          collapseEtaPanel(false);
+        }
+        startY = currentY = null;
+      }
+      document.addEventListener('touchstart', function(e) {
+        if (!e.target.closest || !e.target.closest('#eta-drag-area')) return;
+        onStart(e.touches[0].clientY);
+      }, { passive: true });
+      document.addEventListener('touchmove', function(e) {
+        if (!dragging) return;
+        onMove(e.touches[0].clientY);
+      }, { passive: true });
+      document.addEventListener('touchend', function() { onEnd(); });
+      document.addEventListener('mousedown', function(e) {
+        if (!e.target.closest || !e.target.closest('#eta-drag-area')) return;
+        onStart(e.clientY);
+        e.preventDefault();
+      });
+      document.addEventListener('mousemove', function(e) {
+        if (!dragging) return;
+        onMove(e.clientY);
+      });
+      document.addEventListener('mouseup', function() { onEnd(); });
+    })();
 
     function displayName() {
       return _vehicleName || ('Device: ' + _tokenData.device_id);

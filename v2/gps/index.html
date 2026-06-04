@@ -1777,8 +1777,12 @@
             <div class="segmented-group" id="share-dest-mode-group">
               <button type="button" class="segmented-btn active" data-mode="paramedic_set"><i class="bi bi-pin-map-fill"></i> ฉันตั้งเลย</button>
               <button type="button" class="segmented-btn" data-mode="customer_choose"><i class="bi bi-person-raised-hand"></i> ให้ลูกค้าเลือก</button>
+              <button type="button" class="segmented-btn" data-mode="none"><i class="bi bi-broadcast-pin"></i> ไม่ตั้งปลายทาง</button>
             </div>
             <input type="hidden" id="share-dest-mode" value="paramedic_set">
+            <div class="form-text" style="font-size:0.72rem; color:var(--slate-500); margin-top:4px;">
+              "ไม่ตั้งปลายทาง" = แชร์ live-tracking อย่างเดียว ไม่คำนวณ ETA
+            </div>
           </div>
 
           <!-- Dest input methods (visible only when paramedic_set) -->
@@ -2712,7 +2716,8 @@
         var mode = btn.dataset.mode;
         document.getElementById('share-dest-mode').value = mode;
         document.getElementById('dest-input-wrap').style.display = (mode === 'paramedic_set') ? '' : 'none';
-        if (mode === 'customer_choose') {
+        // customer_choose + none both clear dest fields (no paramedic-set dest)
+        if (mode === 'customer_choose' || mode === 'none') {
           ['dest-lat','dest-lng','dest-name','dest-source'].forEach(function(id){
             var el = document.getElementById(id); if (el) el.value = '';
           });
@@ -3039,6 +3044,8 @@
             } else {
               destLine = '<div class="token-dest"><i class="bi bi-hourglass-split" style="color:var(--slate-500); font-size:0.75rem;"></i> รอลูกค้าเลือกปลายทาง...</div>';
             }
+          } else if (t.dest_mode === 'none') {
+            destLine = '<div class="token-dest"><i class="bi bi-broadcast-pin" style="color:var(--navy-600); font-size:0.75rem;"></i> ติดตามอย่างเดียว · ไม่ระบุปลายทาง</div>';
           }
 
           html += '<div class="token-card' + (!isActive ? ' expired' : '') + (t.allow_camera ? ' has-camera' : '') + '">' +
