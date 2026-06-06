@@ -499,6 +499,8 @@
     .pt-bnav.cols-4 { grid-template-columns: repeat(4, 1fr); }
     /* Notch pattern: 2 tabs + 80px center pocket for FAB */
     .pt-bnav.fa-bnav-notch { grid-template-columns: 1fr 80px 1fr; }
+    /* Notch-5 pattern: 2 tabs + 80px pocket + 2 tabs (event-detail bnav with center FAB) */
+    .pt-bnav.fa-bnav-notch-5 { grid-template-columns: 1fr 1fr 80px 1fr 1fr; }
     .pt-bnav .fa-bnav-pocket { visibility: hidden; pointer-events: none; }
     .pt-bnav a {
       display:flex; flex-direction:column; align-items:center; justify-content:center; gap:2px;
@@ -4085,13 +4087,15 @@ if ('serviceWorker' in navigator) {
     </a>
   </nav>
 
-  <nav class="pt-bnav cols-4" id="fa-bnav-detail" style="display:none;">
+  <nav class="pt-bnav fa-bnav-notch-5" id="fa-bnav-detail" style="display:none;">
     <a href="javascript:void(0)" onclick="if(typeof fa_closeEventDetails==='function') fa_closeEventDetails();">
       <i class="bi bi-arrow-left"></i><span>กลับ</span>
     </a>
     <a href="javascript:void(0)" onclick="if(typeof fa_printReport==='function') fa_printReport(window.fa_currentViewedEventId)">
       <i class="bi bi-printer"></i><span>พิมพ์</span>
     </a>
+    <!-- Center pocket — .fa-fab sits here in notch (same pattern as list view) -->
+    <span class="fa-bnav-pocket" aria-hidden="true"></span>
     <a href="javascript:void(0)" onclick="if(typeof fa_openEditEventForm==='function') fa_openEditEventForm(window.fa_currentViewedEventId)">
       <i class="bi bi-pencil"></i><span>แก้งาน</span>
     </a>
