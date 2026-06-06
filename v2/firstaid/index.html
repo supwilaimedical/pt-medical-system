@@ -461,19 +461,19 @@
     body.v2-nav-open .v2-rail a i { font-size: 22px !important; flex: 0 0 auto; width: 28px; text-align: center; }
     body.v2-nav-open .v2-rail a::after { content: attr(title); flex: 1; color: inherit; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     body.v2-nav-open .v2-rail .v2-logo { display: none !important; }
-    /* Reposition existing .fa-fab (event detail FAB) to float ABOVE bnav.
-       bnav height 56px + safe-area-inset-bottom ≈ 56-90px from viewport bottom.
-       FAB bottom: 76px keeps the entire FAB clear of bnav with a small gap. */
+    /* Event-detail FAB — sit in the bnav notch EXACTLY like the list FAB
+       (.fa-list-fab): same bottom: 28px (half above bnav, half in pocket),
+       same z-index 1090, same white-ring shadow. The detail bnav uses
+       .fa-bnav-notch-5 so the center pocket is empty for this FAB. */
     body.fa-in-event .fa-fab {
       position: fixed !important;
-      left: 50% !important; right: auto !important;
-      bottom: calc(76px + env(safe-area-inset-bottom, 0px)) !important;
+      left: 50% !important; right: auto !important; bottom: 28px !important;
       transform: translateX(-50%);
       width: 60px !important; height: 60px !important;
       border-radius: 50% !important;
       background: #16a34a !important; color: #fff !important;
       box-shadow: 0 6px 20px rgba(22,163,74,.45), 0 0 0 4px #fff !important;
-      z-index: 1036 !important;
+      z-index: 1090 !important;
     }
     /* New FAB for list view (+ เหตุการณ์) — Material notch pattern (matches Location #loc-fab) */
     .fa-list-fab {
@@ -502,6 +502,9 @@
     .pt-bnav.cols-4 { grid-template-columns: repeat(4, 1fr); }
     /* Notch pattern: 2 tabs + 80px center pocket for FAB */
     .pt-bnav.fa-bnav-notch { grid-template-columns: 1fr 80px 1fr; }
+    /* Notch-5: 4 tabs + 80px center pocket (event-detail bnav, FAB in middle).
+       Same 80px pocket as the list notch so the FAB sits identically. */
+    .pt-bnav.fa-bnav-notch-5 { grid-template-columns: 1fr 1fr 80px 1fr 1fr; }
     .pt-bnav .fa-bnav-pocket { visibility: hidden; pointer-events: none; }
     .pt-bnav a {
       display:flex; flex-direction:column; align-items:center; justify-content:center; gap:2px;
@@ -4096,13 +4099,15 @@ if ('serviceWorker' in navigator) {
     </a>
   </nav>
 
-  <nav class="pt-bnav cols-4" id="fa-bnav-detail" style="display:none;">
+  <nav class="pt-bnav fa-bnav-notch-5" id="fa-bnav-detail" style="display:none;">
     <a href="javascript:void(0)" onclick="if(typeof fa_closeEventDetails==='function') fa_closeEventDetails();">
       <i class="bi bi-arrow-left"></i><span>กลับ</span>
     </a>
     <a href="javascript:void(0)" onclick="if(typeof fa_printReport==='function') fa_printReport(window.fa_currentViewedEventId)">
       <i class="bi bi-printer"></i><span>พิมพ์</span>
     </a>
+    <!-- Center pocket — .fa-fab (เพิ่มผู้ป่วย) sits here, same notch as list view -->
+    <span class="fa-bnav-pocket" aria-hidden="true"></span>
     <a href="javascript:void(0)" onclick="if(typeof fa_openEditEventForm==='function') fa_openEditEventForm(window.fa_currentViewedEventId)">
       <i class="bi bi-pencil"></i><span>แก้งาน</span>
     </a>
