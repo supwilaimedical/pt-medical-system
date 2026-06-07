@@ -327,8 +327,11 @@
       position:fixed !important; top:0; left:296px; right:0;
       margin:0 !important; z-index:30;  /* above right col z:5 */
     }
-    /* Push content + right col below fixed colhead (~56px tall) */
-    #fa-dashboard-view, #fa-event-view{ padding-top:64px !important; }
+    /* Push content + right col below fixed colhead (~56px tall).
+       NOTE: the event-detail view's real id is #fa-event-detail-view —
+       the old #fa-event-view matched nothing, so its content slid under
+       the fixed topbar on desktop (≥1200px). */
+    #fa-dashboard-view, #fa-event-detail-view{ padding-top:64px !important; }
     .fa-dash-right, .fa-evt-right{ top:64px !important; }
   }
   @media (max-width:1199px){ .fa-dash-right{ display:none; } }
