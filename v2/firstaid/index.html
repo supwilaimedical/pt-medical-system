@@ -2416,7 +2416,8 @@
                     note: r.note || '',
                     image: r.image_url || '',
                     gps: r.gps || '',
-                    recordedBy: r.recorded_by || '-'
+                    recordedBy: r.recorded_by || '-',
+                    createdAt: r.created_at || null
                 };
             });
 
@@ -2442,6 +2443,31 @@
             return '<span class="badge bg-warning-subtle text-warning border-warning-subtle">Transfer</span> <span class="small">' + (methodLabels[parts[1]] || '') + (hospital ? ' → ' + escapeHtml(hospital) : '') + '</span>';
         }
         return escapeHtml(resultStr);
+    }
+
+    // Record timestamp — prefer DB created_at, fall back to the epoch embedded
+    // in reg_id ('R-<millis>') for legacy rows. Used to bucket rows by day.
+    function fa_recordTs(r) {
+        if (r && r.createdAt) return r.createdAt;
+        if (r && r.id && /^R-\d+$/.test(r.id)) return parseInt(r.id.slice(2), 10);
+        return null;
+    }
+    // Calendar-day key in Thailand timezone (Asia/Bangkok) → 'YYYY-MM-DD'.
+    // Using Bangkok tz avoids the UTC-midnight off-by-one-day bug.
+    function fa_bkkDayKey(ts) {
+        if (ts == null) return '';
+        var d = new Date(ts);
+        if (isNaN(d.getTime())) return '';
+        return d.toLocaleDateString('en-CA', { timeZone: 'Asia/Bangkok' });
+    }
+    // Thai short date label in Bangkok tz, Buddhist era → '6 มิ.ย. 2569'.
+    function fa_thaiDateLabel(ts) {
+        if (ts == null) return '—';
+        var d = new Date(ts);
+        if (isNaN(d.getTime())) return '—';
+        return d.toLocaleDateString('th-TH', {
+            timeZone: 'Asia/Bangkok', day: 'numeric', month: 'short', year: 'numeric'
+        });
     }
 
     function fa_renderRegistryTable(records) {
@@ -2472,7 +2498,36 @@
                 '<th class="text-center" style="width:80px;">จัดการ</th>';
         }
 
-        records.forEach(function(r, index) {
+        // Sort by (Bangkok calendar day ascending, then time-in ascending) so
+        // same-day rows are contiguous. Insert a date subheader only when the
+        // records span 2+ distinct days — single-day events look unchanged.
+        var sorted = records.slice().sort(function(a, b) {
+            var da = fa_bkkDayKey(fa_recordTs(a)), db = fa_bkkDayKey(fa_recordTs(b));
+            if (da !== db) return da < db ? -1 : 1;
+            return (a.timeIn || '').localeCompare(b.timeIn || '');
+        });
+        var dayCounts = {};
+        sorted.forEach(function(r) {
+            var k = fa_bkkDayKey(fa_recordTs(r));
+            dayCounts[k] = (dayCounts[k] || 0) + 1;
+        });
+        var showDates = Object.keys(dayCounts).filter(function(k){ return k; }).length >= 2;
+        var lastDayKey = null;
+
+        sorted.forEach(function(r, index) {
+            var dayKey = fa_bkkDayKey(fa_recordTs(r));
+            if (showDates && dayKey !== lastDayKey) {
+                lastDayKey = dayKey;
+                var subTr = document.createElement('tr');
+                subTr.className = 'fa-day-divider';
+                subTr.innerHTML =
+                    '<td colspan="8" class="py-2 px-3" style="background:#f1f5f9; border-top:2px solid #cbd5e1;">' +
+                      '<span class="fw-bold" style="color:#0f172a;"><i class="bi bi-calendar-event text-primary me-1"></i>' +
+                      escapeHtml(fa_thaiDateLabel(fa_recordTs(r))) + '</span>' +
+                      '<span class="badge bg-secondary-subtle text-secondary ms-2 rounded-pill">' + (dayCounts[dayKey] || 0) + ' ราย</span>' +
+                    '</td>';
+                tbody.appendChild(subTr);
+            }
             var tr = document.createElement('tr');
 
             var timeStr = '<span class="text-success fw-medium">' + escapeHtml(r.timeIn || '-') + '</span>';
