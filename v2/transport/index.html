@@ -4356,11 +4356,11 @@
                     </div>
                     <div class="pp-sub-title">สัญญาณชีพ · Vital Signs</div>
                     <div class="row g-2">
-                      <div class="col-6 col-md-4"><label class="small fw-bold">BP (sys/dia)</label><input type="text" class="pp-input" id="av-bp" placeholder="120/80"></div>
-                      <div class="col-6 col-md-4"><label class="small fw-bold">PR (/min)</label><input type="text" class="pp-input" id="av-pr" placeholder="80"></div>
-                      <div class="col-6 col-md-4"><label class="small fw-bold">RR (/min)</label><input type="text" class="pp-input" id="av-rr" placeholder="20"></div>
-                      <div class="col-6 col-md-4"><label class="small fw-bold">Temp (°C)</label><input type="text" class="pp-input" id="av-temp" placeholder="36.5"></div>
-                      <div class="col-6 col-md-4"><label class="small fw-bold">SpO2 (%)</label><input type="text" class="pp-input" id="av-spo2" placeholder="98"></div>
+                      <div class="col-6 col-md-4"><label class="small fw-bold">BP (sys/dia)</label><div class="d-flex align-items-center" style="gap:4px;"><input type="text" inputmode="numeric" class="pp-input text-center" id="av-bp-sys" placeholder="120" style="flex:1; min-width:0;"><span class="fw-bold text-secondary">/</span><input type="text" inputmode="numeric" class="pp-input text-center" id="av-bp-dia" placeholder="80" style="flex:1; min-width:0;"></div></div>
+                      <div class="col-6 col-md-4"><label class="small fw-bold">PR (/min)</label><input type="text" inputmode="numeric" class="pp-input" id="av-pr" placeholder="80"></div>
+                      <div class="col-6 col-md-4"><label class="small fw-bold">RR (/min)</label><input type="text" inputmode="numeric" class="pp-input" id="av-rr" placeholder="20"></div>
+                      <div class="col-6 col-md-4"><label class="small fw-bold">Temp (°C)</label><input type="text" inputmode="decimal" class="pp-input" id="av-temp" placeholder="36.5"></div>
+                      <div class="col-6 col-md-4"><label class="small fw-bold">SpO2 (%)</label><input type="text" inputmode="numeric" class="pp-input" id="av-spo2" placeholder="98"></div>
                     </div>
                     <div class="pp-sub-title">PAIN (0–10)</div>
                     <div class="pp-pill-row" id="av-pain-row">
@@ -7643,7 +7643,7 @@
     function ppOpenAddVitalModal() {
       if (ppIsCaseClosed()) return;
       // Reset fields
-      ['av-time','av-bp','av-pr','av-rr','av-temp','av-spo2','av-note'].forEach(function(id) {
+      ['av-time','av-bp-sys','av-bp-dia','av-pr','av-rr','av-temp','av-spo2','av-note'].forEach(function(id) {
         var el = document.getElementById(id);
         if (el) el.value = '';
       });
@@ -7678,7 +7678,7 @@
       var editTargetId = m ? (m.dataset.editTargetId || '') : '';
       var data = {
         time:  ((document.getElementById('av-time') || {}).value || '').trim(),
-        bp:    ((document.getElementById('av-bp') || {}).value || '').trim(),
+        bp:    ppBpJoin((document.getElementById('av-bp-sys') || {}).value, (document.getElementById('av-bp-dia') || {}).value),
         pr:    ((document.getElementById('av-pr') || {}).value || '').trim(),
         rr:    ((document.getElementById('av-rr') || {}).value || '').trim(),
         temp:  ((document.getElementById('av-temp') || {}).value || '').trim(),
@@ -7900,7 +7900,9 @@
         // Prefill m-add-vital from row's hidden inputs
         var time = (row.querySelector('.v-time') || {}).value || '';
         (document.getElementById('av-time') || {}).value = time;
-        (document.getElementById('av-bp') || {}).value   = (row.querySelector('.v-bp') || {}).value || '';
+        var _avBp = ppBpSplit((row.querySelector('.v-bp') || {}).value || '');
+        (document.getElementById('av-bp-sys') || {}).value = _avBp.sys;
+        (document.getElementById('av-bp-dia') || {}).value = _avBp.dia;
         (document.getElementById('av-pr') || {}).value   = (row.querySelector('.v-pr') || {}).value || '';
         (document.getElementById('av-rr') || {}).value   = (row.querySelector('.v-rr') || {}).value || '';
         (document.getElementById('av-temp') || {}).value = (row.querySelector('.v-temp') || {}).value || '';
@@ -8583,20 +8585,35 @@
     }
 
     // --- INITIAL VITALS POPUP (with Validation) ---
+    // BP is stored as a single "sys/dia" string in the DB. These helpers let
+    // the UI split it into two numeric inputs (so mobile shows a number pad —
+    // the '/' can't appear on a numeric keyboard) and re-join before saving.
+    // No schema/storage change: DB still receives "120/80".
+    function ppBpJoin(sys, dia) {
+        sys = (sys || '').trim(); dia = (dia || '').trim();
+        if (!sys && !dia) return '';
+        return sys + '/' + dia;
+    }
+    function ppBpSplit(str) {
+        var p = (str || '').split('/');
+        return { sys: (p[0] || '').trim(), dia: (p[1] || '').trim() };
+    }
+
     function openInitVitalsPopup() {
         var f = document.forms['main-form'];
+        var _ivBp = ppBpSplit(f.init_bp.value);
         Swal.fire({
             title: '<i class="bi bi-activity text-danger"></i> บันทึก V/S แรกรับ',
             html:
                 '<style>.swal2-popup input::placeholder { color: #ccc !important; opacity: 1; } .swal2-popup input { color: #212529; font-weight: 600; } .swal2-popup .swal-invalid { border: 2px solid #dc3545 !important; background-color: #fff5f5 !important; }</style>' +
                 '<div class="row g-2 text-start" style="font-size:0.9rem;">' +
                     '<div class="col-12"><label class="form-label fw-bold small mb-1"><i class="bi bi-clock-fill text-danger me-1"></i> เวลาบันทึก (24 ชม.)</label><input type="text" inputmode="numeric" maxlength="5" placeholder="HH:MM" pattern="([01]?\\d|2[0-3]):[0-5]\\d" id="swal-time" class="form-control form-control-sm" oninput="maskTime(this)" value="' + (f.init_vitals_time.value || new Date().toLocaleTimeString('th-TH',{hour:'2-digit',minute:'2-digit',hour12:false})) + '"></div>' +
-                    '<div class="col-6"><label class="form-label fw-bold small mb-1">BP (mmHg)</label><input type="text" id="swal-bp" class="form-control form-control-sm text-center" value="' + f.init_bp.value + '" placeholder="เช่น 120/80"></div>' +
-                    '<div class="col-6"><label class="form-label fw-bold small mb-1">PR (/min)</label><input type="text" id="swal-pr" class="form-control form-control-sm text-center" value="' + f.init_pr.value + '" placeholder="เช่น 80"></div>' +
-                    '<div class="col-6"><label class="form-label fw-bold small mb-1">RR (/min)</label><input type="text" id="swal-rr" class="form-control form-control-sm text-center" value="' + f.init_rr.value + '" placeholder="เช่น 20"></div>' +
-                    '<div class="col-6"><label class="form-label fw-bold small mb-1">Temp (°C)</label><input type="text" id="swal-temp" class="form-control form-control-sm text-center" value="' + f.init_temp.value + '" placeholder="เช่น 36.5"></div>' +
-                    '<div class="col-6"><label class="form-label fw-bold small mb-1">SpO2 (%)</label><input type="text" id="swal-spo2" class="form-control form-control-sm text-center" value="' + f.init_spo2.value + '" placeholder="เช่น 98"></div>' +
-                    '<div class="col-6"><label class="form-label fw-bold small mb-1">DTX (mg/dL)</label><input type="text" id="swal-dtx" class="form-control form-control-sm text-center" value="' + f.init_dtx.value + '" placeholder="เช่น 120"></div>' +
+                    '<div class="col-6"><label class="form-label fw-bold small mb-1">BP (mmHg)</label><div class="d-flex align-items-center gap-1"><input type="text" inputmode="numeric" id="swal-bp-sys" class="form-control form-control-sm text-center" value="' + _ivBp.sys + '" placeholder="120" style="flex:1; min-width:0;"><span class="fw-bold text-secondary">/</span><input type="text" inputmode="numeric" id="swal-bp-dia" class="form-control form-control-sm text-center" value="' + _ivBp.dia + '" placeholder="80" style="flex:1; min-width:0;"></div></div>' +
+                    '<div class="col-6"><label class="form-label fw-bold small mb-1">PR (/min)</label><input type="text" inputmode="numeric" id="swal-pr" class="form-control form-control-sm text-center" value="' + f.init_pr.value + '" placeholder="เช่น 80"></div>' +
+                    '<div class="col-6"><label class="form-label fw-bold small mb-1">RR (/min)</label><input type="text" inputmode="numeric" id="swal-rr" class="form-control form-control-sm text-center" value="' + f.init_rr.value + '" placeholder="เช่น 20"></div>' +
+                    '<div class="col-6"><label class="form-label fw-bold small mb-1">Temp (°C)</label><input type="text" inputmode="decimal" id="swal-temp" class="form-control form-control-sm text-center" value="' + f.init_temp.value + '" placeholder="เช่น 36.5"></div>' +
+                    '<div class="col-6"><label class="form-label fw-bold small mb-1">SpO2 (%)</label><input type="text" inputmode="numeric" id="swal-spo2" class="form-control form-control-sm text-center" value="' + f.init_spo2.value + '" placeholder="เช่น 98"></div>' +
+                    '<div class="col-6"><label class="form-label fw-bold small mb-1">DTX (mg/dL)</label><input type="text" inputmode="numeric" id="swal-dtx" class="form-control form-control-sm text-center" value="' + f.init_dtx.value + '" placeholder="เช่น 120"></div>' +
                 '</div>',
             confirmButtonText: '<i class="bi bi-check-circle-fill"></i> บันทึก V/S',
             showCancelButton: true,
@@ -8607,7 +8624,7 @@
             preConfirm: function() {
                 var values = {
                     time: document.getElementById('swal-time').value.trim(),
-                    bp: document.getElementById('swal-bp').value.trim(),
+                    bp: ppBpJoin(document.getElementById('swal-bp-sys').value, document.getElementById('swal-bp-dia').value),
                     pr: document.getElementById('swal-pr').value.trim(),
                     rr: document.getElementById('swal-rr').value.trim(),
                     temp: document.getElementById('swal-temp').value.trim(),
@@ -8617,12 +8634,15 @@
 
                 var errors = validateInitVitals(values);
                 if (errors.length > 0) {
-                    var fieldMap = {bp:'swal-bp', pr:'swal-pr', rr:'swal-rr', temp:'swal-temp', spo2:'swal-spo2', dtx:'swal-dtx'};
+                    var fieldMap = {bp_sys:'swal-bp-sys', bp_dia:'swal-bp-dia', pr:'swal-pr', rr:'swal-rr', temp:'swal-temp', spo2:'swal-spo2', dtx:'swal-dtx'};
                     for (var key in fieldMap) {
                         var el = document.getElementById(fieldMap[key]);
                         if (el) el.classList.remove('swal-invalid');
                     }
-                    if (values.bp && !ValidationRules.bp.validate(values.bp)) document.getElementById('swal-bp').classList.add('swal-invalid');
+                    if (values.bp && !ValidationRules.bp.validate(values.bp)) {
+                        document.getElementById('swal-bp-sys').classList.add('swal-invalid');
+                        document.getElementById('swal-bp-dia').classList.add('swal-invalid');
+                    }
                     if (values.pr && !ValidationRules.pr.validate(values.pr)) document.getElementById('swal-pr').classList.add('swal-invalid');
                     if (values.rr && !ValidationRules.rr.validate(values.rr)) document.getElementById('swal-rr').classList.add('swal-invalid');
                     if (values.temp && !ValidationRules.temp.validate(values.temp)) document.getElementById('swal-temp').classList.add('swal-invalid');
