@@ -6213,7 +6213,9 @@
                 rawSnapshot: row.raw_data ? row.raw_data.rawSnapshot : null,
                 vitalsJson: row.raw_data ? row.raw_data.vitalsJson : null,
                 ivJson: row.raw_data ? row.raw_data.ivJson : null,
-                referDocsJson: row.raw_data ? row.raw_data.referDocsJson : null
+                referDocsJson: row.raw_data ? row.raw_data.referDocsJson : null,
+                referSummary: row.raw_data ? (row.raw_data.referSummary || null) : null,
+                referSummaryAt: row.raw_data ? (row.raw_data.referSummaryAt || null) : null
             };
 
             loadedCaseStatus = data.status || "Active";
