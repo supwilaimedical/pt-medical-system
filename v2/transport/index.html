@@ -5517,6 +5517,7 @@
           }
         }
         if (referCount > 0) chips += '<span class="meta-chip clickable" data-act="refer"><i class="bi bi-paperclip"></i> Refer (' + referCount + ')</span>';
+        if (rec.referSummary) chips += '<span class="meta-chip" title="มีสรุปใบ Refer โดย AI"><i class="bi bi-robot"></i> AI</span>';
 
         // Action buttons: single kebab menu (consolidated)
         var kid = 'tr-kebab-' + rec.id;
@@ -5635,6 +5636,9 @@
             }
             if (referCount > 0) {
                 flags += '<span class="flag-chip refer" data-act="refer" title="เอกสารแนบ (' + referCount + ' ไฟล์)"><i class="bi bi-paperclip"></i> ' + referCount + '</span>';
+            }
+            if (rec.referSummary) {
+                flags += '<span class="flag-chip" title="มีสรุปใบ Refer โดย AI" style="background:#dcfce7; color:#15803d;"><i class="bi bi-robot"></i></span>';
             }
 
             var genderShort = pi.gender === 'Male' ? 'ช' : (pi.gender === 'Female' ? 'ญ' : (pi.gender === 'Other' ? 'อื่นๆ' : '-'));
