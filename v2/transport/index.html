@@ -6464,6 +6464,26 @@
        return arr;
     }
 
+    // --- Persist Refer AI summary immediately into raw_data ---
+    // Fixes data loss: summary lived only in window._referSummary + form-save; navigating
+    // List⇄case reloaded from DB and wiped it. Read-merge-write touching only referSummary,
+    // then re-sync OCC token so a later form Save doesn't fail the row_version predicate.
+    window.persistReferSummary = async function(text, at){
+       try {
+          var caseId = (document.getElementById('caseId') || {}).value;
+          if (!caseId) return false; // new unsaved case → persists on form save instead
+          var cur = await _supabase.from('cases').select('raw_data').eq('case_id', caseId).maybeSingle();
+          if (cur.error || !cur.data) return false;
+          var rd = cur.data.raw_data || {};
+          rd.referSummary = text;
+          rd.referSummaryAt = at;
+          var resp = await _supabase.from('cases').update({ raw_data: rd }).eq('case_id', caseId).select('row_version').maybeSingle();
+          if (resp.error) return false;
+          if (resp.data && resp.data.row_version != null) _loadedRowVersion = resp.data.row_version;
+          return true;
+       } catch(e){ console.error('persistReferSummary failed:', e); return false; }
+    };
+
     // --- READ-ONLY MODE ---
     function setReadOnlyMode(isReadOnly) {
        if (typeof setReferReadOnly === 'function') setReferReadOnly(isReadOnly);
@@ -12199,12 +12219,15 @@
           window.updateReferSummaryBtn();
           return;
         }
-        window._referSummary = { text: summary, at: new Date().toISOString() };
+        var sumAt = new Date().toISOString();
+        window._referSummary = { text: summary, at: sumAt };
         if (typeof window.formDirty !== 'undefined') window.formDirty = true;
+        var savedNow = false;
+        try { savedNow = (typeof window.persistReferSummary === 'function') ? await window.persistReferSummary(summary, sumAt) : false; } catch(e){}
         window._referAiBusy = false;
         window.updateReferSummaryBtn();
         window.openReferSummaryModal();
-        try { Swal.fire({toast:true, position:'top-end', icon:'success', title:'สรุปเสร็จแล้ว · อย่าลืมบันทึกเคส', timer:2800, showConfirmButton:false}); } catch(e){}
+        try { Swal.fire({toast:true, position:'top-end', icon:'success', title: savedNow ? 'สรุปเสร็จ + บันทึกแล้ว' : 'สรุปเสร็จ · อย่าลืมบันทึกเคส', timer:2600, showConfirmButton:false}); } catch(e){}
       } catch(e){
         console.error('refer summarize failed:', e);
         window._referAiBusy = false;
