@@ -5643,7 +5643,7 @@
                 flags += '<span class="flag-chip" title="มีสรุปใบ Refer โดย AI" style="background:#dcfce7; color:#15803d;"><i class="bi bi-robot"></i></span>';
             }
             if (rec.caseSummary) {
-                flags += '<span class="flag-chip" title="มีสรุปเคส (SOAP) โดย AI" style="background:#e0e7ff; color:#4338ca;"><i class="bi bi-clipboard2-pulse"></i></span>';
+                flags += '<span class="flag-chip" title="มีรายงานสรุปเคส (Case Report) โดย AI" style="background:#e0e7ff; color:#4338ca;"><i class="bi bi-clipboard2-pulse"></i></span>';
             }
 
             var genderShort = pi.gender === 'Male' ? 'ช' : (pi.gender === 'Female' ? 'ญ' : (pi.gender === 'Other' ? 'อื่นๆ' : '-'));
@@ -12049,7 +12049,7 @@
   <div id="case-summary-modal" style="display:none; position:fixed; inset:0; background:rgba(15,23,42,.6); z-index:99995; align-items:center; justify-content:center; padding:14px;" onclick="if(event.target===this) this.style.display='none';">
     <div style="background:#fff; border-radius:14px; width:100%; max-width:580px; max-height:90vh; display:flex; flex-direction:column; overflow:hidden; box-shadow:0 20px 50px rgba(0,0,0,.35);">
       <div style="padding:14px 18px; background:linear-gradient(135deg,#6366f1,#4f46e5); color:#fff; display:flex; align-items:center; justify-content:space-between;">
-        <div style="font-weight:700;"><i class="bi bi-clipboard2-pulse me-1"></i> สรุปเคส (SOAP) โดย AI</div>
+        <div style="font-weight:700;"><i class="bi bi-clipboard2-pulse me-1"></i> รายงานสรุปเคส (Case Report) โดย AI</div>
         <button type="button" onclick="document.getElementById('case-summary-modal').style.display='none'" style="background:transparent; border:none; color:#fff; font-size:20px; cursor:pointer; line-height:1;"><i class="bi bi-x-lg"></i></button>
       </div>
       <div style="padding:18px; overflow-y:auto; flex:1;">
@@ -12330,20 +12330,17 @@
     function _caseApiKey(){ try { return localStorage.getItem('ocr_gemini_api_key') || ''; } catch(e){ return ''; } }
 
     var CASE_PROMPT =
-      'คุณคือผู้ช่วยสรุป "บันทึกการนำส่งผู้ป่วยของทีมรถพยาบาล (EMS transport record)" เป็นภาษาไทย\n' +
-      'ข้อมูลด้านล่างมาจากระบบบันทึกเคส (บางคีย์เป็นภาษาอังกฤษ ให้ตีความตามบริบททางการแพทย์)\n\n' +
-      'จัดสรุปเป็นรูปแบบ SOAP ครบ 4 หัวข้อ (ขึ้นบรรทัดใหม่ทุกหัวข้อ ใช้หัวข้อตามนี้):\n' +
-      'S (Subjective): อาการสำคัญ/เหตุที่นำส่ง, ประวัติ, โรคประจำตัว (รวมภูมิหลังจากใบส่งตัวถ้ามี)\n' +
-      'O (Objective): สัญญาณชีพ (แรกรับ + ตามเวลา), ผลตรวจ, การรักษา/หัตถการ/ยา-สารน้ำที่ทีมให้ระหว่างนำส่ง, timeline สำคัญ, ภาวะหัวใจหยุดเต้น/CPR ถ้ามี\n' +
-      'A (Assessment): การวินิจฉัย/ภาวะของผู้ป่วย\n' +
-      'P (Plan): การส่งต่อ/ปลายทาง, สิ่งที่ทำต่อ/ส่งมอบ\n\n' +
+      'คุณคือผู้ช่วยเขียน "รายงานสรุปเคส (Case Report)" การนำส่งผู้ป่วยของทีมรถพยาบาล เป็นภาษาไทย\n' +
+      'ข้อมูลด้านล่างมาจากระบบบันทึกเคส (บางคีย์เป็นภาษาอังกฤษ ให้ตีความตามบริบททางการแพทย์) และอาจมี "สรุปใบส่งตัวโดย AI" แนบมาด้วย\n\n' +
+      'เขียนเป็น "รายงานเล่าเรื่องต่อเนื่อง (narrative)" อ่านลื่นเหมือน case report ทางการแพทย์ — ไม่ต้องใช้หัวข้อ SOAP/หัวข้อย่อย\n' +
+      'เล่าตามลำดับธรรมชาติ: ผู้ป่วย (อายุ/เพศ) และเหตุที่นำส่ง → ภูมิหลัง/ประวัติ/โรคประจำตัว (อ้างอิง+ผนวกเนื้อหาจากสรุปใบส่งตัวที่ AI ทำมาด้วย) → อาการและสัญญาณชีพแรกรับ → เหตุการณ์ระหว่างนำส่ง: การรักษา/หัตถการ/ยา-สารน้ำที่ทีมให้ (เรียงตามเวลา), ภาวะหัวใจหยุดเต้น/CPR ถ้ามี → ภาวะ/การวินิจฉัย → การส่งมอบที่ปลายทาง/ผลลัพธ์\n\n' +
       'กฎเข้มงวด:\n' +
-      '1. สรุปจาก "ข้อมูลที่ให้เท่านั้น" ห้ามเดา/เติม/อนุมาน\n' +
-      '2. ถ้ามี "สรุปใบส่งตัว" ให้หลอมรวมเป็นเนื้อเดียวกับข้อมูลเคส (ไม่ต้องแยกว่าส่วนไหนมาจากใบส่งตัว)\n' +
-      '3. หัวข้อใดไม่มีข้อมูล → เขียน "(ไม่มีข้อมูล)"\n' +
-      '4. ภาษาไทยเป็นหลัก — แปลศัพท์อังกฤษเป็นไทยให้มากที่สุด คงอังกฤษเฉพาะ ชื่อยา/ชื่อโรคทางการ/ค่าแล็บ+หน่วย (มีไทยกำกับถ้าทำได้)\n' +
-      '5. ห้ามใส่ชื่อ-สกุลผู้ป่วย — ใส่ได้แค่ อายุ/เพศ\n\n' +
-      'ตอบเป็น JSON เท่านั้น: { "summary": "<สรุป SOAP ภาษาไทยเป็นหลัก ขึ้นบรรทัดใหม่แต่ละหัวข้อ S/O/A/P>" }';
+      '1. เขียนจาก "ข้อมูลที่ให้เท่านั้น" ห้ามเดา/เติม/อนุมาน ส่วนใดไม่มีข้อมูลให้ข้ามไป (ไม่ต้องเขียนว่าไม่มี)\n' +
+      '2. ให้ "อ้างอิงและผนวกเนื้อหาจากสรุปใบส่งตัว" เข้ากับเรื่องเล่าอย่างกลมกลืน (ไม่ต้องแยกว่าส่วนไหนมาจากใบส่งตัว)\n' +
+      '3. ภาษาไทยเป็นหลัก — แปลศัพท์อังกฤษเป็นไทยให้มากที่สุด คงอังกฤษเฉพาะ ชื่อยา/ชื่อโรคทางการ/ค่าแล็บ+หน่วย (มีไทยกำกับในวงเล็บถ้าทำได้)\n' +
+      '4. ห้ามใส่ชื่อ-สกุลผู้ป่วย — ใส่ได้แค่ อายุ/เพศ\n' +
+      '5. กระชับ เป็นย่อหน้าอ่านง่าย ไม่เยิ่นเย้อ\n\n' +
+      'ตอบเป็น JSON เท่านั้น: { "summary": "<รายงานสรุปเคส (Case Report) ภาษาไทยเป็นหลัก>" }';
 
     function _delay(ms){ return new Promise(function(r){ setTimeout(r, ms); }); }
 
