@@ -6494,6 +6494,13 @@
        for (var i = 0; i < elements.length; i++) {
           var el = elements[i];
 
+          // Refer AI button: state owned entirely by updateReferSummaryBtn (called at
+          // end of this fn). Skip the generic disable loop so "ดูสรุป AI" stays clickable
+          // on closed cases even if a later line in this fn throws before the re-assert
+          // (the wrapper at patchSetReadOnlyMode swallows such errors → button would
+          // otherwise stay stuck disabled). Bug reported 2026-06-14.
+          if (el.id === 'refer-ai-btn') continue;
+
           if (el.id === 'btn-step1-next' || el.id === 'btn-step2-next' || el.id === 'btn-print' || el.id === 'btn-open-consent') {
               el.disabled = false;
               el.classList.remove('disabled');
