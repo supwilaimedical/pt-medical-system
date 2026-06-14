@@ -6872,6 +6872,15 @@
       else el.classList.add('d-none');
     }
 
+    // O2 device label with flow rate — e.g. "Cannula" + flow "3" → "Cannula 3 LPM".
+    // Room Air / empty → no flow appended. Shared by case banner, print, (mirrored in monitor).
+    function o2DeviceLabel(dev, flow) {
+      dev = (dev == null ? '' : String(dev)).trim();
+      if (!dev || dev === 'Room Air') return dev;
+      flow = (flow == null ? '' : String(flow)).trim();
+      return flow ? (dev + ' ' + flow + ' LPM') : dev;
+    }
+
     // ========================================================
     // PP UI sync layer (2026-05-25) — wrap-and-style only.
     // Does NOT modify updateAirwayLogic / updateVentLogic /
@@ -9095,7 +9104,7 @@
        if(document.getElementById('chk-ventilator').checked) {
          breathing = "On Vent (" + document.querySelector('input[name="vent_mode"]:checked').value + ")";
        } else {
-         breathing = document.getElementById('sel-o2-device').value;
+         breathing = o2DeviceLabel(document.getElementById('sel-o2-device').value, (document.forms['main-form'].elements['o2_flow'] || {}).value);
        }
        document.getElementById('summ-airway').innerHTML = '<i class="bi bi-lungs me-1"></i> ' + airway;
        document.getElementById('summ-vent').innerHTML = '<i class="bi bi-wind me-1"></i> ' + breathing;
@@ -9752,7 +9761,7 @@
 
         d.airway = getVal('airway_type');
         var isVent = document.getElementById('chk-ventilator').checked;
-        d.breathing = isVent ? 'Ventilator (' + getVal('vent_mode') + ')' : 'Spontaneous (' + getVal('o2_device') + ')';
+        d.breathing = isVent ? 'Ventilator (' + getVal('vent_mode') + ')' : 'Spontaneous (' + o2DeviceLabel(getVal('o2_device'), getVal('o2_flow')) + ')';
         d.circStatus = getVal('circ_status');
         d.ekg = getVal('circ_ekg');
         d.centralLine = getChk('has_central_line') ? ('Yes - ' + (getVal('central_line_pos') || 'N/A')) : 'No';

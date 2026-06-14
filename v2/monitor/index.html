@@ -2806,6 +2806,15 @@
         monitorHideLoading();
     }
 
+    // O2 device label with flow rate — "Cannula" + flow "3" → "Cannula 3 LPM".
+    // Room Air / empty → no flow. (Mirrors o2DeviceLabel in v2/transport/index.html.)
+    function o2DeviceLabel(dev, flow) {
+      dev = (dev == null ? '' : String(dev)).trim();
+      if (!dev || dev === 'Room Air') return dev;
+      flow = (flow == null ? '' : String(flow)).trim();
+      return flow ? (dev + ' ' + flow + ' LPM') : dev;
+    }
+
     // =============================================
     // RENDER TRANSPORT CARDS (exact copy from original)
     // =============================================
@@ -2846,7 +2855,7 @@
                 breathingStr = 'Vent (' + (g('vent_mode') || '-') + ')';
             } else {
                 var o2dev = g('o2_device') || '';
-                if (o2dev && o2dev !== 'Room Air') breathingStr = o2dev;
+                if (o2dev && o2dev !== 'Room Air') breathingStr = o2DeviceLabel(o2dev, g('o2_flow'));
             }
             var airwayBreathingStr = 'A: ' + airway + (breathingStr ? ' | B: ' + breathingStr : '');
 
@@ -3705,7 +3714,7 @@
 
         // Physical assessment
         var airway = g('airway_type') || '-';
-        var breathing = gc('chk-ventilator') ? 'Ventilator (' + (g('vent_mode') || '-') + ')' : 'Spontaneous (' + (g('o2_device') || '-') + ')';
+        var breathing = gc('chk-ventilator') ? 'Ventilator (' + (g('vent_mode') || '-') + ')' : 'Spontaneous (' + (o2DeviceLabel(g('o2_device'), g('o2_flow')) || '-') + ')';
         var circStatus = g('circ_status') || '-';
         var ekg = g('circ_ekg');
         var centralLine = gc('has_central_line') ? ('Yes - ' + (g('central_line_pos') || 'N/A')) : 'No';
