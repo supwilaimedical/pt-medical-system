@@ -12161,8 +12161,8 @@
         '4. ห้ามใส่ชื่อ-สกุลผู้ป่วย (PII) — ใส่ได้แค่ อายุ/เพศ\n' +
         '5. ชื่อโรงพยาบาล/สถานที่/บุคคล ถ้าอ่านไม่ชัดหรือไม่มั่นใจ ให้เขียน "(อ่านไม่ชัด)" — ห้ามเดาชื่อเด็ดขาด (รูปมักไม่ชัด)\n' +
         '6. ไม่ต้องระบุ "ส่งจาก/ส่งไป" (ต้นทาง-ปลายทาง) เว้นแต่เอกสารเขียนข้อมูลการส่งต่อไว้ชัดเจน (เช่น "Refer มาจาก รพ. ... วันที่ ...") จึงใส่ตามที่เขียนเป๊ะ\n' +
-        '7. ภาษาไทย กระชับ อ่านง่าย\n\n' +
-        'ตอบเป็น JSON เท่านั้น: { "summary": "<สรุป SOAP ภาษาไทย ขึ้นบรรทัดใหม่แต่ละหัวข้อ S/O/A/P>" }';
+        '7. เขียนเป็น "ภาษาไทยเป็นหลัก" — แปลอาการ/ผลตรวจ/ข้อความที่เป็นภาษาอังกฤษให้เป็นไทยให้มากที่สุด (เช่น drowsy→ซึม, dyspnea→หายใจลำบาก, "no evidence of..."→"ไม่พบ...", "follow 1-step command"→"ทำตามคำสั่งง่ายๆ ได้") คงภาษาอังกฤษไว้ได้เฉพาะ: ชื่อยา, ชื่อโรค/การวินิจฉัยที่เป็นทางการ, ค่าแล็บ+หน่วย, และตัวย่อทางการแพทย์ที่แปลแล้วเสียความหมาย (ถ้าทำได้ให้มีคำไทยกำกับในวงเล็บ) กระชับ อ่านง่าย\n\n' +
+        'ตอบเป็น JSON เท่านั้น: { "summary": "<สรุป SOAP ภาษาไทยเป็นหลัก ขึ้นบรรทัดใหม่แต่ละหัวข้อ S/O/A/P>" }';
       var parts = [{ text: prompt }];
       pages.forEach(function(pg){ parts.push({ inline_data: { mime_type: pg.mime, data: pg.data } }); });
       var body = {
@@ -12177,13 +12177,23 @@
         var url = proxyUrl
           ? (proxyUrl + '/?model=' + encodeURIComponent(model))
           : ('https://generativelanguage.googleapis.com/v1beta/models/' + model + ':generateContent?key=' + encodeURIComponent(apiKey));
-        var resp = await fetch(url, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(body) });
-        if (!resp.ok) { var t = await resp.text(); var er = new Error('HTTP ' + resp.status); er.status = resp.status; er.body = t; throw er; }
-        var data = await resp.json();
-        var pr = (((data.candidates || [])[0] || {}).content || {}).parts || [];
-        var txt = (pr[0] || {}).text || '{}';
-        var obj = JSON.parse(txt);
-        return (obj.summary || '').trim();
+        // Client-side timeout — กัน fetch ค้างถาวร (proxy/Gemini แขวนไม่ตอบ → spinner ค้าง)
+        var ctrl = new AbortController();
+        var timer = setTimeout(function(){ ctrl.abort(); }, 75000);  // 75s ต่อครั้ง
+        try {
+          var resp = await fetch(url, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(body), signal: ctrl.signal });
+          if (!resp.ok) { var t = await resp.text(); var er = new Error('HTTP ' + resp.status); er.status = resp.status; er.body = t; throw er; }
+          var data = await resp.json();
+          var pr = (((data.candidates || [])[0] || {}).content || {}).parts || [];
+          var txt = (pr[0] || {}).text || '{}';
+          var obj = JSON.parse(txt);
+          return (obj.summary || '').trim();
+        } catch(err){
+          if (err && err.name === 'AbortError') { var te = new Error('client timeout'); te.status = 408; throw te; }
+          throw err;
+        } finally {
+          clearTimeout(timer);
+        }
       }
       // Pro เป็นตัวจัดการหลัก: ลอง Pro สูงสุด 3 ครั้ง (backoff สั้นๆ เมื่อ rate-limit/overload)
       // แล้วค่อย fallback flash เป็นทางสุดท้าย — กัน feature พังถ้า Pro ล่มจริงๆ

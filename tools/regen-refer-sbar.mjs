@@ -11,6 +11,7 @@
 // Requires Node 18+ (global fetch).
 
 const DRY = process.argv.includes('--dry');
+const FORCE = process.argv.includes('--force');   // regen even cases already in SOAP
 
 // ---- Config (from shared/config.js) ----
 const SUPABASE_URL = 'https://rwxaalgvkzlsyfzdebcj.supabase.co';
@@ -33,8 +34,8 @@ const PROMPT =
   '4. ห้ามใส่ชื่อ-สกุลผู้ป่วย (PII) — ใส่ได้แค่ อายุ/เพศ\n' +
   '5. ชื่อโรงพยาบาล/สถานที่/บุคคล ถ้าอ่านไม่ชัดหรือไม่มั่นใจ ให้เขียน "(อ่านไม่ชัด)" — ห้ามเดาชื่อเด็ดขาด (รูปมักไม่ชัด)\n' +
   '6. ไม่ต้องระบุ "ส่งจาก/ส่งไป" (ต้นทาง-ปลายทาง) เว้นแต่เอกสารเขียนข้อมูลการส่งต่อไว้ชัดเจน (เช่น "Refer มาจาก รพ. ... วันที่ ...") จึงใส่ตามที่เขียนเป๊ะ\n' +
-  '7. ภาษาไทย กระชับ อ่านง่าย\n\n' +
-  'ตอบเป็น JSON เท่านั้น: { "summary": "<สรุป SOAP ภาษาไทย ขึ้นบรรทัดใหม่แต่ละหัวข้อ S/O/A/P>" }';
+  '7. เขียนเป็น "ภาษาไทยเป็นหลัก" — แปลอาการ/ผลตรวจ/ข้อความที่เป็นภาษาอังกฤษให้เป็นไทยให้มากที่สุด (เช่น drowsy→ซึม, dyspnea→หายใจลำบาก, "no evidence of..."→"ไม่พบ...", "follow 1-step command"→"ทำตามคำสั่งง่ายๆ ได้") คงภาษาอังกฤษไว้ได้เฉพาะ: ชื่อยา, ชื่อโรค/การวินิจฉัยที่เป็นทางการ, ค่าแล็บ+หน่วย, และตัวย่อทางการแพทย์ที่แปลแล้วเสียความหมาย (ถ้าทำได้ให้มีคำไทยกำกับในวงเล็บ) กระชับ อ่านง่าย\n\n' +
+  'ตอบเป็น JSON เท่านั้น: { "summary": "<สรุป SOAP ภาษาไทยเป็นหลัก ขึ้นบรรทัดใหม่แต่ละหัวข้อ S/O/A/P>" }';
 
 const sbHeaders = {
   apikey: SUPABASE_ANON_KEY,
@@ -74,11 +75,20 @@ async function callModel(model, parts) {
       temperature: 0.2
     }
   };
-  const resp = await fetch(OCR_PROXY + '/?model=' + encodeURIComponent(model), {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json', Origin: ORIGIN },
-    body: JSON.stringify(body)
-  });
+  let resp;
+  try {
+    resp = await fetch(OCR_PROXY + '/?model=' + encodeURIComponent(model), {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Origin: ORIGIN },
+      body: JSON.stringify(body),
+      signal: AbortSignal.timeout(75000)   // client cap — กัน fetch แขวน
+    });
+  } catch (err) {
+    if (err && (err.name === 'TimeoutError' || err.name === 'AbortError')) {
+      const te = new Error('client timeout'); te.status = 408; throw te;
+    }
+    throw err;
+  }
   if (!resp.ok) { const t = await resp.text(); const e = new Error('HTTP ' + resp.status); e.status = resp.status; e.body = t; throw e; }
   const data = await resp.json();
   const pr = (((data.candidates || [])[0] || {}).content || {}).parts || [];
@@ -124,8 +134,9 @@ async function main() {
 
     if (!docs.length) { console.log('SKIP  ' + id + ' — no refer docs to re-read'); skipped++; continue; }
 
-    // Idempotency: skip cases already in SOAP format (re-run only retries failures)
-    if (!DRY && typeof rd.referSummary === 'string' && rd.referSummary.trim().startsWith('S (Subjective)')) {
+    // Idempotency: skip cases already in SOAP format (re-run only retries failures).
+    // --force bypasses this (e.g. to re-gen with an updated prompt).
+    if (!DRY && !FORCE && typeof rd.referSummary === 'string' && rd.referSummary.trim().startsWith('S (Subjective)')) {
       console.log('SKIP  ' + id + ' — already SOAP'); skipped++; continue;
     }
 
