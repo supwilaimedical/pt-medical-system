@@ -185,7 +185,7 @@
     .v2-tb-btn.success{ background:#10b981; color:#fff; border-color:#10b981; }
     .v2-tb-btn.success:hover{ background:#059669; border-color:#059669; }
     /* Icon-only secondary buttons */
-    .v2-tb-btn.v2-tb-icon{ padding:6px 10px; min-width:36px; justify-content:center; }
+    .v2-tb-btn.v2-tb-icon{ padding:6px 10px; min-width:44px; min-height:44px; justify-content:center; }
     .v2-tb-btn.v2-tb-icon i{ font-size:15px; }
     .v2-tb-btn.v2-tb-icon.primary{ color:#0ea5e9; background:#fff; border-color:#bae6fd; }
     .v2-tb-btn.v2-tb-icon.primary:hover{ background:#f0f9ff; color:#0369a1; border-color:#7dd3fc; }
@@ -637,7 +637,8 @@
       #tl-ems > .d-flex.flex-wrap span.text-secondary,
       #tl-refer > .d-flex.flex-wrap span.text-secondary{ font-size:10px !important; white-space:nowrap; }
       /* Inputs — compact but tappable */
-      .tl-time-input{ width:48px !important; font-size:12px !important; padding:1px 2px !important; }
+      /* font-size:16px stops iOS Safari auto-zoom on focus; transform:scale keeps visual size ~12px */
+      .tl-time-input{ width:48px !important; font-size:16px !important; padding:1px 2px !important; transform:scale(0.75); transform-origin:center center; }
       .tl-btn{ font-size:11px !important; padding:1px 4px !important; line-height:1.2 !important; }
       /* Duration badges — inline on same row, no wrap */
       #tl-ems-durations,

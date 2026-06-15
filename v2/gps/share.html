@@ -90,7 +90,8 @@
 
     .share-reason {
       margin-top: 8px; font-size: 0.78rem; opacity: 0.85;
-      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+      display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical;
+      overflow: hidden; word-break: break-word;
     }
     .share-reason i { opacity: 0.7; margin-right: 5px; }
 
@@ -170,7 +171,7 @@
       width: 100%;
       /* Header + info-bar are above the map; reserve only that much.
          The eta-panel floats over the map as a bottom-sheet (see below). */
-      height: calc(100vh - 150px);
+      height: calc(100dvh - 150px);
       min-height: 320px;
     }
     .leaflet-container { background: var(--slate-100); }
