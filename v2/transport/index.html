@@ -5935,7 +5935,13 @@
                 if (!reason) { Swal.showValidationMessage('กรุณาระบุเหตุผล'); return false; }
                 Swal.showLoading();
                 try {
-                    var resp = await _supabase.from('cases').update({ status: 'Active' }).eq('case_id', caseId);
+                    // C7 fix: clear the stale AI case summary on reopen (read-merge) so the
+                    // next close regenerates it from the edited case. Single exclusive action
+                    // on a closed case → no OCC race.
+                    var _cur = await _supabase.from('cases').select('raw_data').eq('case_id', caseId).maybeSingle();
+                    var _rd = (_cur && _cur.data && _cur.data.raw_data) ? _cur.data.raw_data : {};
+                    delete _rd.caseSummary; delete _rd.caseSummaryAt;
+                    var resp = await _supabase.from('cases').update({ status: 'Active', raw_data: _rd }).eq('case_id', caseId);
                     if (resp.error) throw resp.error;
                     await logActivity('REOPEN_CASE', caseId, reason);
                     return { status: 'success' };
@@ -6105,7 +6111,11 @@
                   ivJson: JSON.stringify(ivObj),
                   referDocsJson: JSON.stringify((typeof getReferDocs === 'function' ? getReferDocs() : [])),
                   referSummary: (window._referSummary && window._referSummary.text) ? window._referSummary.text : null,
-                  referSummaryAt: (window._referSummary && window._referSummary.at) ? window._referSummary.at : null
+                  referSummaryAt: (window._referSummary && window._referSummary.at) ? window._referSummary.at : null,
+                  // C7 fix: preserve any existing AI case summary so a normal edit/save
+                  // doesn't drop it. Cleared explicitly on reopen so reclose regenerates.
+                  caseSummary: (window._caseSummary && window._caseSummary.text) ? window._caseSummary.text : null,
+                  caseSummaryAt: (window._caseSummary && window._caseSummary.at) ? window._caseSummary.at : null
               }
           };
           if (isNewCase) {
@@ -6248,6 +6258,10 @@
             // Load refer AI summary (M/D consult) — persisted in raw_data
             window._referSummary = (data.referSummary) ? { text: data.referSummary, at: data.referSummaryAt || null } : null;
             if (typeof window.updateReferSummaryBtn === 'function') window.updateReferSummaryBtn();
+            // C7 fix: restore AI case summary into memory so a later save preserves it
+            // (mirrors window._referSummary). Reopen clears it; reclose regenerates.
+            window._caseSummary = (row.raw_data && row.raw_data.caseSummary)
+                ? { text: row.raw_data.caseSummary, at: row.raw_data.caseSummaryAt || null } : null;
 
             document.getElementById('caseId').value = data.id;
             document.getElementById('display-case-id').innerText = data.id;
@@ -6360,6 +6374,7 @@
        currentIVs = [];
        if (typeof resetReferDocs === 'function') resetReferDocs();
        window._referSummary = null;
+       window._caseSummary = null;
        if (typeof window.updateReferSummaryBtn === 'function') window.updateReferSummaryBtn();
 
        document.getElementById('display-case-id').innerText = "New Case";
@@ -6483,24 +6498,44 @@
        return arr;
     }
 
-    // --- Persist Refer AI summary immediately into raw_data ---
-    // Fixes data loss: summary lived only in window._referSummary + form-save; navigating
-    // List⇄case reloaded from DB and wiped it. Read-merge-write touching only referSummary,
-    // then re-sync OCC token so a later form Save doesn't fail the row_version predicate.
-    window.persistReferSummary = async function(text, at){
-       try {
-          var caseId = (document.getElementById('caseId') || {}).value;
-          if (!caseId) return false; // new unsaved case → persists on form save instead
-          var cur = await _supabase.from('cases').select('raw_data').eq('case_id', caseId).maybeSingle();
+    // --- OCC-guarded partial merge of cases.raw_data (fixes C5 data-loss) ---
+    // Reads current raw_data + row_version, applies `patch` (key→value) and deletes
+    // `removeKeys`, then writes back WITH the row_version predicate so a concurrent
+    // form/vitals save isn't clobbered. On version conflict (a write landed between
+    // our read and write) it re-reads and retries — re-merging only OUR keys, which
+    // preserves the other writer's changes. Re-syncs the local OCC token on success.
+    // Used by persistReferSummary / _persistCaseSummary / the reopen clear.
+    async function _occMergeRawData(caseId, patch, removeKeys){
+       if (!caseId) return false;
+       patch = patch || {}; removeKeys = removeKeys || [];
+       for (var attempt = 0; attempt < 4; attempt++){
+          var cur = await _supabase.from('cases').select('raw_data,row_version').eq('case_id', caseId).maybeSingle();
           if (cur.error || !cur.data) return false;
           var rd = cur.data.raw_data || {};
-          rd.referSummary = text;
-          rd.referSummaryAt = at;
-          var resp = await _supabase.from('cases').update({ raw_data: rd }).eq('case_id', caseId).select('row_version').maybeSingle();
+          var ver = cur.data.row_version;
+          for (var k in patch) rd[k] = patch[k];
+          for (var i = 0; i < removeKeys.length; i++) delete rd[removeKeys[i]];
+          var q = _supabase.from('cases').update({ raw_data: rd }).eq('case_id', caseId);
+          if (ver != null) q = q.eq('row_version', ver);
+          var resp = await q.select('row_version').maybeSingle();
           if (resp.error) return false;
-          if (resp.data && resp.data.row_version != null) _loadedRowVersion = resp.data.row_version;
-          return true;
-       } catch(e){ console.error('persistReferSummary failed:', e); return false; }
+          if (resp.data){                                   // wrote our row → success
+             if (resp.data.row_version != null) _loadedRowVersion = resp.data.row_version;
+             return true;
+          }
+          // resp.data null = row_version predicate missed (concurrent write) → retry
+       }
+       return false;
+    }
+
+    // --- Persist Refer AI summary immediately into raw_data ---
+    // Fixes data loss: summary lived only in window._referSummary + form-save; navigating
+    // List⇄case reloaded from DB and wiped it. OCC-guarded merge touching only referSummary,
+    // which also re-syncs the OCC token so a later form Save doesn't fail the predicate.
+    window.persistReferSummary = async function(text, at){
+       var caseId = (document.getElementById('caseId') || {}).value;
+       if (!caseId) return false; // new unsaved case → persists on form save instead
+       return await _occMergeRawData(caseId, { referSummary: text, referSummaryAt: at });
     };
 
     // --- READ-ONLY MODE ---
@@ -9299,10 +9334,15 @@
                 }
                 Swal.showLoading();
                 try {
+                    // C7 fix: clear stale AI case summary on reopen so reclose regenerates it.
+                    var _cur = await _supabase.from('cases').select('raw_data').eq('case_id', caseId).maybeSingle();
+                    var _rd = (_cur && _cur.data && _cur.data.raw_data) ? _cur.data.raw_data : {};
+                    delete _rd.caseSummary; delete _rd.caseSummaryAt;
                     var resp = await _supabase.from('cases').update({
-                        status: 'Active'
+                        status: 'Active', raw_data: _rd
                     }).eq('case_id', caseId);
                     if (resp.error) throw resp.error;
+                    window._caseSummary = null;   // keep in-memory in sync with the cleared DB value
 
                     // Log the reopen action
                     await _supabase.from('activity_log').insert({
@@ -12415,7 +12455,13 @@
     }
 
     async function _persistCaseSummary(caseId, text, at){
+      // OCC-guarded merge (C5 fix): won't clobber a concurrent vitals/form save,
+      // and re-syncs the OCC token via _occMergeRawData.
       try {
+        if (typeof _occMergeRawData === 'function') {
+          return await _occMergeRawData(caseId, { caseSummary: text, caseSummaryAt: at });
+        }
+        // Fallback (helper unavailable): legacy read-merge-write.
         var cur = await _supabase.from('cases').select('raw_data').eq('case_id', caseId).maybeSingle();
         var rd = (cur && cur.data && cur.data.raw_data) ? cur.data.raw_data : {};
         rd.caseSummary = text; rd.caseSummaryAt = at;
