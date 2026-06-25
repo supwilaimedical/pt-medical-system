@@ -2229,9 +2229,12 @@
       if(bn2) bn2.classList.remove('v2-bn-show');
       document.body.classList.remove('v2-has-bottom-nav');
     }
-    // Update list counts
-    var ca = document.querySelectorAll('#active-cards-container > *').length;
-    var cc = document.querySelectorAll('#closed-table-container .closed-row').length;
+    // Update list counts — use the real totals (closed list is paginated, so
+    // DOM rows = one page only). Fall back to DOM counts before first load.
+    var ca = (typeof window._activeTotalCount === 'number') ? window._activeTotalCount
+             : document.querySelectorAll('#active-cards-container > *').length;
+    var cc = (typeof window._closedTotalCount === 'number') ? window._closedTotalCount
+             : document.querySelectorAll('#closed-table-container .closed-row').length;
     var ea = document.getElementById('v2-cnt-active'); if(ea) ea.textContent = ca;
     var ec = document.getElementById('v2-cnt-closed'); if(ec) ec.textContent = cc;
     var et = document.getElementById('v2-cnt-all'); if(et) et.textContent = (ca + cc);
@@ -5312,6 +5315,12 @@
             var activeCases = (activeResp.data || []).map(_adaptCaseRow);
             var closedCases = (closedResp.data || []).map(_adaptCaseRow);
             allCases = activeCases.concat(closedCases);
+
+            // Real totals for the sidebar badges. closedResp is paginated
+            // (.range), so the DOM closed-row count == one page (≤20), not the
+            // total — use the exact count instead. Active isn't paginated.
+            window._closedTotalCount = (typeof closedResp.count === 'number') ? closedResp.count : closedCases.length;
+            window._activeTotalCount = activeCases.length;
 
             // Load consent status for visible cases
             var caseIds = allCases.map(function(c) { return c.id; });
