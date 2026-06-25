@@ -12191,6 +12191,7 @@
     // ---- Edit Refer summary (manual correction, e.g. wrong hospital name) ----
     // Persists via persistReferSummary → OCC-guarded raw_data merge (same infra as auto).
     window.referSummaryEnterEdit = function(){
+      if (_referCaseClosed()) { try { Swal.fire({icon:'warning', title:'เคสปิดแล้ว', text:'ต้องเปิดเคสกลับก่อน จึงจะแก้ไขสรุปได้'}); } catch(e){} return; }
       var body = document.getElementById('refer-summary-body');
       var ta = document.getElementById('refer-summary-edit-area');
       ta.value = body.textContent;
@@ -12204,9 +12205,12 @@
     window.referSummaryCancelEdit = function(){
       document.getElementById('refer-summary-body').style.display = '';
       document.getElementById('refer-summary-edit-area').style.display = 'none';
-      document.getElementById('refer-summary-edit-btn').style.display = '';
+      // Edit + re-analyze are BOTH locked on a closed case — the user must
+      // reopen the case first (closed = locked medical record).
+      var closed = _referCaseClosed();
+      document.getElementById('refer-summary-edit-btn').style.display = closed ? 'none' : '';
       var rb = document.getElementById('refer-summary-reanalyze-btn');
-      if (rb) rb.style.display = _referCaseClosed() ? 'none' : '';
+      if (rb) rb.style.display = closed ? 'none' : '';
       document.getElementById('refer-summary-close-btn').style.display = '';
       document.getElementById('refer-summary-save-btn').style.display = 'none';
       document.getElementById('refer-summary-cancel-btn').style.display = 'none';
