@@ -12082,11 +12082,15 @@
       <div style="padding:18px; overflow-y:auto; flex:1;">
         <div id="refer-summary-time" style="font-size:11px; color:#94a3b8; margin-bottom:10px;"></div>
         <div id="refer-summary-body" style="font-size:14px; line-height:1.7; color:#1e293b; white-space:pre-wrap;"></div>
+        <textarea id="refer-summary-edit-area" style="display:none; width:100%; min-height:260px; font-size:14px; line-height:1.7; color:#1e293b; border:1px solid #cbd5e1; border-radius:8px; padding:10px; resize:vertical;"></textarea>
         <div style="margin-top:14px; padding:10px 12px; background:#fffbeb; border:1px solid #fcd34d; border-radius:8px; font-size:12px; color:#78350f; line-height:1.5;">⚠️ AI ถอด+ย่อความจากเอกสารเท่านั้น — เจ้าหน้าที่ต้องตรวจสอบกับใบจริงก่อนใช้ · ไม่ใช่คำวินิจฉัย/คำแนะนำการรักษา</div>
       </div>
       <div style="padding:12px 16px; border-top:1px solid #e2e8f0; display:flex; gap:8px; justify-content:flex-end; background:#f8fafc;">
+        <button type="button" id="refer-summary-edit-btn" onclick="window.referSummaryEnterEdit()" style="background:#fff; border:1px solid #cbd5e1; color:#475569; padding:8px 14px; border-radius:8px; cursor:pointer; font-size:13px;"><i class="bi bi-pencil me-1"></i> แก้ไข</button>
         <button type="button" id="refer-summary-reanalyze-btn" onclick="document.getElementById('refer-summary-modal').style.display='none'; window.v2SummarizeReferDocs();" style="background:#fff; border:1px solid #cbd5e1; color:#475569; padding:8px 14px; border-radius:8px; cursor:pointer; font-size:13px;"><i class="bi bi-arrow-repeat me-1"></i> วิเคราะห์ใหม่</button>
-        <button type="button" onclick="document.getElementById('refer-summary-modal').style.display='none'" style="background:#0ea5e9; color:#fff; border:none; padding:8px 16px; border-radius:8px; cursor:pointer; font-size:13px;">ปิด</button>
+        <button type="button" id="refer-summary-cancel-btn" onclick="window.referSummaryCancelEdit()" style="display:none; background:#fff; border:1px solid #cbd5e1; color:#475569; padding:8px 14px; border-radius:8px; cursor:pointer; font-size:13px;">ยกเลิก</button>
+        <button type="button" id="refer-summary-save-btn" onclick="window.referSummarySaveEdit()" style="display:none; background:#16a34a; color:#fff; border:none; padding:8px 16px; border-radius:8px; cursor:pointer; font-size:13px;"><i class="bi bi-check-lg me-1"></i> บันทึก</button>
+        <button type="button" id="refer-summary-close-btn" onclick="document.getElementById('refer-summary-modal').style.display='none'" style="background:#0ea5e9; color:#fff; border:none; padding:8px 16px; border-radius:8px; cursor:pointer; font-size:13px;">ปิด</button>
       </div>
     </div>
   </div>
@@ -12105,10 +12109,14 @@
       <div style="padding:18px; overflow-y:auto; flex:1;">
         <div id="case-summary-time" style="font-size:11px; color:#94a3b8; margin-bottom:10px;"></div>
         <div id="case-summary-body" style="font-size:14px; line-height:1.7; color:#1e293b; white-space:pre-wrap;"></div>
+        <textarea id="case-summary-edit-area" style="display:none; width:100%; min-height:280px; font-size:14px; line-height:1.7; color:#1e293b; border:1px solid #cbd5e1; border-radius:8px; padding:10px; resize:vertical;"></textarea>
         <div style="margin-top:14px; padding:10px 12px; background:#eef2ff; border:1px solid #c7d2fe; border-radius:8px; font-size:12px; color:#3730a3; line-height:1.5;">⚠️ AI เรียบเรียงจากข้อมูลที่ทีมบันทึก + ใบส่งตัว — เจ้าหน้าที่ต้องตรวจสอบก่อนใช้ · ไม่ใช่คำวินิจฉัย/คำแนะนำการรักษา</div>
       </div>
       <div style="padding:12px 16px; border-top:1px solid #e2e8f0; display:flex; gap:8px; justify-content:flex-end; background:#f8fafc;">
+        <button type="button" id="case-summary-edit-btn" onclick="window.caseSummaryEnterEdit()" style="background:#fff; border:1px solid #cbd5e1; color:#475569; padding:8px 14px; border-radius:8px; cursor:pointer; font-size:13px;"><i class="bi bi-pencil me-1"></i> แก้ไข</button>
         <button type="button" id="case-summary-regen-btn" style="background:#fff; border:1px solid #cbd5e1; color:#475569; padding:8px 14px; border-radius:8px; cursor:pointer; font-size:13px;"><i class="bi bi-arrow-repeat me-1"></i> สรุปใหม่</button>
+        <button type="button" id="case-summary-cancel-btn" onclick="window.caseSummaryCancelEdit()" style="display:none; background:#fff; border:1px solid #cbd5e1; color:#475569; padding:8px 14px; border-radius:8px; cursor:pointer; font-size:13px;">ยกเลิก</button>
+        <button type="button" id="case-summary-save-btn" onclick="window.caseSummarySaveEdit()" style="display:none; background:#16a34a; color:#fff; border:none; padding:8px 16px; border-radius:8px; cursor:pointer; font-size:13px;"><i class="bi bi-check-lg me-1"></i> บันทึก</button>
         <button type="button" onclick="document.getElementById('case-summary-modal').style.display='none'" style="background:#4f46e5; color:#fff; border:none; padding:8px 16px; border-radius:8px; cursor:pointer; font-size:13px;">ปิด</button>
       </div>
     </div>
@@ -12176,9 +12184,53 @@
       document.getElementById('refer-summary-body').textContent = s.text;
       var t = document.getElementById('refer-summary-time');
       try { t.textContent = s.at ? ('สรุปเมื่อ ' + new Date(s.at).toLocaleString('th-TH')) : ''; } catch(e){ t.textContent = ''; }
+      window.referSummaryCancelEdit();   // always open in view mode
+      document.getElementById('refer-summary-modal').style.display = 'flex';
+    };
+
+    // ---- Edit Refer summary (manual correction, e.g. wrong hospital name) ----
+    // Persists via persistReferSummary → OCC-guarded raw_data merge (same infra as auto).
+    window.referSummaryEnterEdit = function(){
+      var body = document.getElementById('refer-summary-body');
+      var ta = document.getElementById('refer-summary-edit-area');
+      ta.value = body.textContent;
+      body.style.display = 'none'; ta.style.display = 'block';
+      document.getElementById('refer-summary-edit-btn').style.display = 'none';
+      document.getElementById('refer-summary-reanalyze-btn').style.display = 'none';
+      document.getElementById('refer-summary-close-btn').style.display = 'none';
+      document.getElementById('refer-summary-save-btn').style.display = '';
+      document.getElementById('refer-summary-cancel-btn').style.display = '';
+    };
+    window.referSummaryCancelEdit = function(){
+      document.getElementById('refer-summary-body').style.display = '';
+      document.getElementById('refer-summary-edit-area').style.display = 'none';
+      document.getElementById('refer-summary-edit-btn').style.display = '';
       var rb = document.getElementById('refer-summary-reanalyze-btn');
       if (rb) rb.style.display = _referCaseClosed() ? 'none' : '';
-      document.getElementById('refer-summary-modal').style.display = 'flex';
+      document.getElementById('refer-summary-close-btn').style.display = '';
+      document.getElementById('refer-summary-save-btn').style.display = 'none';
+      document.getElementById('refer-summary-cancel-btn').style.display = 'none';
+    };
+    window.referSummarySaveEdit = async function(){
+      var ta = document.getElementById('refer-summary-edit-area');
+      var text = (ta.value || '').trim();
+      if (!text) { try { Swal.fire({icon:'warning', title:'สรุปว่างไม่ได้'}); } catch(e){} return; }
+      var at = new Date().toISOString();
+      var saveBtn = document.getElementById('refer-summary-save-btn'); saveBtn.disabled = true;
+      // Always update in-memory first so the edit isn't lost (a new unsaved case
+      // persists on form save; a saved case persists now via persistReferSummary).
+      window._referSummary = { text: text, at: at };
+      var caseId = (document.getElementById('caseId') || {}).value;
+      var ok = true;
+      if (caseId) { try { ok = (typeof window.persistReferSummary === 'function') ? await window.persistReferSummary(text, at) : false; } catch(e){ ok = false; } }
+      saveBtn.disabled = false;
+      document.getElementById('refer-summary-body').textContent = text;
+      var tEl = document.getElementById('refer-summary-time');
+      try { tEl.textContent = 'แก้ไขเมื่อ ' + new Date(at).toLocaleString('th-TH'); } catch(e){}
+      if (typeof window.updateReferSummaryBtn === 'function') window.updateReferSummaryBtn();
+      window.referSummaryCancelEdit();
+      if (caseId && !ok) { try { Swal.fire({icon:'error', title:'บันทึกลงฐานข้อมูลไม่สำเร็จ', text:'การแก้ไขจะถูกบันทึกอีกครั้งเมื่อกดบันทึกฟอร์ม'}); } catch(e){} return; }
+      try { Swal.fire({toast:true, position:'top-end', icon:'success', title:'บันทึกการแก้ไขแล้ว', timer:2000, showConfirmButton:false}); } catch(e){}
     };
 
     // ---- Doc → base64 image(s) ----
@@ -12248,7 +12300,7 @@
         '2. ช่อง A และ P ให้ถอด "เฉพาะข้อความที่แพทย์ผู้ส่งเขียนไว้เอง" เท่านั้น — ห้ามใส่ความเห็น/คำวินิจฉัย/คำแนะนำการรักษาของคุณเอง\n' +
         '3. หัวข้อใดเอกสารไม่ได้ระบุ ให้เขียน "(ไม่ระบุในเอกสาร)" ในหัวข้อนั้น — ห้ามเว้นว่าง ห้ามเดา\n' +
         '4. ห้ามใส่ชื่อ-สกุลผู้ป่วย (PII) — ใส่ได้แค่ อายุ/เพศ\n' +
-        '5. ชื่อโรงพยาบาล/สถานที่/บุคคล ถ้าอ่านไม่ชัดหรือไม่มั่นใจ ให้เขียน "(อ่านไม่ชัด)" — ห้ามเดาชื่อเด็ดขาด (รูปมักไม่ชัด)\n' +
+        '5. ชื่อโรงพยาบาล: คงรูปตามเอกสาร — ถ้าเป็นตัวย่อให้คงตัวย่อไว้ ห้ามขยายเป็นชื่อเต็มเอง (กันเดาผิด + ประหยัด token). ยกเว้นกรณีเดียว: ถ้าเอกสารเขียน "สปร" หรือ "รพ.สปร" ให้เขียนเป็น "รพ.สวรรค์ประชารักษ์". ถ้าชื่อ/ตัวย่ออ่านไม่ชัดหรือไม่มั่นใจ ให้เขียน "(อ่านไม่ชัด)" — ห้ามเดาชื่อเด็ดขาด\n' +
         '6. ไม่ต้องระบุ "ส่งจาก/ส่งไป" (ต้นทาง-ปลายทาง) เว้นแต่เอกสารเขียนข้อมูลการส่งต่อไว้ชัดเจน (เช่น "Refer มาจาก รพ. ... วันที่ ...") จึงใส่ตามที่เขียนเป๊ะ\n' +
         '7. เขียนเป็น "ภาษาไทยเป็นหลัก" — แปลอาการ/ผลตรวจ/ข้อความที่เป็นภาษาอังกฤษให้เป็นไทยให้มากที่สุด (เช่น drowsy→ซึม, dyspnea→หายใจลำบาก, "no evidence of..."→"ไม่พบ...", "follow 1-step command"→"ทำตามคำสั่งง่ายๆ ได้") คงภาษาอังกฤษไว้ได้เฉพาะ: ชื่อยา, ชื่อโรค/การวินิจฉัยที่เป็นทางการ, ค่าแล็บ+หน่วย, และตัวย่อทางการแพทย์ที่แปลแล้วเสียความหมาย (ถ้าทำได้ให้มีคำไทยกำกับในวงเล็บ) กระชับ อ่านง่าย\n\n' +
         'ตอบเป็น JSON เท่านั้น: { "summary": "<สรุป SOAP ภาษาไทยเป็นหลัก ขึ้นบรรทัดใหม่แต่ละหัวข้อ S/O/A/P>" }';
@@ -12475,7 +12527,50 @@
       document.getElementById('case-summary-body').textContent = text;
       var t = document.getElementById('case-summary-time');
       try { t.textContent = at ? ('สรุปเมื่อ ' + new Date(at).toLocaleString('th-TH')) : ''; } catch(e){ t.textContent = ''; }
+      window.caseSummaryCancelEdit();   // always open in view mode
       document.getElementById('case-summary-modal').style.display = 'flex';
+    };
+
+    // ---- Edit Case summary (manual correction) ----
+    // Persists via _persistCaseSummary → OCC-guarded raw_data merge.
+    window.caseSummaryEnterEdit = function(){
+      var body = document.getElementById('case-summary-body');
+      var ta = document.getElementById('case-summary-edit-area');
+      ta.value = body.textContent;
+      body.style.display = 'none'; ta.style.display = 'block';
+      document.getElementById('case-summary-edit-btn').style.display = 'none';
+      document.getElementById('case-summary-regen-btn').style.display = 'none';
+      document.getElementById('case-summary-save-btn').style.display = '';
+      document.getElementById('case-summary-cancel-btn').style.display = '';
+    };
+    window.caseSummaryCancelEdit = function(){
+      document.getElementById('case-summary-body').style.display = '';
+      document.getElementById('case-summary-edit-area').style.display = 'none';
+      document.getElementById('case-summary-edit-btn').style.display = '';
+      document.getElementById('case-summary-regen-btn').style.display = '';
+      document.getElementById('case-summary-save-btn').style.display = 'none';
+      document.getElementById('case-summary-cancel-btn').style.display = 'none';
+    };
+    window.caseSummarySaveEdit = async function(){
+      var ta = document.getElementById('case-summary-edit-area');
+      var text = (ta.value || '').trim();
+      if (!text) { try { Swal.fire({icon:'warning', title:'สรุปว่างไม่ได้'}); } catch(e){} return; }
+      var caseId = window._caseSummaryViewingId || (document.getElementById('caseId') || {}).value;
+      if (!caseId) { try { Swal.fire({icon:'error', title:'ไม่พบรหัสเคส'}); } catch(e){} return; }
+      var at = new Date().toISOString();
+      var btn = document.getElementById('case-summary-save-btn'); btn.disabled = true;
+      var ok = false;
+      try { ok = await _persistCaseSummary(caseId, text, at); } catch(e){ ok = false; }
+      btn.disabled = false;
+      if (!ok) { try { Swal.fire({icon:'error', title:'บันทึกไม่สำเร็จ'}); } catch(e){} return; }
+      // keep in-memory in sync if the edited case is the one loaded in the form
+      if (((document.getElementById('caseId') || {}).value) === caseId) window._caseSummary = { text: text, at: at };
+      document.getElementById('case-summary-body').textContent = text;
+      var tEl = document.getElementById('case-summary-time');
+      try { tEl.textContent = 'แก้ไขเมื่อ ' + new Date(at).toLocaleString('th-TH'); } catch(e){}
+      window.caseSummaryCancelEdit();
+      if (typeof loadDashboardData === 'function') { try { loadDashboardData(); } catch(e){} }
+      try { Swal.fire({toast:true, position:'top-end', icon:'success', title:'บันทึกการแก้ไขแล้ว', timer:2000, showConfirmButton:false}); } catch(e){}
     };
 
     // Manual / view from closed-list kebab. mode: 'gen' | 'view' | 'regen'
