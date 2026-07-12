@@ -2229,9 +2229,10 @@
       if(bn2) bn2.classList.remove('v2-bn-show');
       document.body.classList.remove('v2-has-bottom-nav');
     }
-    // Update list counts
-    var ca = document.querySelectorAll('#active-cards-container > *').length;
-    var cc = document.querySelectorAll('#closed-table-container .closed-row').length;
+    // Update list counts — ใช้ยอดจริงทั้งระบบที่ loadDashboardData เก็บจาก DB
+    // (closed แบ่งหน้า backend — นับ DOM จะได้แค่แถวของหน้าปัจจุบัน) · fallback นับ DOM ระหว่างยังไม่โหลด
+    var ca = (typeof window._v2TotalActive === 'number') ? window._v2TotalActive : document.querySelectorAll('#active-cards-container > *').length;
+    var cc = (typeof window._v2TotalClosed === 'number') ? window._v2TotalClosed : document.querySelectorAll('#closed-table-container .closed-row').length;
     var ea = document.getElementById('v2-cnt-active'); if(ea) ea.textContent = ca;
     var ec = document.getElementById('v2-cnt-closed'); if(ec) ec.textContent = cc;
     var et = document.getElementById('v2-cnt-all'); if(et) et.textContent = (ca + cc);
@@ -5346,6 +5347,9 @@
             try { if(typeof v2SyncDashRightCol === 'function') v2SyncDashRightCol(); } catch(e){}
 
             var totalClosed = closedResp.count || 0;
+            // ยอดจริงทั้งระบบสำหรับ badge subnav/หัว dashboard — active โหลดครบทุกแถว, closed ใช้ count exact จาก DB (สะท้อนฟิลเตอร์ค้นหาที่ใช้อยู่)
+            window._v2TotalActive = activeCases.length;
+            window._v2TotalClosed = totalClosed;
             totalPagesBackend = Math.ceil(totalClosed / itemsPerPage) || 1;
             renderBackendPagination(totalClosed, totalPagesBackend, page);
         } catch(error) {
