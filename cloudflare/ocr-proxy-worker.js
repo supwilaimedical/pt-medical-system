@@ -585,8 +585,12 @@ function safeParseJSON(v) {
 // =============================================
 async function handleNotifySend(request, env) {
   // ต้องมีคีย์ (2026-07-31) — เดิมเปิดโล่ง ใครรู้ URL ก็สั่งส่งข้อความหรือเผาโควตา LINE ได้
-  // ตรวจแล้วว่า "ไม่มีผู้เรียกจริงสักที่" (notifyTrigger ใน OS/pt/shared/notify.js ถูกนิยามไว้
-  // แต่ไม่มีหน้าไหนเรียกเลย) ⇒ ใส่คีย์ได้โดยไม่กระทบการใช้งานปัจจุบัน
+  //
+  // ⚠️ บทเรียน: ตอนใส่ auth ผมเขียนคอมเมนต์ว่า "ตรวจแล้วไม่มีผู้เรียกจริงสักที่"
+  // ซึ่ง **ผิด** — ตรวจแค่ใน supwilaiOS/OS (ที่นั่นมีแต่นิยาม notifyTrigger ไม่มีใครเรียกจริง)
+  // แต่ **speed-watcher-worker.js เรียกผ่าน Service Binding** อยู่ ⇒ แจ้งเตือนรถขับเร็วตายเงียบ
+  // ⇒ ผู้เรียกจริงตอนนี้: speed-watcher (แนบ key แล้ว) · ถ้าจะเพิ่ม auth ที่ไหนอีก
+  //    ต้องค้นทั้ง workspace ไม่ใช่แค่ repo เดียว
   const sendKey = (new URL(request.url).searchParams.get('key') || '').trim();
   const wantKey = (env.EXTERNAL_NOTIFY_KEY || '').trim();
   if (!wantKey || sendKey !== wantKey) {
@@ -651,6 +655,15 @@ async function handleNotifySend(request, env) {
       payload: { message: fullText }
     }))).catch((e) => console.error('[notify] เขียน log ไม่ได้ (ไม่ throw):', e.message));
   }
+  // บันทึก state เฉพาะเมื่อส่งถึงจริงอย่างน้อย 1 ช่อง — เหมือน runNotifyLane
+  // ของเดิมบันทึกทุกกรณี ⇒ ส่งล้มหมดแล้วยังจำว่า "แจ้งไปแล้ว" ⇒ ครั้งถัดไปโดน debounce ที่ด้านบน
+  // = เคสหายถาวร (Fable ชี้ 2026-07-31 ว่าเป็นบั๊กคลาสเดียวกับที่แก้ใน runNotifyLane ไปแล้ว
+  //   และจะกลายเป็นปัญหาจริงทันทีที่ speed alert กลับมาทำงาน)
+  if (!results.some(r => r.ok)) {
+    console.error(`[notify] ${caseId}/${alertType}: ส่งไม่สำเร็จสักช่อง — ไม่บันทึก state เพื่อให้รอบหน้าลองใหม่`);
+    return jsonResponse({ ok: true, results, cap, state_saved: false }, 200, request, env);
+  }
+
   const nowIso = new Date().toISOString();
   await upsertNotifyState(env, {
     case_id: caseId, alert_type: alertType,

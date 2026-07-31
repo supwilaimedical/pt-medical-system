@@ -277,7 +277,10 @@ async function sendAlert(env, dry, info) {
   try {
     // Use Service Binding (env.NOTIFY) — worker-to-worker via internal CF mesh.
     // Public workers.dev URL would return CF 1042 (worker-to-worker via public URL is blocked).
-    const req = new Request('https://internal/notify/send', {
+    // ⚠️ ต้องแนบ key — 2026-07-31 /notify/send ถูกใส่ auth (เดิมเปิดโล่ง)
+    // ตอนนั้นตรวจผู้เรียกแค่ใน supwilaiOS/OS แล้วสรุปว่า "ไม่มีใครเรียก" ซึ่งพลาดจุดนี้ไป
+    // ⇒ แจ้งเตือนรถขับเร็วตายเงียบอยู่พักหนึ่ง (Fable เจอ) · secret ตัวเดียวกับ gps-proxy
+    const req = new Request('https://internal/notify/send?key=' + encodeURIComponent(env.EXTERNAL_NOTIFY_KEY || ''), {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
