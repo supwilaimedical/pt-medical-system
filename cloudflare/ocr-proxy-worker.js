@@ -429,6 +429,15 @@ async function runNotifyLane(env, settings, rec, laneType, alerts, severity) {
     }))).catch((e) => console.error('[notify] เขียน log ไม่ได้ (ไม่ throw กัน webhook retry):', e.message));
   }
 
+  // ⚠️ บันทึก state เฉพาะเมื่อ "ส่งถึงจริงอย่างน้อย 1 ช่อง"
+  // ของเดิมบันทึกทุกกรณี ⇒ ถ้าส่งล้มหมด/โดน quota guard บล็อก ระบบยังจำว่า "แจ้งไปแล้ว"
+  // ⇒ การอัปเดตครั้งถัดไปที่ความรุนแรงเท่าเดิมจะถูก debounce ทิ้ง = เคสวิกฤตหายถาวร
+  // (Codex เจอ 2026-07-31) · ไม่บันทึก = รอบหน้าลองใหม่ ซึ่งเป็นสิ่งที่ควรเป็น
+  if (!results.some(r => r.ok)) {
+    console.error(`[notify] ${rec.case_id}/${laneType}: ส่งไม่สำเร็จสักช่อง — ไม่บันทึก state เพื่อให้รอบหน้าลองใหม่`);
+    return { lane: laneType, reason: reason, sent: results, state_saved: false, cap: cap };
+  }
+
   await upsertNotifyState(env, {
     case_id: rec.case_id, alert_type: laneType,
     // first_sent_at เก็บ "ครั้งแรก" จริงๆ ไม่ทับอีกแล้ว (ของเดิมทับทุกครั้ง = ดูประวัติไม่ได้)
@@ -575,6 +584,14 @@ function safeParseJSON(v) {
 // /notify/send — manual trigger (back-compat, simpler)
 // =============================================
 async function handleNotifySend(request, env) {
+  // ต้องมีคีย์ (2026-07-31) — เดิมเปิดโล่ง ใครรู้ URL ก็สั่งส่งข้อความหรือเผาโควตา LINE ได้
+  // ตรวจแล้วว่า "ไม่มีผู้เรียกจริงสักที่" (notifyTrigger ใน OS/pt/shared/notify.js ถูกนิยามไว้
+  // แต่ไม่มีหน้าไหนเรียกเลย) ⇒ ใส่คีย์ได้โดยไม่กระทบการใช้งานปัจจุบัน
+  const sendKey = (new URL(request.url).searchParams.get('key') || '').trim();
+  const wantKey = (env.EXTERNAL_NOTIFY_KEY || '').trim();
+  if (!wantKey || sendKey !== wantKey) {
+    return jsonResponse({ error: 'Unauthorized' }, 401, request, env);
+  }
   if (!env.SUPABASE_URL || !env.SUPABASE_SERVICE_KEY) {
     return jsonResponse({ error: 'Worker missing SUPABASE_URL / SUPABASE_SERVICE_KEY' }, 500, request, env);
   }
@@ -745,13 +762,43 @@ async function handleNotifyEvent(request, env) {
   }
 
   if (Math.random() < 0.02) await sbRpc(env, 'notification_log_cleanup').catch(() => {});
-  return jsonResponse({ ok: true, sent: results }, 200, request, env);
+  // บอกกลับไปด้วยว่า setting ถูกอ่านจริงและปลายทางคืออะไร — ใช้ตรวจได้จากภายนอกโดยไม่ต้องส่งจริง
+  return jsonResponse({
+    ok: true,
+    sent: results,
+    resolved: { channel: channel, lineTarget: toOverride ? 'direct:' + toOverride.slice(0, 8) + '…' : 'default(group)' }
+  }, 200, request, env);
 }
 
 // =============================================
 // /notify/test — single channel, no state
 // =============================================
 async function handleNotifyTest(request, env) {
+  // เดิมเปิดโล่งเหมือน /notify/send — แต่เส้นนี้ "มีคนใช้จริง" (ปุ่มทดสอบในหน้า PT Admin
+  // ที่ v2/admin.html:3065) ซึ่งเรียกจากเบราว์เซอร์ จะใส่คีย์ไม่ได้เพราะคีย์จะโผล่ในหน้าเว็บ
+  // ⇒ ใช้ 2 ด่านที่ไม่กระทบปุ่มเดิม:
+  //   1) จำกัด Origin (ถ้าตั้ง ALLOWED_ORIGINS ไว้) — กันคนยิงจากเบราว์เซอร์เว็บอื่น
+  //   2) เพดาน 5 ครั้ง/ชั่วโมง — จำกัดความเสียหายสูงสุดถ้ามีคนยิงตรงด้วย curl
+  //      (ปุ่มทดสอบจริงกดกันไม่กี่ครั้ง ไม่มีทางชน)
+  const allowed = String(env.ALLOWED_ORIGINS || '').split(',').map(s => s.trim()).filter(Boolean);
+  const origin = request.headers.get('Origin') || '';
+  if (allowed.length && origin && allowed.indexOf(origin) === -1) {
+    return jsonResponse({ error: 'Origin not allowed' }, 403, request, env);
+  }
+
+  if (env.SUPABASE_URL && env.SUPABASE_SERVICE_KEY) {
+    const since = new Date(Date.now() - 60 * 60 * 1000).toISOString();
+    const recent = await sbSelect(env, 'notification_log',
+      `alert_type=eq.TEST&created_at=gte.${since}&select=id`).catch(() => []);
+    if (Array.isArray(recent) && recent.length >= 5) {
+      return jsonResponse({ error: 'ทดสอบบ่อยเกินไป — เกิน 5 ครั้งใน 1 ชั่วโมง ลองใหม่ภายหลัง' }, 429, request, env);
+    }
+    await sbInsert(env, 'notification_log', [{
+      case_id: 'test', alert_type: 'TEST', channel: 'all', status: 'sent',
+      error: null, payload: { origin: origin || '(ไม่มี)' }
+    }]).catch(() => {});
+  }
+
   let body;
   try { body = await request.json(); }
   catch { return jsonResponse({ error: 'Invalid JSON body' }, 400, request, env); }
@@ -919,10 +966,15 @@ async function sendTelegram(env, chatId, text) {
 // =============================================
 // Supabase REST helpers
 // =============================================
+// โหลด "ทุก key ที่ขึ้นต้นด้วย NOTIFY" — ไม่ใช่รายการตายตัว
+//
+// ⚠️ ของเดิมฮาร์ดโค้ดไว้ 5 key ⇒ setting ใหม่ที่เพิ่มทีหลังไม่เคยถูกอ่านเลย และ "เงียบ"
+// เพราะทุกจุดมี default รองรับ จึงดูเหมือนทำงานปกติ (Codex เจอ 2026-07-31:
+// ตั้ง NOTIFY_EXT_CHECKLIST_TO ไว้แล้วแต่เช็ครถยังส่งเข้ากลุ่มเหมือนเดิม
+// และช่อง "เพดานต่อเคส" ในหน้า Admin กดบันทึกแล้วไม่มีผลอะไร)
+// ⇒ ใช้ prefix filter แทน setting ใหม่จะทำงานทันทีโดยไม่ต้องมาแก้ตรงนี้อีก
 async function loadNotifySettings(env) {
-  const keys = ['NOTIFY_LINE_ENABLED', 'NOTIFY_LINE_TARGET_TYPE', 'NOTIFY_LINE_TARGETS', 'NOTIFY_TELEGRAM_ENABLED', 'NOTIFY_TELEGRAM_CHAT_ID'];
-  const inList = keys.map(k => `"${k}"`).join(',');
-  const rows = await sbSelect(env, 'settings', `key=in.(${inList})`);
+  const rows = await sbSelect(env, 'settings', 'key=like.NOTIFY*&select=key,value');
   const out = {};
   (rows || []).forEach(r => { out[r.key] = r.value; });
   return out;
