@@ -715,10 +715,15 @@ async function handleNotifyEvent(request, env) {
   const wantTg   = channel === 'telegram' || channel === 'both';
   const results = [];
 
+  // ปลายทางเฉพาะของ source นี้ — ตั้ง NOTIFY_EXT_<SOURCE>_TO = LINE userId
+  // มติ Pex 2026-07-31: "เช็ครถประจำวันให้ส่งหา admin คนเดียว" ⇒ ครั้งละ 1 แทนที่จะเป็น 3
+  //   (แจ้งลาคงเดิม เข้ากลุ่ม + ตรงหา admin เพื่อกันลืม — ยอมจ่ายแพงกว่าเพราะพลาดไม่ได้)
+  const toOverride = get('NOTIFY_EXT_' + source.toUpperCase() + '_TO', '').trim();
+
   if (wantLine && settings.NOTIFY_LINE_ENABLED === 'true' && env.LINE_ACCESS_TOKEN) {
     // alert_type ไม่ใช่ CRITICAL ⇒ ถูกกันที่ 95% เพื่อสงวนโควตาก้อนสุดท้ายให้เคสวิกฤต
     const guard = await checkLineQuotaGuard(env, 'EXTERNAL');
-    if (guard.allow) results.push({ channel: 'line', ...(await sendLine(env, settings, message)) });
+    if (guard.allow) results.push({ channel: 'line', ...(await sendLine(env, settings, message, toOverride || null)) });
     else results.push({ channel: 'line', ok: false, skipped: true, error: guard.reason, quota: guard.quota });
   }
   if (wantTg && settings.NOTIFY_TELEGRAM_ENABLED === 'true' && env.TELEGRAM_BOT_TOKEN && settings.NOTIFY_TELEGRAM_CHAT_ID) {
@@ -843,11 +848,29 @@ async function handleNotifyQuota(request, env) {
 // =============================================
 // Channel senders
 // =============================================
-async function sendLine(env, settings, text) {
+// toOverride — ส่งตรงหา userId ที่ระบุ แทนปลายทางปกติ (2026-07-31)
+//
+// ⚠️ สำคัญเรื่องค่าใช้จ่าย: LINE นับโควตา "ตามจำนวนผู้รับ" ไม่ใช่ตามจำนวนครั้งที่ยิง
+//    ส่งเข้ากลุ่ม = กินเท่ากับจำนวนคนในกลุ่ม (กลุ่ม "Supwilai แจ้งเตือน" มี 3 คน ⇒ ครั้งละ 3)
+//    ส่งตรงหาคนเดียว = ครั้งละ 1
+//    (วัดจริงจาก insight/message/delivery ก.ค. 2026: วันที่มีแต่ PT ส่ง ยอดที่ LINE นับ = ครั้งที่ยิง × 3 เป๊ะ)
+//    ⇒ เพิ่มคนเข้ากลุ่มเมื่อไหร่ ค่าใช้จ่ายขึ้นทันทีตามจำนวนคน โดยไม่มีใครรู้ตัว
+async function sendLine(env, settings, text, toOverride) {
+  const messages = [{ type: 'text', text: text.slice(0, 5000) }];
+  if (toOverride) {
+    try {
+      const resp = await fetch('https://api.line.me/v2/bot/message/push', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${env.LINE_ACCESS_TOKEN}` },
+        body: JSON.stringify({ to: toOverride, messages })
+      });
+      if (!resp.ok) { const t = await resp.text(); return { ok: false, error: `Line ${resp.status}: ${t.slice(0, 300)}` }; }
+      return { ok: true, to: 'override' };
+    } catch (e) { return { ok: false, error: e.message }; }
+  }
   const targetType = (settings.NOTIFY_LINE_TARGET_TYPE || 'broadcast').trim();
   const targetsRaw = (settings.NOTIFY_LINE_TARGETS || '').trim();
   let url, payload;
-  const messages = [{ type: 'text', text: text.slice(0, 5000) }];
   if (targetType === 'broadcast') {
     url = 'https://api.line.me/v2/bot/message/broadcast';
     payload = { messages };
