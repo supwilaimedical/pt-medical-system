@@ -382,7 +382,7 @@ async function runNotifyLane(env, settings, rec, laneType, alerts, severity) {
     await sbInsert(env, 'notification_log', [{
       case_id: rec.case_id, alert_type: laneType, channel: 'all', status: 'skipped',
       error: reason, payload: { severity, alerts }
-    }]);
+    }]).catch(() => {});
     return { lane: laneType, skipped: reason, line_sent_count: sentCount };
   }
 
@@ -415,6 +415,10 @@ async function runNotifyLane(env, settings, rec, laneType, alerts, severity) {
   const lineSentNow = results.some(r => r.channel === 'line' && r.ok);
   const nowIso = new Date().toISOString();
 
+  // ⚠️ ห้าม throw หลังจากส่งข้อความออกไปแล้วเด็ดขาด
+  // /notify/check ถูกเรียกจาก Supabase DB Webhook ซึ่ง retry เมื่อได้ 5xx
+  // ⇒ ถ้าเขียน log ล้มแล้วปล่อย throw จะกลายเป็น "ส่งแล้ว → 500 → webhook ยิงซ้ำ → ส่งอีก"
+  //   = ลูปแบบเดียวกับที่ทำ Telegram เด้งไม่หยุดเมื่อ 2026-07-31 (คนละที่ บั๊กคลาสเดียวกัน)
   if (results.length > 0) {
     await sbInsert(env, 'notification_log', results.map(r => ({
       case_id: rec.case_id, alert_type: laneType,
@@ -422,7 +426,7 @@ async function runNotifyLane(env, settings, rec, laneType, alerts, severity) {
       status:  r.ok ? 'sent' : (r.skipped ? 'skipped' : 'failed'),
       error:   r.ok ? reason : (r.error || 'unknown'),
       payload: { message: fullText, severity, alerts }
-    })));
+    }))).catch((e) => console.error('[notify] เขียน log ไม่ได้ (ไม่ throw กัน webhook retry):', e.message));
   }
 
   await upsertNotifyState(env, {
@@ -621,13 +625,14 @@ async function handleNotifySend(request, env) {
     results.push({ channel: 'telegram', ...(await sendTelegram(env, settings.NOTIFY_TELEGRAM_CHAT_ID, fullText)) });
   }
   if (results.length > 0) {
+    // ห้าม throw หลังส่งแล้ว — ผู้เรียกอาจ retry แล้วส่งซ้ำ (ดูคำอธิบายใน runNotifyLane)
     await sbInsert(env, 'notification_log', results.map(r => ({
       case_id: caseId, alert_type: alertType,
       channel: r.channel,
       status: r.ok ? 'sent' : (r.skipped ? 'skipped' : 'failed'),
       error: r.ok ? null : (r.error || 'unknown'),
       payload: { message: fullText }
-    })));
+    }))).catch((e) => console.error('[notify] เขียน log ไม่ได้ (ไม่ throw):', e.message));
   }
   const nowIso = new Date().toISOString();
   await upsertNotifyState(env, {
