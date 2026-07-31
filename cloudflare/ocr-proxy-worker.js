@@ -293,79 +293,150 @@ async function handleNotifyCheck(request, env) {
     return jsonResponse({ ok: true, skipped: 'not critical' }, 200, request, env);
   }
 
-  // Load state + decide
-  const stateRows = await sbSelect(env, 'notification_state',
-    `case_id=eq.${encodeURIComponent(rec.case_id)}&alert_type=eq.CRITICAL`);
-  const state = stateRows && stateRows[0];
-
-  let decision = 'send';
-  let reason = 'first send';
-  if (state) {
-    if (state.acknowledged === true) {
-      decision = 'send'; reason = 'refire after ack';
-    } else {
-      const diff = compareSeverity(state.last_payload && state.last_payload.severity, detected.severity);
-      if (diff.worse) { decision = 'send'; reason = diff.reason; }
-      else { decision = 'skip'; reason = diff.reason; }
-    }
-  }
-
-  if (decision === 'skip') {
-    await sbInsert(env, 'notification_log', [{
-      case_id: rec.case_id, alert_type: 'CRITICAL', channel: 'all', status: 'skipped',
-      error: reason, payload: { severity: detected.severity, alerts: detected.alerts }
-    }]);
-    return jsonResponse({ ok: true, skipped: reason }, 200, request, env);
-  }
-
-  // Compose message
-  const msg = composeCriticalMessage(rec, detected);
-  const baseUrl = (env.PUBLIC_BASE_URL || '').replace(/\/+$/, '');
-  const deepLink = baseUrl ? `${baseUrl}/monitor/?case=${encodeURIComponent(rec.case_id)}` : '';
-  const fullText = deepLink ? `${msg}\n${deepLink}` : msg;
-
-  // Pull channel settings
   const settings = await loadNotifySettings(env);
-  const results = [];
-  if (settings.NOTIFY_LINE_ENABLED === 'true' && env.LINE_ACCESS_TOKEN) {
-    // Quota guard — CRITICAL is allowed through up to hard cap (used >= max)
-    const guard = await checkLineQuotaGuard(env, 'CRITICAL');
-    if (guard.allow) {
-      const r = await sendLine(env, settings, fullText);
-      results.push({ channel: 'line', ...r });
-    } else {
-      results.push({ channel: 'line', ok: false, skipped: true, error: guard.reason, quota: guard.quota });
-    }
-  }
-  if (settings.NOTIFY_TELEGRAM_ENABLED === 'true' && env.TELEGRAM_BOT_TOKEN && settings.NOTIFY_TELEGRAM_CHAT_ID) {
-    const r = await sendTelegram(env, settings.NOTIFY_TELEGRAM_CHAT_ID, fullText);
-    results.push({ channel: 'telegram', ...r });
-  }
 
-  if (results.length > 0) {
-    await sbInsert(env, 'notification_log', results.map(r => ({
-      case_id: rec.case_id, alert_type: 'CRITICAL',
-      channel: r.channel,
-      status:  r.ok ? 'sent' : (r.skipped ? 'skipped' : 'failed'),
-      error:   r.ok ? reason : (r.error || 'unknown'),
-      payload: { message: fullText, severity: detected.severity, alerts: detected.alerts }
-    })));
-  }
+  // แยกเป็น 2 เลน (2026-07-31) — Arrest มีโควตาของตัวเอง ไม่ถูกเพดานของ critical กลบ
+  // PK ของ notification_state คือ (case_id, alert_type) อยู่แล้ว จึงแยกได้โดยไม่ต้องแก้ schema
+  const lanes = [
+    { type: 'ARREST',   alerts: detected.alerts.filter(a => a.type === 'ARREST') },
+    { type: 'CRITICAL', alerts: detected.alerts.filter(a => a.type !== 'ARREST') }
+  ].filter(l => l.alerts.length > 0);
 
-  await sbUpsert(env, 'notification_state', [{
-    case_id: rec.case_id, alert_type: 'CRITICAL',
-    first_sent_at: new Date().toISOString(),
-    acknowledged: false,
-    acknowledged_at: null,
-    acknowledged_by: null,
-    last_payload: { severity: detected.severity, alerts: detected.alerts, at: new Date().toISOString() }
-  }], 'case_id,alert_type');
+  const out = [];
+  for (const lane of lanes) {
+    out.push(await runNotifyLane(env, settings, rec, lane.type, lane.alerts, detected.severity));
+  }
 
   if (Math.random() < 0.05) {
     await sbRpc(env, 'notification_log_cleanup').catch(() => {});
   }
 
-  return jsonResponse({ ok: true, sent: results, reason }, 200, request, env);
+  return jsonResponse({ ok: true, lanes: out }, 200, request, env);
+}
+
+// บันทึก notification_state แบบทนต่อ "ยังไม่ได้รัน migration v3"
+//
+// sbUpsert โยน error ถ้า schema ไม่มีคอลัมน์ ⇒ ถ้า worker ขึ้นก่อน SQL:
+// ส่ง LINE ไปแล้ว → upsert พัง → /notify/check คืน 500 → Supabase DB Webhook retry
+// → ส่งซ้ำวนไม่หยุด = เผาโควตาเร็วกว่าเดิมหลายเท่า
+// จึงลองแบบเต็มก่อน ถ้าพังค่อยตัดคอลัมน์ใหม่ทิ้งแล้วเขียนแบบเดิม (debounce ยังทำงาน แค่ยังไม่มีเพดาน)
+async function upsertNotifyState(env, row) {
+  try {
+    await sbUpsert(env, 'notification_state', [row], 'case_id,alert_type');
+    return true;
+  } catch (e) {
+    const legacy = { ...row };
+    delete legacy.line_sent_count;
+    delete legacy.last_sent_at;
+    try {
+      await sbUpsert(env, 'notification_state', [legacy], 'case_id,alert_type');
+      console.warn('[notify] เขียน state แบบเก่า — ยังไม่ได้รัน notifications_v3_percase_cap.sql:', e.message);
+      return true;
+    } catch (e2) {
+      console.error('[notify] เขียน state ไม่ได้เลย — debounce จะไม่ทำงาน:', e2.message);
+      return false;
+    }
+  }
+}
+
+// เพดานส่ง LINE ต่อ (เคส × เลน) — ตั้งค่าได้จาก Settings, ค่าเริ่มต้น 2 ตามมติ Pex 2026-07-31
+function linePerCaseCap(settings) {
+  const raw = parseInt(settings && settings.NOTIFY_LINE_MAX_PER_CASE, 10);
+  if (isNaN(raw) || raw < 0) return 2;
+  return raw;
+}
+
+// =============================================
+// ประมวลผลหนึ่งเลน (CRITICAL หรือ ARREST) แยกจากกันคนละ state
+//
+// เพดานนับเฉพาะ LINE เท่านั้น — Telegram ฟรีและไม่มีโควตา จึงส่งต่อได้เสมอ
+// ⇒ ประหยัดโควตา LINE โดยที่การแจ้งเตือนทางคลินิกไม่ขาด ถ้าเปิด Telegram ไว้
+// นับเฉพาะครั้งที่ LINE "ส่งสำเร็จจริง" (ล้มเหลว/โดนโควตาบล็อก ไม่กินโควตาของเคส)
+// =============================================
+async function runNotifyLane(env, settings, rec, laneType, alerts, severity) {
+  const stateRows = await sbSelect(env, 'notification_state',
+    `case_id=eq.${encodeURIComponent(rec.case_id)}&alert_type=eq.${encodeURIComponent(laneType)}`);
+  const state = stateRows && stateRows[0];
+
+  let decision = 'send';
+  let reason = 'first send';
+  if (state) {
+    if (laneType === 'ARREST') {
+      // arrest เป็น on/off ไม่มี "ค่าแย่ลง" ให้เทียบ — ส่งซ้ำได้เฉพาะเมื่อมีคนกดรับทราบไปแล้ว
+      // (เช่น ROSC แล้ว arrest ซ้ำ) และยังไม่ชนเพดาน
+      if (state.acknowledged === true) { reason = 'arrest refire after ack'; }
+      else { decision = 'skip'; reason = 'arrest already notified'; }
+    } else if (state.acknowledged === true) {
+      reason = 'refire after ack';
+    } else {
+      const diff = compareSeverity(state.last_payload && state.last_payload.severity, severity);
+      if (diff.worse) { reason = diff.reason; }
+      else { decision = 'skip'; reason = diff.reason; }
+    }
+  }
+
+  const sentCount = Number((state && state.line_sent_count) || 0);
+
+  if (decision === 'skip') {
+    await sbInsert(env, 'notification_log', [{
+      case_id: rec.case_id, alert_type: laneType, channel: 'all', status: 'skipped',
+      error: reason, payload: { severity, alerts }
+    }]);
+    return { lane: laneType, skipped: reason, line_sent_count: sentCount };
+  }
+
+  const msg = composeCriticalMessage(rec, alerts, laneType);
+  const baseUrl = (env.PUBLIC_BASE_URL || '').replace(/\/+$/, '');
+  const deepLink = baseUrl ? `${baseUrl}/monitor/?case=${encodeURIComponent(rec.case_id)}` : '';
+  const fullText = deepLink ? `${msg}\n${deepLink}` : msg;
+
+  const cap = linePerCaseCap(settings);
+  const results = [];
+
+  if (settings.NOTIFY_LINE_ENABLED === 'true' && env.LINE_ACCESS_TOKEN) {
+    if (sentCount >= cap) {
+      results.push({ channel: 'line', ok: false, skipped: true,
+        error: `LINE_CAP_PER_CASE (${sentCount}/${cap})` });
+    } else {
+      const guard = await checkLineQuotaGuard(env, laneType);
+      if (guard.allow) {
+        results.push({ channel: 'line', ...(await sendLine(env, settings, fullText)) });
+      } else {
+        results.push({ channel: 'line', ok: false, skipped: true, error: guard.reason, quota: guard.quota });
+      }
+    }
+  }
+  // Telegram — ไม่มีเพดานต่อเคส (ไม่เสียโควตา) = ตาข่ายรับกรณีที่ LINE ถูกตัด
+  if (settings.NOTIFY_TELEGRAM_ENABLED === 'true' && env.TELEGRAM_BOT_TOKEN && settings.NOTIFY_TELEGRAM_CHAT_ID) {
+    results.push({ channel: 'telegram', ...(await sendTelegram(env, settings.NOTIFY_TELEGRAM_CHAT_ID, fullText)) });
+  }
+
+  const lineSentNow = results.some(r => r.channel === 'line' && r.ok);
+  const nowIso = new Date().toISOString();
+
+  if (results.length > 0) {
+    await sbInsert(env, 'notification_log', results.map(r => ({
+      case_id: rec.case_id, alert_type: laneType,
+      channel: r.channel,
+      status:  r.ok ? 'sent' : (r.skipped ? 'skipped' : 'failed'),
+      error:   r.ok ? reason : (r.error || 'unknown'),
+      payload: { message: fullText, severity, alerts }
+    })));
+  }
+
+  await upsertNotifyState(env, {
+    case_id: rec.case_id, alert_type: laneType,
+    // first_sent_at เก็บ "ครั้งแรก" จริงๆ ไม่ทับอีกแล้ว (ของเดิมทับทุกครั้ง = ดูประวัติไม่ได้)
+    first_sent_at: (state && state.first_sent_at) ? state.first_sent_at : nowIso,
+    last_sent_at: nowIso,
+    line_sent_count: sentCount + (lineSentNow ? 1 : 0),
+    acknowledged: false,
+    acknowledged_at: null,
+    acknowledged_by: null,
+    last_payload: { severity, alerts, at: nowIso }
+  });
+
+  return { lane: laneType, reason, sent: results, line_sent_count: sentCount + (lineSentNow ? 1 : 0), cap };
 }
 
 // =============================================
@@ -472,13 +543,16 @@ function compareSeverity(oldSev, newSev) {
 // =============================================
 // Compose Line/TG message (merged, per-case)
 // =============================================
-function composeCriticalMessage(rec, detected) {
+function composeCriticalMessage(rec, alerts, laneType) {
   const pi = rec.patient_info || {};
   const op = rec.op_info || {};
   const shortId = (rec.case_id || '').replace('CASE-', '');
-  const alertList = detected.alerts.map(a => a.label).join(' · ');
+  const alertList = (alerts || []).map(a => a.label).join(' · ');
+  const head = laneType === 'ARREST'
+    ? `🫀 CARDIAC ARREST — #${shortId}`
+    : `🚨 CRITICAL — #${shortId}`;
   return [
-    `🚨 CRITICAL — #${shortId}`,
+    head,
     `ผู้ป่วย: ${pi.name || 'ไม่ระบุ'} (${pi.age || '-'} ปี)`,
     `จาก: ${pi.origin || '-'} → ${pi.destination || '-'}`,
     `รถ: ${op.level || '-'} / ${op.unitNo || '-'}`,
@@ -524,14 +598,22 @@ async function handleNotifySend(request, env) {
 
   const settings = await loadNotifySettings(env);
   const fullText = deepLink ? `${message}\n${deepLink}` : message;
+  const sentCount = Number((state && state.line_sent_count) || 0);
+  const cap = linePerCaseCap(settings);
   const results = [];
   if (settings.NOTIFY_LINE_ENABLED === 'true' && env.LINE_ACCESS_TOKEN) {
-    // Quota guard — non-CRITICAL (e.g. SPEED_OVER) blocked at >= 95% to preserve last 5%
-    const guard = await checkLineQuotaGuard(env, alertType);
-    if (guard.allow) {
-      results.push({ channel: 'line', ...(await sendLine(env, settings, fullText)) });
+    // เพดานต่อเคสใช้กับเส้นนี้ด้วย ไม่งั้นเรียก /notify/send ตรงๆ ก็ทะลุเพดานได้ (2026-07-31)
+    if (sentCount >= cap) {
+      results.push({ channel: 'line', ok: false, skipped: true,
+        error: `LINE_CAP_PER_CASE (${sentCount}/${cap})` });
     } else {
-      results.push({ channel: 'line', ok: false, skipped: true, error: guard.reason, quota: guard.quota });
+      // Quota guard — non-CRITICAL (e.g. SPEED_OVER) blocked at >= 95% to preserve last 5%
+      const guard = await checkLineQuotaGuard(env, alertType);
+      if (guard.allow) {
+        results.push({ channel: 'line', ...(await sendLine(env, settings, fullText)) });
+      } else {
+        results.push({ channel: 'line', ok: false, skipped: true, error: guard.reason, quota: guard.quota });
+      }
     }
   }
   if (settings.NOTIFY_TELEGRAM_ENABLED === 'true' && env.TELEGRAM_BOT_TOKEN && settings.NOTIFY_TELEGRAM_CHAT_ID) {
@@ -546,13 +628,16 @@ async function handleNotifySend(request, env) {
       payload: { message: fullText }
     })));
   }
-  await sbUpsert(env, 'notification_state', [{
+  const nowIso = new Date().toISOString();
+  await upsertNotifyState(env, {
     case_id: caseId, alert_type: alertType,
-    first_sent_at: new Date().toISOString(),
+    first_sent_at: (state && state.first_sent_at) ? state.first_sent_at : nowIso,
+    last_sent_at: nowIso,
+    line_sent_count: sentCount + (results.some(r => r.channel === 'line' && r.ok) ? 1 : 0),
     acknowledged: false
-  }], 'case_id,alert_type');
+  });
 
-  return jsonResponse({ ok: true, results }, 200, request, env);
+  return jsonResponse({ ok: true, results, cap }, 200, request, env);
 }
 
 // =============================================
@@ -639,8 +724,9 @@ async function checkLineQuotaGuard(env, alertType) {
     return { allow: false, reason: 'LINE_QUOTA_EXHAUSTED', quota: q };
   }
   if (q.used >= q.max * 0.95) {
-    // Soft cap — preserve last 5% for CRITICAL only
-    const isCritical = String(alertType || '').toUpperCase() === 'CRITICAL';
+    // Soft cap — preserve last 5% for CRITICAL/ARREST only
+    // (ARREST เพิ่มเข้ามา 2026-07-31 ตอนแยกเลน — ถ้าไม่นับ arrest จะโดนบล็อกที่ 95% ทั้งที่หนักสุด)
+    const isCritical = ['CRITICAL', 'ARREST'].indexOf(String(alertType || '').toUpperCase()) >= 0;
     if (!isCritical) {
       return { allow: false, reason: 'LINE_QUOTA_NEAR_LIMIT_NONCRITICAL_BLOCKED', quota: q };
     }
