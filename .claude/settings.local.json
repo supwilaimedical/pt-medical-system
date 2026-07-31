@@ -5,7 +5,11 @@
       "Bash(curl -s \"https://nominatim.openstreetmap.org/reverse?lat=13.7563&lon=100.4874&format=json&accept-language=th&zoom=10\" -H \"User-Agent: PTMedical-Test/1.0\")",
       "mcp__mcp-registry__search_mcp_registry",
       "Bash(ls -la \"F:\\\\\\\\@Coding\\\\\\\\pt-medical-system\\\\\\\\migration\\\\\\\\gps_*.sql\")",
-      "Bash(xargs grep *)"
+      "Bash(xargs grep *)",
+      "Bash(git config *)",
+      "Bash(\"C:/Program Files/GitHub CLI/gh.exe\" auth status)",
+      "Bash(\"C:/Program Files/GitHub CLI/gh.exe\" repo list supwilaimedical --limit 50)",
+      "Bash(\"C:/Program Files/GitHub CLI/gh.exe\" issue list --repo supwilaimedical/pt-medical-system --state open --limit 30)"
     ]
   }
 }

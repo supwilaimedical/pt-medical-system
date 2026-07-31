@@ -1,4 +1,20 @@
-node_modules/
+# ⛔ ความลับ — ห้ามขึ้น git เด็ดขาด
 .env
-migration/
-.claude/
+.env.*
+*.env
+
+# ของ generate ใหม่ได้
+node_modules/
+.wrangler/
+dist/
+.playwright-mcp/
+*.log
+.DS_Store
+
+# ────────────────────────────────────────────────────────────
+# repo นี้เลิกใช้แล้ว (2026-07-31)
+# โค้ดทั้งหมดย้ายไป F:\@Coding\supwilaiOS\
+#   frontend  → supwilaiOS\OS\pt\
+#   หลังบ้าน  → supwilaiOS\services\pt\
+# เหลือไว้เฉพาะ .git (ประวัติ) และ .env (ความลับ ที่ไม่ย้ายเข้า repo ใหม่)
+# ────────────────────────────────────────────────────────────
