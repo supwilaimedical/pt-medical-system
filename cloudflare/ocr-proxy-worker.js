@@ -67,6 +67,7 @@ export default {
       if (path === '/notify/send'  && request.method === 'POST') return await handleNotifySend(request, env);
       if (path === '/notify/test'  && request.method === 'POST') return await handleNotifyTest(request, env);
       if (path === '/notify/quota' && request.method === 'GET')  return await handleNotifyQuota(request, env);
+      if (path === '/notify/event' && request.method === 'POST') return await handleNotifyEvent(request, env);
       return jsonResponse({ error: 'Unknown /notify route', path }, 404, request, env);
     }
 
@@ -638,6 +639,103 @@ async function handleNotifySend(request, env) {
   });
 
   return jsonResponse({ ok: true, results, cap }, 200, request, env);
+}
+
+// =============================================
+// /notify/event — ประตูกลางสำหรับระบบภายนอกที่ไม่ได้อยู่ใน PT
+// =============================================
+// เพิ่ม 2026-07-31 ตามที่ Pex ออกแบบ:
+//   Google Form → Sheet → Apps Script → ที่นี่ → LINE/Telegram
+//
+// ทำไมต้องมี: สคริปต์ที่ฝังในชีต (เช็ครถ 6 ใบ + ฟอร์มลาเก่า) เดิม hardcode
+// LINE channel token ไว้ในชีตแล้วยิงเองตรงๆ ⇒ (1) ไม่มีใครนับได้ว่ากินโควตาเท่าไหร่
+// (2) ใครเปิดชีตก็ก๊อป token ไปยิงในนาม OA บริษัทได้ (3) ไม่มีเพดาน ไม่หลีกทางให้ critical
+// ⇒ ย้ายมาเข้าเส้นนี้: token อยู่ที่ worker ที่เดียว · log ลง notification_log ก้อนเดียว
+//   กับ critical · และได้ checkLineQuotaGuard ฟรี (งานที่ไม่ใช่ CRITICAL ถูกบล็อกที่ 95%
+//   ⇒ เช็ครถหลีกทางให้เคสวิกฤตเองอัตโนมัติ)
+//
+// body: { source, message, title?, kind? }   kind: 'submit' (ค่าเริ่มต้น) | 'edit'
+// auth: ?key= ต้องตรงกับ secret EXTERNAL_NOTIFY_KEY
+//       (คีย์นี้แค่ "สั่งส่งเข้ากลุ่มตัวเอง" ได้ ทำอย่างอื่นในนาม OA ไม่ได้ — ต่างจาก channel token)
+async function handleNotifyEvent(request, env) {
+  if (!env.SUPABASE_URL || !env.SUPABASE_SERVICE_KEY) {
+    return jsonResponse({ error: 'Worker missing SUPABASE_URL / SUPABASE_SERVICE_KEY' }, 500, request, env);
+  }
+  // trim ทั้งสองฝั่ง — ตอน `wrangler secret put` รับค่าทาง pipe บางเชลล์ต่อ \r\n ให้ท้ายค่า
+  // แล้วจะเทียบไม่ตรงตลอดกาลโดยหาสาเหตุยาก (เจอจริง 2026-07-31)
+  const key = (new URL(request.url).searchParams.get('key') || '').trim();
+  const want = (env.EXTERNAL_NOTIFY_KEY || '').trim();
+  if (!want || key !== want) {
+    return jsonResponse({ error: 'Unauthorized' }, 401, request, env);
+  }
+
+  let body;
+  try { body = await request.json(); }
+  catch { return jsonResponse({ error: 'Invalid JSON body' }, 400, request, env); }
+
+  const source  = String(body.source  || '').trim().slice(0, 40);
+  const message = String(body.message || '').trim();
+  const kind    = String(body.kind    || 'submit').trim();
+  if (!source || !message) {
+    return jsonResponse({ error: 'source, message required' }, 400, request, env);
+  }
+
+  const settings = await loadNotifySettings(env);
+  const get = (k, dflt) => {
+    const v = settings[k];
+    return (v === undefined || v === null || v === '') ? dflt : String(v);
+  };
+  const isOn = (v) => v === 'true' || v === '1';
+
+  const logRow = (status, channel, error, extra) => sbInsert(env, 'notification_log', [{
+    case_id: 'ext:' + source, alert_type: 'EXTERNAL', channel, status,
+    error: error || null,
+    payload: Object.assign({ source, kind, message: message.slice(0, 800) }, extra || {})
+  }]).catch(() => {});
+
+  // ปิดทั้ง source ได้ (NOTIFY_EXT_CHECKLIST_ENABLED = 'false')
+  if (!isOn(get('NOTIFY_EXT_' + source.toUpperCase() + '_ENABLED', 'true'))) {
+    await logRow('skipped', 'all', 'source_disabled');
+    return jsonResponse({ ok: true, skipped: 'source_disabled' }, 200, request, env);
+  }
+  // แจ้งตอน "แก้เซลล์ย้อนหลัง"
+  // ⚠️ ค่าเริ่มต้น = 'true' โดยตั้งใจ — งานนี้คือ "ย้ายทางเดิน" ไม่ใช่เปลี่ยนพฤติกรรม
+  // ของเดิมยิงทุกการแก้ ถ้าจะปิดต้องเป็นการตัดสินใจของเจ้าของระบบ ตั้ง NOTIFY_EXT_EDIT_ENABLED=false
+  if (kind === 'edit' && !isOn(get('NOTIFY_EXT_EDIT_ENABLED', 'true'))) {
+    await logRow('skipped', 'all', 'edit_events_disabled');
+    return jsonResponse({ ok: true, skipped: 'edit_events_disabled' }, 200, request, env);
+  }
+
+  // ช่องทาง: ค่าเริ่มต้น 'both' = "ส่งตามที่เปิดไว้ในหน้า Admin" (มติ Pex 2026-07-31)
+  // ⇒ ช่องไหนที่สวิตช์ "เปิดใช้งาน" อยู่ ก็ส่งช่องนั้น ไม่ต้องมีสวิตช์ซ้ำซ้อนอีกชุด
+  //   (ด้านล่างเช็ค NOTIFY_LINE_ENABLED / NOTIFY_TELEGRAM_ENABLED อยู่แล้ว)
+  // ตั้ง NOTIFY_EXT_CHANNEL=line หรือ telegram เมื่อต้องการบังคับเฉพาะช่องเดียว
+  const channel = get('NOTIFY_EXT_CHANNEL', 'both').toLowerCase();
+  const wantLine = channel === 'line' || channel === 'both';
+  const wantTg   = channel === 'telegram' || channel === 'both';
+  const results = [];
+
+  if (wantLine && settings.NOTIFY_LINE_ENABLED === 'true' && env.LINE_ACCESS_TOKEN) {
+    // alert_type ไม่ใช่ CRITICAL ⇒ ถูกกันที่ 95% เพื่อสงวนโควตาก้อนสุดท้ายให้เคสวิกฤต
+    const guard = await checkLineQuotaGuard(env, 'EXTERNAL');
+    if (guard.allow) results.push({ channel: 'line', ...(await sendLine(env, settings, message)) });
+    else results.push({ channel: 'line', ok: false, skipped: true, error: guard.reason, quota: guard.quota });
+  }
+  if (wantTg && settings.NOTIFY_TELEGRAM_ENABLED === 'true' && env.TELEGRAM_BOT_TOKEN && settings.NOTIFY_TELEGRAM_CHAT_ID) {
+    results.push({ channel: 'telegram', ...(await sendTelegram(env, settings.NOTIFY_TELEGRAM_CHAT_ID, message)) });
+  }
+
+  if (!results.length) {
+    await logRow('skipped', channel, 'no_channel_available');
+    return jsonResponse({ ok: true, skipped: 'no_channel_available', channel }, 200, request, env);
+  }
+
+  for (const r of results) {
+    await logRow(r.ok ? 'sent' : (r.skipped ? 'skipped' : 'failed'), r.channel, r.ok ? null : (r.error || 'unknown'));
+  }
+
+  if (Math.random() < 0.02) await sbRpc(env, 'notification_log_cleanup').catch(() => {});
+  return jsonResponse({ ok: true, sent: results }, 200, request, env);
 }
 
 // =============================================
