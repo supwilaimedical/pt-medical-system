@@ -1,25 +1,20 @@
-// regen-refer-sbar.mjs — one-time: re-summarize existing Refer AI summaries into SOAP format.
+// gen-missing-refer.mjs — generate raw_data.referSummary (SOAP) for cases that
+// HAVE refer documents attached but DON'T have an AI summary yet.
 //
-// Reads the real Refer documents (Cloudinary) for every case that already has
-// raw_data.referSummary, runs Gemini OCR+SBAR via the OCR proxy (proxy holds the
-// Gemini key — no key needed here), and writes the new SBAR summary back.
-//
-// Mirrors the browser pattern in v2/transport/index.html (_ocrSummarize +
-// persistReferSummary). Run:  node tools/regen-refer-sbar.mjs
-// Dry run (no DB write):       node tools/regen-refer-sbar.mjs --dry
-//
+// Same OCR+SOAP pipeline as regen-refer-sbar.mjs / the in-app _ocrSummarize,
+// but the inverse selection: only cases missing a referSummary.
+//   node tools/gen-missing-refer.mjs --dry   (preview, no DB write)
+//   node tools/gen-missing-refer.mjs         (live)
 // Requires Node 18+ (global fetch).
 
 const DRY = process.argv.includes('--dry');
-const FORCE = process.argv.includes('--force');   // regen even cases already in SOAP
 
-// ---- Config (from shared/config.js) ----
 const SUPABASE_URL = 'https://rwxaalgvkzlsyfzdebcj.supabase.co';
 const SUPABASE_ANON_KEY = 'sb_publishable_5jmlKl7w2H_Qb4Yp1Y8gWA_-SMZfB0a';
 const OCR_PROXY = 'https://gps-proxy.supwilai-ambulance.workers.dev';
-const ORIGIN = 'https://supwilaimedical.github.io'; // satisfies worker CORS allowlist
+const ORIGIN = 'https://supwilaimedical.github.io';
 
-// ---- SBAR prompt (keep in sync with _ocrSummarize in v2/transport/index.html) ----
+// SOAP prompt — kept identical to regen-refer-sbar.mjs / _ocrSummarize
 const PROMPT =
   'คุณคือผู้ช่วยอ่านและสรุป "ใบ Refer / ใบส่งตัวผู้ป่วย" ภาษาไทย จากรูปเอกสารที่แนบมา (อาจมีหลายหน้า)\n\n' +
   'จัดผลสรุปเป็นรูปแบบ SOAP ครบ 4 หัวข้อตามนี้เป๊ะ (ขึ้นบรรทัดใหม่ทุกหัวข้อ ใช้หัวข้อตามนี้):\n' +
@@ -36,8 +31,7 @@ const PROMPT =
   '6. ไม่ต้องระบุ "ส่งจาก/ส่งไป" (ต้นทาง-ปลายทาง) เว้นแต่เอกสารเขียนข้อมูลการส่งต่อไว้ชัดเจน (เช่น "Refer มาจาก รพ. ... วันที่ ...") จึงใส่ตามที่เขียนเป๊ะ\n' +
   '7. เขียนเป็น "ภาษาไทยเป็นหลัก" — แปลอาการ/ผลตรวจ/ข้อความที่เป็นภาษาอังกฤษให้เป็นไทยให้มากที่สุด (เช่น drowsy→ซึม, dyspnea→หายใจลำบาก, "no evidence of..."→"ไม่พบ...", "follow 1-step command"→"ทำตามคำสั่งง่ายๆ ได้") คงภาษาอังกฤษไว้ได้เฉพาะ: ชื่อยา, ชื่อโรค/การวินิจฉัยที่เป็นทางการ, ค่าแล็บ+หน่วย, และตัวย่อทางการแพทย์ที่แปลแล้วเสียความหมาย (ถ้าทำได้ให้มีคำไทยกำกับในวงเล็บ) กระชับ อ่านง่าย\n' +
   // กฎ 8 — self-check ก่อนตอบ · ต้องมีให้ตรงกับหน้าเว็บ (OS/pt/v2/transport/index.html)
-  // ไม่งั้นสรุปที่ generate ย้อนหลังด้วยเครื่องมือนี้ จะคุณภาพต่ำกว่าที่หน้าเว็บทำ
-  // (เพิ่ม 2026-07-31 ตอนไล่ให้ prompt ทุกที่ตรงกัน — เดิมมีแต่ในหน้าเว็บ)
+  // เดิมมีแต่ในหน้าเว็บ ⇒ สรุปที่ generate ย้อนหลังด้วยเครื่องมือนี้จะคุณภาพต่ำกว่า (เพิ่ม 2026-07-31)
   '8. ตรวจทานก่อนตอบ: ไล่เช็ค "ชื่อโรงพยาบาล/สถานที่/บุคคลทุกชื่อ" ในสรุปของคุณอีกรอบ — ชื่อใดถอดตัวอักษรจากภาพตรงๆ ไม่ได้ (มาจากการเดา ความรู้ทั่วไป หรือชื่อที่คุ้นเคย) ให้แทนที่ก่อนตอบเสมอ: ถ้าเป็นโรงพยาบาล ใช้ "โรงพยาบาลต้นทาง"/"โรงพยาบาลปลายทาง" ตามบทบาท · ถ้าเป็นชื่ออื่น ใช้ "(อ่านไม่ชัด)"\n\n' +
   'ตอบเป็น JSON เท่านั้น: { "summary": "<สรุป SOAP ภาษาไทยเป็นหลัก ขึ้นบรรทัดใหม่แต่ละหัวข้อ S/O/A/P>" }';
 
@@ -46,30 +40,22 @@ const sbHeaders = {
   Authorization: 'Bearer ' + SUPABASE_ANON_KEY,
   'Content-Type': 'application/json'
 };
-
 const delay = (ms) => new Promise((r) => setTimeout(r, ms));
 
-// ---- doc → { mime, data(base64) } ----
 function isPdfDoc(d) {
   return (d.type && /pdf/i.test(d.type)) ||
          /\.pdf(\?|#|$)/i.test(d.url || '') ||
          d.resourceType === 'raw' || d.format === 'pdf';
 }
-
 async function fetchDoc(d) {
   let url = d.url;
   const pdf = isPdfDoc(d);
-  if (!pdf && url.indexOf('/upload/') !== -1) {
-    // Cloudinary transform — shrink images (mirror browser _imageUrlToBase64)
-    url = url.replace('/upload/', '/upload/w_2000,q_auto,f_jpg/');
-  }
+  if (!pdf && url.indexOf('/upload/') !== -1) url = url.replace('/upload/', '/upload/w_2000,q_auto,f_jpg/');
   const resp = await fetch(url);
   if (!resp.ok) throw new Error('fetch doc ' + resp.status + ' ' + url);
   const buf = Buffer.from(await resp.arrayBuffer());
   return { mime: pdf ? 'application/pdf' : 'image/jpeg', data: buf.toString('base64') };
 }
-
-// ---- Gemini via proxy: Pro ×3 (backoff) → flash ----
 async function callModel(model, parts) {
   const body = {
     contents: [{ parts }],
@@ -82,105 +68,70 @@ async function callModel(model, parts) {
   let resp;
   try {
     resp = await fetch(OCR_PROXY + '/?model=' + encodeURIComponent(model), {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', Origin: ORIGIN },
-      body: JSON.stringify(body),
-      signal: AbortSignal.timeout(75000)   // client cap — กัน fetch แขวน
+      method: 'POST', headers: { 'Content-Type': 'application/json', Origin: ORIGIN },
+      body: JSON.stringify(body), signal: AbortSignal.timeout(75000)
     });
   } catch (err) {
-    if (err && (err.name === 'TimeoutError' || err.name === 'AbortError')) {
-      const te = new Error('client timeout'); te.status = 408; throw te;
-    }
+    if (err && (err.name === 'TimeoutError' || err.name === 'AbortError')) { const te = new Error('client timeout'); te.status = 408; throw te; }
     throw err;
   }
   if (!resp.ok) { const t = await resp.text(); const e = new Error('HTTP ' + resp.status); e.status = resp.status; e.body = t; throw e; }
   const data = await resp.json();
   const pr = (((data.candidates || [])[0] || {}).content || {}).parts || [];
-  const txt = (pr[0] || {}).text || '{}';
-  return (JSON.parse(txt).summary || '').trim();
+  return (JSON.parse((pr[0] || {}).text || '{}').summary || '').trim();
 }
-
-// Cloudflare gateway timeouts (524/522/408) won't improve by retrying Pro on
-// big multi-page docs → drop to flash (faster, rarely times out) immediately.
-const TIMEOUT_CODES = [524, 522, 408];
-const RETRY_CODES = [429, 503, 500];
-
+const TIMEOUT_CODES = [524, 522, 408], RETRY_CODES = [429, 503, 500];
 async function summarize(parts) {
   for (let attempt = 1; attempt <= 3; attempt++) {
     try { return await callModel('gemini-2.5-pro', parts); }
     catch (e) {
-      if (TIMEOUT_CODES.includes(e.status)) break;          // Pro too slow → flash now
-      if (!RETRY_CODES.includes(e.status)) throw e;          // 400 etc → real error
+      if (TIMEOUT_CODES.includes(e.status)) break;
+      if (!RETRY_CODES.includes(e.status)) throw e;
       if (attempt < 3) await delay(attempt * 1500);
     }
   }
   return await callModel('gemini-2.5-flash', parts);
 }
 
-// ---- main ----
 async function main() {
   console.log(DRY ? '== DRY RUN (no DB writes) ==' : '== LIVE RUN ==');
-
-  // cases with an existing referSummary
-  const q = SUPABASE_URL + '/rest/v1/cases?select=case_id,raw_data&raw_data->>referSummary=not.is.null';
+  // cases WITHOUT a referSummary (null or absent)
+  const q = SUPABASE_URL + '/rest/v1/cases?select=case_id,raw_data&raw_data->>referSummary=is.null';
   const resp = await fetch(q, { headers: sbHeaders });
   if (!resp.ok) throw new Error('select cases ' + resp.status + ' ' + (await resp.text()));
   const rows = await resp.json();
-  console.log('Found ' + rows.length + ' case(s) with an AI summary.\n');
 
-  let ok = 0, skipped = 0, failed = 0;
+  // keep only those that actually have refer docs to read
+  const targets = [];
   for (const row of rows) {
-    const id = row.case_id;
     const rd = row.raw_data || {};
-    let docs = [];
-    try { docs = rd.referDocsJson ? JSON.parse(rd.referDocsJson) : []; } catch (e) {}
+    let docs = []; try { docs = rd.referDocsJson ? JSON.parse(rd.referDocsJson) : []; } catch (e) {}
     docs = (docs || []).filter((d) => d && d.url);
+    if (docs.length) targets.push({ id: row.case_id, rd, docs });
+  }
+  console.log('Found ' + targets.length + ' case(s) with refer docs but no AI summary.\n');
 
-    if (!docs.length) { console.log('SKIP  ' + id + ' — no refer docs to re-read'); skipped++; continue; }
-
-    // Idempotency: skip cases already in SOAP format (re-run only retries failures).
-    // --force bypasses this (e.g. to re-gen with an updated prompt).
-    if (!DRY && !FORCE && typeof rd.referSummary === 'string' && rd.referSummary.trim().startsWith('S (Subjective)')) {
-      console.log('SKIP  ' + id + ' — already SOAP'); skipped++; continue;
-    }
-
+  let ok = 0, failed = 0;
+  for (const t of targets) {
     try {
-      process.stdout.write('...   ' + id + ' — reading ' + docs.length + ' doc(s)... ');
+      process.stdout.write('...   ' + t.id + ' — reading ' + t.docs.length + ' doc(s)... ');
       const parts = [{ text: PROMPT }];
-      for (const d of docs) {
-        const pg = await fetchDoc(d);
-        parts.push({ inline_data: { mime_type: pg.mime, data: pg.data } });
-      }
+      for (const d of t.docs) { const pg = await fetchDoc(d); parts.push({ inline_data: { mime_type: pg.mime, data: pg.data } }); }
       const summary = await summarize(parts);
       if (!summary) throw new Error('empty summary');
-
-      if (DRY) {
-        console.log('OK (dry)\n----- ' + id + ' -----\n' + summary + '\n');
-        ok++;
-        continue;
-      }
-
-      // read-merge-write (mirror persistReferSummary) — re-read fresh raw_data
-      const cur = await fetch(SUPABASE_URL + '/rest/v1/cases?case_id=eq.' + encodeURIComponent(id) + '&select=raw_data', { headers: sbHeaders });
-      const curRows = await cur.json();
-      const freshRd = (curRows[0] && curRows[0].raw_data) || rd;
+      if (DRY) { console.log('OK (dry)\n----- ' + t.id + ' -----\n' + summary + '\n'); ok++; continue; }
+      // read-merge-write fresh raw_data
+      const cur = await fetch(SUPABASE_URL + '/rest/v1/cases?case_id=eq.' + encodeURIComponent(t.id) + '&select=raw_data', { headers: sbHeaders });
+      const freshRd = ((await cur.json())[0] || {}).raw_data || t.rd;
       freshRd.referSummary = summary;
       freshRd.referSummaryAt = new Date().toISOString();
-      const upd = await fetch(SUPABASE_URL + '/rest/v1/cases?case_id=eq.' + encodeURIComponent(id), {
-        method: 'PATCH',
-        headers: { ...sbHeaders, Prefer: 'return=minimal' },
-        body: JSON.stringify({ raw_data: freshRd })
+      const upd = await fetch(SUPABASE_URL + '/rest/v1/cases?case_id=eq.' + encodeURIComponent(t.id), {
+        method: 'PATCH', headers: { ...sbHeaders, Prefer: 'return=minimal' }, body: JSON.stringify({ raw_data: freshRd })
       });
       if (!upd.ok) throw new Error('patch ' + upd.status + ' ' + (await upd.text()));
-      console.log('OK');
-      ok++;
-    } catch (e) {
-      console.log('FAIL — ' + (e.message || e) + (e.body ? (' | body: ' + String(e.body).slice(0, 300)) : ''));
-      failed++;
-    }
+      console.log('OK'); ok++;
+    } catch (e) { console.log('FAIL — ' + (e.message || e) + (e.body ? (' | ' + String(e.body).slice(0, 200)) : '')); failed++; }
   }
-
-  console.log('\nDone. ok=' + ok + ' skipped=' + skipped + ' failed=' + failed);
+  console.log('\nDone. ok=' + ok + ' failed=' + failed);
 }
-
 main().catch((e) => { console.error('FATAL', e); process.exit(1); });
